@@ -3,7 +3,8 @@ from typing import Dict, List, Optional, Tuple
 
 class DeviceRegistry:
     """
-    Registry to track and manage Home Assistant entity assignments to farm, row, rack, or shelf.
+    Registry to track and manage Home Assistant entity assignments
+    to farm, row, rack, or shelf.
     """
 
     def __init__(self):
@@ -11,7 +12,10 @@ class DeviceRegistry:
         self._entity_map: Dict[str, Tuple[str, str]] = {}
 
     def assign_entity(self, entity_id: str, level: str, object_id: str):
-        """Assign a Home Assistant entity to a specific object (farm/row/rack/shelf) by id."""
+        """
+        Assign a Home Assistant entity to a specific object
+        (farm/row/rack/shelf) by id.
+        """
         self._entity_map[entity_id] = (level, object_id)
 
     def unassign_entity(self, entity_id: str):

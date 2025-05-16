@@ -6,7 +6,7 @@ DOMAIN = "vertical_farm"
 DOMAIN_DATA = f"{DOMAIN}_data"
 COORDINATOR = "coordinator"
 COMPONENT = "component"
-VERSION = "2025.0.1"
+VERSION = "0.0.5"
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/eddie-rowe/vertical-farm/issues"
 
@@ -28,9 +28,30 @@ ICON_SEQUENCE_ZONE_ON = "mdi:play-circle-outline"
 ICON_SEQUENCE_ZONE_OFF = "mdi:stop-circle-outline"
 ICON_SEQUENCE_DELAY = "mdi:timer-sand"
 
+# Configuration keys
+CONF_FARMS = "farms"
+CONF_ID = "id"
+CONF_NAME = "name"
+CONF_LOCATION = "location"
+CONF_NOTES = "notes"
+CONF_DEVICE_IDS = "device_ids"
+CONF_POSITION = "position"
+CONF_ROWS = "rows"
+CONF_RACKS = "racks"
+CONF_SHELVES = "shelves"
+CONF_CAPACITY = "capacity"
+
+# Sensor/Entity attributes
+ATTR_LEVEL = "level"
+ATTR_OBJECT_ID = "object_id"
+ATTR_PROXIED_ENTITY_ID = "proxied_entity_id"
+
+# Device registry
+DEVICE_REGISTRY = f"{DOMAIN}_device_registry"
+
 # Platforms
-BINARY_SENSOR = "binary_sensor"
-PLATFORMS = [BINARY_SENSOR]
+PLATFORM_SENSOR = "sensor"
+PLATFORMS = [PLATFORM_SENSOR]
 
 # Configuration and options
 CONF_ENABLED = "enabled"
