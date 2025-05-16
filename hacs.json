@@ -1,0 +1,11 @@
+{
+  "name": "Vertical Farm",
+  "content_in_root": false,
+  "domains": ["vertical_farm"],
+  "country": "US",
+  "homeassistant": ">=2023.0.0",
+  "iot_class": "local_polling",
+  "render_readme": true,
+  "category": "integration",
+  "filename": "custom_components/vertical_farm/manifest.json"
+}

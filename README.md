@@ -1,17 +1,17 @@
 # Vertical Farm Home Assistant Integration
 
-This custom component provides a flexible data model and configuration schema for managing a vertical farm layout in Home Assistant.
+This repository contains the backend integration for managing vertical farm layouts in Home Assistant.
 
 ## Features
 - Define farms, rows, racks, and shelves
 - Validate configuration with a robust schema
 - Foundation for device assignment, recipe management, and monitoring
-- Optional: Custom Lovelace card for visualizing your farm (see `vertical_farm_ui/`)
 
-## Installation
-1. Copy the `custom_components/vertical_farm` directory to your Home Assistant `custom_components` folder.
-2. (Optional) Copy the built frontend card (`vertical_farm_ui/dist/vertical-farm-card.js`) to your Home Assistant `www/` directory.
+## Installation (via HACS)
+1. Add this repository to HACS as a custom repository (category: Integration).
+2. Install the "Vertical Farm" integration from HACS.
 3. Add configuration to your `configuration.yaml` (see below).
+4. Restart Home Assistant.
 
 ## Configuration Example
 ```yaml
@@ -33,14 +33,11 @@ vertical_farm:
                 name: "Shelf 2"
 ```
 
-## Frontend Card Usage
-See [`vertical_farm_ui/README.md`](vertical_farm_ui/README.md) for instructions on building and using the custom Lovelace card.
+## Frontend Card
+A custom Lovelace card for visualizing your farm is available in the [vertical-farm-card](https://github.com/eddie-rowe/vertical-farm-card) repository. Install it via HACS as a Plugin.
 
-## Development
-- Lint: `flake8 custom_components/vertical_farm`
-- Format: `black custom_components/vertical_farm`
-- Type check: `mypy custom_components/vertical_farm`
-- Test: `pytest`
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 Apache 2.0
