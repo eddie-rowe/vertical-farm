@@ -7,6 +7,8 @@ class Shelf:
     name: str
     capacity: Optional[int] = None
     notes: Optional[str] = None
+    device_ids: List[str] = field(default_factory=list)
+    position: Optional[int] = None
 
 @dataclass
 class Rack:
@@ -14,6 +16,8 @@ class Rack:
     name: str
     shelves: List[Shelf] = field(default_factory=list)
     notes: Optional[str] = None
+    device_ids: List[str] = field(default_factory=list)
+    position: Optional[int] = None
 
 @dataclass
 class Row:
@@ -21,6 +25,8 @@ class Row:
     name: str
     racks: List[Rack] = field(default_factory=list)
     notes: Optional[str] = None
+    device_ids: List[str] = field(default_factory=list)
+    position: Optional[int] = None
 
 @dataclass
 class Farm:
@@ -29,3 +35,5 @@ class Farm:
     rows: List[Row] = field(default_factory=list)
     location: Optional[str] = None
     notes: Optional[str] = None
+    device_ids: List[str] = field(default_factory=list)
+    position: Optional[int] = None
