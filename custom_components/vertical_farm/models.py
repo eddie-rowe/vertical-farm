@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+
 @dataclass
 class Shelf:
     id: str
@@ -9,6 +10,7 @@ class Shelf:
     notes: Optional[str] = None
     device_ids: List[str] = field(default_factory=list)
     position: Optional[int] = None
+
 
 @dataclass
 class Rack:
@@ -19,6 +21,7 @@ class Rack:
     device_ids: List[str] = field(default_factory=list)
     position: Optional[int] = None
 
+
 @dataclass
 class Row:
     id: str
@@ -27,6 +30,7 @@ class Row:
     notes: Optional[str] = None
     device_ids: List[str] = field(default_factory=list)
     position: Optional[int] = None
+
 
 @dataclass
 class Farm:

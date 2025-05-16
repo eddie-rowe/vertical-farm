@@ -1,9 +1,11 @@
 from typing import Dict, List, Optional, Tuple
 
+
 class DeviceRegistry:
     """
     Registry to track and manage Home Assistant entity assignments to farm, row, rack, or shelf.
     """
+
     def __init__(self):
         # Maps entity_id to a tuple: (level, object_id)
         self._entity_map: Dict[str, Tuple[str, str]] = {}
@@ -23,7 +25,11 @@ class DeviceRegistry:
 
     def get_entities_for_object(self, level: str, object_id: str) -> List[str]:
         """Get all entity_ids assigned to a specific object."""
-        return [eid for eid, (lvl, oid) in self._entity_map.items() if lvl == level and oid == object_id]
+        return [
+            eid
+            for eid, (lvl, oid) in self._entity_map.items()
+            if lvl == level and oid == object_id
+        ]
 
     def all_assignments(self) -> Dict[str, Tuple[str, str]]:
         """Return all entity assignments."""

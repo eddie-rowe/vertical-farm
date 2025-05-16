@@ -5,13 +5,18 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+
+async def async_setup_platform(
+    hass, config, async_add_entities, discovery_info=None
+):
     # Not used with config entry setup
     pass
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     # Not used yet (for config flow)
     pass
+
 
 async def async_setup(hass, config, async_add_entities, discovery_info=None):
     """Set up sensors for each farm element with assigned entities."""
@@ -22,23 +27,26 @@ async def async_setup(hass, config, async_add_entities, discovery_info=None):
         return
 
     sensors = []
+
     def add_sensors_for_element(element, level):
         # For each assigned entity, create a sensor that mirrors its state
-        if hasattr(element, 'device_ids') and element.device_ids:
+        if hasattr(element, "device_ids") and element.device_ids:
             for entity_id in element.device_ids:
                 sensors.append(FarmProxySensor(level, element.id, entity_id))
         # Recurse
-        if hasattr(element, 'rows'):
+        if hasattr(element, "rows"):
             for row in element.rows:
-                add_sensors_for_element(row, 'row')
-        if hasattr(element, 'racks'):
+                add_sensors_for_element(row, "row")
+        if hasattr(element, "racks"):
             for rack in element.racks:
-                add_sensors_for_element(rack, 'rack')
-        if hasattr(element, 'shelves'):
+                add_sensors_for_element(rack, "rack")
+        if hasattr(element, "shelves"):
             for shelf in element.shelves:
-                add_sensors_for_element(shelf, 'shelf')
-    add_sensors_for_element(farm, 'farm')
+                add_sensors_for_element(shelf, "shelf")
+
+    add_sensors_for_element(farm, "farm")
     async_add_entities(sensors)
+
 
 class FarmProxySensor(Entity):
     def __init__(self, level, object_id, entity_id):
@@ -54,7 +62,9 @@ class FarmProxySensor(Entity):
 
     @property
     def unique_id(self):
-        return f"vertical_farm_{self._level}_{self._object_id}_{self._entity_id}"
+        return (
+            f"vertical_farm_{self._level}_{self._object_id}_{self._entity_id}"
+        )
 
     @property
     def state(self):
