@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black mypy voluptuous
+      - name: Lint with flake8
+        run: flake8 custom_components/vertical_farm
+      - name: Check formatting with black
+        run: black --check custom_components/vertical_farm
+      - name: Type check with mypy
+        run: mypy custom_components/vertical_farm
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest voluptuous
+      - name: Run tests (unittest)
+        run: python -m unittest discover tests
+      - name: Run tests (pytest)
+        run: pytest tests/
+
+  hacs-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
