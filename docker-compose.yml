@@ -9,12 +9,12 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_KEY=${SUPABASE_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-      - DD_SERVICE=conductor-ai-backend
+      - DD_SERVICE=vertical-farm-backend
       - DD_ENV=dev
       - DD_VERSION=1.0.0
       - DD_AGENT_HOST=dd-agent
     labels:
-      com.datadoghq.ad.logs: '[{"source": "conductor-ai-backend", "service": "conductor-ai-backend"}]'
+      com.datadoghq.ad.logs: '[{"source": "vertical-farm-backend", "service": "vertical-farm-backend"}]'
     depends_on:
       - datadog
 
@@ -32,7 +32,7 @@ services:
       - NEXT_PUBLIC_DD_SERVICE=${NEXT_PUBLIC_DD_SERVICE}
       - NEXT_PUBLIC_DD_ENV=${NEXT_PUBLIC_DD_ENV}
     labels:
-      com.datadoghq.ad.logs: '[{"source": "conductor-ai-frontend", "service": "conductor-ai-frontend"}]'
+      com.datadoghq.ad.logs: '[{"source": "vertical-farm-frontend", "service": "vertical-farm-frontend"}]'
     depends_on:
       - backend
       - datadog
@@ -51,7 +51,7 @@ services:
       - DD_APM_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true # enables agent to receive traces from other containers
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
-      - DD_HOSTNAME=conductor-ai-docker-desktop
+      - DD_HOSTNAME=vertical-farm-docker-desktop
       - DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED=true
       - SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}

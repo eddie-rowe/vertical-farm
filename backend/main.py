@@ -13,8 +13,8 @@ origins = [
     "http://localhost",
     "http://localhost:3000",
     "http://localhost:8080",
-    "https://conductor-ai-frontend.onrender.com",
-    "https://conductor-ai.onrender.com",
+    "https://vertical-farm-frontend.onrender.com",
+    "https://vertical-farm.onrender.com",
 ]
 
 app.add_middleware(

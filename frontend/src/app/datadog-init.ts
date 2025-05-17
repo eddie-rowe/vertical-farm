@@ -10,7 +10,7 @@ datadogRum.init({
     // `site` refers to the Datadog site parameter of your organization
     // see https://docs.datadoghq.com/getting_started/site/
     site: 'us5.datadoghq.com',
-    service: 'conductor-ai-frontend',
+    service: 'vertical-farm-frontend',
     env: 'dev',
     version: '1.0.0',
     sessionSampleRate: 100,
@@ -21,7 +21,7 @@ datadogRum.init({
     defaultPrivacyLevel: 'mask-user-input',
     // Specify URLs to propagate trace headers for connection between RUM and backend trace
     allowedTracingUrls: [
-      { match: "https://conductor-ai-backend.onrender", propagatorTypes: ["tracecontext"] },
+      { match: "https://vertical-farm-backend.onrender", propagatorTypes: ["tracecontext"] },
     ],
 });
 
