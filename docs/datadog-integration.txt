@@ -1,0 +1,26 @@
+All necessary changes for Datadog instrumentation have been made:
+
+Frontend (Next.js)
+Datadog RUM is initialized globally via a new datadog-init.ts file, imported in your root layout.
+.env.local is set up for your RUM application/client tokens.
+
+Backend (FastAPI)
+Datadog tracing and logging are initialized in datadog_init.py and imported in main.py.
+Backend is configured to run with ddtrace-run for full APM support.
+.env is set up for Datadog service/env/version tags.
+
+Docker Compose
+A datadog agent service is added, with all required environment variables and volumes.
+The backend service is configured to send traces/logs/metrics to the Datadog agent.
+
+
+What you need to do:
+Add your real Datadog API key to your environment (e.g., in a .env file at the project root):
+Apply to datadog-inte...
+your_real_datadog_api_key
+Add your Datadog RUM application and client tokens to frontend/.env.local.
+Rebuild and restart your Docker Compose stack:
+Apply to datadog-inte...
+build
+You’ll now have unified metrics, traces, and logs from both frontend and backend in Datadog!
+If you want to add custom metrics, advanced logging, or trace propagation between frontend and backend, just let me know!
