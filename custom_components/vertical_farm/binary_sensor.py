@@ -39,7 +39,7 @@ async def async_setup(
     """
     Set up vertical farm binary sensors from YAML config.
     """
-    farms = hass.data[DOMAIN]["farms"]
+    farms = hass.data[DOMAIN]
     entities: List[VerticalFarmBinarySensor] = []
 
     def add_binary_sensors_for_object(

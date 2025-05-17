@@ -39,7 +39,7 @@ async def async_setup(
     """
     Set up vertical farm switches from YAML config.
     """
-    farms = hass.data[DOMAIN]["farms"]
+    farms = hass.data[DOMAIN]
     entities: List[VerticalFarmSwitch] = []
 
     def add_switches_for_object(obj, level, parent_id=None, parent_type=None):

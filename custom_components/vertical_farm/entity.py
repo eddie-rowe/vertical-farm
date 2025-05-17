@@ -99,6 +99,13 @@ class VerticalFarmSensor(VerticalFarmEntity, SensorEntity):
         self._entity_id = entity_id
         self._state = None
 
+    def unique_id(self) -> str:
+        return f"vertical_farm_{self._level}_{self._object_id}_{self._entity_id}"
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} ({self._entity_id})"
+
     def entity_type(self) -> str:
         return "sensor"
 
@@ -123,6 +130,13 @@ class VerticalFarmSwitch(VerticalFarmEntity, SwitchEntity):
         super().__init__(*args, **kwargs)
         self._entity_id = entity_id
         self._is_on = False
+
+    def unique_id(self) -> str:
+        return f"vertical_farm_{self._level}_{self._object_id}_{self._entity_id}"
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} ({self._entity_id})"
 
     def entity_type(self) -> str:
         return "switch"
@@ -170,6 +184,13 @@ class VerticalFarmBinarySensor(VerticalFarmEntity, BinarySensorEntity):
         super().__init__(*args, **kwargs)
         self._entity_id = entity_id
         self._is_on = False
+
+    def unique_id(self) -> str:
+        return f"vertical_farm_{self._level}_{self._object_id}_{self._entity_id}"
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} ({self._entity_id})"
 
     def entity_type(self) -> str:
         return "binary_sensor"

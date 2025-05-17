@@ -39,7 +39,7 @@ async def async_setup(
     """
     Set up vertical farm sensors from YAML config.
     """
-    farms = hass.data[DOMAIN]["farms"]
+    farms = hass.data[DOMAIN]
     entities: List[VerticalFarmSensor] = []
 
     def add_sensors_for_object(obj, level, parent_id=None, parent_type=None):
