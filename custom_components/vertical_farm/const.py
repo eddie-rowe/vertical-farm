@@ -1,9 +1,32 @@
-"""Constants for the Vertical Farm Home Assistant integration."""
+"""
+Constants for the Vertical Farm HACS integration (helper-driven).
+"""
+
+# Integration domain
+DOMAIN = "vertical_farm"
+
+# Supported Home Assistant helper domains
+HELPER_DOMAINS = [
+    "input_boolean",
+    "input_button",
+    "input_datetime",
+    "input_number",
+    "input_select",
+    "input_text",
+]
+
+# Naming convention for helpers (example: farm1_row1_rack1_shelf1_moisture_setpoint)
+HELPER_NAMING_PATTERN = "{farm}_{row}_{rack}_{shelf}_{attribute}"
+
+# Example farm structure keys (for parsing helper names)
+FARM_KEYS = ["farm", "row", "rack", "shelf", "attribute"]
+
+# Prefix for all helpers (optional, for filtering)
+HELPER_PREFIX = "farm"
 
 # Base component constants
 NAME = "Vertical Farm"
-DOMAIN = "vertical_farm"
-VERSION = "0.0.7"
+VERSION = "0.0.8"
 ISSUE_URL = "https://github.com/eddie-rowe/vertical-farm/issues"
 
 # Configuration keys (for YAML/config schema)

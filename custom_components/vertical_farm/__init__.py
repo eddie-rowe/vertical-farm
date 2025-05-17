@@ -1,35 +1,26 @@
 """
-Vertical Farm Home Assistant Integration
+Vertical Farm HACS Integration (helper-driven)
 
-Initializes the integration, loads YAML config, and builds farm models.
+- Discovers Home Assistant helpers (input_boolean, input_button, etc.) matching the farm naming convention
+- Sets up listeners for helper changes
+- Optionally registers services for farm actions
 """
-
 import logging
-from .const import DOMAIN, CONF_FARMS
-from .schema import CONFIG_SCHEMA
-from .helpers import dict_to_farm
-from typing import Any, Dict
+from homeassistant.core import HomeAssistant
+from .const import DOMAIN
+from .helpers import discover_helpers, parse_helper_name
 
 _LOGGER = logging.getLogger(__name__)
 
-
-async def async_setup(hass, config: Dict[str, Any]) -> bool:
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """
-    Set up the Vertical Farm integration from configuration.yaml.
-    Loads and validates config, builds farm models, and stores them in hass.data.
+    Set up the Vertical Farm integration (helper-driven).
+    Discovers helpers and logs their structure.
     """
-    _LOGGER.info("Setting up Vertical Farm integration")
-    user_config = config.get(DOMAIN)
-    if user_config is not None:
-        try:
-            validated = CONFIG_SCHEMA(user_config)
-            # Support multiple farms
-            farms = [
-                dict_to_farm(farm_dict) for farm_dict in validated[CONF_FARMS]
-            ]
-            hass.data[DOMAIN] = farms
-            _LOGGER.debug(f"Loaded farm models: {farms}")
-        except Exception as e:
-            _LOGGER.error(f"Config validation error: {e}")
-            return False
+    _LOGGER.info("Setting up Vertical Farm (helper-driven) integration")
+    helpers = discover_helpers(hass)
+    for entity_id, state in helpers.items():
+        structure = parse_helper_name(entity_id)
+        _LOGGER.info(f"Discovered helper: {entity_id} | Structure: {structure}")
+    # Optionally: set up listeners, register services, etc.
     return True

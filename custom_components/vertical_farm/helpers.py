@@ -1,66 +1,39 @@
-from .models import Farm, Row, Rack, Shelf
-from .const import (
-    CONF_ID,
-    CONF_NAME,
-    CONF_LOCATION,
-    CONF_NOTES,
-    CONF_DEVICE_IDS,
-    CONF_POSITION,
-    CONF_ROWS,
-    CONF_RACKS,
-    CONF_SHELVES,
-    CONF_CAPACITY,
-)
-from typing import Dict, Any, List, Optional
+"""
+Helper discovery and utility functions for the Vertical Farm integration.
+"""
+from homeassistant.core import HomeAssistant
+from .const import HELPER_DOMAINS, HELPER_PREFIX
 
 
-def dict_to_shelf(data: Dict[str, Any]) -> Shelf:
-    """Convert a dict to a Shelf dataclass."""
-    return Shelf(
-        id=data[CONF_ID],
-        name=data[CONF_NAME],
-        capacity=data.get(CONF_CAPACITY),
-        notes=data.get(CONF_NOTES),
-        device_ids=data.get(CONF_DEVICE_IDS, []),
-        position=data.get(CONF_POSITION),
-    )
+def discover_helpers(hass: HomeAssistant):
+    """
+    Discover all helpers (input_boolean, input_button, etc.) matching the farm naming convention.
+    Returns a dict of {entity_id: state_obj} for all matching helpers.
+    """
+    helpers = {}
+    for domain in HELPER_DOMAINS:
+        for entity_id in hass.states.async_entity_ids(domain):
+            if entity_id.split(".", 1)[-1].startswith(HELPER_PREFIX):
+                helpers[entity_id] = hass.states.get(entity_id)
+    return helpers
 
 
-def dict_to_rack(data: Dict[str, Any]) -> Rack:
-    """Convert a dict to a Rack dataclass."""
-    shelves = [dict_to_shelf(s) for s in data.get(CONF_SHELVES, [])]
-    return Rack(
-        id=data[CONF_ID],
-        name=data[CONF_NAME],
-        shelves=shelves,
-        notes=data.get(CONF_NOTES),
-        device_ids=data.get(CONF_DEVICE_IDS, []),
-        position=data.get(CONF_POSITION),
-    )
-
-
-def dict_to_row(data: Dict[str, Any]) -> Row:
-    """Convert a dict to a Row dataclass."""
-    racks = [dict_to_rack(r) for r in data.get(CONF_RACKS, [])]
-    return Row(
-        id=data[CONF_ID],
-        name=data[CONF_NAME],
-        racks=racks,
-        notes=data.get(CONF_NOTES),
-        device_ids=data.get(CONF_DEVICE_IDS, []),
-        position=data.get(CONF_POSITION),
-    )
-
-
-def dict_to_farm(data: Dict[str, Any]) -> Farm:
-    """Convert a dict to a Farm dataclass."""
-    rows = [dict_to_row(r) for r in data.get(CONF_ROWS, [])]
-    return Farm(
-        id=data[CONF_ID],
-        name=data[CONF_NAME],
-        rows=rows,
-        location=data.get(CONF_LOCATION),
-        notes=data.get(CONF_NOTES),
-        device_ids=data.get(CONF_DEVICE_IDS, []),
-        position=data.get(CONF_POSITION),
-    )
+def parse_helper_name(entity_id: str):
+    """
+    Parse a helper entity_id into its farm structure components.
+    Example: input_number.farm1_row2_rack3_shelf4_moisture_setpoint
+    Returns a dict: {farm: ..., row: ..., rack: ..., shelf: ..., attribute: ...}
+    """
+    name = entity_id.split(".", 1)[-1]
+    parts = name.split("_")
+    # Simple parser: expects farm_row_rack_shelf_attribute
+    # You can make this more robust as needed
+    keys = ["farm", "row", "rack", "shelf"]
+    result = {}
+    for i, key in enumerate(keys):
+        if i < len(parts):
+            result[key] = parts[i]
+    # The rest is the attribute
+    if len(parts) > len(keys):
+        result["attribute"] = "_".join(parts[len(keys):])
+    return result
