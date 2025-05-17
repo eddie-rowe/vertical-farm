@@ -1,0 +1,93 @@
+# Task ID: 2
+# Title: Farm Layout Configuration UI
+# Status: in-progress
+# Dependencies: 1
+# Priority: high
+# Description: Develop UI forms to define the hierarchical farm structure (Farms → Rows → Racks → Shelves) and store this configuration in Supabase.
+# Details:
+1. Create React components for farm layout configuration:
+   - FarmCreationForm
+   - RowManagementPanel
+   - RackConfigurationForm
+   - ShelfDetailForm
+2. Implement drag-and-drop interface for visual layout configuration
+3. Design database schema for farm hierarchy:
+   ```sql
+   CREATE TABLE farms (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     name TEXT NOT NULL,
+     location TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   
+   CREATE TABLE rows (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     farm_id UUID REFERENCES farms(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     position INTEGER NOT NULL
+   );
+   
+   CREATE TABLE racks (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     row_id UUID REFERENCES rows(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     position INTEGER NOT NULL
+   );
+   
+   CREATE TABLE shelves (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     rack_id UUID REFERENCES racks(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     position INTEGER NOT NULL
+   );
+   ```
+4. Implement Supabase API service for CRUD operations on farm layout
+5. Add validation to prevent duplicate names and ensure proper hierarchy
+6. Create visual confirmation for successful configuration changes
+
+# Test Strategy:
+Unit tests for form validation and component rendering. Integration tests for Supabase CRUD operations. E2E tests for complete farm configuration workflow. Verify data persistence by refreshing the application and confirming layout remains intact.
+
+# Subtasks:
+## 1. UI Component Design [done]
+### Dependencies: None
+### Description: Create the visual components needed for the drag-and-drop interface
+### Details:
+Design draggable elements with clear visual hierarchy using size, color, contrast, and texture to make them stand out. Include grab handles to indicate draggability. Implement hover effects to emphasize interactive elements. Ensure components are accessible for keyboard users with proper focus states.
+
+## 2. Drag-and-Drop Implementation [in-progress]
+### Dependencies: 2.1
+### Description: Develop the core drag-and-drop functionality with proper visual feedback
+### Details:
+Implement drag-and-drop mechanics that resemble physical movements. Use appropriate cursors that change on hover. Add elevation with drop-shadows for lifted items. Create clear drop zones with visual indicators. Implement smart defaults for suggested placements and auto-saving functionality.
+
+## 3. Database Schema Design [pending]
+### Dependencies: None
+### Description: Design the database structure to support hierarchical data relationships
+### Details:
+Create tables and relationships that can store the hierarchical structure of draggable elements. Include fields for position tracking, parent-child relationships, and metadata. Ensure the schema supports efficient querying and updates during drag-and-drop operations.
+
+## 4. Supabase API Integration [pending]
+### Dependencies: 2.2, 2.3
+### Description: Connect the frontend to Supabase backend services
+### Details:
+Implement API calls to Supabase for CRUD operations. Set up real-time listeners for collaborative editing. Create functions to translate between UI state and database schema. Implement optimistic updates for a responsive feel during drag operations.
+
+## 5. Validation Logic [pending]
+### Dependencies: 2.2, 2.4
+### Description: Implement rules and constraints for valid drag-and-drop operations
+### Details:
+Create validation rules to prevent invalid drag operations. Implement constraints based on business logic. Add error handling and user feedback for invalid operations. Ensure data integrity is maintained during all operations.
+
+## 6. Visual Feedback Enhancement [pending]
+### Dependencies: 2.2, 2.5
+### Description: Refine the visual cues and feedback during drag-and-drop interactions
+### Details:
+Add animations for smooth transitions during drag operations. Implement visual indicators for valid and invalid drop targets. Create feedback for successful/unsuccessful operations. Ensure the interface remains decluttered and focused on primary functions.
+
+## 7. Testing and Optimization [pending]
+### Dependencies: 2.4, 2.5, 2.6
+### Description: Thoroughly test all aspects of the drag-and-drop functionality
+### Details:
+Perform unit tests for individual components. Conduct integration tests for the complete system. Test edge cases and error handling. Optimize performance for large datasets. Ensure cross-browser compatibility and responsive design for different screen sizes.
+

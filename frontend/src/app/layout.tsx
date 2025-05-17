@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import { ThemeProvider } from "../context/ThemeContext";
 import { AuthProvider } from "../context/AuthContext";
 import DatadogInit from "./datadog-init";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <DatadogInit />
+        <Toaster position="top-right" />
           <ThemeProvider>
             <AuthProvider>
               <Header />
