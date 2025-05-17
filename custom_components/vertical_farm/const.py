@@ -3,7 +3,7 @@
 # Base component constants
 NAME = "Vertical Farm"
 DOMAIN = "vertical_farm"
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 ISSUE_URL = "https://github.com/eddie-rowe/vertical-farm/issues"
 
 # Configuration keys (for YAML/config schema)
