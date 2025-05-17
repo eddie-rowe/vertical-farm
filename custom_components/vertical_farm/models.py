@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass, field, asdict
+from typing import List, Optional, Type, TypeVar, Dict, Any
 from .const import (
     CONF_ID,
     CONF_NAME,
@@ -13,9 +13,30 @@ from .const import (
     CONF_CAPACITY,
 )
 
+T = TypeVar("T", bound="BaseModel")
+
+
+class BaseModel:
+    def __post_init__(self):
+        if not getattr(self, "id", None):
+            raise ValueError(
+                f"{self.__class__.__name__} requires a non-empty id"
+            )
+        if not getattr(self, "name", None):
+            raise ValueError(
+                f"{self.__class__.__name__} requires a non-empty name"
+            )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
+        return cls(**data)
+
 
 @dataclass
-class Shelf:
+class Shelf(BaseModel):
     """Represents a shelf in the vertical farm.
     Fields: id, name, capacity, notes, device_ids, position
     """
@@ -29,7 +50,7 @@ class Shelf:
 
 
 @dataclass
-class Rack:
+class Rack(BaseModel):
     """Represents a rack containing shelves.
     Fields: id, name, shelves, notes, device_ids, position
     """
@@ -43,7 +64,7 @@ class Rack:
 
 
 @dataclass
-class Row:
+class Row(BaseModel):
     """Represents a row containing racks.
     Fields: id, name, racks, notes, device_ids, position
     """
@@ -57,7 +78,7 @@ class Row:
 
 
 @dataclass
-class Farm:
+class Farm(BaseModel):
     """Represents a farm containing rows.
     Fields: id, name, rows, location, notes, device_ids, position
     """
