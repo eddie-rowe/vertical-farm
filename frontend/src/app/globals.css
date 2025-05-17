@@ -55,8 +55,8 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: #fff;
+  --foreground: #222;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -93,8 +93,8 @@
 */
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  --background: #222;
+  --foreground: #fff;
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -132,9 +132,65 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-gray-300 outline outline-blue-500/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .gradient-farm {
+    background: linear-gradient(135deg, #c3dafe 0%, #e0e7ff 100%);
+  }
+  .gradient-row {
+    background: linear-gradient(135deg, #bbf7d0 0%, #d1fae5 100%);
+  }
+  .gradient-rack {
+    background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
+  }
+  .gradient-shelf {
+    background: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 100%);
+  }
+  .dark .gradient-farm {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  }
+  .dark .gradient-row {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  }
+  .dark .gradient-rack {
+    background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+  }
+  .dark .gradient-shelf {
+    background: linear-gradient(135deg, #6d28d9 0%, #a21caf 100%);
+  }
+  .glass {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-radius: 1rem;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .dark .glass {
+    background: rgba(30,41,59,0.7);
+    border: 1px solid rgba(51,65,85,0.18);
+  }
+  .card-shadow {
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+  }
+  .animate-pop {
+    animation: pop-in 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes pop-in {
+    0% { transform: scale(0.95) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .btn-animated {
+    transition: transform 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s;
+  }
+  .btn-animated:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 16px 0 rgba(59,130,246,0.15);
   }
 }

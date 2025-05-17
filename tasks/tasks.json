@@ -1,0 +1,939 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Codebase Analysis and Architecture Documentation",
+      "description": "Analyze the existing codebase to understand system architecture, frontend, backend, and deployment methods. Generate a comprehensive architecture summary document.",
+      "details": "1. Clone and set up the existing repository locally\n2. Review system architecture documentation\n3. Analyze frontend architecture (Next.js components, state management, routing)\n4. Examine backend architecture (FastAPI endpoints, Supabase integration)\n5. Document local deployment process using Docker Compose\n6. Document remote deployment process on Render\n7. Create a comprehensive architecture summary document with diagrams showing:\n   - System component interactions\n   - Data flow between frontend, backend, and database\n   - Authentication flow via Supabase\n   - Device integration architecture with Home Assistant\n8. Identify potential architectural challenges or bottlenecks",
+      "testStrategy": "Validate understanding by successfully deploying the application locally and on the test environment. Verify access to all components (frontend, backend, database). Have the architecture document reviewed by the team to ensure accuracy.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Repository Setup and Initial Import",
+          "description": "Set up the code repository, ensuring all files are organized and accessible for analysis. Import the codebase into the chosen documentation or analysis tool.",
+          "dependencies": [],
+          "details": "This includes cloning or uploading the codebase, verifying file structure, and preparing the environment for further review.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "High-Level Architecture Review",
+          "description": "Analyze the overall architecture of the codebase to identify main modules, their purposes, and interactions.",
+          "dependencies": [
+            1
+          ],
+          "details": "Review directory structure, main components, and system boundaries. Document the architectural patterns and key design decisions.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Frontend Code Analysis",
+          "description": "Examine the frontend layer, including frameworks, main components, and data flow.",
+          "dependencies": [
+            2
+          ],
+          "details": "Identify UI structure, state management, and integration points with backend services. Note any unique patterns or libraries used.",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Backend Code Analysis",
+          "description": "Analyze the backend layer, focusing on APIs, business logic, and data management.",
+          "dependencies": [
+            2
+          ],
+          "details": "Document main services, endpoints, database interactions, and authentication mechanisms.",
+          "status": "done"
+        },
+        {
+          "id": 5,
+          "title": "Deployment Documentation (Local)",
+          "description": "Document the process for setting up and running the codebase locally.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Include environment setup, dependencies, configuration, and local testing instructions.",
+          "status": "done"
+        },
+        {
+          "id": 6,
+          "title": "Deployment Documentation (Remote/Production)",
+          "description": "Document the process for deploying the codebase to remote or production environments.",
+          "dependencies": [
+            5
+          ],
+          "details": "Detail CI/CD pipelines, environment variables, hosting requirements, and monitoring setup.",
+          "status": "done"
+        },
+        {
+          "id": 7,
+          "title": "Diagram Creation",
+          "description": "Create visual diagrams to illustrate system architecture, data flow, and component interactions.",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Produce architecture diagrams, sequence diagrams, and deployment diagrams as needed.",
+          "status": "done"
+        },
+        {
+          "id": 8,
+          "title": "Identification and Documentation of Architectural Challenges",
+          "description": "Identify and document any architectural challenges, technical debt, or potential risks discovered during analysis.",
+          "dependencies": [
+            2,
+            3,
+            4,
+            7
+          ],
+          "details": "Summarize issues such as scalability bottlenecks, security concerns, or maintainability challenges, and suggest possible mitigations.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Farm Layout Configuration UI",
+      "description": "Develop UI forms to define the hierarchical farm structure (Farms → Rows → Racks → Shelves) and store this configuration in Supabase.",
+      "details": "1. Create React components for farm layout configuration:\n   - FarmCreationForm\n   - RowManagementPanel\n   - RackConfigurationForm\n   - ShelfDetailForm\n2. Implement drag-and-drop interface for visual layout configuration\n3. Design database schema for farm hierarchy:\n   ```sql\n   CREATE TABLE farms (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     name TEXT NOT NULL,\n     location TEXT,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   \n   CREATE TABLE rows (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     farm_id UUID REFERENCES farms(id) ON DELETE CASCADE,\n     name TEXT NOT NULL,\n     position INTEGER NOT NULL\n   );\n   \n   CREATE TABLE racks (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     row_id UUID REFERENCES rows(id) ON DELETE CASCADE,\n     name TEXT NOT NULL,\n     position INTEGER NOT NULL\n   );\n   \n   CREATE TABLE shelves (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     rack_id UUID REFERENCES racks(id) ON DELETE CASCADE,\n     name TEXT NOT NULL,\n     position INTEGER NOT NULL\n   );\n   ```\n4. Implement Supabase API service for CRUD operations on farm layout\n5. Add validation to prevent duplicate names and ensure proper hierarchy\n6. Create visual confirmation for successful configuration changes",
+      "testStrategy": "Unit tests for form validation and component rendering. Integration tests for Supabase CRUD operations. E2E tests for complete farm configuration workflow. Verify data persistence by refreshing the application and confirming layout remains intact.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "in-progress",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "UI Component Design",
+          "description": "Create the visual components needed for the drag-and-drop interface",
+          "dependencies": [],
+          "details": "Design draggable elements with clear visual hierarchy using size, color, contrast, and texture to make them stand out. Include grab handles to indicate draggability. Implement hover effects to emphasize interactive elements. Ensure components are accessible for keyboard users with proper focus states.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Drag-and-Drop Implementation",
+          "description": "Develop the core drag-and-drop functionality with proper visual feedback",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement drag-and-drop mechanics that resemble physical movements. Use appropriate cursors that change on hover. Add elevation with drop-shadows for lifted items. Create clear drop zones with visual indicators. Implement smart defaults for suggested placements and auto-saving functionality.",
+          "status": "in-progress"
+        },
+        {
+          "id": 3,
+          "title": "Database Schema Design",
+          "description": "Design the database structure to support hierarchical data relationships",
+          "dependencies": [],
+          "details": "Create tables and relationships that can store the hierarchical structure of draggable elements. Include fields for position tracking, parent-child relationships, and metadata. Ensure the schema supports efficient querying and updates during drag-and-drop operations.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Supabase API Integration",
+          "description": "Connect the frontend to Supabase backend services",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Implement API calls to Supabase for CRUD operations. Set up real-time listeners for collaborative editing. Create functions to translate between UI state and database schema. Implement optimistic updates for a responsive feel during drag operations.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Validation Logic",
+          "description": "Implement rules and constraints for valid drag-and-drop operations",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Create validation rules to prevent invalid drag operations. Implement constraints based on business logic. Add error handling and user feedback for invalid operations. Ensure data integrity is maintained during all operations.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Visual Feedback Enhancement",
+          "description": "Refine the visual cues and feedback during drag-and-drop interactions",
+          "dependencies": [
+            2,
+            5
+          ],
+          "details": "Add animations for smooth transitions during drag operations. Implement visual indicators for valid and invalid drop targets. Create feedback for successful/unsuccessful operations. Ensure the interface remains decluttered and focused on primary functions.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Testing and Optimization",
+          "description": "Thoroughly test all aspects of the drag-and-drop functionality",
+          "dependencies": [
+            4,
+            5,
+            6
+          ],
+          "details": "Perform unit tests for individual components. Conduct integration tests for the complete system. Test edge cases and error handling. Optimize performance for large datasets. Ensure cross-browser compatibility and responsive design for different screen sizes.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Home Assistant Integration",
+      "description": "Implement WebSocket and REST API integration with Home Assistant to enable device control and sensor monitoring.",
+      "details": "1. Create a Home Assistant client service in FastAPI:\n   ```python\n   class HomeAssistantClient:\n       def __init__(self, base_url, access_token):\n           self.base_url = base_url\n           self.headers = {\n               \"Authorization\": f\"Bearer {access_token}\",\n               \"Content-Type\": \"application/json\"\n           }\n           self.websocket = None\n       \n       async def connect_websocket(self):\n           # WebSocket connection logic\n           pass\n           \n       async def get_entities(self, entity_type=None):\n           # Fetch entities from Home Assistant\n           pass\n           \n       async def call_service(self, domain, service, entity_id, data=None):\n           # Control devices via service calls\n           pass\n   ```\n2. Implement WebSocket subscription to sensor and device states\n3. Create endpoints in FastAPI to proxy Home Assistant API:\n   - GET /api/ha/entities - List all entities\n   - GET /api/ha/entities/{entity_id} - Get entity details\n   - POST /api/ha/services/{domain}/{service} - Call a service\n4. Add authentication and connection management\n5. Implement error handling and reconnection logic\n6. Create a background task for maintaining WebSocket connection\n7. Add caching layer for entity states to reduce API calls",
+      "testStrategy": "Unit tests with mocked Home Assistant responses. Integration tests with a test Home Assistant instance. Test WebSocket reconnection on connection loss. Verify entity state updates are received in real-time. Test service calls for device control.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Client Service Implementation",
+          "description": "Create a client service layer that abstracts the communication with external systems",
+          "dependencies": [],
+          "details": "Implement a service class that handles both WebSocket and REST communication patterns. Include connection management, serialization/deserialization of payloads, and retry logic for failed connections.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "WebSocket Connection Management",
+          "description": "Implement WebSocket connection handling for real-time data updates",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop WebSocket client implementation with connection lifecycle management (connect, disconnect, reconnect), heartbeat mechanism, and incremental update processing to reduce bandwidth usage.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "REST API Integration",
+          "description": "Develop REST endpoint integration for non-real-time operations",
+          "dependencies": [
+            1
+          ],
+          "details": "Create REST client with appropriate request/response handling, implement API versioning support, and develop serialization/deserialization for various data formats.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Authentication System",
+          "description": "Implement secure authentication for both WebSocket and REST connections",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Develop authentication mechanisms including token management, credential storage, refresh token handling, and session maintenance across both connection types.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Error Handling and Recovery",
+          "description": "Create robust error handling and recovery mechanisms",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Implement comprehensive error handling including connection failures, authentication errors, data validation issues, and automatic recovery procedures with exponential backoff.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Background Processing System",
+          "description": "Develop background task processing for asynchronous operations",
+          "dependencies": [
+            5
+          ],
+          "details": "Create a background job system to handle long-running tasks, implement queuing mechanisms, and develop retry policies for failed background operations.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Caching Implementation",
+          "description": "Implement efficient caching for frequently accessed data",
+          "dependencies": [
+            3,
+            5
+          ],
+          "details": "Develop a caching layer using Redis or in-memory storage, implement cache invalidation strategies, and create mechanisms for dynamically adjusting cache policies based on usage patterns.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Integration Testing",
+          "description": "Create comprehensive test suite for the integration",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "details": "Develop integration tests covering all components, implement performance benchmarks to measure efficiency, create mocks for external dependencies, and establish continuous integration pipeline.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Device Assignment UI",
+      "description": "Create a UI for mapping Home Assistant entities (lights, solenoids, pumps, fans, sensors) to their physical locations in the farm layout.",
+      "details": "1. Create database schema for device assignments:\n   ```sql\n   CREATE TABLE device_assignments (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     shelf_id UUID REFERENCES shelves(id) ON DELETE CASCADE,\n     entity_id TEXT NOT NULL,\n     entity_type TEXT NOT NULL,\n     friendly_name TEXT,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   ```\n2. Develop UI components:\n   - EntityBrowser (displays available Home Assistant entities)\n   - EntityAssignmentForm (assigns entity to farm location)\n   - LocationEntityList (shows entities assigned to a location)\n3. Implement drag-and-drop interface for assigning entities to shelves\n4. Add entity filtering by type (sensor, switch, light, etc.)\n5. Create FastAPI endpoints for device assignment operations\n6. Add validation to prevent duplicate assignments\n7. Implement entity search functionality\n8. Add visual indicators for assigned vs. unassigned entities",
+      "testStrategy": "Unit tests for UI components and validation logic. Integration tests for assignment operations with Supabase. E2E tests for the complete assignment workflow. Verify assignments persist after page refresh. Test error handling for invalid assignments.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        3
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design and Create Database Schema",
+          "description": "Define and implement the backend schema to support entities, assignments, and relationships required for the UI and drag-and-drop logic.",
+          "dependencies": [],
+          "details": "Include tables/models for entities, assignments, and any metadata needed for filtering and validation.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop API Endpoints",
+          "description": "Implement RESTful or GraphQL API endpoints to support CRUD operations for entities, assignments, and search/filtering.",
+          "dependencies": [
+            1
+          ],
+          "details": "Endpoints should allow fetching, creating, updating, and deleting entities and assignments, as well as supporting search and filter queries.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Build Core UI Components",
+          "description": "Develop reusable UI components for displaying entities, assignment lists, and interactive elements.",
+          "dependencies": [],
+          "details": "Components include entity cards, assignment containers, filter controls, and search bars.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Drag-and-Drop Assignment Logic",
+          "description": "Enable drag-and-drop functionality for assigning entities, ensuring real-time updates and visual feedback.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Integrate with backend APIs to persist assignments and update UI state accordingly.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Add Entity Filtering Functionality",
+          "description": "Implement UI and backend logic to filter entities based on user-selected criteria.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Support filtering by attributes such as type, status, or custom tags.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Integrate Search Functionality",
+          "description": "Develop search features to allow users to quickly find entities or assignments.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Include debounced search input, backend query support, and result highlighting.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Implement Validation Logic",
+          "description": "Add validation rules for assignments and entity interactions, both on the frontend and backend.",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Ensure only valid assignments can be made and provide user feedback for invalid actions.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Develop Visual Indicators and Feedback",
+          "description": "Create visual cues for assignment status, validation errors, and drag-and-drop interactions.",
+          "dependencies": [
+            4,
+            7
+          ],
+          "details": "Include color changes, icons, tooltips, and animations to enhance user experience.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Grow Recipe Management System",
+      "description": "Develop a system for defining and managing grow recipes including grow days, light duration, watering frequency, and other parameters.",
+      "details": "1. Design database schema for grow recipes:\n   ```sql\n   CREATE TABLE species (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     name TEXT NOT NULL UNIQUE,\n     description TEXT\n   );\n   \n   CREATE TABLE grow_recipes (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     species_id UUID REFERENCES species(id),\n     name TEXT NOT NULL,\n     grow_days INTEGER NOT NULL,\n     light_hours NUMERIC(4,2) NOT NULL,\n     watering_frequency_hours NUMERIC(5,2) NOT NULL,\n     average_yield NUMERIC(6,2),\n     sowing_rate NUMERIC(6,2),\n     custom_parameters JSONB,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   ```\n2. Create UI components for recipe management:\n   - SpeciesForm\n   - RecipeEditor\n   - RecipeList\n   - RecipeDetailView\n3. Implement CRUD operations for recipes via FastAPI endpoints\n4. Add recipe versioning to track changes\n5. Create recipe duplication functionality\n6. Implement recipe parameter validation\n7. Add recipe search and filtering capabilities",
+      "testStrategy": "Unit tests for recipe validation and component rendering. Integration tests for recipe CRUD operations. Test recipe versioning to ensure history is maintained. Verify custom parameters are properly stored and retrieved. Test recipe duplication functionality.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Schema Design for Recipe Management",
+          "description": "Create a comprehensive data model that handles the complexity of recipe structures while reducing data duplication",
+          "dependencies": [],
+          "details": "Design database schema that includes tables for recipes, ingredients, measurements, steps, categories, and relationships between them. Consider hierarchical recipe structures, inheritance patterns, and version control requirements. Include metadata fields for tracking creation, modification, and approval workflows.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "UI Component Development",
+          "description": "Develop user interface components for recipe creation, editing, and visualization",
+          "dependencies": [
+            1
+          ],
+          "details": "Create reusable UI components for ingredient selection, measurement input, step sequencing, and recipe preview. Design interfaces for different user roles (operators, managers, etc.) that show only relevant information. Implement drag-and-drop functionality for recipe steps and responsive design for various devices.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "CRUD API Implementation",
+          "description": "Develop comprehensive API endpoints for recipe management operations",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement RESTful API endpoints for creating, reading, updating, and deleting recipes and their components. Include endpoints for partial updates, bulk operations, and specialized recipe operations. Design API responses to include appropriate error handling and validation feedback.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Versioning System Implementation",
+          "description": "Create a robust versioning system to track recipe changes over time",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Implement version control for recipes that tracks all changes, allows comparison between versions, and supports rollback functionality. Design a branching model for recipe development workflows. Include audit trails that capture who made changes and when.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Recipe Duplication and Template System",
+          "description": "Develop functionality for recipe duplication, templates, and inheritance",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Create systems for duplicating recipes while maintaining references, developing recipe templates, and implementing inheritance patterns for recipe variations. Include functionality to track relationships between original recipes and derivatives. Design mechanisms to propagate changes from base recipes to derivatives when appropriate.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Validation Framework Development",
+          "description": "Implement comprehensive validation for recipes and their components",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Create validation rules for ingredients, measurements, steps, and complete recipes. Implement business logic validation for recipe feasibility, cost calculations, and regulatory compliance. Design a flexible validation framework that can be extended for different product types and manufacturing processes.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Search and Filtering System",
+          "description": "Develop advanced search and filtering capabilities for recipe management",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Implement full-text search across recipe components, advanced filtering by ingredients, categories, and metadata. Create saved search functionality and personalized views. Design efficient indexing strategies for large recipe databases and implement faceted search capabilities.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Scheduling and Automation Engine",
+      "description": "Implement a scheduling system to automate grow operations based on recipes, including light cycles, watering, and other operations.",
+      "details": "1. Design database schema for schedules:\n   ```sql\n   CREATE TABLE schedules (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     shelf_id UUID REFERENCES shelves(id) ON DELETE CASCADE,\n     recipe_id UUID REFERENCES grow_recipes(id),\n     start_date TIMESTAMP WITH TIME ZONE NOT NULL,\n     end_date TIMESTAMP WITH TIME ZONE,\n     status TEXT NOT NULL DEFAULT 'active',\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   \n   CREATE TABLE scheduled_actions (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     schedule_id UUID REFERENCES schedules(id) ON DELETE CASCADE,\n     action_type TEXT NOT NULL,\n     entity_id TEXT NOT NULL,\n     parameters JSONB,\n     execution_time TIMESTAMP WITH TIME ZONE NOT NULL,\n     status TEXT NOT NULL DEFAULT 'pending'\n   );\n   ```\n2. Implement scheduler service in FastAPI:\n   ```python\n   class SchedulerService:\n       def __init__(self, db, ha_client):\n           self.db = db\n           self.ha_client = ha_client\n       \n       async def create_schedule(self, shelf_id, recipe_id, start_date):\n           # Create schedule and generate initial actions\n           pass\n           \n       async def generate_actions(self, schedule_id):\n           # Generate actions based on recipe parameters\n           pass\n           \n       async def execute_pending_actions(self):\n           # Find and execute pending actions\n           pass\n   ```\n3. Create background task for action execution\n4. Implement recipe locking logic for sequential watering\n5. Add manual override capabilities\n6. Create UI components for schedule management\n7. Implement conflict detection for overlapping schedules\n8. Add notification system for failed actions",
+      "testStrategy": "Unit tests for scheduler logic and action generation. Integration tests with Home Assistant for action execution. Test scheduling conflicts and resolution. Verify actions are executed at the correct times. Test manual overrides and their effect on scheduled actions.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        4,
+        5
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Schedule Schema Design",
+          "description": "Design the database schema to support scheduling, including entities for tasks, resources, time slots, and dependencies.",
+          "dependencies": [],
+          "details": "Define tables and relationships for schedules, recipes, locks, overrides, and conflicts. Ensure schema supports real-time updates and concurrency.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Scheduler Service Implementation",
+          "description": "Develop the core scheduling service responsible for creating, updating, and managing schedules in real time.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement logic for task assignment, time slot allocation, and integration with the schedule schema. Ensure scalability and low-latency operation.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Background Task Setup",
+          "description": "Set up background workers or services to handle scheduled tasks, periodic checks, and automated actions.",
+          "dependencies": [
+            2
+          ],
+          "details": "Configure background processing for executing scheduled jobs, monitoring task status, and handling retries or failures.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Recipe Locking Mechanism",
+          "description": "Implement a locking mechanism to prevent concurrent modifications to the same recipe or schedule entry.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Design and enforce locks at the database or application level to ensure data consistency and prevent race conditions.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Manual Override Functionality",
+          "description": "Enable authorized users to manually override scheduled tasks or resolve conflicts as needed.",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Provide interfaces and logic for manual intervention, including audit trails and rollback capabilities.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "User Interface Development",
+          "description": "Develop the UI for schedule visualization, task management, manual overrides, and conflict resolution.",
+          "dependencies": [
+            2,
+            5
+          ],
+          "details": "Design and implement intuitive screens for users to view, edit, and interact with schedules and notifications.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Conflict Detection and Resolution",
+          "description": "Implement logic to detect scheduling conflicts and provide automated or manual resolution options.",
+          "dependencies": [
+            2,
+            4,
+            5
+          ],
+          "details": "Develop algorithms to identify overlapping tasks, resource contention, and notify users or trigger resolution workflows.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Notification System Integration",
+          "description": "Build and integrate a notification system to alert users about schedule changes, conflicts, and task statuses.",
+          "dependencies": [
+            3,
+            6,
+            7
+          ],
+          "details": "Support real-time and asynchronous notifications via email, SMS, or in-app alerts, configurable by user preferences.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Real-Time Monitoring Dashboard",
+      "description": "Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets.",
+      "details": "1. Create WebSocket endpoint in FastAPI for real-time updates:\n   ```python\n   @app.websocket(\"/ws/dashboard\")\n   async def dashboard_websocket(websocket: WebSocket):\n       await websocket.accept()\n       try:\n           while True:\n               # Send real-time updates\n               data = await get_dashboard_data()\n               await websocket.send_json(data)\n               await asyncio.sleep(1)\n       except WebSocketDisconnect:\n           pass\n   ```\n2. Implement React components for the dashboard:\n   - EnvironmentalConditionsPanel\n   - SystemStatusPanel\n   - AlertsPanel\n   - SensorReadingsChart\n3. Use React hooks for WebSocket connection management\n4. Create data aggregation service for dashboard metrics\n5. Implement filtering by farm, row, rack, or shelf\n6. Add threshold-based alerting for sensor values\n7. Create visual indicators for normal/warning/critical states\n8. Implement auto-refresh and manual refresh options",
+      "testStrategy": "Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        4
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Secure WebSocket Endpoint",
+          "description": "Implement a secure WebSocket endpoint using wss:// protocol with proper authentication and connection handling",
+          "dependencies": [],
+          "details": "Set up a Regional endpoint type for the WebSocket API, implement SSL/TLS certification, and ensure the endpoint follows security best practices. Configure proper error handling for connection failures.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement WebSocket Connection Management",
+          "description": "Develop connection management logic including heartbeats, timeouts, and reconnection strategies",
+          "dependencies": [
+            1
+          ],
+          "details": "Create keep-alive mechanisms with ping/heartbeat messages to detect connection drops, implement connection timeouts for inactive connections, and build automatic reconnection logic with graceful degradation under high load.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Design Dashboard UI Component Architecture",
+          "description": "Create the component hierarchy and layout structure for the real-time dashboard",
+          "dependencies": [],
+          "details": "Design reusable UI components for data visualization, establish the dashboard layout with proper responsiveness, and create component interfaces that will connect with WebSocket data streams.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop Data Aggregation Service",
+          "description": "Create a service to collect, process, and aggregate real-time data from various sources",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement data collection mechanisms, create aggregation algorithms to process incoming data streams, and optimize for performance with high-volume data handling.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Build Data Filtering System",
+          "description": "Implement client and server-side filtering capabilities for the dashboard data",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Create filtering mechanisms that work both on the server and client side, develop filter persistence, and ensure filtering operations maintain dashboard performance.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Create Alerting System",
+          "description": "Develop a real-time alerting system that monitors data streams for specific conditions",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Implement threshold-based alerts, create notification delivery mechanisms, and develop alert management interfaces for configuration and history tracking.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Implement Visual Indicators for Connection Status",
+          "description": "Add visual feedback elements showing WebSocket connection status and data freshness",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Create UI indicators for connection status (connected, disconnected, reconnecting), implement data freshness timestamps, and develop visual cues for stale or outdated information.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Develop Dashboard Refresh Logic",
+          "description": "Implement intelligent refresh mechanisms for dashboard components",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Create component-specific refresh strategies, implement partial UI updates to minimize rendering, and develop fallback mechanisms for when WebSocket connections fail.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Historical Analytics and Reporting",
+      "description": "Create a system for visualizing historical data, yield history, and performance metrics to help refine growing practices.",
+      "details": "1. Design database schema for historical data:\n   ```sql\n   CREATE TABLE sensor_history (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     entity_id TEXT NOT NULL,\n     value NUMERIC NOT NULL,\n     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   \n   CREATE TABLE harvests (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     shelf_id UUID REFERENCES shelves(id),\n     schedule_id UUID REFERENCES schedules(id),\n     yield_amount NUMERIC NOT NULL,\n     harvest_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n     notes TEXT\n   );\n   ```\n2. Implement data retention policy and aggregation for sensor data\n3. Create FastAPI endpoints for historical data retrieval\n4. Develop UI components for analytics:\n   - TimeSeriesChart\n   - YieldComparisonChart\n   - PerformanceMetricsPanel\n   - ReportGenerator\n5. Implement date range filtering\n6. Add export functionality (CSV, PDF)\n7. Create scheduled report generation\n8. Implement performance metrics calculation (yield per shelf, resource efficiency)",
+      "testStrategy": "Unit tests for chart components and data aggregation. Integration tests for historical data retrieval. Test data export functionality. Verify metrics calculations are accurate. Test report generation with various parameters.",
+      "priority": "low",
+      "dependencies": [
+        6,
+        7
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Analytics Data Schema",
+          "description": "Create a comprehensive data schema that supports long-term retention and efficient querying for analytics purposes",
+          "dependencies": [],
+          "details": "Define tables, relationships, and indexes optimized for analytics queries. Consider data classification types and identify which data needs longer retention periods. Include metadata fields for tracking data lifecycle and compliance with retention policies.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Data Retention Policy",
+          "description": "Develop a data retention strategy with appropriate timelines for different data types",
+          "dependencies": [
+            1
+          ],
+          "details": "Research applicable legal regulations and business requirements for data retention. Create automated processes for archiving and purging data based on retention rules. Implement storage tiering to optimize costs while maintaining compliance with retention requirements.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Build Data Aggregation Pipeline",
+          "description": "Create ETL processes to aggregate raw data into analytics-ready formats",
+          "dependencies": [
+            1
+          ],
+          "details": "Design and implement data transformation logic to convert raw data into aggregated metrics. Include validation steps to ensure data integrity. Create both real-time and batch processing capabilities to handle different analytics use cases.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop Analytics API",
+          "description": "Create RESTful API endpoints for retrieving analytics data",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Design API endpoints that support filtering, pagination, and sorting. Implement caching strategies to improve performance. Include authentication and authorization mechanisms to ensure data security. Document the API thoroughly for frontend developers.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Create Core Analytics UI Components",
+          "description": "Develop reusable UI components for data visualization",
+          "dependencies": [
+            4
+          ],
+          "details": "Build charts, graphs, and dashboard widgets that can visualize different types of metrics. Ensure components are responsive and perform well with large datasets. Implement theming support and accessibility features.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Implement Advanced Filtering and Search",
+          "description": "Create UI and backend functionality for complex data filtering",
+          "dependencies": [
+            4,
+            5
+          ],
+          "details": "Design and implement a flexible filtering system that allows users to create complex queries. Include saved filters functionality. Optimize backend query performance for filtered results. Create an intuitive UI for building and managing filters.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Develop Export and Reporting Functionality",
+          "description": "Create mechanisms for exporting analytics data in various formats",
+          "dependencies": [
+            4,
+            6
+          ],
+          "details": "Implement export capabilities for CSV, PDF, and Excel formats. Create templates for standardized reports. Build a scheduling system for automated report generation and delivery. Include customization options for exported reports.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Implement Complex Metrics Calculation",
+          "description": "Develop algorithms for calculating advanced business metrics",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Design and implement calculation logic for complex business KPIs and metrics. Create a framework for defining custom metrics. Ensure calculations are accurate and performant even with large datasets. Include validation and testing mechanisms for metrics accuracy.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Role-Based Access Control",
+      "description": "Implement role-based access control using Supabase Auth to differentiate between Farm Managers, Operators, and Home Assistant Power Users.",
+      "details": "1. Define user roles and permissions:\n   ```sql\n   CREATE TYPE user_role AS ENUM ('farm_manager', 'operator', 'ha_power_user');\n   \n   CREATE TABLE user_profiles (\n     id UUID PRIMARY KEY REFERENCES auth.users(id),\n     role user_role NOT NULL DEFAULT 'operator',\n     name TEXT,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   \n   CREATE POLICY \"Users can view their own profile\"\n     ON user_profiles FOR SELECT\n     USING (auth.uid() = id);\n   \n   CREATE POLICY \"Farm managers can view all profiles\"\n     ON user_profiles FOR SELECT\n     USING (EXISTS (\n       SELECT 1 FROM user_profiles\n       WHERE id = auth.uid() AND role = 'farm_manager'\n     ));\n   ```\n2. Implement authentication UI components:\n   - LoginForm\n   - RegistrationForm\n   - UserProfileForm\n   - RoleManagementPanel\n3. Create protected routes in Next.js based on user roles\n4. Implement API endpoint authorization in FastAPI\n5. Add user invitation system\n6. Create audit logging for sensitive operations\n7. Implement session management and timeout",
+      "testStrategy": "Unit tests for authentication components and authorization logic. Integration tests with Supabase Auth. Test access control for different user roles. Verify protected routes are properly secured. Test user invitation and registration flow.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define App Roles and Permission Schema",
+          "description": "Map out application roles, resources, and actions to create a comprehensive RBAC schema",
+          "dependencies": [],
+          "details": "Analyze application needs, define role hierarchy, identify protected resources, and specify permitted actions for each role. Document the complete permission matrix that will serve as the foundation for the entire RBAC implementation.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Authentication UI Components",
+          "description": "Create user interface elements for authentication flow",
+          "dependencies": [],
+          "details": "Design and implement login, registration, password reset, and multi-factor authentication screens. Ensure proper validation, error handling, and accessibility compliance across all authentication interfaces.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Set Up Protected Routes",
+          "description": "Configure route protection based on user roles and permissions",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement middleware or guards that verify user authentication and authorization before allowing access to protected routes. Create redirect logic for unauthorized access attempts and handle role-based navigation restrictions.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop API Authorization Layer",
+          "description": "Build backend authorization mechanisms to secure API endpoints",
+          "dependencies": [
+            1
+          ],
+          "details": "Create middleware to validate access tokens, extract role information, and enforce permission checks on API endpoints. Implement proper error responses for unauthorized requests and ensure consistent authorization across all API resources.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Create User Invitation System",
+          "description": "Build functionality for inviting users with predefined roles",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop email invitation workflow with secure token generation, role assignment during invitation, and account activation process. Include admin interfaces for managing invitations and tracking invitation status.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Implement Audit Logging",
+          "description": "Set up comprehensive logging for all access control events",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Create logging infrastructure to record authentication attempts, authorization decisions, role changes, and resource access. Design log storage, retention policies, and admin interfaces for reviewing security events.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Develop Session Management",
+          "description": "Implement secure session handling with role-aware capabilities",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Build session creation, validation, and expiration mechanisms. Implement token refresh logic, concurrent session handling, and forced logout capabilities. Ensure sessions maintain and respect role information throughout their lifecycle.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Harvest Logging and Yield Tracking",
+      "description": "Develop a mobile-friendly UI for operators to log harvests and track yields, with data synchronization to the main system.",
+      "details": "1. Create UI components for harvest logging:\n   - HarvestEntryForm\n   - YieldTracker\n   - HarvestHistory\n   - BatchLabelGenerator\n2. Implement responsive design for mobile use\n3. Create FastAPI endpoints for harvest data:\n   ```python\n   @app.post(\"/api/harvests\")\n   async def create_harvest(harvest: HarvestCreate, user=Depends(get_current_user)):\n       # Validate and store harvest data\n       return await harvest_service.create_harvest(harvest, user.id)\n   \n   @app.get(\"/api/harvests\")\n   async def list_harvests(shelf_id: Optional[str] = None, user=Depends(get_current_user)):\n       # Retrieve harvest history with optional filtering\n       return await harvest_service.list_harvests(user.id, shelf_id)\n   ```\n4. Add offline support with local storage\n5. Implement data synchronization when connection is restored\n6. Create barcode/QR code scanning for shelf identification\n7. Add photo upload capability for harvest documentation\n8. Implement yield comparison against recipe expectations",
+      "testStrategy": "Unit tests for harvest logging components and validation. Integration tests for harvest data storage and retrieval. Test offline functionality and data synchronization. Verify mobile responsiveness on various device sizes. Test barcode scanning and photo upload features.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        5,
+        9
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "UI Component Development",
+          "description": "Design and implement mobile-friendly UI components.",
+          "dependencies": [],
+          "details": "Focus on simplicity, consistency, and readability.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Responsive Design Implementation",
+          "description": "Ensure UI components adapt to different screen sizes and orientations.",
+          "dependencies": [
+            1
+          ],
+          "details": "Use flexible layouts and media queries.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "API Endpoints Development",
+          "description": "Create API endpoints for data interaction and synchronization.",
+          "dependencies": [],
+          "details": "Implement RESTful APIs for data exchange.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Offline Support Implementation",
+          "description": "Enable app functionality without internet connectivity.",
+          "dependencies": [
+            3
+          ],
+          "details": "Use local storage and caching mechanisms.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Data Synchronization Logic",
+          "description": "Develop logic to sync data when internet is available.",
+          "dependencies": [
+            4
+          ],
+          "details": "Use background services or periodic syncing.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Barcode/QR Scanning Integration",
+          "description": "Integrate barcode and QR code scanning functionality.",
+          "dependencies": [
+            1
+          ],
+          "details": "Use device camera and scanning libraries.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Photo Upload Feature",
+          "description": "Implement photo upload functionality with image processing.",
+          "dependencies": [
+            1
+          ],
+          "details": "Use device camera and image compression techniques.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Yield Comparison Logic Development",
+          "description": "Create logic to compare yields based on user input and data.",
+          "dependencies": [
+            5
+          ],
+          "details": "Use algorithms for data analysis and visualization.",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}

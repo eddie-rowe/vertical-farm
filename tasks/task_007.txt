@@ -1,0 +1,85 @@
+# Task ID: 7
+# Title: Real-Time Monitoring Dashboard
+# Status: pending
+# Dependencies: 3, 4
+# Priority: medium
+# Description: Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets.
+# Details:
+1. Create WebSocket endpoint in FastAPI for real-time updates:
+   ```python
+   @app.websocket("/ws/dashboard")
+   async def dashboard_websocket(websocket: WebSocket):
+       await websocket.accept()
+       try:
+           while True:
+               # Send real-time updates
+               data = await get_dashboard_data()
+               await websocket.send_json(data)
+               await asyncio.sleep(1)
+       except WebSocketDisconnect:
+           pass
+   ```
+2. Implement React components for the dashboard:
+   - EnvironmentalConditionsPanel
+   - SystemStatusPanel
+   - AlertsPanel
+   - SensorReadingsChart
+3. Use React hooks for WebSocket connection management
+4. Create data aggregation service for dashboard metrics
+5. Implement filtering by farm, row, rack, or shelf
+6. Add threshold-based alerting for sensor values
+7. Create visual indicators for normal/warning/critical states
+8. Implement auto-refresh and manual refresh options
+
+# Test Strategy:
+Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic.
+
+# Subtasks:
+## 1. Create Secure WebSocket Endpoint [pending]
+### Dependencies: None
+### Description: Implement a secure WebSocket endpoint using wss:// protocol with proper authentication and connection handling
+### Details:
+Set up a Regional endpoint type for the WebSocket API, implement SSL/TLS certification, and ensure the endpoint follows security best practices. Configure proper error handling for connection failures.
+
+## 2. Implement WebSocket Connection Management [pending]
+### Dependencies: 7.1
+### Description: Develop connection management logic including heartbeats, timeouts, and reconnection strategies
+### Details:
+Create keep-alive mechanisms with ping/heartbeat messages to detect connection drops, implement connection timeouts for inactive connections, and build automatic reconnection logic with graceful degradation under high load.
+
+## 3. Design Dashboard UI Component Architecture [pending]
+### Dependencies: None
+### Description: Create the component hierarchy and layout structure for the real-time dashboard
+### Details:
+Design reusable UI components for data visualization, establish the dashboard layout with proper responsiveness, and create component interfaces that will connect with WebSocket data streams.
+
+## 4. Develop Data Aggregation Service [pending]
+### Dependencies: 7.1
+### Description: Create a service to collect, process, and aggregate real-time data from various sources
+### Details:
+Implement data collection mechanisms, create aggregation algorithms to process incoming data streams, and optimize for performance with high-volume data handling.
+
+## 5. Build Data Filtering System [pending]
+### Dependencies: 7.3, 7.4
+### Description: Implement client and server-side filtering capabilities for the dashboard data
+### Details:
+Create filtering mechanisms that work both on the server and client side, develop filter persistence, and ensure filtering operations maintain dashboard performance.
+
+## 6. Create Alerting System [pending]
+### Dependencies: 7.2, 7.4
+### Description: Develop a real-time alerting system that monitors data streams for specific conditions
+### Details:
+Implement threshold-based alerts, create notification delivery mechanisms, and develop alert management interfaces for configuration and history tracking.
+
+## 7. Implement Visual Indicators for Connection Status [pending]
+### Dependencies: 7.2, 7.3
+### Description: Add visual feedback elements showing WebSocket connection status and data freshness
+### Details:
+Create UI indicators for connection status (connected, disconnected, reconnecting), implement data freshness timestamps, and develop visual cues for stale or outdated information.
+
+## 8. Develop Dashboard Refresh Logic [pending]
+### Dependencies: 7.2, 7.3, 7.4
+### Description: Implement intelligent refresh mechanisms for dashboard components
+### Details:
+Create component-specific refresh strategies, implement partial UI updates to minimize rendering, and develop fallback mechanisms for when WebSocket connections fail.
+

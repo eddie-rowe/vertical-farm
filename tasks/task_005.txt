@@ -1,0 +1,86 @@
+# Task ID: 5
+# Title: Grow Recipe Management System
+# Status: pending
+# Dependencies: 1
+# Priority: medium
+# Description: Develop a system for defining and managing grow recipes including grow days, light duration, watering frequency, and other parameters.
+# Details:
+1. Design database schema for grow recipes:
+   ```sql
+   CREATE TABLE species (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     name TEXT NOT NULL UNIQUE,
+     description TEXT
+   );
+   
+   CREATE TABLE grow_recipes (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     species_id UUID REFERENCES species(id),
+     name TEXT NOT NULL,
+     grow_days INTEGER NOT NULL,
+     light_hours NUMERIC(4,2) NOT NULL,
+     watering_frequency_hours NUMERIC(5,2) NOT NULL,
+     average_yield NUMERIC(6,2),
+     sowing_rate NUMERIC(6,2),
+     custom_parameters JSONB,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ```
+2. Create UI components for recipe management:
+   - SpeciesForm
+   - RecipeEditor
+   - RecipeList
+   - RecipeDetailView
+3. Implement CRUD operations for recipes via FastAPI endpoints
+4. Add recipe versioning to track changes
+5. Create recipe duplication functionality
+6. Implement recipe parameter validation
+7. Add recipe search and filtering capabilities
+
+# Test Strategy:
+Unit tests for recipe validation and component rendering. Integration tests for recipe CRUD operations. Test recipe versioning to ensure history is maintained. Verify custom parameters are properly stored and retrieved. Test recipe duplication functionality.
+
+# Subtasks:
+## 1. Schema Design for Recipe Management [pending]
+### Dependencies: None
+### Description: Create a comprehensive data model that handles the complexity of recipe structures while reducing data duplication
+### Details:
+Design database schema that includes tables for recipes, ingredients, measurements, steps, categories, and relationships between them. Consider hierarchical recipe structures, inheritance patterns, and version control requirements. Include metadata fields for tracking creation, modification, and approval workflows.
+
+## 2. UI Component Development [pending]
+### Dependencies: 5.1
+### Description: Develop user interface components for recipe creation, editing, and visualization
+### Details:
+Create reusable UI components for ingredient selection, measurement input, step sequencing, and recipe preview. Design interfaces for different user roles (operators, managers, etc.) that show only relevant information. Implement drag-and-drop functionality for recipe steps and responsive design for various devices.
+
+## 3. CRUD API Implementation [pending]
+### Dependencies: 5.1
+### Description: Develop comprehensive API endpoints for recipe management operations
+### Details:
+Implement RESTful API endpoints for creating, reading, updating, and deleting recipes and their components. Include endpoints for partial updates, bulk operations, and specialized recipe operations. Design API responses to include appropriate error handling and validation feedback.
+
+## 4. Versioning System Implementation [pending]
+### Dependencies: 5.1, 5.3
+### Description: Create a robust versioning system to track recipe changes over time
+### Details:
+Implement version control for recipes that tracks all changes, allows comparison between versions, and supports rollback functionality. Design a branching model for recipe development workflows. Include audit trails that capture who made changes and when.
+
+## 5. Recipe Duplication and Template System [pending]
+### Dependencies: 5.3, 5.4
+### Description: Develop functionality for recipe duplication, templates, and inheritance
+### Details:
+Create systems for duplicating recipes while maintaining references, developing recipe templates, and implementing inheritance patterns for recipe variations. Include functionality to track relationships between original recipes and derivatives. Design mechanisms to propagate changes from base recipes to derivatives when appropriate.
+
+## 6. Validation Framework Development [pending]
+### Dependencies: 5.1, 5.3
+### Description: Implement comprehensive validation for recipes and their components
+### Details:
+Create validation rules for ingredients, measurements, steps, and complete recipes. Implement business logic validation for recipe feasibility, cost calculations, and regulatory compliance. Design a flexible validation framework that can be extended for different product types and manufacturing processes.
+
+## 7. Search and Filtering System [pending]
+### Dependencies: 5.1, 5.3
+### Description: Develop advanced search and filtering capabilities for recipe management
+### Details:
+Implement full-text search across recipe components, advanced filtering by ingredients, categories, and metadata. Create saved search functionality and personalized views. Design efficient indexing strategies for large recipe databases and implement faceted search capabilities.
+

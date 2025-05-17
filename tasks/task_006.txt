@@ -1,0 +1,107 @@
+# Task ID: 6
+# Title: Scheduling and Automation Engine
+# Status: pending
+# Dependencies: 3, 4, 5
+# Priority: high
+# Description: Implement a scheduling system to automate grow operations based on recipes, including light cycles, watering, and other operations.
+# Details:
+1. Design database schema for schedules:
+   ```sql
+   CREATE TABLE schedules (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     shelf_id UUID REFERENCES shelves(id) ON DELETE CASCADE,
+     recipe_id UUID REFERENCES grow_recipes(id),
+     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
+     end_date TIMESTAMP WITH TIME ZONE,
+     status TEXT NOT NULL DEFAULT 'active',
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   
+   CREATE TABLE scheduled_actions (
+     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     schedule_id UUID REFERENCES schedules(id) ON DELETE CASCADE,
+     action_type TEXT NOT NULL,
+     entity_id TEXT NOT NULL,
+     parameters JSONB,
+     execution_time TIMESTAMP WITH TIME ZONE NOT NULL,
+     status TEXT NOT NULL DEFAULT 'pending'
+   );
+   ```
+2. Implement scheduler service in FastAPI:
+   ```python
+   class SchedulerService:
+       def __init__(self, db, ha_client):
+           self.db = db
+           self.ha_client = ha_client
+       
+       async def create_schedule(self, shelf_id, recipe_id, start_date):
+           # Create schedule and generate initial actions
+           pass
+           
+       async def generate_actions(self, schedule_id):
+           # Generate actions based on recipe parameters
+           pass
+           
+       async def execute_pending_actions(self):
+           # Find and execute pending actions
+           pass
+   ```
+3. Create background task for action execution
+4. Implement recipe locking logic for sequential watering
+5. Add manual override capabilities
+6. Create UI components for schedule management
+7. Implement conflict detection for overlapping schedules
+8. Add notification system for failed actions
+
+# Test Strategy:
+Unit tests for scheduler logic and action generation. Integration tests with Home Assistant for action execution. Test scheduling conflicts and resolution. Verify actions are executed at the correct times. Test manual overrides and their effect on scheduled actions.
+
+# Subtasks:
+## 1. Schedule Schema Design [pending]
+### Dependencies: None
+### Description: Design the database schema to support scheduling, including entities for tasks, resources, time slots, and dependencies.
+### Details:
+Define tables and relationships for schedules, recipes, locks, overrides, and conflicts. Ensure schema supports real-time updates and concurrency.
+
+## 2. Scheduler Service Implementation [pending]
+### Dependencies: 6.1
+### Description: Develop the core scheduling service responsible for creating, updating, and managing schedules in real time.
+### Details:
+Implement logic for task assignment, time slot allocation, and integration with the schedule schema. Ensure scalability and low-latency operation.
+
+## 3. Background Task Setup [pending]
+### Dependencies: 6.2
+### Description: Set up background workers or services to handle scheduled tasks, periodic checks, and automated actions.
+### Details:
+Configure background processing for executing scheduled jobs, monitoring task status, and handling retries or failures.
+
+## 4. Recipe Locking Mechanism [pending]
+### Dependencies: 6.1, 6.2
+### Description: Implement a locking mechanism to prevent concurrent modifications to the same recipe or schedule entry.
+### Details:
+Design and enforce locks at the database or application level to ensure data consistency and prevent race conditions.
+
+## 5. Manual Override Functionality [pending]
+### Dependencies: 6.2, 6.4
+### Description: Enable authorized users to manually override scheduled tasks or resolve conflicts as needed.
+### Details:
+Provide interfaces and logic for manual intervention, including audit trails and rollback capabilities.
+
+## 6. User Interface Development [pending]
+### Dependencies: 6.2, 6.5
+### Description: Develop the UI for schedule visualization, task management, manual overrides, and conflict resolution.
+### Details:
+Design and implement intuitive screens for users to view, edit, and interact with schedules and notifications.
+
+## 7. Conflict Detection and Resolution [pending]
+### Dependencies: 6.2, 6.4, 6.5
+### Description: Implement logic to detect scheduling conflicts and provide automated or manual resolution options.
+### Details:
+Develop algorithms to identify overlapping tasks, resource contention, and notify users or trigger resolution workflows.
+
+## 8. Notification System Integration [pending]
+### Dependencies: 6.3, 6.6, 6.7
+### Description: Build and integrate a notification system to alert users about schedule changes, conflicts, and task statuses.
+### Details:
+Support real-time and asynchronous notifications via email, SMS, or in-app alerts, configurable by user preferences.
+

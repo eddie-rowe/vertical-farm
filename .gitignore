@@ -26,4 +26,8 @@ node_modules/
 
 # Task files
 #tasks.json
+#tasks/
+
+# Added by Claude Task Master
+#tasks.json
 #tasks/ 

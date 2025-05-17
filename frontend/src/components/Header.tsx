@@ -15,6 +15,12 @@ const Header: React.FC = () => {
       <nav>
         <ul className="flex gap-4 items-center">
           <li><Link href="/" className="text-gray-700 dark:text-gray-300 hover:underline">Home</Link></li>
+          <li><Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:underline">Dashboard</Link></li>
+          <li><Link href="/dashboard/layout" className="text-gray-700 dark:text-gray-300 hover:underline">Dashboard Layout</Link></li>
+          <li><Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:underline">Profile</Link></li>
+          <li><Link href="/protected" className="text-gray-700 dark:text-gray-300 hover:underline">Protected</Link></li>
+          <li><Link href="/account" className="text-gray-700 dark:text-gray-300 hover:underline">Account</Link></li>
+          <li><Link href="/auth" className="text-gray-700 dark:text-gray-300 hover:underline">Auth</Link></li>
           <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:underline">About</a></li>
           {user && !loading ? (
             <>
