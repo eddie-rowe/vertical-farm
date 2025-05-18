@@ -77,7 +77,8 @@ Each feature is defined for clarity to an AI task-planner:
 
 ## 4.6 Harvest & Yield Tracking
 
-- **What**: Log harvest dates, weights, quality notes.
+Non-technical users need drag-and-drop ease.  
+ Log harvest dates, weights, quality notes.
 - **Why**: Build per-species profiles and feed into cost models.
 - **How**: Custom `vertical_farm.harvest` entity, UI form, stored in home assistant DB.
 

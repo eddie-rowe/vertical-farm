@@ -1,134 +1,100 @@
-Here’s a first draft of your PRD for a Home Assistant community add‑on to control a vertical farming environment.
+Great — here's the updated PRD with **Home Assistant integration via API/WebSockets** added in the appropriate sections. I’ve added it as an **optional control integration**, clearly scoped and framed to fit your new stack while maintaining interoperability with existing Home Assistant ecosystems.
 
-This add‑on will leverage Home Assistant’s Supervisor add‑on model—running as a container managed by the Supervisor—and a custom integration (in custom_components) to provide YAML‑driven configuration, service APIs, and a companion Lovelace card for monitoring and control. It solves the problem of fragmented, hardware‑specific farming automation by providing a unified, flexible platform for growers of all scales, from hobbyists to small commercial farms, to schedule and orchestrate lighting, irrigation, climate, and nutrient delivery—all within Home Assistant’s familiar UI.
+---
 
-<context> 
-# Overview 
+## 🔧 Updated PRD: Vertical Farming Orchestration Platform
 
-Add‑ons allow users to extend Home Assistant’s functionality by running applications as container images managed by the Supervisor panel :contentReference[oaicite:0]{index=0}. This community add‑on targets vertical farming environments—automating lighting, irrigation, climate (temperature, humidity), and nutrient delivery in stacked grow racks—to deliver precise, resource‑efficient crop management year‑round :contentReference[oaicite:1]{index=1}. By embedding both the control logic (in a Docker container) and a Home Assistant integration (in `custom_components`), it unifies hardware‑agnostic scheduling, real‑time monitoring, and notifications under one roof :contentReference[oaicite:2]{index=2}.
+### 🧠 Technical Architecture
 
-Core Features 
-Multi‑Zone Scheduling
-What it does: Define unlimited controllers, zones, and schedules (time‑ or sun‑event‑based, cron expressions, weekday/month filters) 
-Why it’s important: Supports complex watering/nutrient cycles and lighting shifts without messy scripts 
-How it works: YAML schema describes controllers ▶️ zones ▶️ schedules; the integration translates these to binary sensors and service calls.
+* **Frontend**:
+  Built using **React** (with **Next.js**) to provide a responsive web interface for growers. Features include:
 
-Sequence and Cycle Management
-What it does: Create sequences (“playlists”) to run zones in order with configurable delays for soak‑and‑drain eco cycles 
-Why it’s important: Optimizes water usage and prevents hydraulic shock in pneumatic or solenoid valves.
-How it works: Sequence objects group schedules/zones, with delay parameters applied automatically.
+  * Dashboard for current system status and historical insights
+  * Zone and schedule configuration UIs
+  * Manual overrides and controls
+  * Authentication and role-based access via Supabase Auth
 
-Real‑Time Monitoring & History
-What it does: Exposes binary sensors for controllers and zones, with attributes for current schedule, next run time, and runtime history 
-Why it’s important: Enables growers to track performance and troubleshoot issues without leaving Home Assistant.
-How it works: Custom integration collects state and emits events (irrigation_unlimited_start, irrigation_unlimited_finish) for automations.
+* **Backend**:
+  Developed using **FastAPI**, exposing RESTful and WebSocket endpoints to:
 
-Companion Lovelace Card
-What it does: Provides a dashboard card showing upcoming schedules, history, and manual run controls 
-Why it’s important: Offers intuitive, in‑UI control and status overview without custom Grafana dashboards.
-How it works: Card is a TypeScript widget installed alongside the integration; it subscribes to sensor entities and service calls.
+  * Manage configuration for controllers, zones, schedules, and sequences
+  * Receive sensor data and device states
+  * Trigger manual run commands or schedule overrides
+  * Log activity and system history
 
-Hardware‑Independent Control
-What it does: Works with any Home Assistant entity supporting turn_on/turn_off (switch, light, cover, etc.) 
-Why it’s important: Ensures compatibility across relays, motorized valves, ESPHome boards, or commercial controllers.
-How it works: Controllers/zones map to entity IDs; service calls trigger the corresponding entity.
+* **Database**:
+  Powered by **Supabase Postgres**, with real-time capabilities and row-level security for:
 
-User Experience 🧑‍💻
+  * Controllers, zones, schedules, and historical execution logs
+  * User configuration and access control
+  * Device metadata (e.g., IP, type, last ping, error states)
 
-User Personas
+* **Device Integration Layer**:
+  Modular device drivers for:
 
-Hobbyist Grower: Seeks simple scheduling for a single tent or mini vertical farm.
-Commercial Micro‑farm Manager: Requires fine‑grained control of multiple zones, eco‑cycles, and historical data.
-Researcher/Developer: Integrates weather or ML‑based run‑time adjustments via Home Assistant automations.
+  * **ESP32/ESPHome**, custom microcontroller boards
+  * **Kasa smart plugs/switches**
+  * **Home Assistant integration (NEW)** via:
 
-Key User Flows
+    * **WebSocket API**: subscribe to entity state changes
+    * **REST API**: trigger services (`turn_on`, `turn_off`, etc.)
+    * Supports using existing Home Assistant setups as a unified device layer for relay control, climate feedback, and sensor ingestion
 
-Installation via HACS or local add‑ons folder, then enable in Supervisor 
-Home Assistant
-.
+---
 
-Configuration by editing configuration.yaml (controllers ▶️ zones ▶️ schedules), reload integration without restart 
-GitHub
-.
+### 🔌 Home Assistant API Integration (New Section)
 
-Monitoring & Control using the Lovelace card: view upcoming runs, manual start/stop, history graphs.
+* **What it does**: Enables the platform to discover, monitor, and control devices registered in Home Assistant using its native APIs.
 
-Automation Extensions: Link sensor data (e.g., soil moisture, external weather) to adjust_time service calls for dynamic control.
+* **Why it’s important**: Many users already have sensors, relays, and automations in Home Assistant. This feature allows them to extend their farm automation workflows without duplicating device configuration.
 
-UI/UX Considerations
+* **How it works**:
 
-Responsive Card Design: Mobile‑first layout with collapsible controllers and zones.
+  * **WebSocket API**: Subscribes to state updates for entities tagged as relevant (e.g., switches, sensors).
+  * **REST API**: Sends service calls (`turn_on`, `turn_off`, `call_service`) to control lights, relays, and other actuators.
+  * API credentials stored securely in Supabase (per user or installation).
+  * Devices added through a Discovery UI or manually entered.
 
-Accessibility: Clear labeling, high‑contrast icons, and keyboard navigation support.
+---
 
-Customization: Support theming via Lovelace options; allow hiding inactive controllers.
+### 🧑‍💻 User Experience
 
-</context>
+* **User Personas** (unchanged, but now includes):
 
+  * *Home Assistant Power User*: Wants seamless interaction between their existing Home Assistant automation and the vertical farm stack.
 
-<PRD> 
-# Technical Architecture 
+* **Key User Flows** (updated):
 
-- **Add‑On Container**: Based on Alpine Linux; defined by `Dockerfile` with labels `io.hass.type="addon"` and `io.hass.arch` per architecture requirements :contentReference[oaicite:11]{index=11}. - **Supervisor Integration**: Repository structured per Home Assistant Developer Docs for add‑ons—`config.json`, `Dockerfile`, `run.sh`, and `options_schema.yaml` for Supervisor UI configuration :contentReference[oaicite:12]{index=12}. - **Custom Integration**: Lives in `custom_components/vertical_farm`, using Python to parse YAML, register service calls, entities, and events (mirroring Irrigation Unlimited’s architecture) :contentReference[oaicite:13]{index=13}. - **Data Models**: - Controllers ▶️ zones ▶️ schedules, sequences; each mapped to binary sensors. - Attributes include name, entity_id, next run, duration, history. - **APIs & Integrations**: - **Home Assistant Services**: `vertical_farm.run`, `vertical_farm.adjust_time`. - **Events**: `vertical_farm_start`, `vertical_farm_finish` for hookable automations. - **Third‑Party**: Optional MQTT bridge, ESPHome sensors, weather integrations for dynamic adjustments. - **Infrastructure Requirements**: - Home Assistant OS/Supervised install with Supervisor panel. - Hardware: Any switchable device (GPIO, Zigbee/Z‑Wave relays, ESPHome). - Network: LAN connectivity for local sensors and optional cloud backup.
+  * **Device Linking**: Add a new device by IP, local discovery, or Home Assistant entity selection.
+  * **Manual Control**: Toggle relays or lighting using the platform’s UI or pass-through service calls to Home Assistant.
+  * **Sensor Feedback**: Use Home Assistant sensors (e.g., humidity, temp) to drive dynamic rule adjustments.
 
-Development Roadmap 🚀
+---
 
-Phase 1 (MVP)
+### 📶 APIs & Integration Overview (Updated)
 
-Build add‑on scaffolding: Dockerfile, config.json, Supervisor metadata.
-Develop core integration: parse YAML, register controllers/zones, basic scheduling engine.
-Expose binary sensors and implement manual run service calls.
+| Integration Target                 | Method                               | Purpose                                                |
+| ---------------------------------- | ------------------------------------ | ------------------------------------------------------ |
+| Local Hardware (ESP32, Kasa, etc.) | Direct control via FastAPI endpoints | Watering, lighting, etc.                               |
+| Home Assistant                     | REST & WebSocket                     | Monitor and control existing smart home devices        |
+| Supabase                           | Postgres + Realtime                  | Configuration, history, authentication                 |
+| Frontend (Next.js/React)           | Fetch/WebSockets                     | Real-time UI sync, status updates, schedule management |
 
-Phase 2 (Enhancements)
+---
 
-Add sequences/cycles (delays, eco‑mode) and schedule filters (sun events, cron).
-Create companion Lovelace card and service shim for input controls.
-Implement history tracking and basic charts via Home Assistant statistics.
+### 🔭 Development Roadmap (Updated Highlights)
 
-Phase 3 (Advanced Features)
+**Phase 2 – Enhancements**
 
-Auto‑adjust run times based on sensor inputs (ET calculations, weather forecasts) 
-Integrate machine‑learning suggestions for optimal crop cycles.
-Publish to HACS with documentation, tests, and community feedback loop.
+* ✅ Add sequences/cycles and sun/cron schedule filters
+* ✅ Build React dashboard UI
+* ✅ Integrate **Home Assistant WebSocket and REST APIs** for optional external device control
 
-Logical Dependency Chain 🔗
+**Phase 3 – Advanced Features**
 
-Foundation: Set up add‑on repository, Docker build, Supervisor metadata.
-Integration Core: YAML schema, Python service handlers, entity registration.
-Basic Scheduling: Implement time/event triggers and runtime engine.
-First‑Usable UI: Expose binary sensors and test manual runs via Services page.
-Lovelace Card: Build and refine UI widget for production‑ready display.
-Advanced Modules: Sequences, history, dynamic adjustments layered on core.
+* Auto-adjust run times based on sensor inputs, including **those exposed from Home Assistant**
+* Community plugin to import Home Assistant devices into the platform
 
-Risks and Mitigations ⚠️
+---
 
-Technical Complexity:
-Risk: Diverse hardware leads to inconsistencies.
-Mitigation: Abstract control via Home Assistant entity layer; extensive integration tests.
-
-MVP Scope Creep:
-Risk: Feature overload delays usable release.
-Mitigation: Strict phase‑based feature gating; freeze core before enhancements.
-
-Resource Constraints:
-
-Risk: Limited contributor bandwidth.
-Mitigation: Document architecture clearly; encourage community contributions once MVP is stable.
-
-Appendix 📑
-
-Research Findings:
-
-Urban Smart Vertical Farming needs IoT sensors and closed‑loop controls for light, water, nutrients 
-MDPI
-.
-
-Home Assistant’s Supervisor add‑on model simplifies deployment of custom apps as containers 
-
-
-Technical Specifications:
-Base image: homeassistant/amd64-base:latest.
-Supervisor labels: io.hass.arch, io.hass.version, io.hass.type.
-Required permissions: network, homeassistant_api.
-
-</PRD>
+Let me know if you’d like a diagram to show how the Home Assistant integration fits into the architecture — or if you want auth scopes/API paths detailed out.
