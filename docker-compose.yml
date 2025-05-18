@@ -1,5 +1,7 @@
 services:
   backend:
+    container_name: backend
+    hostname: backend
     build: ./backend
     ports:
       - "8000:8000"
@@ -19,6 +21,8 @@ services:
       - datadog
 
   frontend:
+    container_name: frontend
+    hostname: frontend
     build: ./frontend
     ports:
       - "3000:3000"
@@ -39,6 +43,7 @@ services:
   datadog:
     #build: datadog
     container_name: dd-agent
+    hostname: dd-agent
     #pid: host
     image: datadog/agent:latest
     environment:
