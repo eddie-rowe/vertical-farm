@@ -16,7 +16,9 @@ NEXT_SRC=frontend
 	# Docs & Agents
 	docs-sync ux-analysis \
 	# Meta
-	setup format-all test-all help
+	setup format-all test-all help \
+	# Security & Vulnerability Scanning
+	security-python security-node security-docker security-secrets security-snyk-python security-snyk-node
 
 # --- Backend Workflows ---
 
@@ -111,6 +113,40 @@ pr:
 	oco
 	git push -u origin HEAD
 	gh pr create --fill
+
+# --- Security & Vulnerability Scanning ---
+
+## Run Python security checks (pip-audit, bandit)
+security-python:
+	pip install --quiet pip-audit bandit
+	pip-audit
+	bandit -r backend/
+
+## Run Node.js security checks (npm audit)
+security-node:
+	cd frontend && npm install
+	cd frontend && npm audit --audit-level=high
+
+## Run Docker image security checks (trivy)
+security-docker:
+	trivy image vertical-farm_backend:latest || echo "Build backend image first."
+	trivy image vertical-farm_frontend:latest || echo "Build frontend image first."
+
+## Run secrets scanning (gitleaks)
+security-secrets:
+	gitleaks detect --source .
+
+## Run Snyk security checks for Python (backend)
+security-snyk-python:
+	cd backend && snyk test || echo "Snyk must be installed and authenticated."
+
+## Run Snyk security checks for Node.js (frontend)
+security-snyk-node:
+	cd frontend && snyk test || echo "Snyk must be installed and authenticated."
+
+## Run all security checks
+security: security-python security-node security-docker security-secrets security-snyk-python security-snyk-node
+	@echo "\nAll security checks completed. Review output above."
 
 # --- Help ---
 

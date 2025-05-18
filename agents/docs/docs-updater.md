@@ -104,7 +104,9 @@ file_list:
 sync_strategy: "verify-and-patch"
 code_root: "/Users/eddie.rowe/Repos/vertical-farm"
 ```
+
 **Output**:
+
 ```md
 Excerpt from changes-summary.md:
 
