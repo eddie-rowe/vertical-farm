@@ -3,7 +3,7 @@
   This file is imported in the root layout and applies to all routes.
 */
 @import "tailwindcss";
-@import "tw-animate-css";
+
 /*
   ---break---
 */
@@ -192,5 +192,19 @@
   .btn-animated:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 4px 16px 0 rgba(59,130,246,0.15);
+  }
+  .footer-link {
+    @apply hover:underline hover:text-green-700 dark:hover:text-green-300 focus:underline focus:outline-none transition;
+  }
+  .nav-link {
+    @apply hover:underline focus:underline focus:outline-none transition;
+  }
+  .btn-animated:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
   }
 }
