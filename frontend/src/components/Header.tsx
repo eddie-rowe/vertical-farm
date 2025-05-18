@@ -4,24 +4,30 @@ import Link from 'next/link';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
+import { usePathname } from 'next/navigation';
+import NotificationCenter from './notifications/NotificationCenter';
+import Image from 'next/image';
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, loading } = useAuth();
+  const pathname = usePathname();
 
   return (
     <header className="w-full py-4 px-8 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Taskmaster Sandbox</h1>
+      <div className="flex items-center gap-3">
+        <Image src="/globe.svg" alt="Vertical Farm Logo Placeholder" width={32} height={32} className="h-8 w-8" />
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Vertical Farm</h1>
+      </div>
       <nav>
         <ul className="flex gap-4 items-center">
-          <li><Link href="/" className="text-gray-700 dark:text-gray-300 hover:underline">Home</Link></li>
-          <li><Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:underline">Dashboard</Link></li>
-          <li><Link href="/dashboard/layout" className="text-gray-700 dark:text-gray-300 hover:underline">Dashboard Layout</Link></li>
-          <li><Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:underline">Profile</Link></li>
-          <li><Link href="/protected" className="text-gray-700 dark:text-gray-300 hover:underline">Protected</Link></li>
-          <li><Link href="/account" className="text-gray-700 dark:text-gray-300 hover:underline">Account</Link></li>
-          <li><Link href="/auth" className="text-gray-700 dark:text-gray-300 hover:underline">Auth</Link></li>
-          <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:underline">About</a></li>
+          <li><Link href="/" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Home</Link></li>
+          <li><Link href="/dashboard" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname.startsWith('/dashboard') && pathname !== '/dashboard/layout' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Dashboard</Link></li>
+          <li><Link href="/dashboard/layout" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/dashboard/layout' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Dashboard Layout</Link></li>
+          <li><Link href="/protected" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/protected' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Protected</Link></li>
+          <li><Link href="/auth" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/auth' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Auth</Link></li>
+          <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition">About</a></li>
+          <li><NotificationCenter /></li>
           {user && !loading ? (
             <>
               <li className="flex items-center gap-2">
@@ -55,4 +61,4 @@ const Header: React.FC = () => {
   );
 };
 
-export default Header; 
+export default Header;

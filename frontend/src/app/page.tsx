@@ -27,13 +27,13 @@ export default function Home() {
           </Link>
         </div>
       </main>
-      <footer className="w-full flex flex-col items-center gap-2 py-6 mt-8 text-gray-500 dark:text-gray-400 text-sm">
+      <footer className="w-full flex flex-col items-center gap-2 py-6 mt-8 text-gray-600 dark:text-gray-200 text-sm bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
         <div className="flex gap-4">
-          <a href="https://github.com/your-org/vertical-farm" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-green-700 dark:hover:text-green-300 transition">GitHub</a>
-          <a href="/docs" className="hover:underline hover:text-green-700 dark:hover:text-green-300 transition">Docs</a>
-          <a href="/about" className="hover:underline hover:text-green-700 dark:hover:text-green-300 transition">About</a>
+          <a href="https://github.com/your-org/vertical-farm" target="_blank" rel="noopener noreferrer" className="footer-link">GitHub</a>
+          <a href="/docs" className="footer-link">Docs</a>
+          <a href="/about" className="footer-link">About</a>
         </div>
-        <div>© {new Date().getFullYear()} Vertical Farm Manager. All rights reserved.</div>
+        <div className="font-medium">© {new Date().getFullYear()} Vertical Farm Manager. All rights reserved.</div>
       </footer>
     </div>
   );
