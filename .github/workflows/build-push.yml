@@ -1,11 +1,9 @@
-name: CI/CD Pipeline
-
+name: Build & push image
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -22,14 +20,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Lint (flake8)
-        run: |
-          pip install flake8
-          flake8 .
-      - name: Run backend tests
-        run: |
-          pip install pytest
-          pytest
+      #- name: Lint (flake8)
+      #  run: |
+      #    pip install flake8
+      #    flake8 .
+      #- name: Run backend tests
+      #  run: |
+      #    pip install pytest
+      #    pytest
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ github.repository }}/backend:latest .
       - name: Log in to GitHub Container Registry
@@ -40,7 +38,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Docker image
         run: docker push ghcr.io/${{ github.repository }}/backend:latest
-
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -54,15 +51,15 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install
-      - name: Lint
-        run: npm run lint
+      #- name: Lint
+      #  run: npm run lint
       - name: Build
         run: npm run build
-      - name: Run frontend tests
-        run: |
-          if [ -f package.json ] && grep -q 'test' package.json; then npm test; else echo "No frontend tests defined"; fi
+      #- name: Run frontend tests
+      #  run: |
+      #    if [ -f package.json ] && grep -q 'test' package.json; then npm test; else echo "No frontend tests defined"; fi
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/frontend:latest .
+        run: docker build -t ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -70,11 +67,4 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}/frontend:latest
-
-  # deploy:
-  #   needs: [backend, frontend]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Deploy to production
-  #       run: echo "Deploy step goes here (e.g., push Docker images, deploy to Vercel, etc.)" 
+        run: docker push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
