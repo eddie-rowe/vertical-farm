@@ -22,6 +22,13 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Pull & restart vertical-farm/backend container
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          DD_SERVICE: ${{ secrets.DD_SERVICE }}
+          DD_ENV: ${{ vars.DD_ENV }}
+          DD_VERSION: ${{ vars.DD_VERSION }}
         run: |
           IMAGE=ghcr.io/${{ github.repository_owner }}/vertical-farm/backend:${{ github.sha }}
           CONTAINER=backend
@@ -35,15 +42,24 @@ jobs:
             -e SUPABASE_URL=${SUPABASE_URL} \
             -e SUPABASE_KEY=${SUPABASE_KEY} \
             -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
-            -e DD_SERVICE=vertical-farm-backend \
-            -e DD_ENV=dev \
-            -e DD_VERSION=1.0.0 \
+            -e DD_SERVICE=${DD_SERVICE} \
+            -e DD_ENV=${DD_ENV} \
+            -e DD_VERSION=${DD_VERSION} \
             -e DD_AGENT_HOST=dd-agent \
             -l 'com.datadoghq.ad.logs=[{"source":"vertical-farm-backend","service":"vertical-farm-backend"}]' \
             -v backend-logs:/app/backend/logs \
             $IMAGE
 
       - name: Pull & restart vertical-farm/frontend container
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_DD_RUM_APPLICATION_ID: ${{ secrets.NEXT_PUBLIC_DD_RUM_APPLICATION_ID }}
+          NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN: ${{ secrets.NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN }}
+          NEXT_PUBLIC_DD_SITE: ${{ secrets.NEXT_PUBLIC_DD_SITE }}
+          NEXT_PUBLIC_DD_SERVICE: ${{ secrets.NEXT_PUBLIC_DD_SERVICE }}
+          NEXT_PUBLIC_DD_ENV: ${{ vars.NEXT_PUBLIC_DD_ENV }}
         run: |
           IMAGE=ghcr.io/${{ github.repository_owner }}/vertical-farm/frontend:${{ github.sha }}
           CONTAINER=frontend
@@ -56,7 +72,7 @@ jobs:
             -p 3000:3000 \
             -e NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL} \
             -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY} \
-            -e NEXT_PUBLIC_API_URL=http://localhost:8000 \
+            -e NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
             -e NEXT_PUBLIC_DD_RUM_APPLICATION_ID=${NEXT_PUBLIC_DD_RUM_APPLICATION_ID} \
             -e NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN=${NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN} \
             -e NEXT_PUBLIC_DD_SITE=${NEXT_PUBLIC_DD_SITE} \
@@ -65,6 +81,14 @@ jobs:
             -l 'com.datadoghq.ad.logs=[{"source":"vertical-farm-frontend","service":"vertical-farm-frontend"}]' \
             $IMAGE
       - name: Pull & restart Datadog Agent container
+        env:
+          SUPABASE_METRICS_URL: ${{ secrets.SUPABASE_METRICS_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ secrets.DD_SITE }}
+          DD_SERVICE: ${{ secrets.DD_SERVICE }}
+          DD_ENV: ${{ vars.DD_ENV }}
         run: |
           IMAGE=datadog/agent:latest
           CONTAINER=dd-agent
