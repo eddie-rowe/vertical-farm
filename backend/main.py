@@ -14,8 +14,9 @@ origins = [
     "http://localhost",
     "http://localhost:3000",
     "http://localhost:8080",
-    "https://vertical-farm-frontend.onrender.com",
-    "https://vertical-farm.onrender.com",
+    "http://192.168.0.111:3000",
+    "http://192.168.0.111:8080",
+    "https://vertical-farm.goodgoodgreens.org"
 ]
 
 app.add_middleware(
