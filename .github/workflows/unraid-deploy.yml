@@ -112,10 +112,10 @@ jobs:
             -e DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED=true \
             -e SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL} \
             -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
-            -l 'com.datadoghq.ad.checks={"supabase":{"instances":[{"privileged_metrics_endpoint":"%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_KEY%%"}]}}'
-            -v /var/run/docker.sock:/var/run/docker.sock:ro \
-            -v /proc/:/host/proc/:ro \
-            -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
-            -v backend-logs:/app/backend/logs \
-            -v /etc/passwd:/etc/passwd:ro \
+            -l 'com.datadoghq.ad.checks={"supabase":{"instances":[{"privileged_metrics_endpoint":"%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_KEY%%"}]}}' \
+            -v '/var/run/docker.sock:/var/run/docker.sock:ro' \
+            -v '/proc/:/host/proc/:ro' \
+            -v '/sys/fs/cgroup/:/host/sys/fs/cgroup:ro' \
+            -v 'backend-logs:/app/backend/logs' \
+            -v '/etc/passwd:/etc/passwd:ro' \
             $IMAGE
