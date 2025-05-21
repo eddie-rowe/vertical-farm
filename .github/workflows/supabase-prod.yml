@@ -1,0 +1,29 @@
+name: Deploy Supabase Migrations to Prod
+
+on:
+  workflow_dispatch:  # Only run manually to protect prod
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app.supabase.com/project/${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Set up environment
+        run: |
+          echo "SUPABASE_ACCESS_TOKEN=${{ secrets.SUPABASE_ACCESS_TOKEN_PROD }}" >> $GITHUB_ENV
+          echo "SUPABASE_DB_URL=${{ secrets.SUPABASE_DB_URL_PROD }}" >> $GITHUB_ENV
+
+      - name: Push migrations to Prod
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+          supabase db push --db-url $SUPABASE_DB_URL

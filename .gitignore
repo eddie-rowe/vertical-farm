@@ -31,3 +31,11 @@ node_modules/
 # Added by Claude Task Master
 #tasks.json
 #tasks/ 
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz

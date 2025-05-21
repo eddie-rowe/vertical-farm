@@ -28,7 +28,8 @@ run-backend:
 
 ## Run backend tests with pytest
 test-backend:
-	cd backend && pytest
+	@echo "Running backend tests..."
+	set -a; source .env; set +a; export PYTHONPATH=$(CURDIR)/backend:$$PYTHONPATH; cd backend && DISABLE_DATADOG="true" pytest
 
 ## Lint backend Python code with Black
 lint-backend:

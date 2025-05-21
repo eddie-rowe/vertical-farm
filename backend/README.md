@@ -15,7 +15,7 @@
 
 3. Run the FastAPI server:
    ```bash
-   uvicorn main:app --reload
+   uvicorn app.main:app --reload
    ```
 
 - The API docs will be available at [http://localhost:8000/docs](http://localhost:8000/docs)
