@@ -1,5 +1,5 @@
 "use client";
-import FarmLayoutConfigurator from '../../../components/FarmLayoutConfigurator';
+import FarmLayoutConfigurator from '../../../components/farm-layout/FarmLayoutConfigurator';
 
 export default function LayoutPage() {
   return (

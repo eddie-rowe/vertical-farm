@@ -132,7 +132,7 @@
 
 @layer base {
   * {
-    @apply border-gray-300 outline outline-blue-500/50;
+    /* Removed for debugging: @apply border-gray-300 outline outline-blue-500/50; */
   }
   body {
     background: var(--background);

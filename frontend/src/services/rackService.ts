@@ -1,4 +1,5 @@
-import { supabase } from '../supabaseClient';
+'use client';
+import apiClient from '../lib/apiClient';
 // import { Row } from '../types'; // Assuming types.ts is in parent dir
 
 // Corresponds to backend app.schemas.rack.Rack
@@ -25,22 +26,6 @@ export interface RackUpdate {
     row_id?: string; // UUID
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-/**
- * Helper function to get the authorization header.
- */
-const getAuthHeader = async () => {
-    const session = (await supabase.auth.getSession()).data.session;
-    if (!session) {
-        throw new Error('User not authenticated');
-    }
-    return {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-    };
-};
-
 // --- Rack API Service Functions ---
 
 /**
@@ -48,17 +33,15 @@ const getAuthHeader = async () => {
  * Calls FastAPI backend: POST /api/v1/racks/
  */
 export const createRack = async (rackIn: RackCreate): Promise<Rack> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/racks/`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(rackIn),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create rack');
+    try {
+        return await apiClient<Rack>(`/api/v1/racks/`, {
+            method: 'POST',
+            body: JSON.stringify(rackIn),
+        });
+    } catch (error) {
+        console.error('Error in createRack service:', error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -66,16 +49,14 @@ export const createRack = async (rackIn: RackCreate): Promise<Rack> => {
  * Calls FastAPI backend: GET /api/v1/racks/{rack_id}
  */
 export const getRackById = async (rackId: string): Promise<Rack> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/racks/${rackId}`, {
-        method: 'GET',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to fetch rack');
+    try {
+        return await apiClient<Rack>(`/api/v1/racks/${rackId}`, {
+            method: 'GET',
+        });
+    } catch (error) {
+        console.error(`Error in getRackById service for id ${rackId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -83,16 +64,14 @@ export const getRackById = async (rackId: string): Promise<Rack> => {
  * Calls FastAPI backend: GET /api/v1/racks/row/{row_id}
  */
 export const getRacksByRow = async (rowId: string): Promise<Rack[]> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/racks/row/${rowId}`, {
-        method: 'GET',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to fetch racks for row');
+    try {
+        return await apiClient<Rack[]>(`/api/v1/racks/row/${rowId}`, {
+            method: 'GET',
+        });
+    } catch (error) {
+        console.error(`Error in getRacksByRow service for row ${rowId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -100,17 +79,15 @@ export const getRacksByRow = async (rowId: string): Promise<Rack[]> => {
  * Calls FastAPI backend: PUT /api/v1/racks/{rack_id}
  */
 export const updateRack = async (rackId: string, rackIn: RackUpdate): Promise<Rack> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/racks/${rackId}`, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify(rackIn),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to update rack');
+    try {
+        return await apiClient<Rack>(`/api/v1/racks/${rackId}`, {
+            method: 'PUT',
+            body: JSON.stringify(rackIn),
+        });
+    } catch (error) {
+        console.error(`Error in updateRack service for id ${rackId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -118,14 +95,14 @@ export const updateRack = async (rackId: string, rackIn: RackUpdate): Promise<Ra
  * Calls FastAPI backend: DELETE /api/v1/racks/{rack_id}
  */
 export const deleteRack = async (rackId: string): Promise<Rack> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/racks/${rackId}`, {
-        method: 'DELETE',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to delete rack');
+    try {
+        // Assuming backend returns the deleted object, if not, change Promise<Rack> to Promise<void>
+        // and handle apiClient<void>
+        return await apiClient<Rack>(`/api/v1/racks/${rackId}`, {
+            method: 'DELETE',
+        });
+    } catch (error) {
+        console.error(`Error in deleteRack service for id ${rackId}:`, error);
+        throw error;
     }
-    return response.json(); // FastAPI returns the deleted object
 }; 

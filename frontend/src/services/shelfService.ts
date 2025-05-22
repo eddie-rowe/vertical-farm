@@ -1,4 +1,5 @@
-import { supabase } from '../supabaseClient';
+'use client';
+import apiClient from '../lib/apiClient';
 // import { Rack } from '../types'; // Assuming types.ts is in parent dir
 
 // Corresponds to backend app.schemas.shelf.Shelf
@@ -25,22 +26,6 @@ export interface ShelfUpdate {
     rack_id?: string; // UUID
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-/**
- * Helper function to get the authorization header.
- */
-const getAuthHeader = async () => {
-    const session = (await supabase.auth.getSession()).data.session;
-    if (!session) {
-        throw new Error('User not authenticated');
-    }
-    return {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-    };
-};
-
 // --- Shelf API Service Functions ---
 
 /**
@@ -48,17 +33,15 @@ const getAuthHeader = async () => {
  * Calls FastAPI backend: POST /api/v1/shelves/
  */
 export const createShelf = async (shelfIn: ShelfCreate): Promise<Shelf> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/shelves/`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(shelfIn),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create shelf');
+    try {
+        return await apiClient<Shelf>(`/api/v1/shelves/`, {
+            method: 'POST',
+            body: JSON.stringify(shelfIn),
+        });
+    } catch (error) {
+        console.error('Error in createShelf service:', error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -66,16 +49,14 @@ export const createShelf = async (shelfIn: ShelfCreate): Promise<Shelf> => {
  * Calls FastAPI backend: GET /api/v1/shelves/{shelf_id}
  */
 export const getShelfById = async (shelfId: string): Promise<Shelf> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/shelves/${shelfId}`, {
-        method: 'GET',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to fetch shelf');
+    try {
+        return await apiClient<Shelf>(`/api/v1/shelves/${shelfId}`, {
+            method: 'GET',
+        });
+    } catch (error) {
+        console.error(`Error in getShelfById service for id ${shelfId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -83,16 +64,14 @@ export const getShelfById = async (shelfId: string): Promise<Shelf> => {
  * Calls FastAPI backend: GET /api/v1/shelves/rack/{rack_id}
  */
 export const getShelvesByRack = async (rackId: string): Promise<Shelf[]> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/shelves/rack/${rackId}`, {
-        method: 'GET',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to fetch shelves for rack');
+    try {
+        return await apiClient<Shelf[]>(`/api/v1/shelves/rack/${rackId}`, {
+            method: 'GET',
+        });
+    } catch (error) {
+        console.error(`Error in getShelvesByRack service for rack ${rackId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -100,17 +79,15 @@ export const getShelvesByRack = async (rackId: string): Promise<Shelf[]> => {
  * Calls FastAPI backend: PUT /api/v1/shelves/{shelf_id}
  */
 export const updateShelf = async (shelfId: string, shelfIn: ShelfUpdate): Promise<Shelf> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/shelves/${shelfId}`, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify(shelfIn),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to update shelf');
+    try {
+        return await apiClient<Shelf>(`/api/v1/shelves/${shelfId}`, {
+            method: 'PUT',
+            body: JSON.stringify(shelfIn),
+        });
+    } catch (error) {
+        console.error(`Error in updateShelf service for id ${shelfId}:`, error);
+        throw error;
     }
-    return response.json();
 };
 
 /**
@@ -118,14 +95,13 @@ export const updateShelf = async (shelfId: string, shelfIn: ShelfUpdate): Promis
  * Calls FastAPI backend: DELETE /api/v1/shelves/{shelf_id}
  */
 export const deleteShelf = async (shelfId: string): Promise<Shelf> => {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/shelves/${shelfId}`, {
-        method: 'DELETE',
-        headers: headers,
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to delete shelf');
+    try {
+        // Assuming backend returns the deleted object, if not, change Promise<Shelf> to Promise<void>
+        return await apiClient<Shelf>(`/api/v1/shelves/${shelfId}`, {
+            method: 'DELETE',
+        });
+    } catch (error) {
+        console.error(`Error in deleteShelf service for id ${shelfId}:`, error);
+        throw error;
     }
-    return response.json(); // FastAPI returns the deleted object
 }; 

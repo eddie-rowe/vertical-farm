@@ -1,4 +1,6 @@
+'use client'; // Added 'use client' as this service now relies on apiClient which is client-side
 import { supabase } from '../supabaseClient';
+import apiClient from '../lib/apiClient'; // Adjusted path assuming services is sibling to lib
 
 // Define the type for Farm data based on your schema
 // Adjust this based on your actual farms table structure in database-schema.md
@@ -41,21 +43,21 @@ export interface UserPermissionUpdatePayload {
   permission: PermissionLevel;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-/**
- * Helper function to get the authorization header.
- */
-const getAuthHeader = async () => {
-  const session = (await supabase.auth.getSession()).data.session;
-  if (!session) {
-    throw new Error('User not authenticated.');
-  }
-  return {
-    'Authorization': `Bearer ${session.access_token}`,
-    'Content-Type': 'application/json',
-  };
-};
+// /**
+//  * Helper function to get the authorization header.
+//  */
+// const getAuthHeader = async () => {
+//   const session = (await supabase.auth.getSession()).data.session;
+//   if (!session) {
+//     throw new Error('User not authenticated.');
+//   }
+//   return {
+//     'Authorization': `Bearer ${session.access_token}`,
+//     'Content-Type': 'application/json',
+//   };
+// };
 
 /**
  * Fetches all farms.
@@ -64,7 +66,7 @@ const getAuthHeader = async () => {
 export const getFarms = async (): Promise<Farm[]> => {
   const { data, error } = await supabase.from('farms').select('*');
   if (error) {
-    console.error('Error fetching farms:', error);
+    console.error('Error fetching farms direct from Supabase:', error);
     throw error;
   }
   return data || [];
@@ -77,7 +79,7 @@ export const getFarms = async (): Promise<Farm[]> => {
 export const getFarmById = async (id: string): Promise<Farm | null> => {
   const { data, error } = await supabase.from('farms').select('*').eq('id', id).single();
   if (error) {
-    console.error(`Error fetching farm with id ${id}:`, error);
+    console.error(`Error fetching farm ${id} direct from Supabase:`, error);
     throw error;
   }
   return data;
@@ -89,21 +91,14 @@ export const getFarmById = async (id: string): Promise<Farm | null> => {
  */
 export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'updated_at' | 'manager_id'>): Promise<Farm | null> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/farms/`, {
+    return await apiClient<Farm>(`/api/v1/farms/`, {
       method: 'POST',
-      headers: headers,
       body: JSON.stringify(farmData),
+      // useAuth is true by default in apiClient
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error('Error creating farm:', errorData);
-      throw new Error(errorData.detail || 'Failed to create farm');
-    }
-    return await response.json();
   } catch (error) {
-    console.error('Network or other error creating farm:', error);
-    throw error;
+    console.error('Error in createFarm service:', error);
+    throw error; // Re-throw the error from apiClient for the caller to handle
   }
 };
 
@@ -114,28 +109,16 @@ export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'upd
  */
 export const updateFarm = async (id: string, farmData: Partial<Omit<Farm, 'id' | 'created_at' | 'manager_id'>>): Promise<Farm | null> => {
   try {
-    const headers = await getAuthHeader();
-    // The backend will handle setting updated_at.
-    // If farmData includes updated_at, it might be ignored or could cause issues depending on backend logic.
-    // It's safer to let the backend manage timestamps.
     const payload = { ...farmData };
     if ('updated_at' in payload) {
-        delete (payload as Partial<Farm>).updated_at; // Ensure client doesn't send its own updated_at
+        delete (payload as Partial<Farm>).updated_at;
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${id}`, {
+    return await apiClient<Farm>(`/api/v1/farms/${id}`, {
       method: 'PUT',
-      headers: headers,
       body: JSON.stringify(payload),
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error(`Error updating farm with id ${id}:`, errorData);
-      throw new Error(errorData.detail || `Failed to update farm ${id}`);
-    }
-    return await response.json();
   } catch (error) {
-    console.error(`Network or other error updating farm with id ${id}:`, error);
+    console.error(`Error in updateFarm service for id ${id}:`, error);
     throw error;
   }
 };
@@ -146,23 +129,11 @@ export const updateFarm = async (id: string, farmData: Partial<Omit<Farm, 'id' |
  */
 export const deleteFarm = async (id: string): Promise<void> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${id}`, {
+    await apiClient<void>(`/api/v1/farms/${id}`, {
       method: 'DELETE',
-      headers: headers,
     });
-    if (!response.ok) {
-      // DELETE typically returns 204 No Content on success, or an error object on failure.
-      if (response.status === 204) return; // Success
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error(`Error deleting farm with id ${id}:`, errorData);
-      throw new Error(errorData.detail || `Failed to delete farm ${id}`);
-    }
-    // If response.ok is true and status is not 204, it's unusual for DELETE.
-    // But if backend sends a body on successful DELETE, handle it:
-    // return await response.json(); // Or just return if no body expected.
   } catch (error) {
-    console.error(`Network or other error deleting farm with id ${id}:`, error);
+    console.error(`Error in deleteFarm service for id ${id}:`, error);
     throw error;
   }
 };
@@ -175,19 +146,11 @@ export const deleteFarm = async (id: string): Promise<void> => {
  */
 export const getFarmUserPermissions = async (farmId: string): Promise<UserPermission[]> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/user-permissions/${farmId}`, {
+    return await apiClient<UserPermission[]>(`/api/v1/user-permissions/${farmId}`, {
       method: 'GET',
-      headers: headers,
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error(`Error fetching permissions for farm ${farmId}:`, errorData);
-      throw new Error(errorData.detail || `Failed to fetch permissions for farm ${farmId}`);
-    }
-    return await response.json();
   } catch (error) {
-    console.error(`Network or other error fetching permissions for farm ${farmId}:`, error);
+    console.error(`Error in getFarmUserPermissions service for farm ${farmId}:`, error);
     throw error;
   }
 };
@@ -198,20 +161,12 @@ export const getFarmUserPermissions = async (farmId: string): Promise<UserPermis
  */
 export const addUserPermissionToFarm = async (permissionData: UserPermissionCreatePayload): Promise<UserPermission | null> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/user-permissions/`, { // Endpoint takes farm_id in body
+    return await apiClient<UserPermission>(`/api/v1/user-permissions/`, {
       method: 'POST',
-      headers: headers,
       body: JSON.stringify(permissionData),
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error('Error adding user permission:', errorData);
-      throw new Error(errorData.detail || 'Failed to add user permission');
-    }
-    return await response.json();
   } catch (error) {
-    console.error('Network or other error adding user permission:', error);
+    console.error('Error in addUserPermissionToFarm service:', error);
     throw error;
   }
 };
@@ -228,20 +183,12 @@ export const updateFarmUserPermission = async (
   permissionUpdateData: UserPermissionUpdatePayload
 ): Promise<UserPermission | null> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/user-permissions/${farmId}/user/${userId}`, {
+    return await apiClient<UserPermission>(`/api/v1/user-permissions/${farmId}/user/${userId}`, {
       method: 'PUT',
-      headers: headers,
       body: JSON.stringify(permissionUpdateData),
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error(`Error updating permission for user ${userId} on farm ${farmId}:`, errorData);
-      throw new Error(errorData.detail || 'Failed to update user permission');
-    }
-    return await response.json();
   } catch (error) {
-    console.error(`Network or other error updating permission for user ${userId} on farm ${farmId}:`, error);
+    console.error(`Error in updateFarmUserPermission service for farm ${farmId}, user ${userId}:`, error);
     throw error;
   }
 };
@@ -253,19 +200,11 @@ export const updateFarmUserPermission = async (
  */
 export const removeUserPermissionFromFarm = async (farmId: string, userId: string): Promise<void> => {
   try {
-    const headers = await getAuthHeader();
-    const response = await fetch(`${API_BASE_URL}/api/v1/user-permissions/${farmId}/user/${userId}`, {
+    await apiClient<void>(`/api/v1/user-permissions/${farmId}/user/${userId}`, {
       method: 'DELETE',
-      headers: headers,
     });
-    if (!response.ok) {
-      if (response.status === 204) return; // Success
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error(`Error removing permission for user ${userId} on farm ${farmId}:`, errorData);
-      throw new Error(errorData.detail || 'Failed to remove user permission');
-    }
   } catch (error) {
-    console.error(`Network or other error removing permission for user ${userId} on farm ${farmId}:`, error);
+    console.error(`Error in removeUserPermissionFromFarm service for farm ${farmId}, user ${userId}:`, error);
     throw error;
   }
 }; 

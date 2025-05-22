@@ -1,5 +1,11 @@
 "use client";
 import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function SettingsPage() {
   const [email, setEmail] = useState("user@example.com");
@@ -7,37 +13,60 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState("light");
 
   return (
-    <div className="flex-1 p-8 animate-pop max-w-2xl mx-auto">
-      <h1 className="text-4xl font-extrabold mb-8 text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4">Settings</h1>
-      <form className="space-y-8">
-        <section>
-          <h2 className="text-2xl font-bold mb-2">Account</h2>
-          <div className="mb-4">
-            <label className="block font-medium mb-1">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded px-3 py-2 w-full" />
+    <div className="flex-1 p-8 animate-pop max-w-2xl mx-auto space-y-8">
+      <h1 className="text-4xl font-extrabold text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4 mb-8">
+        Settings
+      </h1>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>Manage your account settings.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
-        </section>
-        <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-        <section>
-          <h2 className="text-2xl font-bold mb-2">Preferences</h2>
-          <div className="flex items-center gap-4 mb-4">
-            <label className="font-medium">Theme</label>
-            <select value={theme} onChange={e => setTheme(e.target.value)} className="border rounded px-3 py-1">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+          <CardDescription>Customize your application experience.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="theme">Theme</Label>
+            <Select value={theme} onValueChange={setTheme}>
+              <SelectTrigger id="theme" className="w-[180px]">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" checked={notifications} onChange={e => setNotifications(e.target.checked)} id="notifications" />
-            <label htmlFor="notifications" className="font-medium">Enable notifications</label>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="notifications" checked={notifications} onCheckedChange={(checkedState) => setNotifications(Boolean(checkedState))} />
+            <Label htmlFor="notifications" className="font-medium">
+              Enable notifications
+            </Label>
           </div>
-        </section>
-        <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-        <section>
-          <h2 className="text-2xl font-bold mb-2">Danger Zone</h2>
-          <button type="button" className="btn-animated bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded font-semibold">Delete Account</button>
-        </section>
-      </form>
+        </CardContent>
+      </Card>
+
+      <Card className="border-red-500 dark:border-red-700">
+        <CardHeader>
+          <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+          <CardDescription>These actions are irreversible.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="destructive" onClick={() => alert('Account deletion requested (not implemented).')}>Delete Account</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

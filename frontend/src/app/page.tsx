@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -20,10 +21,10 @@ export default function Home() {
           <p className="text-lg sm:text-xl text-center text-gray-700 dark:text-gray-200 max-w-md">
             Design, manage, and optimize your vertical farm layouts with beautiful drag-and-drop tools and real-time feedback.
           </p>
-          <Link href="/dashboard/layout">
-            <button className="btn-animated bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg transition-all">
+          <Link href="/dashboard/layout" passHref>
+            <Button size="lg" variant="default" className="px-8 py-3 text-lg font-semibold shadow-lg">
               Go to Dashboard
-            </button>
+            </Button>
           </Link>
         </div>
       </main>
