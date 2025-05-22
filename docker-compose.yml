@@ -23,7 +23,12 @@ services:
   frontend:
     container_name: frontend
     hostname: frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      args: # These are build-time arguments
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
       - "3000:3000"
     environment:

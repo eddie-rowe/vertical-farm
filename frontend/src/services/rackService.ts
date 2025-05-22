@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import { Row } from './rowService'; // Assuming Row type is needed for context
+// import { Row } from '../types'; // Assuming types.ts is in parent dir
 
 // Corresponds to backend app.schemas.rack.Rack
 export interface Rack {

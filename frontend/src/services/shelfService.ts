@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import { Rack } from './rackService'; // Assuming Rack type is needed for context
+// import { Rack } from '../types'; // Assuming types.ts is in parent dir
 
 // Corresponds to backend app.schemas.shelf.Shelf
 export interface Shelf {

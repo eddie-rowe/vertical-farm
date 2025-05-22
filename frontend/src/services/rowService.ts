@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import { Farm } from './farmService'; // Assuming Farm type is needed for context
+// import { Farm } from '../types'; // Assuming types.ts is in parent dir
 
 // Corresponds to backend app.schemas.row.Row
 export interface Row {
