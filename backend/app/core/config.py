@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
@@ -7,7 +7,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: Optional[str] = None
     SUPABASE_KEY: Optional[str] = None # Usually service role key for backend
     SUPABASE_JWT_SECRET: Optional[str] = None # For direct secret validation, if ever needed
-    SUPABASE_JWKS_URI: Optional[str] = None # e.g., "https://<project_ref>.supabase.co/auth/v1/jwks"
+    SUPABASE_JWKS_URI: Optional[str] = None # e.g., "https://<project_ref>.supabase.co/auth/v1/.well-known/jwks.json"
+    SUPABASE_AUDIENCE: Optional[str] = "authenticated" # Default audience
+    SUPABASE_ISSUER: Optional[str] = None # e.g., "https://<project_ref>.supabase.co/auth/v1"
 
     # Placeholder table names, these should be defined based on your actual Supabase setup
     SUPABASE_TABLE_FARMS: str = "farms"
@@ -26,9 +28,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8 # 8 days
 
-    # Example of how to load from .env file
-    # class Config:
-    #     env_file = ".env"
-    #     env_file_encoding = "utf-8"
+    # Configure Pydantic to load from .env file
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings() 

@@ -38,7 +38,7 @@ async def create_farm(
     
     return farm_schema.FarmResponse(**created_farm_dict)
 
-@router.get("/", response_model=farm_schema.FarmListResponse)
+@router.get("/", response_model=farm_schema.FarmBasicListResponse)
 async def read_farms(
     skip: int = 0, 
     limit: int = 100,
@@ -46,7 +46,8 @@ async def read_farms(
     current_user: Dict[str, Any] = Depends(get_current_active_user)
 ):
     farms_list, total_count = await crud.farm.get_multi_with_total(db=db, skip=skip, limit=limit)
-    return {"farms": [farm_schema.FarmResponse(**f) for f in farms_list], "total": total_count}
+    basic_farms_info = [farm_schema.FarmBasicInfo(id=f['id'], name=f['name']) for f in farms_list]
+    return {"farms": basic_farms_info, "total": total_count}
 
 @router.get("/{farm_id}", response_model=farm_schema.FarmResponse)
 async def read_farm(

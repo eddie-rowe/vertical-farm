@@ -3,7 +3,9 @@ from uuid import UUID
 from supabase import AsyncClient as SupabaseClient
 from httpx import HTTPStatusError
 
-from app.schemas.shelf import ShelfCreate, ShelfUpdate # Pydantic schemas
+from app.schemas.shelf import ShelfCreate, ShelfUpdate, ShelfResponse # Added ShelfResponse
+from app.models.enums import ParentType # Added ParentType
+from .crud_sensor_device import sensor_device # Added import for sensor_device CRUD
 
 # import logging
 # logger = logging.getLogger(__name__)
@@ -40,6 +42,29 @@ class CRUDShelf:
         except Exception as e:
             # logger.error(f"Error fetching shelves for rack {rack_id}: {e}")
             raise
+
+    async def get_multi_by_rack_with_devices(
+        self, supabase: SupabaseClient, *, rack_id: UUID, skip: int = 0, limit: int = 100
+    ) -> List[ShelfResponse]:
+        shelves_data = await self.get_multi_by_rack(supabase, rack_id=rack_id, skip=skip, limit=limit)
+        
+        shelves_with_devices = []
+        for shelf_data in shelves_data:
+            shelf_id = shelf_data.get("id")
+            if not shelf_id:
+                continue # Or handle error
+
+            devices_data = await sensor_device.get_multi_by_parent(
+                supabase, parent_id=UUID(shelf_id), parent_type=ParentType.SHELF
+            )
+            
+            # Convert shelf_data to ShelfResponse and add devices
+            # The devices_data are dicts, they will be converted by Pydantic when creating ShelfResponse
+            # if ShelfResponse.devices field is typed correctly (which it is, with SensorDeviceResponse)
+            shelf_response_data = {**shelf_data, "devices": devices_data if devices_data else []}
+            shelves_with_devices.append(ShelfResponse(**shelf_response_data))
+            
+        return shelves_with_devices
 
     async def get_multi_by_rack_with_total(
         self, supabase: SupabaseClient, *, rack_id: UUID, skip: int = 0, limit: int = 100

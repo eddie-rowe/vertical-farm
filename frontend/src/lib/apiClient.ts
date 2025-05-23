@@ -84,4 +84,32 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 // export const updateTask = (id: string, data: Partial<CreateTaskDto>) => request<Task>(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 // export const deleteTask = (id: string) => request<void>(`/tasks/${id}`, { method: 'DELETE' });
 
+// Import FarmPageData type
+import { FarmPageData, UUID } from '@/types/farm-layout';
+
+// Define a type for the basic farm information
+export interface FarmBasicInfo {
+  id: UUID;
+  name: string;
+}
+
+// Define a type for the response of the farm list endpoint
+export interface FarmBasicListResponse {
+  farms: FarmBasicInfo[];
+  total: number;
+}
+
+/**
+ * Fetches the full details for a specific farm, including its nested rows, racks, and shelves.
+ * @param farmId The UUID of the farm to fetch.
+ * @returns A Promise resolving to FarmPageData.
+ */
+export const getFarmDetails = (farmId: UUID) => request<FarmPageData>(`/api/v1/farms/${farmId}`);
+
+/**
+ * Fetches a list of farms with basic information (id and name).
+ * @returns A Promise resolving to FarmBasicListResponse.
+ */
+export const getFarmsList = () => request<FarmBasicListResponse>('/api/v1/farms/');
+
 export default request; 

@@ -1,6 +1,7 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
+from app.schemas.rack import RackResponse
 
 # Shared properties
 class RowBase(BaseModel):
@@ -43,7 +44,7 @@ class RowInDBBase(RowBase):
 
 # Properties to return to client
 class RowResponse(RowInDBBase):
-    pass
+    racks: Optional[List[RackResponse]] = Field(default_factory=list)
 
 # Properties stored in DB (can be same as RowInDBBase or extend it)
 class RowInDB(RowInDBBase):

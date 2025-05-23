@@ -4,6 +4,7 @@ from supabase import AsyncClient as SupabaseClient
 from httpx import HTTPStatusError
 
 from app.schemas.rack import RackCreate, RackUpdate, RackResponse
+from .crud_shelf import shelf # Added import for shelf CRUD
 
 # import logging
 # logger = logging.getLogger(__name__)
@@ -40,6 +41,28 @@ class CRUDRack:
         except Exception as e:
             # logger.error(f"Error fetching racks for row {row_id}: {e}")
             raise
+
+    async def get_multi_by_row_with_shelves(
+        self, supabase: SupabaseClient, *, row_id: UUID, skip: int = 0, limit: int = 100
+    ) -> List[RackResponse]:
+        racks_data = await self.get_multi_by_row(supabase, row_id=row_id, skip=skip, limit=limit)
+        
+        racks_with_shelves = []
+        for rack_data in racks_data:
+            rack_id = rack_data.get("id")
+            if not rack_id:
+                continue
+
+            # Use the new method from CRUDShelf
+            shelves_list = await shelf.get_multi_by_rack_with_devices(
+                supabase, rack_id=UUID(rack_id)
+                # Not passing skip/limit for shelves here, assuming we want all shelves for the rack
+            )
+            
+            rack_response_data = {**rack_data, "shelves": shelves_list if shelves_list else []}
+            racks_with_shelves.append(RackResponse(**rack_response_data))
+            
+        return racks_with_shelves
 
     async def get_multi_by_row_with_total(
         self, supabase: SupabaseClient, *, row_id: UUID, skip: int = 0, limit: int = 100

@@ -4,94 +4,73 @@ import TopDownFarmView from '../../../components/farm-config/TopDownFarmView';
 import RackDetailView from '../../../components/farm-config/RackDetailView';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FarmPageData, UUID, Rack } from "@/types/farm-layout";
-import { v4 as uuidv4 } from 'uuid';
-
-// Mock data (aligned with FarmPageData and string UUIDs)
-const mockFarmPageData: FarmPageData = {
-  farm: {
-    id: uuidv4() as UUID,
-    name: "My Vertical Farm",
-    owner_id: uuidv4() as UUID,
-    location: "Urban Center Rooftop",
-    width: 20,
-    depth: 10,
-    rows: [
-      {
-        id: uuidv4() as UUID,
-        name: "Row Alpha",
-        farm_id: "farm-uuid-123" as UUID,
-        position_x: 1,
-        position_y: 1,
-        length: 8,
-        orientation: "horizontal",
-        racks: [
-          {
-            id: uuidv4() as UUID,
-            name: "Alpha-01",
-            row_id: "row-uuid-abc" as UUID,
-            position_in_row: 1,
-            width: 1.5,
-            depth: 0.8,
-            height: 2.2,
-            max_shelves: 5,
-            shelves: [
-              { id: uuidv4() as UUID, name: "A01-S1", rack_id: "rack-uuid-xyz" as UUID, position_in_rack: 1, width: 1.5, depth: 0.8, max_weight:20 },
-              { id: uuidv4() as UUID, name: "A01-S2", rack_id: "rack-uuid-xyz" as UUID, position_in_rack: 2, width: 1.5, depth: 0.8, max_weight:20 },
-            ]
-          },
-          {
-            id: uuidv4() as UUID,
-            name: "Alpha-02",
-            row_id: "row-uuid-abc" as UUID,
-            position_in_row: 2,
-            width: 1.5,
-            depth: 0.8,
-            height: 2.2,
-            max_shelves: 5,
-            shelves: []
-          }
-        ]
-      },
-      {
-        id: uuidv4() as UUID,
-        name: "Row Bravo",
-        farm_id: "farm-uuid-123" as UUID,
-        position_x: 1,
-        position_y: 5,
-        length: 8,
-        orientation: "horizontal",
-        racks: []
-      }
-    ]
-  }
-};
+import { getFarmDetails, getFarmsList, FarmBasicInfo } from '../../../lib/apiClient';
+import toast from 'react-hot-toast';
 
 export default function FarmsPage() {
   const [currentView, setCurrentView] = useState('top-down');
   const [editMode, setEditMode] = useState(false);
   const [selectedRackId, setSelectedRackId] = useState<UUID | null>(null);
   const [farmPageData, setFarmPageData] = useState<FarmPageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [availableFarms, setAvailableFarms] = useState<FarmBasicInfo[]>([]);
+  const [selectedFarmIdForDetails, setSelectedFarmIdForDetails] = useState<UUID | null>(null);
+  const [isLoadingFarmsList, setIsLoadingFarmsList] = useState(true);
+  const [farmsListError, setFarmsListError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate fetching data or initialize with mock data
-    // For consistent mock data with correct relationships, we should regenerate it here if we were to purely rely on it.
-    // However, since this is just mock, simply updating the IDs to be UUIDs is the main goal.
-    // A more robust mock data setup would dynamically link the farm_id and row_id.
-    const farmId = mockFarmPageData.farm.id;
-    mockFarmPageData.farm.rows?.forEach(row => {
-      row.farm_id = farmId;
-      const rowId = row.id;
-      row.racks?.forEach(rack => {
-        rack.row_id = rowId;
-        const rackId = rack.id;
-        rack.shelves?.forEach(shelf => {
-          shelf.rack_id = rackId;
-        });
-      });
-    });
-    setFarmPageData(mockFarmPageData);
+    const fetchAvailableFarms = async () => {
+      setIsLoadingFarmsList(true);
+      setFarmsListError(null);
+      try {
+        const response = await getFarmsList();
+        setAvailableFarms(response.farms);
+        if (response.farms.length > 0) {
+          setSelectedFarmIdForDetails(response.farms[0].id);
+        } else {
+          toast.error("No farms available to display.");
+          setIsLoading(false);
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch available farms:", err);
+        setFarmsListError(err.message || "An unknown error occurred while fetching farms list.");
+        toast.error(err.message || "Failed to load available farms.");
+        setIsLoading(false);
+      } finally {
+        setIsLoadingFarmsList(false);
+      }
+    };
+    fetchAvailableFarms();
   }, []);
+
+  useEffect(() => {
+    if (!selectedFarmIdForDetails) {
+      setFarmPageData(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchFarmData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getFarmDetails(selectedFarmIdForDetails);
+        setFarmPageData(data);
+      } catch (err: any) {
+        console.error("Failed to fetch farm data:", err);
+        setError(err.message || "An unknown error occurred while fetching farm data.");
+        toast.error(err.message || "Failed to load farm data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFarmData();
+  }, [selectedFarmIdForDetails]);
 
   const handleRackClick = (rackId: UUID) => {
     setSelectedRackId(rackId);
@@ -100,7 +79,6 @@ export default function FarmsPage() {
 
   const handleFarmPageDataChange = (newData: FarmPageData) => {
     setFarmPageData(newData);
-    // Here you might also want to trigger an API call to save changes to the backend
     console.log("Farm data updated in FarmsPage:", newData);
   };
 
@@ -112,14 +90,13 @@ export default function FarmsPage() {
   const handleRackDataChange = (updatedRack: Rack) => {
     if (!farmPageData) return;
 
-    const newFarmPageData: FarmPageData = JSON.parse(JSON.stringify(farmPageData)); // Deep copy
+    const newFarmPageData: FarmPageData = JSON.parse(JSON.stringify(farmPageData));
     let rackFoundAndUpdated = false;
 
     newFarmPageData.farm.rows = newFarmPageData.farm.rows?.map(row => {
       if (row.racks) {
         const rackIndex = row.racks.findIndex(r => r.id === updatedRack.id);
         if (rackIndex !== -1) {
-          // Create a new array for racks to ensure immutability at this level
           const newRacks = [...row.racks];
           newRacks[rackIndex] = updatedRack;
           rackFoundAndUpdated = true;
@@ -149,7 +126,29 @@ export default function FarmsPage() {
   return (
     <main className="min-h-screen p-4 md:p-8 bg-gray-50 dark:bg-gray-950 flex flex-col items-center">
       <div className="w-full max-w-7xl flex justify-between items-center mb-6 px-2">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Farm Configuration</h1>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Farm Configuration</h1>
+          {isLoadingFarmsList ? (
+            <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
+          ) : farmsListError ? (
+            <span className="text-sm text-red-500">{farmsListError}</span>
+          ) : availableFarms.length > 0 && selectedFarmIdForDetails ? (
+            <Select onValueChange={(value) => setSelectedFarmIdForDetails(value as UUID)} value={selectedFarmIdForDetails || undefined}>
+              <SelectTrigger className="w-[280px]">
+                <SelectValue placeholder="Select a farm" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableFarms.map(farm => (
+                  <SelectItem key={farm.id} value={farm.id}>
+                    {farm.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className="text-sm text-gray-500 dark:text-gray-400">No farms to select.</span>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           <Switch id="edit-mode-toggle" checked={editMode} onCheckedChange={setEditMode} aria-label="Toggle Edit Mode"/>
           <Label htmlFor="edit-mode-toggle" className="text-gray-700 dark:text-gray-200">Edit Mode</Label>
@@ -171,8 +170,15 @@ export default function FarmsPage() {
             onRackDataChange={handleRackDataChange}
             onBack={handleReturnToTopDownView}
           />
+        ) : isLoading ? (
+          <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-600 dark:text-red-400">
+            <p>Error loading farm data: {error}</p>
+            <p>Please ensure the backend is running and the farm ID is correct.</p>
+          </div>
         ) : (
-          <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data or invalid view...</div>
+          <div className="text-center py-10 text-gray-600 dark:text-gray-400">No farm data available or invalid view.</div>
         )}
       </div>
     </main>

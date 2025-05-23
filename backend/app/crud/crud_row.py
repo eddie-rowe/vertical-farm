@@ -3,8 +3,9 @@ from uuid import UUID
 from supabase import AsyncClient as SupabaseClient
 from httpx import HTTPStatusError
 
-from app.schemas.row import RowCreate, RowUpdate # Pydantic schemas
+from app.schemas.row import RowCreate, RowUpdate, RowResponse # Added RowResponse
 # from app.db.supabase_client import get_async_supabase_client # Client should be injected
+from .crud_rack import rack # Added import for rack CRUD
 
 # import logging
 # logger = logging.getLogger(__name__)
@@ -41,6 +42,27 @@ class CRUDRow:
         except Exception as e:
             # logger.error(f"Error fetching rows for farm {farm_id}: {e}")
             raise
+
+    async def get_multi_by_farm_with_racks(
+        self, supabase: SupabaseClient, *, farm_id: UUID, skip: int = 0, limit: int = 100
+    ) -> List[RowResponse]:
+        rows_data = await self.get_multi_by_farm(supabase, farm_id=farm_id, skip=skip, limit=limit)
+        
+        rows_with_racks = []
+        for row_data in rows_data:
+            row_id = row_data.get("id")
+            if not row_id:
+                continue
+
+            racks_list = await rack.get_multi_by_row_with_shelves(
+                supabase, row_id=UUID(row_id)
+                # Not passing skip/limit for racks here, assuming we want all racks for the row
+            )
+            
+            row_response_data = {**row_data, "racks": racks_list if racks_list else []}
+            rows_with_racks.append(RowResponse(**row_response_data))
+            
+        return rows_with_racks
     
     async def get_multi_by_farm_with_total(
         self, supabase: SupabaseClient, *, farm_id: UUID, skip: int = 0, limit: int = 100

@@ -1,6 +1,7 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
+from app.schemas.sensor_device import SensorDeviceResponse
 
 # Shared properties
 class ShelfBase(BaseModel):
@@ -43,7 +44,7 @@ class ShelfInDBBase(ShelfBase):
 
 # Properties to return to client
 class ShelfResponse(ShelfInDBBase):
-    pass
+    devices: Optional[List[SensorDeviceResponse]] = Field(default_factory=list)
 
 # Properties stored in DB
 class ShelfInDB(ShelfInDBBase):

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 import uuid
 from datetime import datetime # For created_at, updated_at
+from app.schemas.row import RowResponse # Added import
 
 # Base Pydantic model for common farm attributes
 class FarmBase(BaseModel):
@@ -31,9 +32,20 @@ class FarmInDBBase(FarmBase):
 
 # Schema for representing a farm in API responses (public-facing)
 class FarmResponse(FarmInDBBase):
-    pass # Inherits all fields from FarmInDBBase, can be customized if needed
+    rows: Optional[List[RowResponse]] = Field(default_factory=list) # Added rows
+
+# Schema for basic farm info, used in lists
+class FarmBasicInfo(BaseModel):
+    id: uuid.UUID
+    name: str
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema for a list of farms in API responses, including pagination info
 class FarmListResponse(BaseModel):
-    farms: List[FarmResponse]
+    farms: List[FarmResponse] # This remains for the full list if needed elsewhere
+    total: int
+
+# Schema for a list of basic farm info
+class FarmBasicListResponse(BaseModel):
+    farms: List[FarmBasicInfo]
     total: int 

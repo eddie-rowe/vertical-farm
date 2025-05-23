@@ -5,6 +5,7 @@ from supabase import AsyncClient as SupabaseClient # Use AsyncClient
 from httpx import HTTPStatusError
 
 from app.schemas import farm as farm_schema # Pydantic schemas
+from .crud_row import row as crud_row # Added import for row CRUD
 # from app.db.supabase_client import get_async_supabase_client # Removed direct import here, client should be injected
 
 # Placeholder for potential error handling or logging
@@ -14,10 +15,24 @@ from app.schemas import farm as farm_schema # Pydantic schemas
 class CRUDFarm:
     table_name = "farms"
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[farm_schema.FarmResponse]:
         try:
             response = await supabase.table(self.table_name).select("*").eq("id", str(id)).single().execute()
-            return response.data
+            farm_data = response.data
+            if not farm_data:
+                return None
+
+            # Fetch rows with their nested racks, shelves, and devices
+            rows_list = await crud_row.get_multi_by_farm_with_racks(
+                supabase, farm_id=id
+                # Not passing skip/limit for rows here, assuming we want all rows for the farm details
+            )
+            
+            # farm_data is a dict, rows_list is List[RowResponse]
+            # We need to construct FarmResponse passing the rows_list to its `rows` field
+            farm_response_data = {**farm_data, "rows": rows_list if rows_list else []}
+            return farm_schema.FarmResponse(**farm_response_data)
+
         except HTTPStatusError as e:
             if e.response.status_code == 406: # PostgREST returns 406 if a single() row is not found
                 return None
