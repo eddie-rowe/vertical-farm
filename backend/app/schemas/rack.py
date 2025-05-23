@@ -1,34 +1,52 @@
-from typing import Optional
+from typing import Optional, Literal
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 
 # Shared properties
 class RackBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    row_id: UUID # Foreign key to Row
+    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    row_id: Optional[UUID] = None # Made optional in base, required in Create
+    position_in_row: Optional[int] = Field(None, gt=0)
+    width: Optional[float] = Field(None, gt=0)
+    depth: Optional[float] = Field(None, gt=0)
+    height: Optional[float] = Field(None, gt=0)
+    max_shelves: Optional[int] = Field(None, gt=0)
 
 # Properties to receive on item creation
 class RackCreate(RackBase):
-    pass
+    name: str = Field(..., min_length=2, max_length=50)
+    row_id: UUID # row_id is required for creation
+    position_in_row: int = Field(..., gt=0)
+    width: float = Field(..., gt=0)
+    depth: float = Field(..., gt=0)
+    height: float = Field(..., gt=0)
+    # max_shelves is optional, inherits from RackBase
 
 # Properties to receive on item update
-class RackUpdate(RackBase):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    row_id: Optional[UUID] = None
-
+class RackUpdate(BaseModel): # All fields optional for update
+    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    # row_id: Optional[UUID] = None # Typically row_id is not updatable for a rack
+    position_in_row: Optional[int] = Field(None, gt=0)
+    width: Optional[float] = Field(None, gt=0)
+    depth: Optional[float] = Field(None, gt=0)
+    height: Optional[float] = Field(None, gt=0)
+    max_shelves: Optional[int] = Field(None, gt=0)
 
 # Properties shared by models stored in DB
 class RackInDBBase(RackBase):
     id: UUID
+    name: str # Ensure name is non-optional
+    row_id: UUID # Ensure row_id is non-optional
+    position_in_row: int
+    width: float
+    depth: float
+    height: float
+    # max_shelves remains optional as in RackBase
 
-    class Config:
-        orm_mode = True # Pydantic V1
-        # from_attributes = True # Pydantic V2
+    model_config = ConfigDict(from_attributes=True) # Use ConfigDict
 
 # Properties to return to client
-class Rack(RackInDBBase):
+class RackResponse(RackInDBBase):
     pass
 
 # Properties stored in DB

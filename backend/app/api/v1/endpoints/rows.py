@@ -1,113 +1,140 @@
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-# from supabase_py_async import AsyncClient # Old import, will be replaced by direct supabase import if needed for type hint
-from supabase import AsyncClient, create_async_client # Ensure this is imported
+from supabase import AsyncClient
 
-from app.core.security import get_current_active_user # Updated import
-from app.models.user import User
-from app.schemas.row import Row, RowCreate, RowUpdate
-from app.crud import crud_row, crud_user_permission, crud_farm # Added crud_user_permission and crud_farm
-from app.db.supabase_client import get_async_supabase_client # Corrected import
-from app.models.enums import PermissionLevel # For permission checks
+from app.core.security import get_current_active_user
+from app.schemas.row import RowCreate, RowUpdate, RowResponse
+from app.crud import row as crud_row_instance, can_user_perform_action, farm as crud_farm_instance
+from app.db.supabase_client import get_async_supabase_client, get_async_rls_client
+from app.models.enums import PermissionLevel
 
 router = APIRouter()
 
-@router.post("/", response_model=Row, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=RowResponse, status_code=status.HTTP_201_CREATED)
 async def create_row_endpoint(
-    *, # Enforce keyword-only arguments
+    *,
     row_in: RowCreate,
-    db: AsyncClient = Depends(get_async_supabase_client), # Corrected dependency
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncClient = Depends(get_async_supabase_client),
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
-    """Create a new row for a farm current_user has access to."""
-    farm = await crud_farm.get_farm(db=db, farm_id=row_in.farm_id, requesting_user_id=current_user.id)
-    if not farm:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farm not found or not accessible to user")
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
 
-    can_create = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=row_in.farm_id, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    # Check farm existence (using service client for this check before permission)
+    farm_dict = await crud_farm_instance.get(db=db, id=row_in.farm_id)
+    if not farm_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farm not found")
+
+    can_create = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=row_in.farm_id, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_create:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to create a row for this farm")
-    return await crud_row.create_row(db=db, row=row_in, owner_id=current_user.id)
+    
+    created_row_dict = await crud_row_instance.create_with_farm(db=db, obj_in=row_in, farm_id=row_in.farm_id)
+    return RowResponse(**created_row_dict)
 
-@router.get("/{row_id}", response_model=Row)
+@router.get("/{row_id}", response_model=RowResponse)
 async def read_row_endpoint(
     row_id: UUID,
-    db: AsyncClient = Depends(get_async_supabase_client), # Corrected dependency
-    current_user: User = Depends(get_current_active_user)
+    # Using service client and manual permission check for now. RLS could be an option later.
+    db: AsyncClient = Depends(get_async_supabase_client), 
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
-    """Get a specific row by ID."""
-    row = await crud_row.get_row(db=db, row_id=row_id)
-    if not row:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    row_dict = await crud_row_instance.get(db=db, id=row_id)
+    if not row_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found")
     
-    can_view = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=row.farm_id, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    # Row dict contains farm_id, which is needed for permission check
+    farm_id_of_row = UUID(row_dict.get("farm_id"))
+    can_view = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_row, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_view:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to view this row")
-    return row
+    return RowResponse(**row_dict)
 
-@router.get("/farm/{farm_id}", response_model=List[Row])
+@router.get("/farm/{farm_id}", response_model=List[RowResponse])
 async def read_rows_for_farm_endpoint(
     farm_id: UUID,
     skip: int = 0,
     limit: int = 100,
-    db: AsyncClient = Depends(get_async_supabase_client), # Corrected dependency
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncClient = Depends(get_async_supabase_client),
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
-    """Get all rows for a specific farm."""
-    can_view = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=farm_id, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
-    )
-    if not can_view:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to view rows for this farm")
-    rows = await crud_row.get_rows_by_farm(db=db, farm_id=farm_id, skip=skip, limit=limit)
-    return rows
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
 
-@router.put("/{row_id}", response_model=Row)
+    # Check farm existence and view permission for the farm itself first
+    farm_dict = await crud_farm_instance.get(db=db, id=farm_id) # Check if farm exists
+    if not farm_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farm not found")
+
+    can_view_farm = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    )
+    if not can_view_farm:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to view rows for this farm")
+    
+    rows_list = await crud_row_instance.get_multi_by_farm(db=db, farm_id=farm_id, skip=skip, limit=limit)
+    return [RowResponse(**r) for r in rows_list]
+
+@router.put("/{row_id}", response_model=RowResponse)
 async def update_row_endpoint(
     row_id: UUID,
     row_in: RowUpdate,
-    db: AsyncClient = Depends(get_async_supabase_client), # Corrected dependency
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncClient = Depends(get_async_supabase_client),
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
-    """Update a row."""
-    row = await crud_row.get_row(db=db, row_id=row_id)
-    if not row:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    existing_row_dict = await crud_row_instance.get(db=db, id=row_id)
+    if not existing_row_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found")
 
-    can_update = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=row.farm_id, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    farm_id_of_row = UUID(existing_row_dict.get("farm_id"))
+    can_update = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_row, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_update:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to update this row")
     
-    updated_row = await crud_row.update_row(db=db, row_id=row_id, row_in=row_in)
-    if not updated_row: # Should not happen if get_row passed and update logic is sound
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found after update attempt")
-    return updated_row
+    updated_row_dict = await crud_row_instance.update(db=db, id=row_id, obj_in=row_in)
+    if not updated_row_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found after update attempt or update failed")
+    return RowResponse(**updated_row_dict)
 
-@router.delete("/{row_id}", response_model=Row)
+@router.delete("/{row_id}", response_model=RowResponse) # Supabase delete returns the deleted item(s)
 async def delete_row_endpoint(
     row_id: UUID,
-    db: AsyncClient = Depends(get_async_supabase_client), # Corrected dependency
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncClient = Depends(get_async_supabase_client),
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
-    """Delete a row."""
-    row = await crud_row.get_row(db=db, row_id=row_id)
-    if not row:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    existing_row_dict = await crud_row_instance.get(db=db, id=row_id)
+    if not existing_row_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found")
 
-    can_delete = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=row.farm_id, levels=[PermissionLevel.MANAGER]
+    farm_id_of_row = UUID(existing_row_dict.get("farm_id"))
+    can_delete = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_row, levels=[PermissionLevel.MANAGER]
     )
     if not can_delete:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to delete this row")
 
-    deleted_row = await crud_row.delete_row(db=db, row_id=row_id)
-    if not deleted_row: # Should not happen if get_row passed and delete logic is sound
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found for deletion attempt")
-    return deleted_row 
+    deleted_row_dict = await crud_row_instance.remove(db=db, id=row_id)
+    if not deleted_row_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found for deletion or delete failed")
+    return RowResponse(**deleted_row_dict) 

@@ -3,13 +3,14 @@ from uuid import UUID
 from supabase import AsyncClient as SupabaseClient
 from httpx import HTTPStatusError
 
-from app.schemas.shelf import ShelfCreate, ShelfUpdate # Pydantic schemas
+from app.schemas.sensor_device import SensorDeviceCreate, SensorDeviceUpdate # Pydantic schemas
+from app.models.enums import ParentType, SensorType # For enum usage
 
 # import logging
 # logger = logging.getLogger(__name__)
 
-class CRUDShelf:
-    table_name = "shelves"
+class CRUDSensorDevice:
+    table_name = "sensor_devices"
 
     async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
         try:
@@ -18,78 +19,85 @@ class CRUDShelf:
         except HTTPStatusError as e:
             if e.response.status_code == 406:
                 return None
-            # logger.error(f"Error fetching shelf {id}: {e}")
             raise
         except Exception as e:
-            # logger.error(f"Unexpected error fetching shelf {id}: {e}")
             raise
 
-    async def get_multi_by_rack(
-        self, supabase: SupabaseClient, *, rack_id: UUID, skip: int = 0, limit: int = 100
+    async def get_multi_by_parent(
+        self, supabase: SupabaseClient, *, parent_id: UUID, parent_type: ParentType, skip: int = 0, limit: int = 100
     ) -> List[Dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
                 .select("*")
-                .eq("rack_id", str(rack_id))
+                .eq("parent_id", str(parent_id))
+                .eq("parent_type", parent_type.value)
                 .order("name") # Example order
                 .range(skip, skip + limit - 1)
                 .execute()
             )
             return response.data
         except Exception as e:
-            # logger.error(f"Error fetching shelves for rack {rack_id}: {e}")
+            # logger.error(f"Error fetching sensor devices for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
-    async def get_multi_by_rack_with_total(
-        self, supabase: SupabaseClient, *, rack_id: UUID, skip: int = 0, limit: int = 100
+    async def get_multi_by_parent_with_total(
+        self, supabase: SupabaseClient, *, parent_id: UUID, parent_type: ParentType, skip: int = 0, limit: int = 100
     ) -> Tuple[List[Dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
                 .select("*", count="exact")
-                .eq("rack_id", str(rack_id))
+                .eq("parent_id", str(parent_id))
+                .eq("parent_type", parent_type.value)
                 .order("name")
                 .range(skip, skip + limit - 1)
                 .execute()
             )
-            shelves = response.data
+            sensor_devices = response.data
             total = response.count if response.count is not None else 0
-            return shelves, total
+            return sensor_devices, total
         except Exception as e:
-            # logger.error(f"Error fetching shelves with total for rack {rack_id}: {e}")
+            # logger.error(f"Error fetching sensor devices with total for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
-    async def create_with_rack(
-        self, supabase: SupabaseClient, *, obj_in: ShelfCreate, rack_id: UUID
+    async def create_with_parent(
+        self, supabase: SupabaseClient, *, obj_in: SensorDeviceCreate, parent_id: UUID, parent_type: ParentType
     ) -> Dict[str, Any]:
         try:
-            shelf_data = obj_in.model_dump()
-            shelf_data["rack_id"] = str(rack_id)
-            response = await supabase.table(self.table_name).insert(shelf_data).execute()
+            sensor_data = obj_in.model_dump()
+            sensor_data["parent_id"] = str(parent_id)
+            sensor_data["parent_type"] = parent_type.value
+            if obj_in.sensor_type:
+                sensor_data["sensor_type"] = obj_in.sensor_type.value
+            
+            response = await supabase.table(self.table_name).insert(sensor_data).execute()
             if not response.data:
-                # logger.error(f"Failed to create shelf for rack {rack_id}: No data. Response: {response}")
-                raise Exception("Failed to create shelf: No data returned from Supabase")
+                raise Exception("Failed to create sensor device: No data returned from Supabase")
             return response.data[0]
         except Exception as e:
-            # logger.error(f"Error creating shelf for rack {rack_id}: {e}")
+            # logger.error(f"Error creating sensor device for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
     async def update(
-        self, supabase: SupabaseClient, *, id: UUID, obj_in: ShelfUpdate
+        self, supabase: SupabaseClient, *, id: UUID, obj_in: SensorDeviceUpdate
     ) -> Optional[Dict[str, Any]]:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             if not update_data:
                 return await self.get(supabase, id)
-            
+
+            if "sensor_type" in update_data and update_data["sensor_type"]:
+                update_data["sensor_type"] = update_data["sensor_type"].value
+            if "parent_type" in update_data and update_data["parent_type"]:
+                update_data["parent_type"] = update_data["parent_type"].value
+
             response = await supabase.table(self.table_name).update(update_data).eq("id", str(id)).execute()
             if not response.data:
-                # logger.warning(f"Update for shelf {id} returned no data. Shelf might not exist. Resp: {response}")
                 return None
             return response.data[0]
         except Exception as e:
-            # logger.error(f"Error updating shelf {id}: {e}")
+            # logger.error(f"Error updating sensor device {id}: {e}")
             raise
 
     async def remove(self, supabase: SupabaseClient, *, id: UUID) -> Optional[Dict[str, Any]]:
@@ -99,7 +107,7 @@ class CRUDShelf:
                 return None
             return response.data[0]
         except Exception as e:
-            # logger.error(f"Error deleting shelf {id}: {e}")
+            # logger.error(f"Error deleting sensor device {id}: {e}")
             raise
 
-shelf = CRUDShelf() 
+sensor_device = CRUDSensorDevice() 

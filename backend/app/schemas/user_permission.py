@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 import uuid
 from app.models.enums import PermissionLevel
@@ -25,8 +25,7 @@ class UserPermissionInDBBase(UserPermissionBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserPermissionResponse(UserPermissionInDBBase):
     # Potentially add related user/farm info here if needed for responses

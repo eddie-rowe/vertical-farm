@@ -1,56 +1,50 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Any, List
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Any, List, Dict
+import uuid
 
-from app.crud import crud_user, crud_user_permission
+from app import crud
 from app.schemas.user import User, UserCreate, UserUpdate
 from app.core.security import get_current_active_user
-from app.models.user import User as UserModel
 from app.db.supabase_client import get_async_supabase_client
-from supabase import AsyncClient, create_async_client
-import uuid
+from supabase import AsyncClient
 
 router = APIRouter()
 
-@router.post("/", response_model=User, status_code=201)
+@router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(
     *, 
     db: AsyncClient = Depends(get_async_supabase_client),
     user_in: UserCreate,
-    current_user: UserModel = Depends(get_current_active_user)
 ) -> Any:
-    if not crud_user_permission.is_user_platform_admin(current_user):
+    existing_user_dict = await crud.user.get_by_email(db=db, email=user_in.email)
+    if existing_user_dict:
         raise HTTPException(
-            status_code=403, detail="Only platform administrators can create users."
-        )
-
-    user = await crud_user.get_user_by_email(db, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
-    new_user = await crud_user.create_user(db, user_in=user_in)
-    return new_user
+    new_user_dict = await crud.user.create(db=db, obj_in=user_in)
+    return User(**new_user_dict)
 
 @router.get("/me", response_model=User)
-async def read_users_me(current_user: UserModel = Depends(get_current_active_user)) -> Any:
-    return current_user
+async def read_users_me(current_user: Dict[str, Any] = Depends(get_current_active_user)) -> Any:
+    return User(**current_user)
 
 @router.get("/{user_id}", response_model=User)
 async def read_user_by_id(
     user_id: uuid.UUID,
-    current_user: UserModel = Depends(get_current_active_user),
+    current_user: Dict[str, Any] = Depends(get_current_active_user),
     db: AsyncClient = Depends(get_async_supabase_client)
 ) -> Any:
-    if current_user.id == user_id:
-        return current_user
+    current_user_id_str = current_user.get("sub")
+    if not current_user_id_str:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found in token")
 
-    if not crud_user_permission.is_user_platform_admin(current_user):
-        raise HTTPException(
-            status_code=403, detail="The user doesn't have enough privileges to view other user details."
-        )
-    
-    user = await crud_user.get_user(db, user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user 
+    if str(user_id) == current_user_id_str:
+        user_dict = await crud.user.get(db=db, id=uuid.UUID(current_user_id_str))
+        if not user_dict:
+             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Current user not found in DB")
+        return User(**user_dict)
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this user's details."
+    ) 

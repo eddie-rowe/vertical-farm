@@ -67,7 +67,7 @@ Implement drag-and-drop mechanics that resemble physical movements. Use appropri
 ### Details:
 Create tables and relationships that can store the hierarchical structure of draggable elements. Include fields for position tracking, parent-child relationships, and metadata. Ensure the schema supports efficient querying and updates during drag-and-drop operations.
 
-## 4. Supabase API Integration [in-progress]
+## 4. Supabase API Integration [done]
 ### Dependencies: 2.2, 2.3
 ### Description: Connect the frontend to Supabase backend services
 ### Details:

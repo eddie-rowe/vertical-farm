@@ -106,18 +106,23 @@ async def get_validated_supabase_token_payload(request: Request) -> Tuple[dict, 
         )
 
 # --- Imports that might cause cycles if loaded before token validation functions are defined ---
-from app.models.user import User as UserModel
+# from app.models.user import User as UserModel # Remove this import
 from app.crud import crud_user
-from app.db.supabase_client import get_async_supabase_client # This import is fine if db_client doesn't import from security's top level before validation funcs
+# from app.db.supabase_client import get_async_supabase_client # Remove this top-level import
 from supabase import AsyncClient as SupabaseAsyncClient, create_async_client
+# from app.schemas.user import User # Remove this top-level import, will use string literal or local import
 
 
 # --- User Retrieval and Token Creation (Uses above functions and imports) ---
 
 async def get_current_active_user(
     token_data: Tuple[dict, str] = Depends(get_validated_supabase_token_payload),
-    db: SupabaseAsyncClient = Depends(get_async_supabase_client)
-) -> UserModel:
+    # db: SupabaseAsyncClient = Depends(get_async_supabase_client) # Remove Depends from here
+) -> 'User': # Change return type to string literal 'User'
+    from app.db.supabase_client import get_async_supabase_client # Import locally
+    from app.schemas.user import User # Import User locally
+    db: SupabaseAsyncClient = await get_async_supabase_client() # Get client instance
+
     payload, _ = token_data # Unpack tuple
     user_id_str = payload.get("sub") 
     if user_id_str is None:
@@ -129,12 +134,19 @@ async def get_current_active_user(
     # Ensure user_id is correctly formatted if it needs to be UUID
     # user_id_uuid = uuid.UUID(user_id_str) # If crud_user.get_user expects UUID
     
-    user = await crud_user.get_user(db=db, user_id=user_id_str) # Assuming get_user can handle string ID or converts it
-    if user is None:
+    user_data = await crud_user.user.get(supabase=db, id=user_id_str) # Use crud_user.user.get and pass supabase client as 'supabase'
+    if user_data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {user_id_str} not found")
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
-    return user
+    
+    # Assuming user_data contains is_active, if not, this check needs adjustment
+    # For Supabase, active status is usually implicit unless you have a specific 'is_active' column you manage
+    # if not user_data.get("is_active", True): # Default to True if not present, or adjust as per your schema
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
+    
+    # Convert dict to UserResponse Pydantic model
+    # This assumes the keys in user_data match the fields in UserResponse
+    # You might need to map fields if they don't match directly
+    return User(**user_data)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()

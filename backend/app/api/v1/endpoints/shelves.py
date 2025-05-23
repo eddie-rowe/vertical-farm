@@ -1,148 +1,182 @@
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-# from supabase_py_async import AsyncClient # Old import
-from supabase import AsyncClient, create_async_client # Ensure this is imported
+from supabase import AsyncClient
 
 from app.db.supabase_client import get_async_supabase_client
-from app.core.security import get_current_active_user # Updated import
-from app.models.user import User
-from app.schemas.shelf import Shelf, ShelfCreate, ShelfUpdate
-from app.crud import crud_shelf, crud_rack, crud_row, crud_user_permission # Added necessary CRUD imports
-from app.models.enums import PermissionLevel # For permission checks
+from app.core.security import get_current_active_user
+from app.schemas.shelf import ShelfCreate, ShelfUpdate, ShelfResponse
+from app.crud import shelf as crud_shelf_instance, rack as crud_rack_instance, row as crud_row_instance, can_user_perform_action
+from app.models.enums import PermissionLevel
 
 router = APIRouter()
 
-@router.post("/", response_model=Shelf, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ShelfResponse, status_code=status.HTTP_201_CREATED)
 async def create_shelf_endpoint(
     shelf_in: ShelfCreate,
     db: AsyncClient = Depends(get_async_supabase_client),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
     """Create a new shelf for a rack."""
-    parent_rack = await crud_rack.get_rack(db=db, id=shelf_in.rack_id)
-    if not parent_rack:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    parent_rack_dict = await crud_rack_instance.get(db=db, id=shelf_in.rack_id)
+    if not parent_rack_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent rack not found")
     
-    parent_row = await crud_row.get_row(db=db, row_id=parent_rack.row_id)
-    if not parent_row: # Should not happen if rack exists and DB is consistent
+    parent_row_id = UUID(parent_rack_dict.get("row_id"))
+    parent_row_dict = await crud_row_instance.get(db=db, id=parent_row_id)
+    if not parent_row_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent row not found for existing rack")
 
-    can_create = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=parent_row.farm_id, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    farm_id_of_parent_row = UUID(parent_row_dict.get("farm_id"))
+    can_create = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_parent_row, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_create:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions for the parent farm")
-    return await crud_shelf.create_shelf(db=db, obj_in=shelf_in)
+    
+    created_shelf_dict = await crud_shelf_instance.create_with_rack(db=db, obj_in=shelf_in, rack_id=shelf_in.rack_id)
+    return ShelfResponse(**created_shelf_dict)
 
-@router.get("/{shelf_id}", response_model=Shelf)
+@router.get("/{shelf_id}", response_model=ShelfResponse)
 async def read_shelf_endpoint(
     shelf_id: UUID,
     db: AsyncClient = Depends(get_async_supabase_client),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
     """Get a specific shelf by ID."""
-    shelf = await crud_shelf.get_shelf(db=db, id=shelf_id)
-    if not shelf:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    shelf_dict = await crud_shelf_instance.get(db=db, id=shelf_id)
+    if not shelf_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found")
 
-    parent_rack = await crud_rack.get_rack(db=db, id=shelf.rack_id)
-    if not parent_rack: # Should not happen
+    parent_rack_id = UUID(shelf_dict.get("rack_id"))
+    parent_rack_dict = await crud_rack_instance.get(db=db, id=parent_rack_id)
+    if not parent_rack_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent rack not found")
     
-    parent_row = await crud_row.get_row(db=db, row_id=parent_rack.row_id)
-    if not parent_row: # Should not happen
+    parent_row_id = UUID(parent_rack_dict.get("row_id"))
+    parent_row_dict = await crud_row_instance.get(db=db, id=parent_row_id)
+    if not parent_row_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent row not found")
 
-    can_view = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=parent_row.farm_id, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    farm_id_of_parent_row = UUID(parent_row_dict.get("farm_id"))
+    can_view = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_parent_row, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_view:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to view this shelf")
-    return shelf
+    return ShelfResponse(**shelf_dict)
 
-@router.get("/rack/{rack_id}", response_model=List[Shelf])
+@router.get("/rack/{rack_id}", response_model=List[ShelfResponse])
 async def read_shelves_for_rack_endpoint(
     rack_id: UUID,
     skip: int = 0,
     limit: int = 100,
     db: AsyncClient = Depends(get_async_supabase_client),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
     """Get all shelves for a specific rack."""
-    parent_rack = await crud_rack.get_rack(db=db, id=rack_id)
-    if not parent_rack:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    parent_rack_dict = await crud_rack_instance.get(db=db, id=rack_id)
+    if not parent_rack_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent rack not found")
     
-    parent_row = await crud_row.get_row(db=db, row_id=parent_rack.row_id)
-    if not parent_row: # Should not happen
+    parent_row_id = UUID(parent_rack_dict.get("row_id"))
+    parent_row_dict = await crud_row_instance.get(db=db, id=parent_row_id)
+    if not parent_row_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent row not found")
 
-    can_view = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=parent_row.farm_id, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    farm_id_of_parent_row = UUID(parent_row_dict.get("farm_id"))
+    can_view = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_parent_row, levels=[PermissionLevel.VIEWER, PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_view:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to view shelves for this rack")
-    shelves = await crud_shelf.get_shelves_by_rack(db=db, rack_id=rack_id, skip=skip, limit=limit)
-    return shelves
+    
+    shelves_list = await crud_shelf_instance.get_multi_by_rack(db=db, rack_id=rack_id, skip=skip, limit=limit)
+    return [ShelfResponse(**s) for s in shelves_list]
 
-@router.put("/{shelf_id}", response_model=Shelf)
+@router.put("/{shelf_id}", response_model=ShelfResponse)
 async def update_shelf_endpoint(
     shelf_id: UUID,
     shelf_in: ShelfUpdate,
     db: AsyncClient = Depends(get_async_supabase_client),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
     """Update a shelf."""
-    shelf = await crud_shelf.get_shelf(db=db, id=shelf_id)
-    if not shelf:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    existing_shelf_dict = await crud_shelf_instance.get(db=db, id=shelf_id)
+    if not existing_shelf_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found")
 
-    parent_rack = await crud_rack.get_rack(db=db, id=shelf.rack_id)
-    if not parent_rack: # Should not happen
+    parent_rack_id = UUID(existing_shelf_dict.get("rack_id"))
+    parent_rack_dict = await crud_rack_instance.get(db=db, id=parent_rack_id)
+    if not parent_rack_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent rack not found")
 
-    parent_row = await crud_row.get_row(db=db, row_id=parent_rack.row_id)
-    if not parent_row: # Should not happen
+    parent_row_id = UUID(parent_rack_dict.get("row_id"))
+    parent_row_dict = await crud_row_instance.get(db=db, id=parent_row_id)
+    if not parent_row_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent row not found")
 
-    can_update = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=parent_row.farm_id, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
+    farm_id_of_parent_row = UUID(parent_row_dict.get("farm_id"))
+    can_update = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_parent_row, levels=[PermissionLevel.EDITOR, PermissionLevel.MANAGER]
     )
     if not can_update:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to update this shelf")
     
-    updated_shelf = await crud_shelf.update_shelf(db=db, id=shelf_id, obj_in=shelf_in)
-    if not updated_shelf:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found after update attempt")
-    return updated_shelf
+    updated_shelf_dict = await crud_shelf_instance.update(db=db, id=shelf_id, obj_in=shelf_in)
+    if not updated_shelf_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found after update attempt or update failed")
+    return ShelfResponse(**updated_shelf_dict)
 
-@router.delete("/{shelf_id}", response_model=Shelf)
+@router.delete("/{shelf_id}", response_model=ShelfResponse)
 async def delete_shelf_endpoint(
     shelf_id: UUID,
     db: AsyncClient = Depends(get_async_supabase_client),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
 ) -> Any:
     """Delete a shelf."""
-    shelf = await crud_shelf.get_shelf(db=db, id=shelf_id)
-    if not shelf:
+    user_id_str = current_user.get("sub")
+    if not user_id_str: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User ID not found")
+    user_id = UUID(user_id_str)
+
+    existing_shelf_dict = await crud_shelf_instance.get(db=db, id=shelf_id)
+    if not existing_shelf_dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found")
 
-    parent_rack = await crud_rack.get_rack(db=db, id=shelf.rack_id)
-    if not parent_rack: # Should not happen
+    parent_rack_id = UUID(existing_shelf_dict.get("rack_id"))
+    parent_rack_dict = await crud_rack_instance.get(db=db, id=parent_rack_id)
+    if not parent_rack_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent rack not found")
 
-    parent_row = await crud_row.get_row(db=db, row_id=parent_rack.row_id)
-    if not parent_row: # Should not happen
+    parent_row_id = UUID(parent_rack_dict.get("row_id"))
+    parent_row_dict = await crud_row_instance.get(db=db, id=parent_row_id)
+    if not parent_row_dict: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Parent row not found")
 
-    can_delete = await crud_user_permission.can_user_perform_action(
-        db=db, user_id=current_user.id, farm_id=parent_row.farm_id, levels=[PermissionLevel.MANAGER]
+    farm_id_of_parent_row = UUID(parent_row_dict.get("farm_id"))
+    can_delete = await can_user_perform_action(
+        db=db, user_id=user_id, farm_id=farm_id_of_parent_row, levels=[PermissionLevel.MANAGER]
     )
     if not can_delete:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions to delete this shelf")
     
-    deleted_shelf = await crud_shelf.delete_shelf(db=db, id=shelf_id)
-    if not deleted_shelf:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found for deletion attempt")
-    return deleted_shelf 
+    deleted_shelf_dict = await crud_shelf_instance.remove(db=db, id=shelf_id)
+    if not deleted_shelf_dict:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found for deletion or delete failed")
+    return ShelfResponse(**deleted_shelf_dict) 

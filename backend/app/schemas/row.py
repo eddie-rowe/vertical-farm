@@ -1,36 +1,50 @@
-from typing import Optional
+from typing import Optional, Literal
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 
 # Shared properties
 class RowBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    farm_id: UUID
+    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    farm_id: Optional[UUID] = None # Made optional in base, required in Create
+    position_x: Optional[float] = None
+    position_y: Optional[float] = None
+    length: Optional[float] = Field(None, gt=0)
+    orientation: Optional[Literal['horizontal', 'vertical']] = None
 
 # Properties to receive on item creation
 class RowCreate(RowBase):
-    pass
+    name: str = Field(..., min_length=2, max_length=50)
+    farm_id: UUID # farm_id is required for creation
+    position_x: float
+    position_y: float
+    length: float = Field(..., gt=0)
+    orientation: Literal['horizontal', 'vertical']
 
 # Properties to receive on item update
-class RowUpdate(RowBase): # Or make all fields optional: class RowUpdate(BaseModel): name: Optional[str] = None ...
-    name: Optional[str] = None
-    description: Optional[str] = None
-    farm_id: Optional[UUID] = None
-
+class RowUpdate(BaseModel): # All fields optional for update
+    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    # farm_id: Optional[UUID] = None # Typically farm_id is not updatable for a row
+    position_x: Optional[float] = None
+    position_y: Optional[float] = None
+    length: Optional[float] = Field(None, gt=0)
+    orientation: Optional[Literal['horizontal', 'vertical']] = None
 
 # Properties shared by models stored in DB
 class RowInDBBase(RowBase):
     id: UUID
+    farm_id: UUID # Ensure farm_id is non-optional here as it's a DB requirement
+    name: str # Name should also be non-optional in DB
+    position_x: float
+    position_y: float
+    length: float
+    orientation: Literal['horizontal', 'vertical']
 
-    class Config:
-        orm_mode = True # Pydantic V1
-        # from_attributes = True # Pydantic V2
+    model_config = ConfigDict(from_attributes=True)
 
 # Properties to return to client
-class Row(RowInDBBase):
+class RowResponse(RowInDBBase):
     pass
 
-# Properties stored in DB
+# Properties stored in DB (can be same as RowInDBBase or extend it)
 class RowInDB(RowInDBBase):
     pass 

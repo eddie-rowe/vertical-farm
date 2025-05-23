@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import EntityEditModal from "@/components/farm-layout/EntityEditModal";
+import EntityEditModal, { EntityType } from "@/components/farm-layout/EntityEditModal";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { PlusIcon, TrashIcon, PencilIcon, Bars3Icon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -29,40 +29,86 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { FarmSchema, FarmFormData } from "@/lib/validations/farmSchemas";
+import { RowSchema, RowFormData } from "@/lib/validations/rowSchemas";
+import { RackSchema, RackFormData } from "@/lib/validations/rackSchemas";
+import { ShelfSchema, ShelfFormData } from "@/lib/validations/shelfSchemas";
+import { FanSchema, FanFormData } from "@/lib/validations/fanSchemas";
+import { SensorDeviceSchema, SensorDeviceFormData } from "@/lib/validations/sensorDeviceSchemas";
+import { ZodType } from "zod";
 
-interface Shelf { id: string; name: string; }
-interface Rack { id: string; name: string; shelves: Shelf[]; }
-interface Row { id: string; name: string; racks: Rack[]; }
-interface Farm { name: string; location: string; }
-type Entity = Farm | Row | Rack | Shelf;
+// Updated interfaces to align with Zod schemas (optional/nullable where appropriate)
+interface DBShelf extends ShelfFormData { id: string; rack_id: string; } 
+interface DBRack extends RackFormData { id: string; row_id: string; shelves: DBShelf[]; }
+interface DBRow extends RowFormData { id: string; farm_id: string; racks: DBRack[]; }
+interface DBFarm extends FarmFormData { id: string; } 
 
-// Placeholder data structure for demo
-const initialData: { farm: Farm; rows: Row[] } = {
-  farm: { name: "Demo Farm", location: "Greenhouse 1" },
+// Type for the entity being edited in the modal
+type ModalFormData = FarmFormData | RowFormData | RackFormData | ShelfFormData | FanFormData | SensorDeviceFormData;
+// Type for entities stored in the main 'data' state
+type DataEntity = DBFarm | DBRow | DBRack | DBShelf; // Fan/Sensor not in main data tree yet
+
+const initialFarmId = `farm-${Date.now()}`;
+const initialRow1Id = `row-${Date.now()}-1`;
+const initialRow2Id = `row-${Date.now()}-2`;
+const initialRack1Id = `rack-${Date.now()}-1`;
+const initialRack2Id = `rack-${Date.now()}-2`;
+
+const initialData: { farm: DBFarm; rows: DBRow[] } = {
+  farm: { 
+    id: initialFarmId, 
+    name: "Demo Farm", 
+    location: "Greenhouse 1", 
+    width: 100, 
+    depth: 50, 
+    plan_image_url: null 
+  },
   rows: [
     {
-      id: "row-1",
-      name: "Row 1",
+      id: initialRow1Id,
+      farm_id: initialFarmId, 
+      name: "Row A",
+      position_x: 10,
+      position_y: 5,
+      length: 40,
+      orientation: "horizontal",
       racks: [
         {
-          id: "rack-1",
-          name: "Rack 1",
+          id: initialRack1Id,
+          row_id: initialRow1Id,
+          name: "Rack A1",
+          position_in_row: 1,
+          width: 2,
+          depth: 1,
+          height: 2.5,
+          max_shelves: 5,
           shelves: [
-            { id: "shelf-1", name: "Shelf 1" },
-            { id: "shelf-2", name: "Shelf 2" },
+            { id: `shelf-${Date.now()}-1`, rack_id: initialRack1Id, name: "Shelf A1.1", position_in_rack: 1, width: 2, depth: 1, max_weight: 20 },
+            { id: `shelf-${Date.now()}-2`, rack_id: initialRack1Id, name: "Shelf A1.2", position_in_rack: 2, width: 2, depth: 1, max_weight: 20 },
           ],
         },
       ],
     },
     {
-      id: "row-2",
-      name: "Row 2",
+      id: initialRow2Id,
+      farm_id: initialFarmId,
+      name: "Row B",
+      position_x: 10,
+      position_y: 15,
+      length: 40,
+      orientation: "horizontal",
       racks: [
         {
-          id: "rack-2",
-          name: "Rack 2",
+          id: initialRack2Id,
+          row_id: initialRow2Id,
+          name: "Rack B1",
+          position_in_row: 1,
+          width: 2,
+          depth: 1,
+          height: 2.5,
+          max_shelves: 5,
           shelves: [
-            { id: "shelf-3", name: "Shelf 3" },
+            { id: `shelf-${Date.now()}-3`, rack_id: initialRack2Id, name: "Shelf B1.1", position_in_rack: 1, width: 2, depth: 1, max_weight: 20 },
           ],
         },
       ],
@@ -78,9 +124,29 @@ const entityStyles = {
   shelf: 'gradient-shelf card-shadow animate-pop',
 };
 
+// Helper function to get validation schema based on entity type
+function getValidationSchema(type: EntityType): ZodType<any, any, any> {
+  switch (type) {
+    case 'farm': return FarmSchema;
+    case 'row': return RowSchema;
+    case 'rack': return RackSchema;
+    case 'shelf': return ShelfSchema;
+    case 'fan': return FanSchema;
+    case 'sensorDevice': return SensorDeviceSchema;
+    default: throw new Error(`Unknown entity type for validation: ${type}`);
+  }
+}
+
 export default function FarmLayoutConfigurator() {
-  const [data, setData] = useState<{ farm: Farm; rows: Row[] }>(initialData);
-  const [modal, setModal] = useState<{ type: "farm" | "row" | "rack" | "shelf" | null; entity: Entity | null; parentIdx?: number; childIdx?: number; grandIdx?: number }>({ type: null, entity: null });
+  const [data, setData] = useState<{ farm: DBFarm; rows: DBRow[] }>(initialData);
+  const [modal, setModal] = useState<{
+    type: EntityType | null;
+    entity: Partial<ModalFormData> | null;
+    isNew: boolean;
+    parentIdx?: number;
+    childIdx?: number;
+    grandIdx?: number;
+  }>({ type: null, entity: null, isNew: false });
   const [dragging, setDragging] = useState<{ type: string; id: string } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -148,67 +214,158 @@ export default function FarmLayoutConfigurator() {
       return { ...prev, rows: newRows };
     });
   }
-  }
 
   // Modal open/save handlers
-  function openModal(type: "farm" | "row" | "rack" | "shelf", entity: Entity, parentIdx?: number, childIdx?: number, grandIdx?: number) {
-    setModal({ type, entity, parentIdx, childIdx, grandIdx });
+  function openModal(
+    type: EntityType,
+    entityData: DataEntity | Partial<ModalFormData>,
+    isNewCreation: boolean,
+    parentIdx?: number,
+    childIdx?: number,
+    grandIdx?: number
+  ) {
+    setModal({ type, entity: entityData, isNew: isNewCreation, parentIdx, childIdx, grandIdx });
   }
+
   function closeModal() {
-    setModal({ type: null, entity: null });
+    setModal({ type: null, entity: null, isNew: false });
   }
-  function saveModal(updated: Entity) {
-    if (modal.type === "farm") {
-      setData(prev => ({ ...prev, farm: { ...prev.farm, ...updated } }));
+
+  function saveModal(formValues: ModalFormData) {
+    const { type, parentIdx, childIdx, grandIdx, isNew } = modal;
+    if (!type) return;
+
+    if (type === "farm") {
+      setData(prev => ({ 
+        ...prev, 
+        farm: { 
+          id: prev.farm.id, // Preserve ID
+          ...(formValues as FarmFormData), // Spread validated form data
+        } as DBFarm, // Ensure result matches DBFarm structure
+      }));
       toast.success('Farm updated');
-    } else if (modal.type === "row" && typeof modal.parentIdx === "number") {
-      setData(prev => {
-        const newRows = prev.rows.map((row, idx) => idx === modal.parentIdx ? { ...row, ...updated } : row);
+    } else if (type === "row") {
+      if (isNew && typeof parentIdx === 'number') { 
+        const newRow: DBRow = {
+          ...(formValues as RowFormData), // Spread validated form data first
+          id: `row-${Date.now()}`,
+          farm_id: data.farm.id, // Set parent ID
+          racks: [],
+        };
+        setData(prev => ({ ...prev, rows: [...prev.rows.slice(0, parentIdx), newRow, ...prev.rows.slice(parentIdx)] }));
+        toast.success('Row created');
+      } else if (!isNew && typeof parentIdx === 'number' && data.rows[parentIdx]) {
+        const existingRow = data.rows[parentIdx];
+        const updatedRow: DBRow = {
+          ...existingRow, // Keep existing id, farm_id, racks
+          ...(formValues as RowFormData), // Override with new form values
+        };
+        setData(prev => {
+          const newRows = [...prev.rows];
+          newRows[parentIdx] = updatedRow;
+          return { ...prev, rows: newRows };
+        });
         toast.success('Row updated');
-        return { ...prev, rows: newRows };
-      });
-    } else if (modal.type === "rack" && typeof modal.parentIdx === "number" && typeof modal.childIdx === "number") {
-      setData(prev => {
-        const newRows = prev.rows.map((row, rIdx) => {
-          if (rIdx !== modal.parentIdx) return row;
-          return {
-            ...row,
-            racks: row.racks.map((rack, rkIdx) => rkIdx === modal.childIdx ? { ...rack, ...updated } : rack),
-          };
+      }
+    } else if (type === "rack" && typeof parentIdx === 'number' && data.rows[parentIdx]) {
+      const parentRow = data.rows[parentIdx];
+      if (isNew && typeof childIdx === 'number') {
+        const newRack: DBRack = {
+          ...(formValues as RackFormData), // Spread validated form data first
+          id: `rack-${Date.now()}`,
+          row_id: parentRow.id, // Set parent ID
+          shelves: [],
+        };
+        setData(prev => {
+          const newRows = [...prev.rows];
+          const newRacks = [...parentRow.racks.slice(0, childIdx), newRack, ...parentRow.racks.slice(childIdx)];
+          newRows[parentIdx] = { ...parentRow, racks: newRacks };
+          return { ...prev, rows: newRows };
+        });
+        toast.success('Rack created');
+      } else if (!isNew && typeof childIdx === 'number' && parentRow.racks[childIdx]) {
+        const existingRack = parentRow.racks[childIdx];
+        const updatedRack: DBRack = {
+          ...existingRack, // Keep existing id, row_id, shelves
+          ...(formValues as RackFormData),
+        };
+        setData(prev => {
+          const newRows = [...prev.rows];
+          const newRacks = [...parentRow.racks];
+          newRacks[childIdx] = updatedRack;
+          newRows[parentIdx] = { ...parentRow, racks: newRacks };
+          return { ...prev, rows: newRows };
         });
         toast.success('Rack updated');
-        return { ...prev, rows: newRows };
-      });
-    } else if (modal.type === "shelf" && typeof modal.parentIdx === "number" && typeof modal.childIdx === "number" && typeof modal.grandIdx === "number") {
-      setData(prev => {
-        const newRows = prev.rows.map((row, rIdx) => {
-          if (rIdx !== modal.parentIdx) return row;
-          return {
-            ...row,
-            racks: row.racks.map((rack, rkIdx) => {
-              if (rkIdx !== modal.childIdx) return rack;
-              return {
-                ...rack,
-                shelves: rack.shelves.map((shelf, sIdx) => sIdx === modal.grandIdx ? { ...shelf, ...updated } : shelf),
-              };
-            }),
-          };
+      }
+    } else if (type === "shelf" && typeof parentIdx === 'number' && typeof childIdx === 'number' && data.rows[parentIdx]?.racks[childIdx]) {
+      const parentRack = data.rows[parentIdx].racks[childIdx];
+      if (isNew && typeof grandIdx === 'number') {
+        const newShelf: DBShelf = {
+          ...(formValues as ShelfFormData), // Spread validated form data first
+          id: `shelf-${Date.now()}`,
+          rack_id: parentRack.id, // Set parent ID
+        };
+        setData(prev => {
+          const newRows = [...prev.rows];
+          const newRacks = [...data.rows[parentIdx].racks];
+          const newShelves = [...parentRack.shelves.slice(0, grandIdx), newShelf, ...parentRack.shelves.slice(grandIdx)];
+          newRacks[childIdx] = { ...parentRack, shelves: newShelves };
+          newRows[parentIdx] = { ...data.rows[parentIdx], racks: newRacks };
+          return { ...prev, rows: newRows };
+        });
+        toast.success('Shelf created');
+      } else if (!isNew && typeof grandIdx === 'number' && parentRack.shelves[grandIdx]) {
+        const existingShelf = parentRack.shelves[grandIdx];
+        const updatedShelf: DBShelf = {
+          ...existingShelf, // Keep existing id, rack_id
+          ...(formValues as ShelfFormData),
+        };
+        setData(prev => {
+          const newRows = [...prev.rows];
+          const newRacks = [...data.rows[parentIdx].racks];
+          const newShelves = [...parentRack.shelves];
+          newShelves[grandIdx] = updatedShelf;
+          newRacks[childIdx] = { ...parentRack, shelves: newShelves };
+          newRows[parentIdx] = { ...data.rows[parentIdx], racks: newRacks };
+          return { ...prev, rows: newRows };
         });
         toast.success('Shelf updated');
-        return { ...prev, rows: newRows };
-      });
+      }
     }
     closeModal();
   }
 
-  // Add handlers for add/delete
   function addRow() {
-    setData(prev => ({
-      ...prev,
-      rows: [...prev.rows, { id: `row-${Date.now()}`, name: 'New Row', racks: [] }],
-    }));
-    toast.success('Row added');
+    const newRowDefaults: Partial<RowFormData> = {
+      name: "New Row", position_x: 0, position_y: 0, length: 10, orientation: "horizontal",
+      farm_id: data.farm.id, // Pre-fill parent ID for the form default
+    };
+    openModal('row', newRowDefaults, true, data.rows.length);
   }
+
+  function addRack(rowIdx: number) {
+    const parentRow = data.rows[rowIdx];
+    if (!parentRow) return;
+    const newRackDefaults: Partial<RackFormData> = {
+      name: "New Rack", position_in_row: (parentRow.racks?.length || 0) + 1,
+      width: 1, depth: 1, height: 2, max_shelves: 4,
+      row_id: parentRow.id, // Pre-fill parent ID
+    };
+    openModal('rack', newRackDefaults, true, rowIdx, parentRow.racks.length);
+  }
+
+  function addShelf(rowIdx: number, rackIdx: number) {
+    const parentRack = data.rows[rowIdx]?.racks[rackIdx];
+    if (!parentRack) return;
+    const newShelfDefaults: Partial<ShelfFormData> = {
+      name: "New Shelf", position_in_rack: (parentRack.shelves?.length || 0) + 1,
+      width: parentRack.width ?? 1, depth: parentRack.depth ?? 1, max_weight: 10,
+      rack_id: parentRack.id, // Pre-fill parent ID
+    };
+    openModal('shelf', newShelfDefaults, true, rowIdx, rackIdx, parentRack.shelves.length);
+  }
+
   function requestDelete(type: 'row' | 'rack' | 'shelf', idx: number, childIdx?: number, grandIdx?: number, name?: string) {
     setConfirmDialog({ open: true, type, idx, childIdx, grandIdx, name });
   }
@@ -238,23 +395,6 @@ export default function FarmLayoutConfigurator() {
   function handleCancelDelete() {
     setConfirmDialog({ open: false });
   }
-  function addRack(rowIdx: number) {
-    setData(prev => {
-      const newRows = prev.rows.map((row, idx) => idx === rowIdx ? { ...row, racks: [...row.racks, { id: `rack-${Date.now()}`, name: 'New Rack', shelves: [] }] } : row);
-      toast.success('Rack added');
-      return { ...prev, rows: newRows };
-    });
-  }
-  function addShelf(rowIdx: number, rackIdx: number) {
-    setData(prev => {
-      const newRows = prev.rows.map((row, rIdx) => rIdx === rowIdx ? {
-        ...row,
-        racks: row.racks.map((rack, rkIdx) => rkIdx === rackIdx ? { ...rack, shelves: [...rack.shelves, { id: `shelf-${Date.now()}`, name: 'New Shelf' }] } : rack),
-      } : row);
-      toast.success('Shelf added');
-      return { ...prev, rows: newRows };
-    });
-  }
 
   return (
     <TooltipProvider>
@@ -272,7 +412,7 @@ export default function FarmLayoutConfigurator() {
               </CardTitle>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => openModal("farm", data.farm)}>
+                  <Button variant="outline" size="icon" onClick={() => openModal("farm", data.farm, false)}>
                     <PencilIcon className="w-4 h-4" />
                     <span className="sr-only">Edit Farm</span>
                   </Button>
@@ -301,7 +441,7 @@ export default function FarmLayoutConfigurator() {
                         <div className="flex items-center gap-2">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" onClick={() => openModal("row", row, rowIdx)}>
+                              <Button variant="ghost" size="icon" onClick={() => openModal("row", row, false, rowIdx)}>
                                 <PencilIcon className="w-4 h-4 text-blue-500" />
                                 <span className="sr-only">Edit Row</span>
                               </Button>
@@ -339,7 +479,7 @@ export default function FarmLayoutConfigurator() {
                                     <div className="flex items-center gap-2">
                                       <Tooltip>
                                         <TooltipTrigger asChild>
-                                          <Button variant="ghost" size="icon" onClick={() => openModal("rack", rack, rowIdx, rackIdx)}>
+                                          <Button variant="ghost" size="icon" onClick={() => openModal("rack", rack, false, rowIdx, rackIdx)}>
                                             <PencilIcon className="w-4 h-4 text-blue-500" />
                                             <span className="sr-only">Edit Rack</span>
                                           </Button>
@@ -376,7 +516,7 @@ export default function FarmLayoutConfigurator() {
                                               <div className="flex items-center gap-1">
                                                 <Tooltip>
                                                   <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" onClick={() => openModal("shelf", shelf, rowIdx, rackIdx, shelfIdx)}>
+                                                    <Button variant="ghost" size="icon" onClick={() => openModal("shelf", shelf, false, rowIdx, rackIdx, shelfIdx)}>
                                                       <PencilIcon className="w-4 h-4 text-blue-500" />
                                                       <span className="sr-only">Edit Shelf</span>
                                                     </Button>
@@ -415,12 +555,14 @@ export default function FarmLayoutConfigurator() {
 
       {/* Modal for editing */}
       {modal.type && modal.entity && (
-        <EntityEditModal
+        <EntityEditModal<ModalFormData>
           open={!!modal.type}
-          entity={modal.entity}
+          defaultValues={modal.entity}
           onSave={saveModal}
           onClose={closeModal}
-          title={`Edit ${modal.type.charAt(0).toUpperCase() + modal.type.slice(1)}`}
+          title={`${modal.isNew ? 'Create New' : 'Edit'} ${modal.type.charAt(0).toUpperCase() + modal.type.slice(1)}`}
+          entityType={modal.type}
+          validationSchema={getValidationSchema(modal.type)}
         />
       )}
 

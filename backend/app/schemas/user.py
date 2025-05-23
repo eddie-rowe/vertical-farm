@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 import uuid
 from app.models.enums import UserRole # Assuming UserRole is in models.enums
@@ -23,8 +23,7 @@ class UserInDBBase(UserBase):
     # Add any other fields that are in the DB but not always in API responses
     hashed_password: Optional[str] = None # Only for internal use
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class User(UserInDBBase):
     # Fields to return to the client

@@ -1,8 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional # Optional not used here but good practice to keep if model evolves
 import uuid
 from datetime import datetime
 from app.models.enums import PermissionLevel
+# from sqlalchemy import Column, ForeignKey, Enum as SQLAlchemyEnum, DateTime
+# from sqlalchemy.dialects.postgresql import UUID
+# from sqlalchemy.sql import func
+
+# from app.db.base_class import Base # Ensure Base is imported
 
 # This model represents the structure of the 'user_permissions' table in the database.
 class UserPermissionInDB(BaseModel):
@@ -13,7 +18,16 @@ class UserPermissionInDB(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-        use_enum_values = True # Ensures that when serializing, enum values (e.g., "VIEWER") are used, not the enum members themselves.
-                               # When deserializing, Pydantic will convert valid strings back to enum members.
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+
+# class UserPermission(Base):
+#     __tablename__ = "user_permissions"
+#
+#     # model_config = ConfigDict(from_attributes=True) # This was incorrect for SQLAlchemy
+#
+#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+#     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+#     farm_id = Column(UUID(as_uuid=True), nullable=False)
+#     permission = Column(SQLAlchemyEnum(PermissionLevel), nullable=False)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

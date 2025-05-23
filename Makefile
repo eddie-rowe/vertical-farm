@@ -6,17 +6,17 @@ BLACK_LINE_LENGTH=79
 PYTHON_SRC=backend
 NEXT_SRC=frontend
 
-.PHONY: format lint test pr \
+.PHONY: format lint test pr \\
 	# Backend
-	run-backend test-backend lint-backend install-backend \
+	run-backend test-backend lint-backend install-backend \\
 	# Frontend
-	run-frontend build-frontend test-frontend test-frontend-e2e lint-frontend install-frontend \
+	run-frontend build-frontend test-frontend test-frontend-e2e lint-frontend install-frontend \\
 	# DevOps
-	up down clean-docker \
+	up down clean-docker \\
 	# Docs & Agents
-	docs-sync ux-analysis \
+	docs-sync ux-analysis \\
 	# Meta
-	setup format-all test-all help \
+	setup format-all test-all help \\
 	# Security & Vulnerability Scanning
 	security-python security-node security-docker security-secrets security-snyk-python security-snyk-node
 
@@ -147,12 +147,12 @@ security-snyk-node:
 
 ## Run all security checks
 security: security-python security-node security-docker security-secrets security-snyk-python security-snyk-node
-	@echo "\nAll security checks completed. Review output above."
+	@echo "\\nAll security checks completed. Review output above."
 
 # --- Help ---
 
 ## List all available Makefile commands and their descriptions
 help:
-	@echo "\nAvailable Makefile targets:\n"
-	@grep -E '^[a-zA-Z0-9_-]+:|^##' Makefile | \
-		awk 'BEGIN {FS = ":|##"} /^[a-zA-Z0-9_-]+:/ {printf "\033[36m%-25s\033[0m %s\n", $$1, $$3}'
+	@echo "\\nAvailable Makefile targets:\\n"
+	@grep -E '^[a-zA-Z0-9_-]+:|^##' Makefile | \\
+		awk 'BEGIN {FS = ":|##"} /^[a-zA-Z0-9_-]+:/ {printf "\\033[36m%-25s\\033[0m %s\\n", $$1, $$3}'

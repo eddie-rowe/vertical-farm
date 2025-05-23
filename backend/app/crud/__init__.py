@@ -1,10 +1,16 @@
-from . import crud_farm
-from . import crud_user
-from . import crud_user_permission
+from .crud_farm import farm
+from .crud_user import user
+# crud_user_permission provides functions directly, not an instance named user_permission
+# It can be imported as: from . import crud_user_permission
+# Or specific functions can be imported by the modules that need them.
+# For now, leaving the original import pattern if it was working, but it's unusual.
+from .crud_user_permission import get_user_permission, create_user_permission, can_user_perform_action # Add can_user_perform_action
 
-from .crud_row import get_row, get_rows_by_farm, create_row, update_row, delete_row
-from .crud_rack import get_rack, get_racks_by_row, create_rack, update_rack, delete_rack
-from .crud_shelf import get_shelf, get_shelves_by_rack, create_shelf, update_shelf, delete_shelf
+from .crud_row import row
+from .crud_rack import rack
+from .crud_shelf import shelf
+from .crud_fan import fan
+from .crud_sensor_device import sensor_device
 
 # For a cleaner import, you could also group them under a namespace if preferred
 # from . import crud_row
@@ -12,25 +18,15 @@ from .crud_shelf import get_shelf, get_shelves_by_rack, create_shelf, update_she
 # from . import crud_shelf
 
 __all__ = [
-    "crud_farm",
-    "crud_user",
-    "crud_user_permission",
-    # Row CRUD functions
-    "get_row",
-    "get_rows_by_farm",
-    "create_row",
-    "update_row",
-    "delete_row",
-    # Rack CRUD functions
-    "get_rack",
-    "get_racks_by_row",
-    "create_rack",
-    "update_rack",
-    "delete_rack",
-    # Shelf CRUD functions
-    "get_shelf",
-    "get_shelves_by_rack",
-    "create_shelf",
-    "update_shelf",
-    "delete_shelf",
+    "farm",
+    "user",
+    # "user_permission", # This was likely referring to the module or specific functions
+    "get_user_permission", # Exporting example function
+    "create_user_permission", # Exporting example function
+    "can_user_perform_action", # Add can_user_perform_action to __all__
+    "row",
+    "rack",
+    "shelf",
+    "fan",
+    "sensor_device",
 ]

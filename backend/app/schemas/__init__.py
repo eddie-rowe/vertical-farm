@@ -3,9 +3,11 @@ from .user import UserBase, UserCreate, UserUpdate, UserInDBBase, User
 from .user_permission import UserPermissionBase, UserPermissionCreate, UserPermissionUpdate, UserPermissionInDBBase, UserPermissionResponse, UserPermissionListResponse
 from .token import Token, TokenPayload
 
-from .row import RowBase, RowCreate, RowUpdate, RowInDBBase, Row
-from .rack import RackBase, RackCreate, RackUpdate, RackInDBBase, Rack
-from .shelf import ShelfBase, ShelfCreate, ShelfUpdate, ShelfInDBBase, Shelf
+from .row import RowBase, RowCreate, RowUpdate, RowInDBBase, RowResponse
+from .rack import RackBase, RackCreate, RackUpdate, RackInDBBase, RackResponse
+from .shelf import ShelfBase, ShelfCreate, ShelfUpdate, ShelfInDBBase, ShelfResponse
+from .fan import FanBase, FanCreate, FanUpdate, FanInDBBase, FanResponse
+from .sensor_device import SensorDeviceBase, SensorDeviceCreate, SensorDeviceUpdate, SensorDeviceInDBBase, SensorDeviceResponse
 
 
 __all__ = [
@@ -32,15 +34,25 @@ __all__ = [
     "RowCreate",
     "RowUpdate",
     "RowInDBBase",
-    "Row",
+    "RowResponse",
     "RackBase",
     "RackCreate",
     "RackUpdate",
     "RackInDBBase",
-    "Rack",
+    "RackResponse",
     "ShelfBase",
     "ShelfCreate",
     "ShelfUpdate",
     "ShelfInDBBase",
-    "Shelf",
+    "ShelfResponse",
+    "FanBase",
+    "FanCreate",
+    "FanUpdate",
+    "FanInDBBase",
+    "FanResponse",
+    "SensorDeviceBase",
+    "SensorDeviceCreate",
+    "SensorDeviceUpdate",
+    "SensorDeviceInDBBase",
+    "SensorDeviceResponse",
 ] 
