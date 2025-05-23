@@ -14,8 +14,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -28,7 +26,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import { FarmSchema, FarmFormData } from "@/lib/validations/farmSchemas";
 import { RowSchema, RowFormData } from "@/lib/validations/rowSchemas";
 import { RackSchema, RackFormData } from "@/lib/validations/rackSchemas";
@@ -138,6 +136,7 @@ function getValidationSchema(type: EntityType): ZodType<any, any, any> {
 }
 
 export default function FarmLayoutConfigurator() {
+  console.log("FarmLayoutConfigurator component is rendering - Test Log");
   const [data, setData] = useState<{ farm: DBFarm; rows: DBRow[] }>(initialData);
   const [modal, setModal] = useState<{
     type: EntityType | null;
@@ -208,11 +207,12 @@ export default function FarmLayoutConfigurator() {
               const newIndex = rack.shelves.findIndex(shelf => shelf.id === over.id);
               toast.success('Shelf reordered');
               return { ...rack, shelves: arrayMove(rack.shelves, oldIndex, newIndex) };
-          }),
+          })
         };
       });
       return { ...prev, rows: newRows };
     });
+    }
   }
 
   // Modal open/save handlers
@@ -410,7 +410,7 @@ export default function FarmLayoutConfigurator() {
                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-500 text-white"><Bars3Icon className="w-4 h-4" /></span>
                 Farm: {data.farm.name}
               </CardTitle>
-              <Tooltip>
+              {/* <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="icon" onClick={() => openModal("farm", data.farm, false)}>
                     <PencilIcon className="w-4 h-4" />
@@ -418,7 +418,7 @@ export default function FarmLayoutConfigurator() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Edit Farm</TooltipContent>
-              </Tooltip>
+              </Tooltip> */}
             </div>
           </CardHeader>
           <CardContent>
@@ -576,7 +576,7 @@ export default function FarmLayoutConfigurator() {
                 Confirm Deletion
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete {confirmDialog.type} "{confirmDialog.name || ''}"? This action cannot be undone.
+                Are you sure you want to delete {confirmDialog.type} &quot;{confirmDialog.name || ''}&quot;? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -587,7 +587,7 @@ export default function FarmLayoutConfigurator() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-    )}
+      )}
     </div>
     </TooltipProvider>
   );

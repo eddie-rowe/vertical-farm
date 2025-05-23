@@ -8,14 +8,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm, FieldValues, SubmitHandler, Path, DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ZodType } from "zod";
 
 interface Shelf { id: string; name: string; }
 interface Rack { id: string; name: string; shelves: Shelf[]; }
-interface Row { id: string; name: string; racks: Rack[]; }
-interface Farm { id?: string; name: string; location?: string; plan_image_url?: string | null; width?: number | null; depth?: number | null; }
 export type EntityType = 'farm' | 'row' | 'rack' | 'shelf' | 'fan' | 'sensorDevice';
 
 interface EntityEditModalProps<TFormValues extends FieldValues> {
