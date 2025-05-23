@@ -2,9 +2,10 @@ name: Build & push image
 permissions:
     actions: write
 on:
-  push:
-    branches: [ main ]
-  pull_request:
+  workflow_run:
+    workflows: ["Deploy Supabase Migrations to Production"]
+    types:
+      - completed
     branches: [ main ]
 jobs:
   backend:

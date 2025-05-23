@@ -77,5 +77,19 @@ services:
       - "8126:8126" # APM
     restart: unless-stopped
 
+
+
+# Supabase container for local development using Supabase CLI
+  supabase:
+    container_name: supabase
+    hostname: supabase
+    image: supabase/postgres:17.0.1.086-orioledb
+    ports:
+      - "54322:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf 
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+
 volumes:
   backend-logs: 
