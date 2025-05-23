@@ -154,7 +154,7 @@
             4
           ],
           "details": "Create validation rules to prevent invalid drag operations. Implement constraints based on business logic. Add error handling and user feedback for invalid operations. Ensure data integrity is maintained during all operations.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -165,7 +165,7 @@
             5
           ],
           "details": "Add animations for smooth transitions during drag operations. Implement visual indicators for valid and invalid drop targets. Create feedback for successful/unsuccessful operations. Ensure the interface remains decluttered and focused on primary functions.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 7,
@@ -178,6 +178,15 @@
           ],
           "details": "Perform unit tests for individual components. Conduct integration tests for the complete system. Test edge cases and error handling. Optimize performance for large datasets. Ensure cross-browser compatibility and responsive design for different screen sizes.",
           "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Refine UI",
+          "description": "",
+          "details": "",
+          "status": "in-progress",
+          "dependencies": [],
+          "parentTaskId": 2
         }
       ]
     },

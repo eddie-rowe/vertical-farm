@@ -8,15 +8,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm, FieldValues, SubmitHandler, Path, DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ZodType } from "zod";
 
 interface Shelf { id: string; name: string; }
-interface Rack { id: string; name: string; shelves: Shelf[]; }
 export type EntityType = 'farm' | 'row' | 'rack' | 'shelf' | 'fan' | 'sensorDevice';
 
 interface EntityEditModalProps<TFormValues extends FieldValues> {
@@ -166,6 +162,7 @@ export default function EntityEditModal<TFormValues extends FieldValues>({
                     {...register("farm_id" as Path<TFormValues>)}
                     readOnly
                   />
+                  {renderError("farm_id" as Path<TFormValues>)}
                 </div>
                  <div>
                   <label htmlFor="position_x" className="text-sm font-medium text-gray-700 dark:text-gray-200">Position X</label>
@@ -222,6 +219,7 @@ export default function EntityEditModal<TFormValues extends FieldValues>({
                     {...register("row_id" as Path<TFormValues>)}
                     readOnly
                   />
+                  {renderError("row_id" as Path<TFormValues>)}
                 </div>
                 <div>
                   <label htmlFor="position_in_row" className="text-sm font-medium text-gray-700 dark:text-gray-200">Position in Row</label>

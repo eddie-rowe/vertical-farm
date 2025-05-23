@@ -702,13 +702,13 @@ The recommended approach is to refactor now to avoid technical debt, but this de
 - Authorization checks working as expected for different permission levels
 </info added on 2025-05-21T15:52:05.318Z>
 
-## 5. Validation Logic [pending]
+## 5. Validation Logic [done]
 ### Dependencies: 2.2, 2.4
 ### Description: Implement rules and constraints for valid drag-and-drop operations
 ### Details:
 Create validation rules to prevent invalid drag operations. Implement constraints based on business logic. Add error handling and user feedback for invalid operations. Ensure data integrity is maintained during all operations.
 
-## 6. Visual Feedback Enhancement [pending]
+## 6. Visual Feedback Enhancement [done]
 ### Dependencies: 2.2, 2.5
 ### Description: Refine the visual cues and feedback during drag-and-drop interactions
 ### Details:
@@ -719,4 +719,10 @@ Add animations for smooth transitions during drag operations. Implement visual i
 ### Description: Thoroughly test all aspects of the drag-and-drop functionality
 ### Details:
 Perform unit tests for individual components. Conduct integration tests for the complete system. Test edge cases and error handling. Optimize performance for large datasets. Ensure cross-browser compatibility and responsive design for different screen sizes.
+
+## 8. Refine UI [in-progress]
+### Dependencies: None
+### Description: 
+### Details:
+
 
