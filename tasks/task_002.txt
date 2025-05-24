@@ -74,7 +74,7 @@ Create tables and relationships that can store the hierarchical structure of dra
 Implement API calls to Supabase for CRUD operations. Set up real-time listeners for collaborative editing. Create functions to translate between UI state and database schema. Implement optimistic updates for a responsive feel during drag operations.
 <info added on 2025-05-20T21:50:11.481Z>
 ## Environment Configuration
-- Store sensitive credentials (SUPABASE_SERVICE_KEY) in .env.local file which is excluded from Git via .gitignore
+- Store sensitive credentials (SUPABASE_KEY) in .env.local file which is excluded from Git via .gitignore
 - Configure SUPABASE_URL as an environment variable
 - Production environments will use hosting provider's environment variable settings
 - Never commit secrets to the repository
@@ -99,7 +99,7 @@ Implement API calls to Supabase for CRUD operations. Set up real-time listeners 
 - The anon key has limited permissions appropriate for client-side operations
 
 ### Backend Configuration
-- Currently using `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` in `backend/supabase_client.py`
+- Currently using `SUPABASE_URL` and `SUPABASE_KEY` in `backend/supabase_client.py`
 - Rename `SUPABASE_KEY` to `SUPABASE_SERVICE_KEY` for clarity
 - The service key provides elevated permissions for server-side operations
 - This key must never be exposed to the client
