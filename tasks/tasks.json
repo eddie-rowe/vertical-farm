@@ -392,21 +392,21 @@
       "id": 5,
       "title": "Grow Recipe Management System",
       "description": "Develop a system for defining and managing grow recipes including grow days, light duration, watering frequency, and other parameters.",
-      "details": "1. Design database schema for grow recipes:\n   ```sql\n   CREATE TABLE species (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     name TEXT NOT NULL UNIQUE,\n     description TEXT\n   );\n   \n   CREATE TABLE grow_recipes (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     species_id UUID REFERENCES species(id),\n     name TEXT NOT NULL,\n     grow_days INTEGER NOT NULL,\n     light_hours NUMERIC(4,2) NOT NULL,\n     watering_frequency_hours NUMERIC(5,2) NOT NULL,\n     average_yield NUMERIC(6,2),\n     sowing_rate NUMERIC(6,2),\n     custom_parameters JSONB,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   ```\n2. Create UI components for recipe management:\n   - SpeciesForm\n   - RecipeEditor\n   - RecipeList\n   - RecipeDetailView\n3. Implement CRUD operations for recipes via FastAPI endpoints\n4. Add recipe versioning to track changes\n5. Create recipe duplication functionality\n6. Implement recipe parameter validation\n7. Add recipe search and filtering capabilities",
-      "testStrategy": "Unit tests for recipe validation and component rendering. Integration tests for recipe CRUD operations. Test recipe versioning to ensure history is maintained. Verify custom parameters are properly stored and retrieved. Test recipe duplication functionality.",
-      "priority": "medium",
+      "status": "pending",
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "priority": "medium",
+      "details": "1. Design database schema for grow recipes:\n   ```sql\n   CREATE TABLE species (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     name TEXT NOT NULL UNIQUE,\n     description TEXT\n   );\n   \n   CREATE TABLE grow_recipes (\n     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n     species_id UUID REFERENCES species(id),\n     name TEXT NOT NULL,\n     recipe_source TEXT,\n     seed_density_dry NUMERIC(6,2),\n     avg_tray_yield NUMERIC(6,2),\n     germination_days INTEGER,\n     light_days INTEGER,\n     total_grow_days INTEGER,\n     top_coat TEXT,\n     pythium_risk TEXT,\n     water_intake NUMERIC(6,2),\n     water_frequency TEXT,\n     lighting JSONB,\n     fridge_storage_temp NUMERIC(4,1),\n     difficulty TEXT,\n     custom_parameters JSONB,\n     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n   );\n   ```\n2. Create UI components for recipe management:\n   - SpeciesForm\n   - RecipeEditor with fields for all grow parameters\n   - RecipeList\n   - RecipeDetailView\n   - GrowParametersPage for navigating and managing recipes\n3. Implement CRUD operations for recipes via FastAPI endpoints\n4. Add recipe versioning to track changes\n5. Create recipe duplication functionality\n6. Implement recipe parameter validation\n7. Add recipe search and filtering capabilities\n8. Implement functionality to select recipes when starting a new grow for a rack/shelf",
+      "testStrategy": "Unit tests for recipe validation and component rendering. Integration tests for recipe CRUD operations. Test recipe versioning to ensure history is maintained. Verify custom parameters are properly stored and retrieved. Test recipe duplication functionality. Verify all grow parameters (species, seed density, germination days, etc.) are correctly stored, retrieved, and displayed. Test the selection of recipes when starting a new grow.",
       "subtasks": [
         {
           "id": 1,
           "title": "Schema Design for Recipe Management",
           "description": "Create a comprehensive data model that handles the complexity of recipe structures while reducing data duplication",
           "dependencies": [],
-          "details": "Design database schema that includes tables for recipes, ingredients, measurements, steps, categories, and relationships between them. Consider hierarchical recipe structures, inheritance patterns, and version control requirements. Include metadata fields for tracking creation, modification, and approval workflows.",
-          "status": "pending"
+          "details": "Design database schema that includes tables for recipes, species, and all required grow parameters. Schema should include fields for: species, recipe_source, seed_density_dry, avg_tray_yield, germination_days, light_days, total_grow_days, top_coat, pythium_risk, water_intake, water_frequency, lighting, fridge_storage_temp, and difficulty. Consider hierarchical recipe structures, inheritance patterns, and version control requirements. Include metadata fields for tracking creation, modification, and approval workflows.\n<info added on 2025-05-24T20:52:29.184Z>\nDatabase schema analysis complete. Need to create a migration to extend the existing `grow_recipes` table in Supabase with the following additional fields:\n\n- recipe_source (Text): Track origin of recipe data\n- germination_days (Integer): Days required for germination phase\n- light_days (Integer): Days requiring light exposure\n- total_grow_days (Integer): May be calculated or separate from existing grow_days\n- top_coat (Text/Boolean): Whether top coating is used\n- pythium_risk (Text): Risk level for pythium infection\n- water_intake (Numeric): Total water consumption\n- water_frequency (Text): Descriptive water frequency pattern\n- lighting (JSONB): Complex lighting schedule parameters\n- fridge_storage_temp (Numeric): Optimal refrigeration temperature\n- difficulty (Text): Cultivation difficulty rating\n\nNote: Existing fields `sowing_rate` and `average_yield` appear to correspond to required `seed_density_dry` and `avg_tray_yield` fields. Verify if these need renaming for consistency or can remain as is with proper documentation.\n</info added on 2025-05-24T20:52:29.184Z>\n<info added on 2025-05-24T20:53:43.679Z>\nMigration file 20250524155256_add_grow_recipe_parameters.sql successfully implemented. The migration extends the grow_recipes table with all required parameters including recipe_source, germination_days, light_days, total_grow_days, top_coat, pythium_risk, water_intake, water_frequency, lighting (as JSONB), fridge_storage_temp, and difficulty. \n\nKey implementation features:\n- Added appropriate data types and CHECK constraints for enum-like fields\n- Created indexes for frequently queried fields (difficulty, pythium_risk, total_grow_days)\n- Implemented PostgreSQL trigger to auto-calculate total_grow_days from germination_days + light_days when not explicitly set\n- Added descriptive comments for each field\n- Maintained backward compatibility with existing data\n\nConfirmed that existing fields sowing_rate and average_yield correspond to the required seed_density_dry and avg_tray_yield fields respectively, so no renaming was necessary.\n</info added on 2025-05-24T20:53:43.679Z>",
+          "status": "done"
         },
         {
           "id": 2,
@@ -415,7 +415,7 @@
           "dependencies": [
             1
           ],
-          "details": "Create reusable UI components for ingredient selection, measurement input, step sequencing, and recipe preview. Design interfaces for different user roles (operators, managers, etc.) that show only relevant information. Implement drag-and-drop functionality for recipe steps and responsive design for various devices.",
+          "details": "Create reusable UI components for all grow parameters including species selection, seed density input, germination and light days settings, top coat options, pythium risk assessment, water intake and frequency controls, lighting configuration, storage temperature, and difficulty rating. Design a comprehensive 'Grow Parameters' page that allows users to view, add, edit, and delete grow recipes. Implement drag-and-drop functionality for recipe steps and responsive design for various devices. Ensure UI elements exist for inputting and displaying all required parameters.",
           "status": "pending"
         },
         {
@@ -425,7 +425,7 @@
           "dependencies": [
             1
           ],
-          "details": "Implement RESTful API endpoints for creating, reading, updating, and deleting recipes and their components. Include endpoints for partial updates, bulk operations, and specialized recipe operations. Design API responses to include appropriate error handling and validation feedback.",
+          "details": "Implement RESTful API endpoints for creating, reading, updating, and deleting recipes and their components. Ensure endpoints can handle all grow parameters (species, recipe_source, seed_density_dry, avg_tray_yield, germination_days, light_days, total_grow_days, top_coat, pythium_risk, water_intake, water_frequency, lighting, fridge_storage_temp, and difficulty). Include endpoints for partial updates, bulk operations, and specialized recipe operations. Design API responses to include appropriate error handling and validation feedback.",
           "status": "pending"
         },
         {
@@ -458,7 +458,7 @@
             1,
             3
           ],
-          "details": "Create validation rules for ingredients, measurements, steps, and complete recipes. Implement business logic validation for recipe feasibility, cost calculations, and regulatory compliance. Design a flexible validation framework that can be extended for different product types and manufacturing processes.",
+          "details": "Create validation rules for all grow parameters including species, seed density, germination days, light days, water intake, etc. Implement business logic validation for recipe feasibility, cost calculations, and regulatory compliance. Design a flexible validation framework that can be extended for different product types and growing processes.",
           "status": "pending"
         },
         {
@@ -469,7 +469,18 @@
             1,
             3
           ],
-          "details": "Implement full-text search across recipe components, advanced filtering by ingredients, categories, and metadata. Create saved search functionality and personalized views. Design efficient indexing strategies for large recipe databases and implement faceted search capabilities.",
+          "details": "Implement full-text search across recipe components, advanced filtering by species, difficulty, grow days, and other parameters. Create saved search functionality and personalized views. Design efficient indexing strategies for large recipe databases and implement faceted search capabilities.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Recipe Selection for Grow Operations",
+          "description": "Implement functionality to select recipes when starting a new grow",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Develop interface and backend functionality that allows users to select from saved grow recipes when starting a new grow for a rack/shelf. Create a seamless workflow that applies the selected recipe's parameters to the new grow operation. Include validation to ensure the selected recipe is compatible with the target growing environment.",
           "status": "pending"
         }
       ]
