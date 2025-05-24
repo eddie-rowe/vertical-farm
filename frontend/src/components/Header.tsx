@@ -26,8 +26,7 @@ const Header: React.FC = () => {
       <nav>
         <ul className="flex gap-4 items-center">
           <li><Link href="/" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Home</Link></li>
-          <li><Link href="/dashboard" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname.startsWith('/dashboard') && pathname !== '/dashboard/layout' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Dashboard</Link></li>
-          <li><Link href="/dashboard/layout" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/dashboard/layout' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Dashboard Layout</Link></li>
+          <li><Link href="/dashboard" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname.startsWith('/dashboard') ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Dashboard</Link></li>
           <li><Link href="/protected" className={`text-gray-700 dark:text-gray-300 hover:underline focus:underline focus:outline-none transition ${pathname === '/protected' ? 'font-bold underline text-green-700 dark:text-green-300' : ''}`}>Protected</Link></li>
           <li><NotificationCenter /></li>
           {user && !loading ? (

@@ -20,7 +20,7 @@ class CRUDUser:
     async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
         """Fetches a user directly from the 'users' table. Useful if Supabase Auth user object is not sufficient."""
         try:
-            response = await supabase.table("users").select("*").eq("id", str(id)).single().execute()
+            response = await supabase.table("user_profiles").select("*").eq("id", str(id)).single().execute()
             return response.data
         except HTTPStatusError as e:
             if e.response.status_code == 406: # PostgREST Not Found
@@ -28,13 +28,18 @@ class CRUDUser:
             # logger.error(f"Error fetching user {id} from table: {e}")
             raise
         except Exception as e:
+            # Handle the postgrest.exceptions.APIError for "no rows returned"
+            if "no rows returned" in str(e).lower() or "pgrst116" in str(e).lower():
+                print(f"DEBUG: User {id} not found in user_profiles table")
+                return None
             # logger.error(f"Unexpected error fetching user {id} from table: {e}")
+            print(f"DEBUG: Unexpected error in crud_user.get: {e}")
             raise
 
     async def get_by_email(self, supabase: SupabaseClient, *, email: str) -> Optional[Dict[str, Any]]:
         """Fetches a user by email directly from the 'users' table."""
         try:
-            response = await supabase.table("users").select("*").eq("email", email).single().execute()
+            response = await supabase.table("user_profiles").select("*").eq("email", email).single().execute()
             return response.data
         except HTTPStatusError as e:
             if e.response.status_code == 406:
@@ -45,23 +50,21 @@ class CRUDUser:
             # logger.error(f"Unexpected error fetching user by email {email} from table: {e}")
             raise
 
-    async def create(self, supabase: SupabaseClient, *, obj_in: Any) -> Dict[str, Any]: # Use Any for obj_in type hint
+    async def create(self, supabase: SupabaseClient, obj_in: Any) -> Dict[str, Any]: # Use Any for obj_in type hint
         from app.schemas import user as user_schema # Import locally
         """Creates a new user using Supabase Auth and then potentially updates the users table with additional info."""
         if not isinstance(obj_in, user_schema.UserCreate):
             raise TypeError("obj_in must be an instance of UserCreate")
         try:
             # Supabase Auth handles password hashing.
-            # user_metadata can store full_name, custom role, etc.
             options = {
-                'data': {
+                'data': { # This 'data' is for Supabase Auth's user_metadata
                     'full_name': obj_in.full_name,
-                    # 'role': obj_in.role.value if obj_in.role else None, # Example if role is an enum
-                    # Add other custom fields to be stored in user_metadata or public.users table here
                 }
             }
             if hasattr(obj_in, 'role') and obj_in.role:
-                 options['data']['app_metadata'] = {'role': obj_in.role.value } # roles often in app_metadata
+                 # Assuming role is for app_metadata, not directly in user_profiles table during this step
+                 options['data']['app_metadata'] = {'role': obj_in.role.value }
 
             auth_response = await supabase.auth.sign_up(
                 {
@@ -72,36 +75,52 @@ class CRUDUser:
             )
 
             if auth_response.user:
-                # If sign_up is successful and returns a user object
-                user_data = auth_response.user.model_dump()
-                
-                # If 'is_active' or 'is_superuser' are actual columns in your 'users' table 
-                # not managed by Supabase Auth directly, you might need an update here.
-                # However, these are often handled via RLS or custom claims.
-                # For example, to update the public.users table after signup:
-                # update_payload = {}
-                # if hasattr(obj_in, 'is_active') and obj_in.is_active is not None:
-                #    update_payload['is_active'] = obj_in.is_active
-                # if hasattr(obj_in, 'is_superuser') and obj_in.is_superuser is not None:
-                #    update_payload['is_superuser'] = obj_in.is_superuser
-                # if update_payload:
-                #    await supabase.table("users").update(update_payload).eq("id", auth_response.user.id).execute()
+                user_auth_data = auth_response.user.model_dump()
+                user_id = auth_response.user.id
 
-                # Combine auth response with any direct table data if necessary
-                # For now, returning the auth user object model_dump
-                return user_data
+                # Create the corresponding user profile in public.user_profiles
+                profile_payload = {"id": user_id}
+                if hasattr(obj_in, 'full_name') and obj_in.full_name:
+                    profile_payload["name"] = obj_in.full_name
+                # role will use its DB default ('operator')
+                # created_at and updated_at will use DB defaults
+
+                try:
+                    profile_insert_response = await supabase.table("user_profiles").insert(profile_payload).execute()
+                    if profile_insert_response.data:
+                        # Profile created successfully
+                        pass
+                    else:
+                        # Profile insert failed or returned no data, this is an issue.
+                        # logger.error(f"Failed to create user profile data for {user_id}: {profile_insert_response.error}")
+                        raise APIError(f"User signed up in auth, but failed to create profile data for {user_id}.", status_code=500)
+                except Exception as profile_creation_e:
+                    # logger.error(f"Exception creating user profile for {user_id} after auth signup: {profile_creation_e}")
+                    # Attempt to clean up the auth user if profile creation fails to maintain consistency
+                    try:
+                        await supabase.auth.admin.delete_user(user_id)
+                        # logger.info(f"Cleaned up auth user {user_id} after failed profile creation.")
+                    except Exception as admin_delete_e:
+                        # logger.error(f"Failed to clean up auth user {user_id} after profile error: {admin_delete_e}")
+                        pass # Log and continue to raise the profile creation error
+                    raise APIError(f"User signed up in auth, but failed to create profile for {user_id}: {profile_creation_e}", status_code=500) from profile_creation_e
+                
+                # The commented out section for updating "users" table is not needed here for initial profile creation.
+                # If additional fields (is_active, is_superuser) were meant for user_profiles,
+                # they could be part of the profile_payload or a subsequent update if necessary.
+
+                return user_auth_data # Return the auth user data as before
             elif auth_response.session:
-                # This case might happen if user already exists but session is returned (e.g. auto-confirm off and sign-in)
                  # logger.warning(f"User sign up for {obj_in.email} returned session but no user object, might exist.")
-                 # Consider this an error or handle as re-authentication
-                 raise APIError(f"User already registered or confirmation required for {obj_in.email}", status_code=409) # 409 Conflict
+                 raise APIError(f"User already registered or confirmation required for {obj_in.email}", status_code=409)
             else:
                 # logger.error(f"Supabase Auth sign_up failed for {obj_in.email}: {auth_response}")
-                raise APIError(f"Failed to create user {obj_in.email}. Response: {auth_response.error.message if auth_response.error else 'Unknown error'}", status_code=500)
+                error_message = auth_response.error.message if auth_response.error else "Unknown auth error during sign_up"
+                raise APIError(f"Failed to create user {obj_in.email}. Response: {error_message}", status_code=500)
 
         except APIError as e:
             # logger.error(f"Supabase APIError during user creation for {obj_in.email}: {e.message}")
-            raise # Re-raise APIError to be caught by FastAPI error handlers
+            raise
         except Exception as e:
             # logger.error(f"Unexpected error during user creation for {obj_in.email}: {e}")
             raise

@@ -1,15 +1,21 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../context/AuthContext";
 import TopDownFarmView from '../../../components/farm-config/TopDownFarmView';
 import RackDetailView from '../../../components/farm-config/RackDetailView';
+import CreateFarmModal from '../../../components/CreateFarmModal';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FarmPageData, UUID, Rack } from "@/types/farm-layout";
-import { getFarmDetails, getFarmsList, FarmBasicInfo } from '../../../lib/apiClient';
+import { getFarmDetails, getFarmsList, FarmBasicInfo, FarmResponse } from '../../../lib/apiClient';
 import toast from 'react-hot-toast';
 
 export default function FarmsPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  
   const [currentView, setCurrentView] = useState('top-down');
   const [editMode, setEditMode] = useState(false);
   const [selectedRackId, setSelectedRackId] = useState<UUID | null>(null);
@@ -21,6 +27,13 @@ export default function FarmsPage() {
   const [selectedFarmIdForDetails, setSelectedFarmIdForDetails] = useState<UUID | null>(null);
   const [isLoadingFarmsList, setIsLoadingFarmsList] = useState(true);
   const [farmsListError, setFarmsListError] = useState<string | null>(null);
+
+  // Authentication guard
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     const fetchAvailableFarms = async () => {
@@ -71,6 +84,22 @@ export default function FarmsPage() {
 
     fetchFarmData();
   }, [selectedFarmIdForDetails]);
+
+  const handleFarmCreated = (newFarm: FarmResponse) => {
+    // Add the new farm to the list
+    const newFarmBasicInfo: FarmBasicInfo = {
+      id: newFarm.id,
+      name: newFarm.name
+    };
+    
+    setAvailableFarms(prev => [...prev, newFarmBasicInfo]);
+    
+    // Select the newly created farm
+    setSelectedFarmIdForDetails(newFarm.id);
+    
+    // Clear any previous errors since we now have farms
+    setFarmsListError(null);
+  };
 
   const handleRackClick = (rackId: UUID) => {
     setSelectedRackId(rackId);
@@ -123,6 +152,29 @@ export default function FarmsPage() {
     return null;
   };
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-900 dark:border-green-100"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show redirecting state when user is not authenticated
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen p-4 md:p-8 bg-gray-50 dark:bg-gray-950 flex flex-col items-center">
       <div className="w-full max-w-7xl flex justify-between items-center mb-6 px-2">
@@ -146,12 +198,18 @@ export default function FarmsPage() {
               </SelectContent>
             </Select>
           ) : (
-            <span className="text-sm text-gray-500 dark:text-gray-400">No farms to select.</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
+              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            </div>
           )}
         </div>
-        <div className="flex items-center space-x-2">
-          <Switch id="edit-mode-toggle" checked={editMode} onCheckedChange={setEditMode} aria-label="Toggle Edit Mode"/>
-          <Label htmlFor="edit-mode-toggle" className="text-gray-700 dark:text-gray-200">Edit Mode</Label>
+        <div className="flex items-center space-x-4">
+          <CreateFarmModal onFarmCreated={handleFarmCreated} />
+          <div className="flex items-center space-x-2">
+            <Switch id="edit-mode-toggle" checked={editMode} onCheckedChange={setEditMode} aria-label="Toggle Edit Mode"/>
+            <Label htmlFor="edit-mode-toggle" className="text-gray-700 dark:text-gray-200">Edit Mode</Label>
+          </div>
         </div>
       </div>
       
@@ -176,6 +234,14 @@ export default function FarmsPage() {
           <div className="text-center py-10 text-red-600 dark:text-red-400">
             <p>Error loading farm data: {error}</p>
             <p>Please ensure the backend is running and the farm ID is correct.</p>
+          </div>
+        ) : availableFarms.length === 0 ? (
+          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+            <div className="max-w-md mx-auto">
+              <h2 className="text-xl font-semibold mb-4">Welcome to Farm Configuration</h2>
+              <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
+              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            </div>
           </div>
         ) : (
           <div className="text-center py-10 text-gray-600 dark:text-gray-400">No farm data available or invalid view.</div>

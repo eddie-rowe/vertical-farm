@@ -24,7 +24,7 @@ class FarmUpdate(FarmBase):
 class FarmInDBBase(FarmBase):
     id: uuid.UUID
     name: str # Name should be non-optional when in DB
-    owner_id: uuid.UUID # The user ID of the owner/creator
+    manager_id: uuid.UUID # The user ID of the manager/creator (matches database schema)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

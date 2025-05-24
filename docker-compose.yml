@@ -9,8 +9,10 @@ services:
       - backend-logs:/app/backend/logs
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
       - DD_SERVICE=vertical-farm-backend
       - DD_ENV=dev
       - DD_VERSION=1.0.0
@@ -66,7 +68,7 @@ services:
       - SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     labels:
-      com.datadoghq.ad.checks: '{"supabase": {"instances": [{"privileged_metrics_endpoint": "%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_KEY%%"}]}}'
+      com.datadoghq.ad.checks: '{"supabase": {"instances": [{"privileged_metrics_endpoint": "%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_SERVICE_KEY%%"}]}}'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc/:/host/proc/:ro

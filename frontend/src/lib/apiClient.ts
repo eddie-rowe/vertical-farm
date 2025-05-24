@@ -112,4 +112,38 @@ export const getFarmDetails = (farmId: UUID) => request<FarmPageData>(`/api/v1/f
  */
 export const getFarmsList = () => request<FarmBasicListResponse>('/api/v1/farms/');
 
+// Define a type for creating a new farm
+export interface CreateFarmData {
+  name: string;
+  location?: string;
+  plan_image_url?: string;
+  width?: number;
+  depth?: number;
+}
+
+// Define a type for the farm creation response
+export interface FarmResponse {
+  id: UUID;
+  name: string;
+  owner_id: UUID;
+  location?: string | null;
+  plan_image_url?: string | null;
+  width?: number | null;
+  depth?: number | null;
+  rows?: any[]; // Will be empty array for new farms
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+/**
+ * Creates a new farm with the provided data.
+ * @param farmData The data for the new farm.
+ * @returns A Promise resolving to FarmResponse.
+ */
+export const createFarm = (farmData: CreateFarmData) => 
+  request<FarmResponse>('/api/v1/farms/', { 
+    method: 'POST', 
+    body: JSON.stringify(farmData) 
+  });
+
 export default request; 

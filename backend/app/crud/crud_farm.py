@@ -49,7 +49,7 @@ class CRUDFarm:
             response = (
                 await supabase.table(self.table_name)
                 .select("*")
-                .eq("owner_id", str(owner_id))
+                .eq("manager_id", str(owner_id))
                 .order("created_at", desc=True) # Assuming you want ordering
                 .range(skip, skip + limit -1) # Supabase range is inclusive
                 .execute()
@@ -65,7 +65,7 @@ class CRUDFarm:
         try:
             query = supabase.table(self.table_name).select("*", count="exact")
             if owner_id:
-                query = query.eq("owner_id", str(owner_id))
+                query = query.eq("manager_id", str(owner_id))
             
             response = await query.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
             
@@ -81,7 +81,9 @@ class CRUDFarm:
     ) -> Dict[str, Any]:
         try:
             farm_data = obj_in.model_dump()
-            farm_data["owner_id"] = str(owner_id) # Ensure owner_id is part of the insert data
+            # Remove fields that don't exist in the database schema
+            farm_data.pop("plan_image_url", None)  # This field doesn't exist in DB yet
+            farm_data["manager_id"] = str(owner_id) # Use manager_id to match the database schema
             
             response = await supabase.table(self.table_name).insert(farm_data).execute()
             if not response.data:
@@ -94,9 +96,11 @@ class CRUDFarm:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: farm_schema.FarmUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[farm_schema.FarmResponse]:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
+            # Remove fields that don't exist in the database schema
+            update_data.pop("plan_image_url", None)  # This field doesn't exist in DB yet
             if not update_data:
                 # If there's nothing to update, fetch and return the current object
                 return await self.get(supabase, id)
@@ -108,23 +112,25 @@ class CRUDFarm:
                  # Depending on desired behavior, either return None or raise an error.
                  # Supabase update returns an empty list if no row matches the filter.
                  return None # Or raise an appropriate exception
-            return response.data[0]
+            
+            # Return the full FarmResponse after update by fetching it
+            return await self.get(supabase, id)
         except Exception as e:
             # logger.error(f"Error updating farm {id}: {e}")
             raise
 
-    async def remove(self, supabase: SupabaseClient, *, id: UUID) -> Optional[Dict[str, Any]]:
+    async def remove(self, supabase: SupabaseClient, *, id: UUID) -> Optional[farm_schema.FarmResponse]:
         try:
-            # Optionally, first fetch the object to return it, as delete() returns the deleted data
-            # item_to_delete = await self.get(supabase, id)
-            # if not item_to_delete:
-            #     return None
+            # First fetch the object to return it, since we need the full FarmResponse
+            item_to_delete = await self.get(supabase, id)
+            if not item_to_delete:
+                return None
 
             response = await supabase.table(self.table_name).delete().eq("id", str(id)).execute()
             
             if not response.data: # If no rows were deleted (e.g., ID not found)
                 return None
-            return response.data[0] # Return the data of the deleted farm
+            return item_to_delete # Return the full FarmResponse object
         except Exception as e:
             # logger.error(f"Error deleting farm {id}: {e}")
             raise

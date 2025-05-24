@@ -1,16 +1,40 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-900 dark:border-green-100"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
-    if (typeof window !== "undefined") window.location.href = "/auth";
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   // Demo stats (replace with real data in future)
@@ -45,8 +69,8 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <section aria-label="Quick actions">
           <div className="flex flex-wrap gap-4 mb-10">
-            <Link href="/dashboard/layout" passHref>
-              <Button size="lg" variant="default">Configure Layout</Button>
+            <Link href="/dashboard/farms" passHref>
+              <Button size="lg" variant="default">Configure Farms</Button>
             </Link>
             <Button size="lg" variant="secondary">Add Row</Button>
             <Link href="/dashboard/sensors" passHref>
