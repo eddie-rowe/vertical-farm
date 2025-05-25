@@ -54,7 +54,7 @@ test-frontend:
 	cd frontend && npm test
 
 ## Run frontend E2E tests (Playwright)
-test-frontend-e2e:
+test-e2e:
 	cd frontend && npm run test:e2e
 
 ## Lint frontend code (ESLint)
@@ -106,7 +106,7 @@ format-all:
 test-all:
 	$(MAKE) test-backend
 	$(MAKE) test-frontend
-	$(MAKE) test-frontend-e2e
+	$(MAKE) test-e2e
 
 ## Auto-commit (OpenCommit), push, and open a PR (GitHub CLI required)
 pr:

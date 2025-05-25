@@ -28,6 +28,9 @@ export default function LoginPage() {
       await signIn({ email, password });
       router.push(redirectUrl);
     } catch (err) {
+      // Clear password field for security after failed login attempt
+      setPassword('');
+      
       if (err instanceof Error) {
         setError(err.message || 'Failed to login. Please check your credentials.');
       } else {

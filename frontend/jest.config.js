@@ -18,6 +18,11 @@ const customJestConfig = {
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/styles/(.*)$': '<rootDir>/src/styles/$1',
+    '^@/services/(.*)$': '<rootDir>/src/services/$1',
+    '^@/types/(.*)$': '<rootDir>/src/types/$1',
+    '^@/context/(.*)$': '<rootDir>/src/context/$1',
+    '^@/supabaseClient$': '<rootDir>/src/supabaseClient',
+    '^@/(.*)$': '<rootDir>/src/$1',
     // Handle CSS imports (if you use them)
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
   },
