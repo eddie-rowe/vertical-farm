@@ -13,11 +13,22 @@ async def test_health_check():
     assert response.json() == {"status": "ok"}
 
 @pytest.mark.asyncio
-async def test_get_supabase_items():
+async def test_read_main():
+    """Test the main root endpoint"""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/supabase-items")
+        response = await ac.get("/")
     assert response.status_code == 200
-    assert "data" in response.json()
+    assert "message" in response.json()
+    assert "Welcome to" in response.json()["message"]
+
+@pytest.mark.asyncio
+async def test_cors_test_simple():
+    """Test the simple CORS test endpoint"""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/cors-test-simple")
+    assert response.status_code == 200
+    assert response.json()["message"] == "CORS is working!"
+    assert "timestamp" in response.json()
 
 # def test_create_item():
 #    item_data = {
