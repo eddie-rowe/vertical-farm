@@ -23,6 +23,7 @@ jobs:
 
       - name: Pull & restart vertical-farm/backend container
         env:
+          BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
@@ -40,7 +41,9 @@ jobs:
           # launch with your desired flags
           docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
             -p 8000:8000 \
+            -e BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS} \
             -e SUPABASE_URL=${SUPABASE_URL} \
+            -e SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY} \
             -e SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY} \
             -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
             -e DD_SERVICE=${DD_SERVICE} \
