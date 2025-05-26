@@ -1,0 +1,19 @@
+site_name: Vertical Farm Documentation
+site_url: https://eddie-rowe.github.io/vertical-farm/
+repo_url: https://github.com/eddie-rowe/vertical-farm
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+nav:
+  - Home: docs/index.md
+  # Add more navigation items as needed, e.g.:
+  # - API Reference: docs/api.md
+  # - Guides:
+  #     - Getting Started: docs/guides/getting-started.md
+  #     - Advanced: docs/guides/advanced.md
