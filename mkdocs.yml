@@ -2,7 +2,7 @@ site_name: Vertical Farm Documentation
 site_url: https://eddie-rowe.github.io/vertical-farm/
 repo_url: https://github.com/eddie-rowe/vertical-farm
 theme:
-  name: material
+  name: mkdocs
   features:
     - navigation.tabs
     - navigation.sections
