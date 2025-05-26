@@ -1,4 +1,4 @@
-<p align=\"center\">\n  <img src=\"docs/assets/logo.png\" alt=\"Vertical Farm Logo\" width=\"120\" />\n</p>\n\n<p align=\"center\">\n  <a href=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/00-docs-deploy.yml\"><img src=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/00-docs-deploy.yml/badge.svg\" alt=\"Docs Deploy\"></a>\n  <a href=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/01-supabase-prod.yml\"><img src=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/01-supabase-prod.yml/badge.svg\" alt=\"Supabase Prod\"></a>\n  <a href=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/02-build-push.yml\"><img src=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/02-build-push.yml/badge.svg\" alt=\"Build & Push\"></a>\n  <a href=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/03-unraid-deploy.yml\"><img src=\"https://github.com/goodgoodgreens/vertical-farm/actions/workflows/03-unraid-deploy.yml/badge.svg\" alt=\"unRAID Deploy\"></a>\n</p>\n\n<!-- rest of your README content below -->\n\n# Vertical Farm Platform
+# Vertical Farm Platform
 
 A full-stack, AI-augmented platform for managing, simulating, and optimizing vertical farming operations.  
 This project combines a modern Next.js frontend, a Python FastAPI backend, automation/testing agents, and human-in-the-loop workflows to deliver a robust, extensible solution for smart agriculture.
@@ -7,17 +7,21 @@ This project combines a modern Next.js frontend, a Python FastAPI backend, autom
 
 ## Table of Contents
 
-- [Features](#features)
-- [Architecture Overview](#architecture-overview)
-- [Directory Structure](#directory-structure)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Testing](#testing)
-- [AI Agents & Automation](#ai-agents--automation)
-- [Documentation](#documentation)
-- [Reports & Analytics](#reports--analytics)
-- [Contributing](#contributing)
-- [License](#license)
+- [Vertical Farm Platform](#vertical-farm-platform)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Architecture Overview](#architecture-overview)
+  - [Directory Structure](#directory-structure)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Quickstart](#quickstart)
+  - [Development](#development)
+  - [Testing](#testing)
+  - [AI Agents \& Automation](#ai-agents--automation)
+  - [Documentation](#documentation)
+  - [Reports \& Analytics](#reports--analytics)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ---
 
