@@ -5,7 +5,8 @@ repo_url: https://github.com/eddie-rowe/vertical-farm
 theme:
   name: material
   features:
-    - navigation.tabs
+    - navigation.instant
+    #- navigation.tabs
     - navigation.sections
     - navigation.top
     - search.suggest
@@ -13,22 +14,25 @@ theme:
     - content.code.annotate
 
 nav:
-    - api-reference.md
-    - architecture-challenges.md
-    - architecture-responsibilities.md
-    - architecture-summary.md
-    - backend-architecture.md
-    - ci-cd-workflow.md
-    - contributing-guide.md
-    - data-flow-diagram.md
-    - database-schema.md
-    - deployment-workflow.md
-    - frontend-architecture.md
-    - improvement-recommendations.md
-    - release-notes.md
-    - security-model.md
-    - testing-strategy.md
-    - reviews/grow-parameters-code-review-2024-01-20.md
-    - reviews/grow-parameters-testing-report-2024-01-20.md
-    - updated/changes-summary.md
-    - updated/farm-config-page-vision.md
+    - Home: index.md
+    - API Reference: api-reference.md
+    - DB Schema: database-schema.md
+    - Architecture Summary: architecture-summary.md
+    - Architecture Challenges: architecture-challenges.md
+    - Architecture Responsibilities: architecture-responsibilities.md
+    - Backend Architecture: backend-architecture.md
+    - CI/CD Workflow: ci-cd-workflow.md
+    - Contributing Guide: contributing-guide.md
+    - Data Flow Diagram: data-flow-diagram.md
+    - Deployment Workflow: deployment-workflow.md
+    - Frontend Architecture: frontend-architecture.md
+    - Improvement Recommendations: improvement-recommendations.md
+    - Release Notes: release-notes.md
+    - Security Model: security-model.md
+    - Testing Strategy: testing-strategy.md
+    - Reviews: 
+      - reviews/grow-parameters-code-review-2024-01-20.md
+      - reviews/grow-parameters-testing-report-2024-01-20.md
+    - Updated: 
+      - updated/changes-summary.md
+      - updated/farm-config-page-vision.md
