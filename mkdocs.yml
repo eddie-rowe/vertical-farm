@@ -12,8 +12,9 @@ theme:
     - content.code.annotate
 nav:
   - Home: docs/index.md
+  - API Reference: docs/api-reference.md
+  - DB Schema: docs/database-schema.md
   # Add more navigation items as needed, e.g.:
-  # - API Reference: docs/api.md
-  # - Guides:
-  #     - Getting Started: docs/guides/getting-started.md
-  #     - Advanced: docs/guides/advanced.md
+  #- Guides:
+      #- Getting Started: docs/guides/getting-started.md
+      #- Advanced: docs/guides/advanced.md

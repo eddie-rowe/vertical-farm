@@ -5,11 +5,10 @@ Welcome to the Vertical Farm documentation site!
 ## Navigation
 
 - [Home](index.md)
-- [API Reference](api.md)
-- [User Guide](user-guide.md)
-- [Developer Guide](developer-guide.md)
-- [Changelog](changelog.md)
+- [API Reference](api-reference.md)
+- [Database Schema](database-schema.md)
+- [Architecture Summary](architecture-summary.md)
 
 ---
 
-Explore the sidebar for more topics and details.
+Explore the Navbar for more topics and details.
