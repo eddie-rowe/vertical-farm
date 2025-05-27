@@ -1,2 +1,0 @@
-{"level":"INFO","timestamp":"2025-05-18T00:29:01.751582","namespace":"mcp_agent.context","message":"Configuring logger with level: debug"}
-{"level":"INFO","timestamp":"2025-05-18T00:29:01.751808","namespace":"mcp_agent.mcp_server","message":"MCPAgent initialized","data":{"data":{"progress_action":"Running","target":"mcp_server","agent_name":"mcp_application_loop","session_id":"d0bd7730-4d64-4442-9567-0ce5fec31094"}}}
