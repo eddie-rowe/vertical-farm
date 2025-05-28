@@ -1,11 +1,14 @@
 'use client';
 import { useState, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../supabaseClient';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/supabaseClient';
 import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function AccountPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.user_metadata?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || '');
@@ -16,11 +19,11 @@ export default function AccountPage() {
   const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [updating, setUpdating] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  if (loading) return <div className="p-8">Loading...</div>;
   if (!user) {
-    if (typeof window !== 'undefined') window.location.href = '/auth';
-    return null;
+    return <div className="flex items-center justify-center min-h-screen">Loading user data...</div>;
   }
 
   // Profile update handler
@@ -82,6 +85,22 @@ export default function AccountPage() {
     }
   };
 
+  // Placeholder for theme change handler
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    // In a real app, you would persist this to user preferences and update the app's theme context
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(newTheme);
+    setMessage(`Theme set to ${newTheme} (UI updated, persistence not implemented).`);
+  };
+
+  // Placeholder for notification settings change handler
+  const handleNotificationToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    // In a real app, persist this to user preferences
+    setMessage(`Notifications ${enabled ? 'enabled' : 'disabled'} (preference not saved).`);
+  };
+
   return (
     <div className="max-w-xl mx-auto p-8">
       <h1 className="text-4xl sm:text-5xl font-extrabold mb-8 text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4">Account</h1>
@@ -89,9 +108,9 @@ export default function AccountPage() {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
             {avatarUrl ? (
-              <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
+              <Image src={avatarUrl} alt={name || 'User Avatar'} fill className="object-cover" />
             ) : (
-              <span className="w-full h-full flex items-center justify-center text-3xl text-gray-400">{(user?.email?.[0] || "?").toUpperCase()}</span>
+              <span className="w-full h-full flex items-center justify-center text-3xl text-gray-400">{(name?.[0] || user?.email?.[0] || "?").toUpperCase()}</span>
             )}
           </div>
           <div>
@@ -137,9 +156,10 @@ export default function AccountPage() {
       <form onSubmit={handlePasswordChange} className="mb-8 space-y-4">
         <h2 className="text-2xl font-bold mb-2">Change Password</h2>
         <div>
-          <label className="block mb-1 font-medium">New Password</label>
+          <Label htmlFor="newPassword">New Password</Label>
           <input
             type="password"
+            id="newPassword"
             value={password}
             onChange={e => setPassword(e.target.value)}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -150,17 +170,29 @@ export default function AccountPage() {
         <button type="submit" disabled={updating} className="w-full py-2 rounded bg-primary text-white font-semibold hover:bg-primary/90 transition disabled:opacity-60">Change Password</button>
       </form>
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Account Settings</h2>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" className="accent-primary" disabled />
-            Email notifications (coming soon)
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" className="accent-primary" disabled />
-            Product updates (coming soon)
-          </label>
+      <div className="mb-8 space-y-4">
+        <h2 className="text-2xl font-bold mb-2">Preferences</h2>
+        <div className="space-y-1">
+          <Label htmlFor="theme">Theme</Label>
+          <Select value={theme} onValueChange={handleThemeChange}>
+            <SelectTrigger id="theme" className="w-[180px]">
+              <SelectValue placeholder="Select theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">Light</SelectItem>
+              <SelectItem value="dark">Dark</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox 
+            id="notifications" 
+            checked={notificationsEnabled} 
+            onCheckedChange={(checkedState) => handleNotificationToggle(Boolean(checkedState))} 
+          />
+          <Label htmlFor="notifications" className="font-medium">
+            Enable email notifications
+          </Label>
         </div>
       </div>
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />

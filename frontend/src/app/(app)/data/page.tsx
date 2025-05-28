@@ -1,5 +1,5 @@
 "use client";
-import DataTable, { DataTableColumn } from "../../components/DataTable";
+import DataTable, { DataTableColumn } from "@/components/DataTable";
 
 const columns: DataTableColumn<{ id: number; name: string; type: string; status: string }>[] = [
   { key: "id", label: "ID", sortable: true },
