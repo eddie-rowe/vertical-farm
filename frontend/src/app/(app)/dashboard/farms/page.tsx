@@ -1,20 +1,19 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../context/AuthContext";
-import TopDownFarmView from '../../../components/farm-config/TopDownFarmView';
-import RackDetailView from '../../../components/farm-config/RackDetailView';
-import CreateFarmModal from '../../../components/CreateFarmModal';
+import { useAuth } from "@/context/AuthContext";
+import TopDownFarmView from '@/components/farm-config/TopDownFarmView';
+import RackDetailView from '@/components/farm-config/RackDetailView';
+import CreateFarmModal from '@/components/CreateFarmModal';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FarmPageData, UUID, Rack } from "@/types/farm-layout";
-import { getFarmDetails, getFarmsList, FarmBasicInfo, FarmResponse } from '../../../lib/apiClient';
+import { getFarmDetails, getFarmsList, FarmBasicInfo, FarmResponse } from '@/lib/apiClient';
 import toast from 'react-hot-toast';
 
 export default function FarmsPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   
   const [currentView, setCurrentView] = useState('top-down');
   const [editMode, setEditMode] = useState(false);
@@ -27,13 +26,6 @@ export default function FarmsPage() {
   const [selectedFarmIdForDetails, setSelectedFarmIdForDetails] = useState<UUID | null>(null);
   const [isLoadingFarmsList, setIsLoadingFarmsList] = useState(true);
   const [farmsListError, setFarmsListError] = useState<string | null>(null);
-
-  // Authentication guard
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
 
   useEffect(() => {
     const fetchAvailableFarms = async () => {
@@ -152,27 +144,8 @@ export default function FarmsPage() {
     return null;
   };
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-900 dark:border-green-100"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show redirecting state when user is not authenticated
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen">Loading user data...</div>;
   }
 
   return (

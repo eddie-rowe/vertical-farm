@@ -6,11 +6,11 @@ import { FaSeedling, FaChartBar, FaTable, FaBell, FaCog, FaQuestionCircle, FaThL
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <FaSeedling /> },
   { href: "/dashboard/farms", label: "Farms", icon: <FaThList /> },
-  { href: "/dashboard/analytics", label: "Analytics", icon: <FaChartBar /> },
-  { href: "/dashboard/data", label: "Data Table", icon: <FaTable /> },
+  { href: "/analytics", label: "Analytics", icon: <FaChartBar /> },
+  { href: "/data", label: "Data Table", icon: <FaTable /> },
   { href: "/grow-parameters", label: "Grow Parameters", icon: <FaSlidersH /> },
   { href: "/dashboard/notifications", label: "Notifications", icon: <FaBell /> },
-  { href: "/settings", label: "Settings", icon: <FaCog /> },
+  { href: "/account", label: "Settings", icon: <FaCog /> },
   { href: "/help", label: "Help", icon: <FaQuestionCircle /> },
 ];
 
