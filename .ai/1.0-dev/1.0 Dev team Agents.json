@@ -824,7 +824,7 @@
               "agentSelectedTool": "customMCP",
               "agentSelectedToolRequiresHumanInput": false,
               "agentSelectedToolConfig": {
-                "mcpServerConfig": "{\n\"command\": \"npx\",\n\"args\": [\"-y\", \"--package=task-master-ai\", \"task-master-ai\"],\n\"env\": {\n\"ANTHROPIC_API_KEY\": \"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\",\n\"PERPLEXITY_API_KEY\": \"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\",\n\"MODEL\": \"claude-3-7-sonnet-20250219\",\n\"PERPLEXITY_MODEL\": \"sonar-pro\",\n\"MAX_TOKENS\": 64000,\n\"TEMPERATURE\": 0.2,\n\"DEFAULT_SUBTASKS\": 5,\n\"DEFAULT_PRIORITY\": \"medium\"\n}\n}",
+                "mcpServerConfig": "{\n\"command\": \"npx\",\n\"args\": [\"-y\", \"--package=task-master-ai\", \"task-master-ai\"],\n\"env\": {\n\"ANTHROPIC_API_KEY\": \"yourapikeyhere\",\n\"PERPLEXITY_API_KEY\": \"yourperplexityapikeyhere\",\n\"MODEL\": \"claude-3-7-sonnet-20250219\",\n\"PERPLEXITY_MODEL\": \"sonar-pro\",\n\"MAX_TOKENS\": 64000,\n\"TEMPERATURE\": 0.2,\n\"DEFAULT_SUBTASKS\": 5,\n\"DEFAULT_PRIORITY\": \"medium\"\n}\n}",
                 "mcpActions": "[\"add_dependency\",\"add_subtask\",\"add_task\",\"fix_dependencies\",\"generate\",\"get_task\",\"initialize_project\",\"get_tasks\"]",
                 "agentSelectedTool": "customMCP"
               }
@@ -1084,7 +1084,7 @@
           ],
           "toolUpdateState": "",
           "selectedToolConfig": {
-            "mcpServerConfig": "{\n\"command\": \"npx\",\n\"args\": [\"-y\", \"--package=task-master-ai\", \"task-master-ai\"],\n\"env\": {\n\"ANTHROPIC_API_KEY\": \"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\",\n\"PERPLEXITY_API_KEY\": \"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\",\n\"MODEL\": \"claude-3-7-sonnet-20250219\",\n\"PERPLEXITY_MODEL\": \"sonar-pro\",\n\"MAX_TOKENS\": 64000,\n\"TEMPERATURE\": 0.2,\n\"DEFAULT_SUBTASKS\": 5,\n\"DEFAULT_PRIORITY\": \"medium\"\n}\n}",
+            "mcpServerConfig": "{\n\"command\": \"npx\",\n\"args\": [\"-y\", \"--package=task-master-ai\", \"task-master-ai\"],\n\"env\": {\n\"ANTHROPIC_API_KEY\": \"yourapikeyhere\",\n\"PERPLEXITY_API_KEY\": \"yourperplexityapikeyhere\",\n\"MODEL\": \"claude-3-7-sonnet-20250219\",\n\"PERPLEXITY_MODEL\": \"sonar-pro\",\n\"MAX_TOKENS\": 64000,\n\"TEMPERATURE\": 0.2,\n\"DEFAULT_SUBTASKS\": 5,\n\"DEFAULT_PRIORITY\": \"medium\"\n}\n}",
             "mcpActions": "[\"error\"]",
             "selectedTool": "customMCP"
           }
