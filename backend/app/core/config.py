@@ -89,9 +89,15 @@ class Settings(BaseSettings):
     # CORS settings
     BACKEND_CORS_ORIGINS: List[AnyUrl] = []
 
-
-
+    # Home Assistant Integration settings
+    HOME_ASSISTANT_URL: Optional[str] = None
+    HOME_ASSISTANT_TOKEN: Optional[str] = None
+    HOME_ASSISTANT_ENABLED: bool = False
     
+    # Cloudflare Access settings (for protected Home Assistant instances)
+    CLOUDFLARE_SERVICE_CLIENT_ID: Optional[str] = None
+    CLOUDFLARE_SERVICE_CLIENT_SECRET: Optional[str] = None
+    CLOUDFLARE_ACCESS_PROTECTED: bool = False
 
     # Configure Pydantic to load from .env files and other settings
     model_config = SettingsConfigDict(

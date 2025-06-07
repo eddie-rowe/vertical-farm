@@ -6,6 +6,7 @@ pydantic
 python-dotenv
 datadog
 psycopg2-binary
+asyncpg
 pytest
 pytest-cov
 httpx
@@ -16,3 +17,7 @@ pydantic-settings
 passlib[bcrypt]
 pytest-asyncio 
 python-multipart
+websockets
+aiohttp
+redis
+asyncio-throttle

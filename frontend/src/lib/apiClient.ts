@@ -14,16 +14,12 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   if (useAuth) {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
     if (sessionError || !sessionData.session) {
-      // Allow requests to proceed without auth if useAuth is explicitly false OR if it's a login/signup attempt
-      // For other auth-required endpoints, this will lead to a 401/403 from the backend if token is missing.
-      // Consider if specific public endpoints should always have useAuth = false.
-      if (useAuth) { // Only throw if auth was explicitly expected and failed
-        console.warn('User is not authenticated or session expired. Proceeding without auth header for this request.');
-        // Depending on strictness, you might still want to throw new Error('User is not authenticated or session expired.');
-      } 
+      console.error('User is not authenticated or session expired.', { sessionError, hasSession: !!sessionData?.session });
+      throw new Error('Authentication required. Please log in to continue.');
     } else {
-        headers.append('Authorization', `Bearer ${sessionData.session.access_token}`);
+      headers.append('Authorization', `Bearer ${sessionData.session.access_token}`);
     }
   }
 
@@ -104,7 +100,19 @@ export interface FarmBasicListResponse {
  * @param farmId The UUID of the farm to fetch.
  * @returns A Promise resolving to FarmPageData.
  */
-export const getFarmDetails = (farmId: UUID) => request<FarmPageData>(`/api/v1/farms/${farmId}`);
+export const getFarmDetails = async (farmId: UUID): Promise<FarmPageData> => {
+  // Backend returns a flat farm object, but frontend expects { farm: {...} }
+  const farmData = await request<any>(`/api/v1/farms/${farmId}`);
+  
+  // Transform the response to match FarmPageData structure
+  return {
+    farm: {
+      ...farmData,
+      owner_id: farmData.manager_id, // Backend uses manager_id, frontend expects owner_id
+      rows: farmData.rows || []
+    }
+  };
+};
 
 /**
  * Fetches a list of farms with basic information (id and name).

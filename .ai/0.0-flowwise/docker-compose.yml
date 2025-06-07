@@ -125,4 +125,5 @@ services:
             start_period: 30s
         volumes:
             - ~/.flowise:/root/.flowise
+            - /Users/eddie.rowe/Repos/vertical-farm:/app/codebase/vertical-farm
         entrypoint: /bin/sh -c "sleep 3; flowise start"
