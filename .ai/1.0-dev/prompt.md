@@ -8,3 +8,6 @@ More information about home assistant devices:
 Devices are represented in Home Assistant as entities. The state of an entity (for example, if a light is on, at 50% brightness in orange) can be shown on the dashboard or be used in automations. This page looks at the concepts state, state object, and entity state attribute.
 
 The state object represents the state of an entity with its attributes at a specific point in time. All state objects will always have an entity id, a state, and timestamps when last updated, last changed, and last reported. The state prefix indicates that this information is part of the state object (which is related to the entity). For example, state.state is the state of the entity at a given time.
+
+These types of automations are envisioned for future features, not this one:
+time-based schedules, conditional triggers, cross-device interactions, logging

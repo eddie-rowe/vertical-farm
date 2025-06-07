@@ -1,7 +1,10 @@
 # Vertical Farm Platform
 
 A full-stack, AI-augmented platform for managing, simulating, and optimizing vertical farming operations.  
+
 This project combines a modern Next.js frontend, a Python FastAPI backend, automation/testing agents, and human-in-the-loop workflows to deliver a robust, extensible solution for smart agriculture.
+
+The end goal of this project is to have a gamified vertical farming app that includes a full Grow Operations suite of features and a full Business Operations suite of features. Using the data from this suite, a user is given a holistic overview of the business and recommendations for the best place to apply their focus.
 
 ---
 

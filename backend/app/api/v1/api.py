@@ -11,7 +11,7 @@ from app.api.v1.endpoints import (
     shelves,  # Added
     fans,  # Added
     sensor_devices,  # Added
-    # items # Assuming items was an example and can be removed if not used
+    home_assistant,  # Added
 )
 
 api_router = APIRouter()
@@ -27,6 +27,6 @@ api_router.include_router(racks.router, prefix="/racks", tags=["Racks"])  # New
 api_router.include_router(shelves.router, prefix="/shelves", tags=["Shelves"])  # New
 api_router.include_router(fans.router, prefix="/fans", tags=["Fans"])  # Added
 api_router.include_router(sensor_devices.router, prefix="/sensor-devices", tags=["Sensor Devices"])  # Added
+api_router.include_router(home_assistant.router, prefix="/home-assistant", tags=["Home Assistant"])  # Added
 
-# Add other v1 routers here, e.g.:
-# api_router.include_router(items.router, prefix="/items", tags=["Items"])
+# Add other v1 routers here as needed

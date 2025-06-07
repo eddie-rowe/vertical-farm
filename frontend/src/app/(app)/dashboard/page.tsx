@@ -40,19 +40,6 @@ export default function DashboardPage() {
           </div>
         </section>
         <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-        {/* Quick Actions */}
-        <section aria-label="Quick actions">
-          <div className="flex flex-wrap gap-4 mb-10">
-            <Link href="/dashboard/farms" passHref>
-              <Button size="lg" variant="default">Configure Farms</Button>
-            </Link>
-            <Button size="lg" variant="secondary">Add Row</Button>
-            <Link href="/dashboard/sensors" passHref>
-              <Button size="lg" variant="default">View Sensors</Button>
-            </Link>
-          </div>
-        </section>
-        <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
         {/* Activity Feed & Notifications */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Activity and notifications">
           <Card className="animate-pop">
