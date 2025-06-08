@@ -24,4 +24,4 @@ jobs:
       - name: Set up environment
         run: supabase link --project-ref $SUPABASE_PROJECT_ID
       - name: Push migrations to Prod
-        run: supabase db push
+        run: supabase db push --include-all
