@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Download, Upload } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'react-hot-toast';
 import { Label } from '@/components/ui/label';
 
@@ -27,16 +26,6 @@ export default function GrowParametersPage() {
   const [editingRecipe, setEditingRecipe] = useState<GrowRecipe | null>(null);
   const [deletingRecipe, setDeletingRecipe] = useState<GrowRecipe | null>(null);
 
-  // Load initial data
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Filter recipes when search term or filters change
-  useEffect(() => {
-    loadRecipes();
-  }, [searchTerm, filters]);
-
   const loadData = async () => {
     try {
       setLoading(true);
@@ -54,7 +43,7 @@ export default function GrowParametersPage() {
     }
   };
 
-  const loadRecipes = async () => {
+  const loadRecipes = useCallback(async () => {
     try {
       const currentFilters: GrowRecipeFilters = {
         ...filters,
@@ -66,7 +55,17 @@ export default function GrowParametersPage() {
       console.error('Error loading recipes:', error);
       toast.error('Failed to load recipes');
     }
-  };
+  }, [filters, searchTerm]);
+
+  // Load initial data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Filter recipes when search term or filters change
+  useEffect(() => {
+    loadRecipes();
+  }, [loadRecipes]);
 
   const handleCreateRecipe = () => {
     setEditingRecipe(null);
@@ -102,23 +101,7 @@ export default function GrowParametersPage() {
     loadRecipes();
   };
 
-  const getDifficultyColor = (difficulty: string | null) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
-  const getPythiumRiskColor = (risk: string | null) => {
-    switch (risk) {
-      case 'Low': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'High': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   if (loading) {
     return (
@@ -214,7 +197,7 @@ export default function GrowParametersPage() {
               </div>
               <div>
                 <Label htmlFor="difficulty-filter">Difficulty Level</Label>
-                <Select value={filters.difficulty || ''} onValueChange={(value) => setFilters({ ...filters, difficulty: value as any || undefined })}>
+                <Select value={filters.difficulty || ''} onValueChange={(value) => setFilters({ ...filters, difficulty: (value === 'all' ? undefined : value) as 'Easy' | 'Medium' | 'Hard' | undefined })}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
@@ -228,7 +211,7 @@ export default function GrowParametersPage() {
               </div>
               <div>
                 <Label htmlFor="risk-filter">Risk Level</Label>
-                <Select value={filters.pythium_risk || ''} onValueChange={(value) => setFilters({ ...filters, pythium_risk: value as any || undefined })}>
+                <Select value={filters.pythium_risk || ''} onValueChange={(value) => setFilters({ ...filters, pythium_risk: (value === 'all' ? undefined : value) as 'Low' | 'Medium' | 'High' | undefined })}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select risk level" />
                   </SelectTrigger>

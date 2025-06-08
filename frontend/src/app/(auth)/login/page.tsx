@@ -35,11 +35,11 @@ export default function LoginPage() {
       }
       // On successful signIn, the AuthContext 'user' state will update.
       // The useEffect hook will then handle the redirection to '/dashboard'.
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPassword(''); // Clear password field on error
 
       let errorMessage = 'An unexpected error occurred during login.';
-      if (err && err.message) {
+      if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === 'string') {
         errorMessage = err;

@@ -4,8 +4,8 @@ import App from '@/app/page'; // Adjust the import based on your file structure
 
 test('renders the app', () => {
     render(<App />);
-    const linkElement = screen.getByText(/welcome/i); // Adjust based on your app's content
-    expect(linkElement).toBeInTheDocument();
+    const mainHeading = screen.getByText(/Your Farm, Smarter/i);
+    expect(mainHeading).toBeInTheDocument();
 });
 
 /*

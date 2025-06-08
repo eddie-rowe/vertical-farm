@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { homeAssistantService, HAConnectionStatus } from '@/lib/services/homeAssistantService';
+import { homeAssistantService, HAConnectionStatus } from '@/services/homeAssistantService';
 
 interface Integration {
   id: string;
@@ -35,7 +35,7 @@ export default function IntegrationsPage() {
       let haStatus: HAConnectionStatus = { connected: false };
       try {
         haStatus = await homeAssistantService.getStatus();
-      } catch (error) {
+      } catch {
         console.log('Home Assistant not configured or not available');
       }
 
@@ -172,7 +172,7 @@ export default function IntegrationsPage() {
           <div>
             <h3 className="font-semibold text-blue-900 dark:text-blue-100">More Integrations Coming Soon</h3>
             <p className="text-blue-700 dark:text-blue-300 mt-1">
-              We're working on additional integrations including Zigbee, Z-Wave, and direct sensor protocols. 
+              We&apos;re working on additional integrations including Zigbee, Z-Wave, and direct sensor protocols. 
               Have a specific integration request? Let us know!
             </p>
           </div>
