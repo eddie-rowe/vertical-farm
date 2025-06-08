@@ -35,24 +35,105 @@ const buttonVariants = cva(
   }
 )
 
+export interface ButtonProps 
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
+  loadingText?: string;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  loading = false,
+  loadingText,
+  icon,
+  iconPosition = "left",
+  children,
+  disabled,
+  type = "button",
+  "aria-label": ariaLabel,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button"
+  const isDisabled = disabled || loading;
+
+  // Enhanced accessibility attributes
+  const accessibilityProps = {
+    type: asChild ? undefined : type,
+    disabled: asChild ? undefined : isDisabled,
+    "aria-disabled": isDisabled,
+    "aria-busy": loading,
+    "aria-label": loading ? (loadingText || "Loading...") : ariaLabel,
+    role: asChild ? undefined : "button",
+    tabIndex: isDisabled ? -1 : 0,
+  };
+
+  const buttonContent = () => {
+    if (loading) {
+      return (
+        <>
+          <svg
+            className="animate-spin h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <span>{loadingText || "Loading..."}</span>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {icon && iconPosition === "left" && (
+          <span className="inline-flex" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        {children && <span>{children}</span>}
+        {icon && iconPosition === "right" && (
+          <span className="inline-flex" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+      </>
+    );
+  };
 
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size }),
+        loading && "pointer-events-none",
+        className
+      )}
+      {...accessibilityProps}
       {...props}
-    />
+    >
+      {buttonContent()}
+    </Comp>
   )
 }
 

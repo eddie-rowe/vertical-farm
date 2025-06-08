@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import TopDownFarmView from '@/components/farm-config/TopDownFarmView';
 import RackDetailView from '@/components/farm-config/RackDetailView';
@@ -40,10 +39,11 @@ export default function FarmsPage() {
           toast.error("No farms available to display.");
           setIsLoading(false);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch available farms:", err);
-        setFarmsListError(err.message || "An unknown error occurred while fetching farms list.");
-        toast.error(err.message || "Failed to load available farms.");
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while fetching farms list.";
+        setFarmsListError(errorMessage);
+        toast.error(errorMessage);
         setIsLoading(false);
       } finally {
         setIsLoadingFarmsList(false);
@@ -65,10 +65,11 @@ export default function FarmsPage() {
       try {
         const data = await getFarmDetails(selectedFarmIdForDetails);
         setFarmPageData(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch farm data:", err);
-        setError(err.message || "An unknown error occurred while fetching farm data.");
-        toast.error(err.message || "Failed to load farm data.");
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while fetching farm data.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }

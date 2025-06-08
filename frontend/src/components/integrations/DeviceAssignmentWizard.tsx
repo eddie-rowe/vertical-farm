@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { HADevice, DeviceAssignment, homeAssistantService } from '@/lib/services/homeAssistantService';
+import { HADevice, DeviceAssignment, homeAssistantService } from '@/services/homeAssistantService';
 
 interface DeviceAssignmentWizardProps {
   device: HADevice;

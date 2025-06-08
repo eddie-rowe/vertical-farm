@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaHome, FaCheck, FaExclamationTriangle, FaPlug, FaLightbulb, FaTint, FaFan, FaThermometerHalf } from 'react-icons/fa';
+import { useState, useEffect, useCallback } from 'react';
+import { FaHome, FaCheck, FaExclamationTriangle, FaPlug, FaLightbulb, FaFan, FaThermometerHalf } from 'react-icons/fa';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,7 +19,7 @@ import {
   HAConfig, 
   HAConnectionStatus, 
   DeviceAssignment 
-} from '@/lib/services/homeAssistantService';
+} from '@/services/homeAssistantService';
 
 export default function HomeAssistantPage() {
   // Connection state
@@ -45,37 +45,7 @@ export default function HomeAssistantPage() {
     device_role: 'lighting' as 'lighting' | 'irrigation' | 'ventilation' | 'monitoring'
   });
 
-  useEffect(() => {
-    loadConfig();
-    loadStatus();
-    loadAssignments();
-  }, []);
-
-  const loadConfig = async () => {
-    try {
-      const configData = await homeAssistantService.getConfig();
-      if (configData) {
-        setConfig(configData);
-      }
-    } catch (error) {
-      console.error('Error loading config:', error);
-    }
-  };
-
-  const loadStatus = async () => {
-    try {
-      const statusData = await homeAssistantService.getStatus();
-      setStatus(statusData);
-      if (statusData.connected) {
-        loadDevices();
-      }
-    } catch (error) {
-      console.error('Error loading status:', error);
-      setStatus({ connected: false });
-    }
-  };
-
-  const loadDevices = async () => {
+  const loadDevices = useCallback(async () => {
     setIsLoadingDevices(true);
     setDeviceError(null);
     try {
@@ -87,16 +57,46 @@ export default function HomeAssistantPage() {
     } finally {
       setIsLoadingDevices(false);
     }
-  };
+  }, []);
 
-  const loadAssignments = async () => {
+  const loadStatus = useCallback(async () => {
+    try {
+      const statusData = await homeAssistantService.getStatus();
+      setStatus(statusData);
+      if (statusData.connected) {
+        loadDevices();
+      }
+    } catch (error) {
+      console.error('Error loading status:', error);
+      setStatus({ connected: false });
+    }
+  }, [loadDevices]);
+
+  const loadConfig = useCallback(async () => {
+    try {
+      const configData = await homeAssistantService.getConfig();
+      if (configData) {
+        setConfig(configData);
+      }
+    } catch (error) {
+      console.error('Error loading config:', error);
+    }
+  }, []);
+
+  const loadAssignments = useCallback(async () => {
     try {
       const assignmentsData = await homeAssistantService.getAssignments();
       setAssignments(assignmentsData);
     } catch (error) {
       console.error('Error loading assignments:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadConfig();
+    loadStatus();
+    loadAssignments();
+  }, [loadConfig, loadStatus, loadAssignments]);
 
   const handleTestConnection = async () => {
     if (!config.url || !config.token) return;
@@ -480,7 +480,7 @@ export default function HomeAssistantPage() {
               <Label>Device Role</Label>
               <Select
                 value={assignmentForm.device_role}
-                onValueChange={(value: any) => 
+                onValueChange={(value: 'lighting' | 'irrigation' | 'ventilation' | 'monitoring') => 
                   setAssignmentForm(prev => ({ ...prev, device_role: value }))
                 }
               >

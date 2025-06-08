@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, Copy, Clock, Droplets, Sun } from 'lucide-react';
+import { Edit, Trash2, Clock, Droplets, Sun } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-import { HADevice, homeAssistantService } from '@/lib/services/homeAssistantService';
+import { HADevice, homeAssistantService } from '@/services/homeAssistantService';
 
 interface DeviceControlPanelProps {
   device: HADevice;

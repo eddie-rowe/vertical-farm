@@ -1,0 +1,17 @@
+{
+  "name": "Vertical Farm Management",
+  "short_name": "VerticalFarm",
+  "description": "Smart Vertical Farm Management System",
+  "theme_color": "#22c55e",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+} 
