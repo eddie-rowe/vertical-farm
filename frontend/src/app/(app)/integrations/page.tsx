@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaHome, FaPlug, FaCheck, FaExclamationTriangle, FaCog } from 'react-icons/fa';
+import { FaHome, FaPlug, FaCheck, FaExclamationTriangle, FaCog, FaCreditCard, FaTable, FaCalendarAlt } from 'react-icons/fa';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +66,31 @@ export default function IntegrationsPage() {
           icon: <FaCog className="text-gray-600" />,
           status: 'disconnected',
           setupUrl: '/integrations/modbus',
+        },
+        // New placeholder integrations
+        {
+          id: 'square',
+          name: 'Square',
+          description: 'Connect Square for payment processing and sales tracking',
+          icon: <FaCreditCard className="text-green-600" />,
+          status: 'disconnected',
+          setupUrl: '/integrations/square',
+        },
+        {
+          id: 'google-sheets',
+          name: 'Google Sheets',
+          description: 'Sync farm data and reports with Google Sheets',
+          icon: <FaTable className="text-green-600" />,
+          status: 'disconnected',
+          setupUrl: '/integrations/google-sheets',
+        },
+        {
+          id: 'google-calendar',
+          name: 'Google Calendar',
+          description: 'Schedule farm tasks and maintenance in Google Calendar',
+          icon: <FaCalendarAlt className="text-blue-600" />,
+          status: 'disconnected',
+          setupUrl: '/integrations/google-calendar',
         },
       ];
 

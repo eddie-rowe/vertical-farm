@@ -61,26 +61,6 @@ export default function HomeAssistantPage() {
     device_role: 'lighting' as 'lighting' | 'irrigation' | 'ventilation' | 'monitoring'
   });
 
-  const loadDevices = useCallback(async () => {
-    setIsLoadingDevices(true);
-    setDeviceError(null);
-    try {
-      // Load discovered devices (all available from Home Assistant)
-      const devicesData = await homeAssistantService.getDevices();
-      setDiscoveredDevices(devicesData);
-      
-      // TODO: Load actually imported devices from database
-      // For now, we'll start with an empty imported list
-      // In a future update, we'll have a backend endpoint to get user's imported devices
-      setImportedDevices([]);
-    } catch (error) {
-      console.error('Error loading devices:', error);
-      setDeviceError(error instanceof Error ? error.message : 'Failed to load devices');
-    } finally {
-      setIsLoadingDevices(false);
-    }
-  }, []);
-
   const loadStatus = useCallback(async () => {
     try {
       const statusData = await homeAssistantService.getStatus();
@@ -365,26 +345,13 @@ export default function HomeAssistantPage() {
   };
 
   const handleDeleteConfiguration = async (configId: string) => {
-    if (!confirm('Are you sure you want to delete this configuration? This action cannot be undone.')) {
-      return;
-    }
-
     setIsDeleting(configId);
     setConnectionError(null);
+    setSaveSuccess(null);
     
     try {
       await homeAssistantService.deleteConfig(configId);
-      
-      // Refresh all configurations
       await loadAllConfigs();
-      
-      // If we deleted the current config, reload the active config
-      if (config.id === configId) {
-        await loadConfig();
-      }
-      
-      // Refresh status
-      await loadStatus();
       
       setSaveSuccess('Configuration deleted successfully!');
       setTimeout(() => setSaveSuccess(null), 3000);

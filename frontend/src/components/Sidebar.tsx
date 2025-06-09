@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaSeedling, FaChartBar, FaLeaf, FaCog, FaQuestionCircle, FaSlidersH, FaPlug, FaBuilding, FaDollarSign, FaUsers, FaBrain } from "react-icons/fa";
+import { FaSeedling, FaChartBar, FaLeaf, FaCog, FaQuestionCircle, FaPlug, FaBuilding, FaDollarSign, FaUsers, FaBrain, FaTachometerAlt, FaBoxes } from "react-icons/fa";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <FaSeedling /> },
   { href: "/farms", label: "Farm Management", icon: <FaBuilding /> },
-  { href: "/data", label: "Grow Management", icon: <FaLeaf /> },
-  { href: "/grow-parameters", label: "Grow Parameters", icon: <FaSlidersH /> },
+  { href: "/grow-management", label: "Grow Management", icon: <FaLeaf /> },
+  { href: "/operations", label: "Operations", icon: <FaTachometerAlt /> },
   { href: "/analytics", label: "Analytics", icon: <FaChartBar /> },
   { href: "/business", label: "Business Management", icon: <FaDollarSign /> },
+  { href: "/procurement", label: "Procurement", icon: <FaBoxes /> },
   { href: "/team", label: "Team Management", icon: <FaUsers /> },
   { href: "/ai", label: "AI Intelligence", icon: <FaBrain /> },
   { href: "/integrations", label: "Integrations", icon: <FaPlug /> },

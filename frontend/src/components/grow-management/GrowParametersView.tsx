@@ -16,7 +16,7 @@ import { GrowRecipeForm } from '@/components/grow-recipes/GrowRecipeForm';
 import { GrowRecipeCard } from '@/components/grow-recipes/GrowRecipeCard';
 import { DeleteConfirmationDialog } from '@/components/grow-recipes/DeleteConfirmationDialog';
 
-export default function GrowParametersPage() {
+export default function GrowParametersView() {
   const [recipes, setRecipes] = useState<GrowRecipe[]>([]);
   const [species, setSpecies] = useState<Species[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,8 +101,6 @@ export default function GrowParametersPage() {
     loadRecipes();
   };
 
-
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -112,12 +110,12 @@ export default function GrowParametersPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Grow Parameters</h1>
-          <p className="text-gray-600 mt-2">
+          <h2 className="text-2xl font-bold">Grow Parameters & Recipes</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Manage grow recipes for different species with detailed parameters
           </p>
         </div>
@@ -230,7 +228,7 @@ export default function GrowParametersPage() {
 
       {/* Results Summary */}
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} found
         </p>
         {(searchTerm || Object.keys(filters).some(key => filters[key as keyof GrowRecipeFilters])) && (

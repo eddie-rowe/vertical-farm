@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, Plus } from "lucide-react";
+import { Calendar, BarChart3, Plus, SlidersHorizontal } from "lucide-react";
 import NewGrowSetup from "@/components/grow-management/NewGrowSetup";
 import CurrentGrowsView from "@/components/grow-management/CurrentGrowsView";
 import GrowHistoryView from "@/components/grow-management/GrowHistoryView";
+import GrowParametersView from "@/components/grow-management/GrowParametersView";
 
 export default function GrowManagementPage() {
   const [activeTab, setActiveTab] = useState("current");
@@ -22,7 +23,7 @@ export default function GrowManagementPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="current" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Current Grows
@@ -30,6 +31,10 @@ export default function GrowManagementPage() {
           <TabsTrigger value="new" className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             New Grow Setup
+          </TabsTrigger>
+          <TabsTrigger value="parameters" className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Parameters & Recipes
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -43,6 +48,10 @@ export default function GrowManagementPage() {
 
         <TabsContent value="new" className="mt-6">
           <NewGrowSetup />
+        </TabsContent>
+
+        <TabsContent value="parameters" className="mt-6">
+          <GrowParametersView />
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
