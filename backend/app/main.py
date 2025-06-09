@@ -9,10 +9,7 @@ from app.api.v1.api import api_router as api_router_v1
 # from dotenv import load_dotenv # Likely redundant due to Pydantic .env loading
 from app.core.config import settings
 from app.core.security import get_validated_supabase_token_payload
-from app.services.home_assistant_service import (
-    startup_home_assistant_service,
-    shutdown_home_assistant_service
-)
+# Home Assistant service now uses user-specific configurations - no global imports needed
 from app.services.database_service import get_database_service
 import logging
 
@@ -39,14 +36,9 @@ async def lifespan(app: FastAPI):
         logger.info("📝 Application will continue without database features")
         app_state["database"] = None
     
-    # Initialize Home Assistant service
-    try:
-        await startup_home_assistant_service()
-        app_state["home_assistant"] = True
-        logger.info("✅ Home Assistant service initialized successfully")
-    except Exception as e:
-        logger.warning(f"⚠️  Home Assistant service initialization failed: {e}")
-        app_state["home_assistant"] = False
+    # Home Assistant service is now user-specific - no global initialization needed
+    app_state["home_assistant"] = True
+    logger.info("✅ Home Assistant service ready (user-specific configurations only)")
     
     logger.info("🚀 Application startup complete")
     
@@ -55,12 +47,8 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down application...")
     
-    # Cleanup Home Assistant service
-    try:
-        await shutdown_home_assistant_service()
-        logger.info("✅ Home Assistant service cleaned up")
-    except Exception as e:
-        logger.error(f"❌ Error during Home Assistant service cleanup: {e}")
+    # Home Assistant service cleanup not needed (user-specific instances auto-cleanup)
+    logger.info("✅ Home Assistant services cleaned up")
     
     # Cleanup database connections
     if app_state.get("database"):

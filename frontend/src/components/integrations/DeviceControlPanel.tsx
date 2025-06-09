@@ -52,7 +52,7 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
     setIsControlling(true);
     try {
       const action = device.state === 'on' ? 'turn_off' : 'turn_on';
-      if (device.device_type === 'light') {
+      if (device.domain === 'light') {
         await homeAssistantService.controlLight(device.entity_id, action);
       } else {
         await homeAssistantService.controlDevice({
@@ -85,15 +85,15 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
   };
 
   const isOn = device.state === 'on';
-  const isControllable = device.device_type === 'light' || device.device_type === 'switch' || device.device_type === 'fan';
+  const isControllable = device.domain === 'light' || device.domain === 'switch' || device.domain === 'fan';
 
   if (compact) {
     return (
       <div className="flex items-center justify-between p-3 border rounded-lg">
         <div className="flex items-center space-x-3">
-          {getDeviceIcon(device.device_type, isOn)}
+          {getDeviceIcon(device.domain, isOn)}
           <div>
-            <div className="font-medium">{device.name}</div>
+            <div className="font-medium">{device.friendly_name || device.entity_id}</div>
             <div className="text-sm text-gray-500">{device.entity_id}</div>
           </div>
         </div>
@@ -118,9 +118,9 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {getDeviceIcon(device.device_type, isOn)}
+            {getDeviceIcon(device.domain, isOn)}
             <div>
-              <CardTitle className="text-lg">{device.name}</CardTitle>
+              <CardTitle className="text-lg">{device.friendly_name || device.entity_id}</CardTitle>
               <CardDescription>{device.entity_id}</CardDescription>
             </div>
           </div>
@@ -135,7 +135,7 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <Label className="text-gray-500">Type</Label>
-            <div className="capitalize">{device.device_type}</div>
+            <div className="capitalize">{device.domain}</div>
           </div>
           {device.device_class && (
             <div>
@@ -173,7 +173,7 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
             </div>
 
             {/* Brightness control for lights - simplified for now */}
-            {device.device_type === 'light' && isOn && device.attributes?.brightness && (
+            {device.domain === 'light' && isOn && device.attributes?.brightness && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Brightness</Label>
@@ -211,7 +211,7 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
         )}
 
         {/* Sensor Readings */}
-        {device.device_type === 'sensor' && (
+        {device.domain === 'sensor' && (
           <div className="border-t pt-4">
             <Label className="text-gray-500">Current Reading</Label>
             <div className="text-2xl font-bold">

@@ -102,6 +102,8 @@ const nextConfig: NextConfig = {
               "ws://localhost:8000", 
               "https://api.goodgoodgreens.org",
               "wss://api.goodgoodgreens.org",
+              "https://vertical-farm-api.goodgoodgreens.org",
+              "wss://vertical-farm-api.goodgoodgreens.org",
               "https://vertical-farm.goodgoodgreens.org",
               "https://*.supabase.co",
               "https://browser-intake-us5-datadoghq.com"
