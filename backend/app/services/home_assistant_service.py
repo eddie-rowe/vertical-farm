@@ -421,26 +421,12 @@ class HomeAssistantService:
             raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
 
 
-# Global service instance
-home_assistant_service = HomeAssistantService()
-
-
-async def get_home_assistant_service() -> HomeAssistantService:
-    """Dependency injection for Home Assistant service"""
-    return home_assistant_service
-
-
-async def startup_home_assistant_service():
-    """Initialize Home Assistant service on application startup"""
-    try:
-        await home_assistant_service.initialize()
-    except Exception as e:
-        logger.error(f"Failed to initialize Home Assistant service on startup: {e}")
-
-
-async def shutdown_home_assistant_service():
-    """Cleanup Home Assistant service on application shutdown"""
-    try:
-        await home_assistant_service.close()
-    except Exception as e:
-        logger.error(f"Error during Home Assistant service shutdown: {e}") 
+# Global Home Assistant service removed - now using user-specific UserHomeAssistantService
+# 
+# The old global service has been replaced with per-user configurations.
+# Use UserHomeAssistantService for all Home Assistant operations.
+#
+# Global service instance - REMOVED
+# home_assistant_service = HomeAssistantService()
+#
+# Startup/shutdown functions - REMOVED (now user-specific) 

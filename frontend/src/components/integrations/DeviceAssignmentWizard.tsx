@@ -189,11 +189,11 @@ export default function DeviceAssignmentWizard({
               </Button>
             </div>
 
-            {device.device_type && (
+            {device.domain && (
               <Alert>
                 <FaMapMarkerAlt className="h-4 w-4" />
                 <AlertDescription>
-                  Suggested role based on device type: <strong>{getSuggestedRole(device.device_type)}</strong>
+                  Suggested role based on device type: <strong>{getSuggestedRole(device.domain)}</strong>
                 </AlertDescription>
               </Alert>
             )}
@@ -282,9 +282,9 @@ export default function DeviceAssignmentWizard({
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    {getDeviceIcon(device.device_type)}
+                    {getDeviceIcon(device.domain)}
                     <div>
-                      <div className="font-medium">{device.name}</div>
+                      <div className="font-medium">{device.friendly_name || device.entity_id}</div>
                       <div className="text-sm text-gray-500">{device.entity_id}</div>
                     </div>
                   </div>

@@ -5,14 +5,15 @@ This module provides REST API endpoints for controlling and monitoring
 Home Assistant devices within the vertical farm system.
 """
 
+import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
-from app.services.home_assistant_service import (
-    get_home_assistant_service,
-    HomeAssistantService
+from app.services.user_home_assistant_service import (
+    get_user_home_assistant_service,
+    UserHomeAssistantService
 )
 from app.models.home_assistant import (
     DeviceControlRequest,
@@ -38,6 +39,7 @@ from app.models.home_assistant import (
     UserDeviceConfigRequest,
     UserDeviceConfigResponse
 )
+from app.db.supabase_client import get_async_supabase_client
 from app.services.database_service import get_database
 from app.core.security import get_current_active_user as get_current_user
 
@@ -50,17 +52,19 @@ router = APIRouter()
     "/status",
     response_model=HomeAssistantStatusResponse,
     summary="Get Home Assistant Integration Status",
-    description="Get the current status and health of the Home Assistant integration"
+    description="Get the current status and health of the Home Assistant integration for the current user"
 )
 async def get_integration_status(
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> HomeAssistantStatusResponse:
-    """Get current integration status and health information"""
+    """Get current integration status and health information for the authenticated user"""
     try:
-        status_data = await ha_service.get_integration_status()
+        user_id = str(current_user.id)
+        status_data = await user_ha_service.get_user_integration_status(user_id)
         return HomeAssistantStatusResponse(**status_data)
     except Exception as e:
-        logger.error(f"Failed to get integration status: {e}")
+        logger.error(f"Failed to get integration status for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve integration status"
@@ -71,34 +75,29 @@ async def get_integration_status(
     "/health",
     response_model=HealthCheckResponse,
     summary="Health Check",
-    description="Perform a detailed health check of Home Assistant connections"
+    description="Perform a detailed health check of Home Assistant connections for the current user"
 )
 async def health_check(
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> HealthCheckResponse:
-    """Perform a comprehensive health check"""
+    """Perform a comprehensive health check for the authenticated user"""
     try:
-        if not ha_service.is_enabled():
-            return HealthCheckResponse(
-                healthy=False,
-                services={"home_assistant": False},
-                version=None
-            )
-        
-        health_data = await ha_service.get_integration_status()
+        user_id = str(current_user.id)
+        status_data = await user_ha_service.get_user_integration_status(user_id)
         
         return HealthCheckResponse(
-            healthy=health_data.get("healthy", False),
+            healthy=status_data.get("healthy", False),
             services={
-                "rest_api": health_data.get("rest_api", False),
-                "websocket": health_data.get("websocket", False),
-                "home_assistant": health_data.get("healthy", False)
+                "rest_api": status_data.get("rest_api", False),
+                "websocket": status_data.get("websocket", False),
+                "home_assistant": status_data.get("healthy", False)
             },
             version=None  # Could be extended to get HA version
         )
         
     except Exception as e:
-        logger.error(f"Health check failed: {e}")
+        logger.error(f"Health check failed for user {current_user.id}: {e}")
         return HealthCheckResponse(
             healthy=False,
             services={"home_assistant": False},
@@ -112,18 +111,17 @@ async def health_check(
     "/devices",
     response_model=DeviceListResponse,
     summary="Get All Devices",
-    description="Retrieve all Home Assistant devices/entities"
+    description="Retrieve all Home Assistant devices/entities for the current user"
 )
 async def get_all_devices(
     device_type: Optional[str] = Query(None, description="Filter by device type (light, switch, sensor, etc.)"),
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceListResponse:
-    """Get all devices or devices of a specific type"""
+    """Get all devices or devices of a specific type for the authenticated user"""
     try:
-        if device_type:
-            devices = await ha_service.get_devices_by_type(device_type)
-        else:
-            devices = await ha_service.get_all_devices()
+        user_id = str(current_user.id)
+        devices = await user_ha_service.get_user_devices(user_id, device_type)
         
         # Convert to Pydantic models
         device_models = []
@@ -146,7 +144,7 @@ async def get_all_devices(
                 )
                 device_models.append(device_model)
             except Exception as e:
-                logger.warning(f"Failed to parse device {device.get('entity_id', 'unknown')}: {e}")
+                logger.warning(f"Failed to parse device {device.get('entity_id', 'unknown')} for user {user_id}: {e}")
                 continue
         
         return DeviceListResponse(
@@ -158,7 +156,7 @@ async def get_all_devices(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get devices: {e}")
+        logger.error(f"Failed to get devices for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve devices"
@@ -169,16 +167,18 @@ async def get_all_devices(
     "/devices/{entity_id}",
     response_model=DeviceDetailsResponse,
     summary="Get Device Details",
-    description="Get detailed information about a specific device"
+    description="Get detailed information about a specific device for the current user"
 )
 async def get_device_details(
     entity_id: str,
     use_cache: bool = Query(True, description="Use cached data if available"),
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceDetailsResponse:
-    """Get details for a specific device"""
+    """Get details for a specific device for the authenticated user"""
     try:
-        device = await ha_service.get_device(entity_id)
+        user_id = str(current_user.id)
+        device = await user_ha_service.get_user_device(user_id, entity_id)
         
         if not device:
             return DeviceDetailsResponse(
@@ -202,22 +202,19 @@ async def get_device_details(
             unit_of_measurement=device.get("attributes", {}).get("unit_of_measurement")
         )
         
-        # Check if data came from cache
-        cached = ha_service.client.get_cached_entity(entity_id) is not None if ha_service.client else False
-        
         return DeviceDetailsResponse(
             device=device_model,
             found=True,
-            cached=cached
+            cached=use_cache
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get device details for {entity_id}: {e}")
+        logger.error(f"Failed to get device {entity_id} for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve device details for {entity_id}"
+            detail="Failed to retrieve device details"
         )
 
 
@@ -227,40 +224,37 @@ async def get_device_details(
     "/devices/control",
     response_model=DeviceControlResponse,
     summary="Control Device",
-    description="Turn a device on, off, or toggle its state"
+    description="Turn a device on, off, or toggle its state for the current user"
 )
 async def control_device(
     request: DeviceControlRequest,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceControlResponse:
-    """Control a device (on/off/toggle)"""
+    """Control a device (on/off/toggle) for the authenticated user"""
     try:
-        if request.action == "on":
-            result = await ha_service.turn_on_device(request.entity_id)
-        elif request.action == "off":
-            result = await ha_service.turn_off_device(request.entity_id)
-        elif request.action == "toggle":
-            result = await ha_service.toggle_device(request.entity_id)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid action: {request.action}"
-            )
+        user_id = str(current_user.id)
+        result = await user_ha_service.control_user_device(
+            user_id, 
+            request.entity_id, 
+            request.action
+        )
         
         return DeviceControlResponse(
-            success=result.get("success", False),
+            success=result["success"],
             entity_id=request.entity_id,
             action=request.action,
-            message=f"Successfully {request.action}ed {request.entity_id}"
+            timestamp=result["timestamp"],
+            message=f"Device {request.action} command sent successfully"
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to control device {request.entity_id}: {e}")
+        logger.error(f"Failed to control device {request.entity_id} for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to control device {request.entity_id}"
+            detail=f"Failed to control device: {str(e)}"
         )
 
 
@@ -268,16 +262,19 @@ async def control_device(
     "/lights/control",
     response_model=DeviceControlResponse,
     summary="Control Light",
-    description="Control lights with advanced parameters (brightness, color, etc.)"
+    description="Control lights with advanced parameters (brightness, color, etc.) for the current user"
 )
 async def control_light(
     request: LightControlRequest,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceControlResponse:
-    """Control lights with advanced parameters"""
+    """Control a light with advanced parameters for the authenticated user"""
     try:
-        kwargs = {}
+        user_id = str(current_user.id)
         
+        # Prepare light-specific parameters
+        kwargs = {}
         if request.brightness is not None:
             kwargs["brightness"] = request.brightness
         if request.color_temp is not None:
@@ -285,27 +282,28 @@ async def control_light(
         if request.rgb_color is not None:
             kwargs["rgb_color"] = request.rgb_color
         
-        result = await ha_service.control_grow_light(
-            entity_id=request.entity_id,
-            action=request.action,
-            brightness=request.brightness,
-            color_temp=request.color_temp
+        result = await user_ha_service.control_user_device(
+            user_id,
+            request.entity_id,
+            request.action,
+            **kwargs
         )
         
         return DeviceControlResponse(
-            success=result.get("success", False),
+            success=result["success"],
             entity_id=request.entity_id,
             action=request.action,
-            message=f"Light control successful"
+            timestamp=result["timestamp"],
+            message=f"Light {request.action} command sent successfully"
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to control light {request.entity_id}: {e}")
+        logger.error(f"Failed to control light {request.entity_id} for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to control light {request.entity_id}"
+            detail=f"Failed to control light: {str(e)}"
         )
 
 
@@ -313,34 +311,48 @@ async def control_light(
     "/irrigation/control",
     response_model=DeviceControlResponse,
     summary="Control Irrigation",
-    description="Control irrigation solenoid valves with pulse functionality"
+    description="Control irrigation solenoid valves with pulse functionality for the current user"
 )
 async def control_irrigation(
     request: IrrigationControlRequest,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceControlResponse:
-    """Control irrigation solenoid valves"""
+    """Control irrigation devices for the authenticated user"""
     try:
-        result = await ha_service.control_irrigation_solenoid(
-            entity_id=request.entity_id,
-            action=request.action,
-            duration_seconds=request.duration_seconds
+        user_id = str(current_user.id)
+        
+        # Handle irrigation-specific logic
+        action = "on" if request.action == "open" else "off" if request.action == "close" else request.action
+        
+        kwargs = {}
+        if request.action == "pulse" and request.duration_seconds:
+            # For pulse, we'll turn on, wait, then turn off
+            # This is a simplified implementation - ideally this would be handled by HA automation
+            kwargs["duration"] = request.duration_seconds
+        
+        result = await user_ha_service.control_user_device(
+            user_id,
+            request.entity_id,
+            action,
+            **kwargs
         )
         
         return DeviceControlResponse(
-            success=result.get("success", False),
+            success=result["success"],
             entity_id=request.entity_id,
             action=request.action,
-            message=f"Irrigation control successful"
+            timestamp=result["timestamp"],
+            message=f"Irrigation {request.action} command sent successfully"
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to control irrigation {request.entity_id}: {e}")
+        logger.error(f"Failed to control irrigation {request.entity_id} for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to control irrigation {request.entity_id}"
+            detail=f"Failed to control irrigation: {str(e)}"
         )
 
 
@@ -354,12 +366,15 @@ async def control_irrigation(
 )
 async def get_sensor_data(
     sensor_type: Optional[str] = Query(None, description="Filter by sensor type"),
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> SensorDataResponse:
-    """Get current sensor data"""
+    """Get current sensor data for the authenticated user"""
     try:
-        # Get sensor entities
-        sensors = await ha_service.get_devices_by_type("sensor")
+        user_id = str(current_user.id)
+        
+        # Get sensor devices for the user
+        sensors = await user_ha_service.get_user_devices(user_id, "sensor")
         
         # Filter by sensor type if specified
         if sensor_type:
@@ -380,7 +395,7 @@ async def get_sensor_data(
                 )
                 sensor_models.append(sensor_model)
             except Exception as e:
-                logger.warning(f"Failed to parse sensor {sensor.get('entity_id', 'unknown')}: {e}")
+                logger.warning(f"Failed to parse sensor {sensor.get('entity_id', 'unknown')} for user {user_id}: {e}")
                 continue
         
         return SensorDataResponse(
@@ -391,7 +406,7 @@ async def get_sensor_data(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get sensor data: {e}")
+        logger.error(f"Failed to get sensor data for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve sensor data"
@@ -407,7 +422,7 @@ async def get_sensor_data(
 )
 async def subscribe_to_device(
     request: DeviceSubscriptionRequest,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ):
     """Subscribe or unsubscribe from device updates"""
     try:
@@ -444,7 +459,7 @@ async def subscribe_to_device(
     description="Get all available Home Assistant services for device control"
 )
 async def get_available_services(
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> ServiceListResponse:
     """Get available Home Assistant services"""
     try:
@@ -473,7 +488,7 @@ async def get_available_services(
 )
 async def call_service(
     request: HomeAssistantServiceCall,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service)
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> DeviceControlResponse:
     """Call a Home Assistant service with custom parameters"""
     try:
@@ -516,7 +531,7 @@ async def call_service(
 async def assign_device_to_location(
     entity_id: str,
     assignment: DeviceAssignmentRequest,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service),
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
     db = Depends(get_database)
 ):
     """Assign a Home Assistant device to a farm location (shelf, rack, row, or farm level)"""
@@ -666,7 +681,7 @@ async def remove_device_assignment(
 @router.get("/farms/{farm_id}/assigned-devices")
 async def get_farm_assigned_devices(
     farm_id: str,
-    ha_service: HomeAssistantService = Depends(get_home_assistant_service),
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
     db = Depends(get_database)
 ):
     """Get all devices assigned to a specific farm with their current states"""
@@ -719,12 +734,12 @@ async def get_farm_assigned_devices(
     description="Get all Home Assistant configurations for the current user"
 )
 async def get_user_configs(
-    current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user = Depends(get_current_user)
 ) -> List[HomeAssistantConfigResponse]:
     """Get all Home Assistant configurations for the current user"""
     try:
-        # Query user's configurations
+        # Get Supabase client and query user's configurations
+        db = await get_async_supabase_client()
         result = await db.from_("user_home_assistant_configs").select("*").eq("user_id", current_user.id).execute()
         
         configs = []
@@ -762,26 +777,67 @@ async def get_user_configs(
 )
 async def create_user_config(
     config_request: HomeAssistantConfigRequest,
-    current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user = Depends(get_current_user)
 ) -> HomeAssistantConfigResponse:
     """Create a new Home Assistant configuration"""
     try:
+        # Get Supabase client
+        db = await get_async_supabase_client()
+        
+        # Check if user already has configurations to handle unique constraints
+        existing_configs = await db.from_("user_home_assistant_configs").select("name, is_default").eq("user_id", current_user.id).execute()
+        
+        existing_names = [config["name"] for config in existing_configs.data] if existing_configs.data else []
+        existing_defaults = [config for config in existing_configs.data if config.get("is_default")] if existing_configs.data else []
+        
+        # Handle unique name constraint
+        config_name = config_request.name
+        if config_name in existing_names:
+            # Generate a unique name
+            counter = 1
+            base_name = config_name
+            while config_name in existing_names:
+                config_name = f"{base_name} ({counter})"
+                counter += 1
+        
+        # Handle unique default constraint - if user already has a default and this is default, unset others
+        is_default = config_request.is_default
+        if not existing_configs.data:
+            # First configuration should be default
+            is_default = True
+        elif config_request.is_default and existing_defaults:
+            # We'll let the database trigger handle setting others to non-default
+            pass
+        else:
+            # Force non-default if user already has configs to avoid constraint issues
+            is_default = False
+        
         # Prepare configuration data
         config_data = {
-            "user_id": current_user.id,
-            "name": config_request.name,
+            "user_id": str(current_user.id),  # Ensure UUID is string
+            "name": config_name,
             "url": config_request.url,
             "access_token": config_request.access_token,  # Should be encrypted in production
             "local_url": config_request.local_url,
             "cloudflare_enabled": config_request.cloudflare_enabled,
             "cloudflare_client_id": config_request.cloudflare_client_id,
             "cloudflare_client_secret": config_request.cloudflare_client_secret,  # Should be encrypted
-            "is_default": config_request.is_default
+            "is_default": is_default
         }
         
         # Insert new configuration
-        result = await db.from_("user_home_assistant_configs").insert(config_data).execute()
+        try:
+            result = await db.from_("user_home_assistant_configs").insert(config_data).execute()
+        except Exception as insert_error:
+            # Handle unique constraint violations
+            error_message = str(insert_error)
+            if "unique_default_per_user" in error_message or "23505" in error_message:
+                # Retry with is_default = False to work around constraint issues
+                logger.warning(f"Unique constraint violation, retrying with is_default=False: {error_message}")
+                config_data["is_default"] = False
+                result = await db.from_("user_home_assistant_configs").insert(config_data).execute()
+            else:
+                raise insert_error
         
         if not result.data:
             raise HTTPException(
@@ -810,9 +866,10 @@ async def create_user_config(
         raise
     except Exception as e:
         logger.error(f"Failed to create user config: {e}")
+        logger.error(f"Error details: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create configuration"
+            detail=f"Failed to create configuration: {str(e)}"
         )
 
 
@@ -824,95 +881,40 @@ async def create_user_config(
 )
 async def test_connection(
     test_request: HomeAssistantTestConnectionRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
 ) -> HomeAssistantTestConnectionResponse:
-    """Test connection to Home Assistant instance"""
+    """Test connection to Home Assistant instance for the authenticated user"""
     try:
-        # Import here to avoid circular imports
-        from app.services.home_assistant_client import HomeAssistantClient
+        user_id = str(current_user.id)
         
-        # Create temporary client for testing
-        headers = {}
-        if test_request.cloudflare_enabled and test_request.cloudflare_client_id:
-            headers.update({
-                "CF-Access-Client-Id": test_request.cloudflare_client_id,
-                "CF-Access-Client-Secret": test_request.cloudflare_client_secret or ""
-            })
+        # Prepare config for testing
+        test_config = {
+            "url": test_request.url,
+            "access_token": test_request.access_token,
+            "cloudflare_enabled": test_request.cloudflare_enabled,
+            "cloudflare_client_id": test_request.cloudflare_client_id,
+            "cloudflare_client_secret": test_request.cloudflare_client_secret
+        }
         
-        client = HomeAssistantClient(
-            base_url=test_request.url,
-            access_token=test_request.access_token,
-            cloudflare_client_id=test_request.cloudflare_client_id,
-            cloudflare_client_secret=test_request.cloudflare_client_secret
+        # Use the user service to test the connection
+        result = await user_ha_service.test_user_connection(user_id, test_config)
+        
+        return HomeAssistantTestConnectionResponse(
+            success=result["success"],
+            url=result["url"],
+            status=result["status"],
+            message=result["message"],
+            home_assistant_version=result.get("home_assistant_version"),
+            device_count=result.get("device_count"),
+            websocket_supported=result.get("websocket_supported", False),
+            rest_api_working=result.get("rest_api_working", False),
+            cloudflare_working=result.get("cloudflare_working", False),
+            error_details=result.get("error_details")
         )
-        
-        # Test REST API connection
-        try:
-            await client.initialize_session()
-            config = await client.get_config()
-            
-            if config:
-                # Get device count
-                entities = await client.get_entities()
-                device_count = len(entities) if entities else 0
-                
-                # Test WebSocket if local URL provided
-                websocket_supported = False
-                if test_request.local_url:
-                    try:
-                        # Create WebSocket client for local URL
-                        local_client = HomeAssistantClient(
-                            base_url=test_request.local_url,
-                            access_token=test_request.access_token
-                        )
-                        await local_client.initialize_session()
-                        # Try WebSocket connection
-                        websocket_result = await local_client.connect_websocket()
-                        websocket_supported = websocket_result.get("success", False)
-                        await local_client.close()
-                    except Exception as ws_e:
-                        logger.warning(f"WebSocket test failed: {ws_e}")
-                        websocket_supported = False
-                
-                await client.close()
-                
-                return HomeAssistantTestConnectionResponse(
-                    success=True,
-                    url=test_request.url,
-                    status="connected",
-                    message="Successfully connected to Home Assistant",
-                    home_assistant_version=config.get("version"),
-                    device_count=device_count,
-                    websocket_supported=websocket_supported,
-                    rest_api_working=True,
-                    cloudflare_working=test_request.cloudflare_enabled
-                )
-            else:
-                await client.close()
-                return HomeAssistantTestConnectionResponse(
-                    success=False,
-                    url=test_request.url,
-                    status="authentication_failed",
-                    message="Authentication failed - invalid access token",
-                    rest_api_working=False,
-                    error_details="Could not authenticate with Home Assistant"
-                )
-                
-        except Exception as conn_e:
-            logger.error(f"Connection test failed: {conn_e}")
-            await client.close()
-            
-            return HomeAssistantTestConnectionResponse(
-                success=False,
-                url=test_request.url,
-                status="connection_failed",
-                message=f"Failed to connect: {str(conn_e)}",
-                rest_api_working=False,
-                error_details=str(conn_e)
-            )
             
     except Exception as e:
-        logger.error(f"Test connection failed: {e}")
+        logger.error(f"Test connection failed for user {current_user.id}: {e}")
         return HomeAssistantTestConnectionResponse(
             success=False,
             url=test_request.url,
