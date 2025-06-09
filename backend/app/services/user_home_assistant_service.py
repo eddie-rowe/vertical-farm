@@ -71,8 +71,8 @@ class UserHomeAssistantService:
                         "enabled": config["enabled"]
                     }
             else:
-                # Get default config (is_default=true and enabled=true)
-                result = await db.from_("user_home_assistant_configs").select("*").eq("user_id", user_id).eq("is_default", True).eq("enabled", True).order("created_at", desc=True).limit(1).execute()
+                # Get default config first, then any enabled config
+                result = await db.from_("user_home_assistant_configs").select("*").eq("user_id", user_id).eq("enabled", True).order("is_default", desc=True).order("created_at", desc=True).limit(1).execute()
                 if result.data:
                     config = result.data[0]
                     # Map to expected format for client creation
@@ -84,7 +84,7 @@ class UserHomeAssistantService:
                         "cloudflare_client_id": config["cloudflare_client_id"],
                         "cloudflare_client_secret": config["cloudflare_client_secret"],
                         "cloudflare_access_protected": config["cloudflare_enabled"],  # Map cloudflare_enabled to cloudflare_access_protected
-                        "is_active": config["is_default"] and config["enabled"],  # Map is_default and enabled to is_active
+                        "is_active": config["enabled"],  # Just check if enabled, not necessarily default
                         "enabled": config["enabled"]
                     }
             
@@ -110,7 +110,7 @@ class UserHomeAssistantService:
         # Check if client already exists and is valid
         if cache_key in self.user_clients:
             client = self.user_clients[cache_key]
-            if client and not client.is_closed:
+            if client and client.is_connected():
                 return client
             else:
                 # Remove invalid client

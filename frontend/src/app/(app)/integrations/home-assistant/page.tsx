@@ -29,9 +29,13 @@ import {
 export default function HomeAssistantPage() {
   // Connection state
   const [config, setConfig] = useState<HAConfig>({ url: '', token: '', enabled: false });
+  const [allConfigs, setAllConfigs] = useState<Array<HAConfig & { id: string; created_at: string; updated_at: string }>>([]);
   const [status, setStatus] = useState<HAConnectionStatus>({ connected: false });
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   // Device state - separated into discovered and imported
   const [discoveredDevices, setDiscoveredDevices] = useState<HADevice[]>([]);
@@ -61,8 +65,14 @@ export default function HomeAssistantPage() {
     setIsLoadingDevices(true);
     setDeviceError(null);
     try {
+      // Load discovered devices (all available from Home Assistant)
       const devicesData = await homeAssistantService.getDevices();
-      setImportedDevices(devicesData);
+      setDiscoveredDevices(devicesData);
+      
+      // TODO: Load actually imported devices from database
+      // For now, we'll start with an empty imported list
+      // In a future update, we'll have a backend endpoint to get user's imported devices
+      setImportedDevices([]);
     } catch (error) {
       console.error('Error loading devices:', error);
       setDeviceError(error instanceof Error ? error.message : 'Failed to load devices');
@@ -75,14 +85,12 @@ export default function HomeAssistantPage() {
     try {
       const statusData = await homeAssistantService.getStatus();
       setStatus(statusData);
-      if (statusData.connected) {
-        loadDevices();
-      }
+      // Don't auto-load devices - let user click "Discover Devices" when ready
     } catch (error) {
       console.error('Error loading status:', error);
       setStatus({ connected: false });
     }
-  }, [loadDevices]);
+  }, []);
 
   const loadConfig = useCallback(async () => {
     try {
@@ -92,6 +100,15 @@ export default function HomeAssistantPage() {
       }
     } catch (error) {
       console.error('Error loading config:', error);
+    }
+  }, []);
+
+  const loadAllConfigs = useCallback(async () => {
+    try {
+      const allConfigsData = await homeAssistantService.getAllConfigs();
+      setAllConfigs(allConfigsData);
+    } catch (error) {
+      console.error('Error loading all configs:', error);
     }
   }, []);
 
@@ -106,19 +123,32 @@ export default function HomeAssistantPage() {
 
   useEffect(() => {
     loadConfig();
+    loadAllConfigs();
     loadStatus();
     loadAssignments();
-  }, [loadConfig, loadStatus, loadAssignments]);
+  }, [loadConfig, loadAllConfigs, loadStatus, loadAssignments]);
 
   const handleSaveConfiguration = async () => {
     if (!config.url || !config.token) return;
 
+    setIsSaving(true);
+    setConnectionError(null);
+    setSaveSuccess(null);
+    
     try {
       await homeAssistantService.saveConfig(config);
       setConfig(prev => ({ ...prev, enabled: true }));
-      // Optionally show success message or update UI state
+      setSaveSuccess('Configuration saved successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSaveSuccess(null), 3000);
+      
+      // Refresh status to show latest connection state
+      await loadStatus();
     } catch (error) {
       setConnectionError(error instanceof Error ? error.message : 'Failed to save configuration');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -137,7 +167,7 @@ export default function HomeAssistantPage() {
       if (result.connected) {
         await homeAssistantService.saveConfig(config);
         setConfig(prev => ({ ...prev, enabled: true }));
-        loadDevices();
+        // Don't auto-load devices here - let user click "Discover Devices" button
       }
     } catch (error) {
       setConnectionError(error instanceof Error ? error.message : 'Connection test failed');
@@ -152,6 +182,9 @@ export default function HomeAssistantPage() {
     try {
       const newDevices = await homeAssistantService.discoverDevices();
       setDiscoveredDevices(newDevices);
+      // Clear any existing imported devices since we're starting fresh
+      setImportedDevices([]);
+      setSelectedForImport(new Set());
     } catch (error) {
       console.error('Error discovering devices:', error);
       setDeviceError(error instanceof Error ? error.message : 'Failed to discover devices');
@@ -170,8 +203,12 @@ export default function HomeAssistantPage() {
           action
         });
       }
-      // Refresh devices to get updated state
-      setTimeout(loadDevices, 500);
+      // Refresh device state (update both discovered and imported devices)
+      setTimeout(() => {
+        // For now, just refresh all discovered devices
+        // In a full implementation, we'd refresh specific device states
+        handleDiscoverDevices();
+      }, 500);
     } catch (error) {
       console.error('Error controlling device:', error);
     }
@@ -327,6 +364,37 @@ export default function HomeAssistantPage() {
     });
   };
 
+  const handleDeleteConfiguration = async (configId: string) => {
+    if (!confirm('Are you sure you want to delete this configuration? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(configId);
+    setConnectionError(null);
+    
+    try {
+      await homeAssistantService.deleteConfig(configId);
+      
+      // Refresh all configurations
+      await loadAllConfigs();
+      
+      // If we deleted the current config, reload the active config
+      if (config.id === configId) {
+        await loadConfig();
+      }
+      
+      // Refresh status
+      await loadStatus();
+      
+      setSaveSuccess('Configuration deleted successfully!');
+      setTimeout(() => setSaveSuccess(null), 3000);
+    } catch (error) {
+      setConnectionError(error instanceof Error ? error.message : 'Failed to delete configuration');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -437,9 +505,16 @@ export default function HomeAssistantPage() {
               </div>
 
               {connectionError && (
-                <Alert>
+                <Alert variant="destructive">
                   <FaExclamationTriangle className="h-4 w-4" />
                   <AlertDescription>{connectionError}</AlertDescription>
+                </Alert>
+              )}
+
+              {saveSuccess && (
+                <Alert>
+                  <FaCheckCircle className="h-4 w-4" />
+                  <AlertDescription>{saveSuccess}</AlertDescription>
                 </Alert>
               )}
 
@@ -456,11 +531,11 @@ export default function HomeAssistantPage() {
               <div className="flex gap-2">
                 <Button 
                   onClick={handleSaveConfiguration} 
-                  disabled={!config.url || !config.token}
+                  disabled={!config.url || !config.token || isSaving}
                   variant="outline"
                   className="w-full md:w-auto"
                 >
-                  Save Configuration
+                  {isSaving ? 'Saving...' : 'Save Configuration'}
                 </Button>
                 <Button 
                   onClick={handleTestConnection} 
@@ -472,6 +547,85 @@ export default function HomeAssistantPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Saved Configurations */}
+          {allConfigs.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Saved Configurations</span>
+                  <Badge variant="secondary">{allConfigs.length} configuration{allConfigs.length !== 1 ? 's' : ''}</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Manage your saved Home Assistant configurations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {allConfigs.map((configItem) => (
+                    <div key={configItem.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {configItem.name || 'Unnamed Configuration'}
+                          </h4>
+                          {configItem.enabled && (
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              Default
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <div>{configItem.url}</div>
+                          <div className="text-xs text-gray-500">
+                            Created: {new Date(configItem.created_at).toLocaleDateString()}
+                            {configItem.updated_at !== configItem.created_at && (
+                              <span> • Updated: {new Date(configItem.updated_at).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Load this configuration into the form
+                            setConfig({
+                              url: configItem.url,
+                              token: '', // Don't populate token for security
+                              enabled: configItem.enabled,
+                              cloudflare_client_id: configItem.cloudflare_client_id,
+                              cloudflare_client_secret: configItem.cloudflare_client_secret,
+                              name: configItem.name,
+                              local_url: configItem.local_url,
+                              id: configItem.id
+                            });
+                          }}
+                          disabled={isDeleting === configItem.id}
+                        >
+                          <FaCog className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteConfiguration(configItem.id)}
+                          disabled={isDeleting === configItem.id}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          {isDeleting === configItem.id ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full" />
+                          ) : (
+                            <span>Delete</span>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="devices" className="space-y-6">
