@@ -27,6 +27,9 @@ export interface HAConfig {
   is_default?: boolean;
   name?: string;
   local_url?: string;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface HAConnectionStatus {
@@ -84,38 +87,114 @@ class HomeAssistantService {
   }
 
   async getConfig(): Promise<HAConfig | null> {
-    try {
-      const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/config`, {
-        headers,
-      });
-      if (response.ok) {
-        return await response.json();
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${this.baseUrl}/config`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
       }
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get configuration');
+    }
+
+    const backendConfigs = await response.json();
+    
+    // If no configurations exist, return null
+    if (!backendConfigs || backendConfigs.length === 0) {
       return null;
-    } catch (error) {
-      console.error('Error fetching config:', error);
-      return null;
+    }
+    
+    // Find the default configuration or use the first one
+    const defaultConfig = backendConfigs.find((config: any) => config.is_default) || backendConfigs[0];
+    
+    // Transform backend response to frontend format
+    return {
+      url: defaultConfig.url,
+      token: '', // Backend doesn't return the token for security
+      enabled: defaultConfig.is_default,
+      cloudflare_client_id: '', // Backend doesn't return credentials for security
+      cloudflare_client_secret: '',
+      name: defaultConfig.name,
+      local_url: defaultConfig.local_url
+    };
+  }
+
+  async getAllConfigs(): Promise<Array<HAConfig & { id: string; created_at: string; updated_at: string }>> {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${this.baseUrl}/config`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return [];
+      }
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get configurations');
+    }
+
+    const backendConfigs = await response.json();
+    
+    // Transform backend response to frontend format
+    return backendConfigs.map((config: any) => ({
+      id: config.id,
+      url: config.url,
+      token: '', // Backend doesn't return the token for security
+      enabled: config.is_default,
+      cloudflare_client_id: '', // Backend doesn't return credentials for security
+      cloudflare_client_secret: '',
+      name: config.name,
+      local_url: config.local_url,
+      created_at: config.created_at,
+      updated_at: config.updated_at
+    }));
+  }
+
+  async deleteConfig(configId: string): Promise<void> {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${this.baseUrl}/config/${configId}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete configuration');
     }
   }
 
   async saveConfig(config: HAConfig): Promise<HAConfig> {
     const headers = await this.getAuthHeaders();
     
-    // Check if user has any existing configurations
-    let isFirstConfig = false;
     try {
+      // Check if user has any existing configurations
       const existingConfigsResponse = await fetch(`${this.baseUrl}/config`, {
         headers,
       });
+      
       if (existingConfigsResponse.ok) {
         const existingConfigs = await existingConfigsResponse.json();
-        isFirstConfig = !existingConfigs || existingConfigs.length === 0;
+        
+        if (existingConfigs && existingConfigs.length > 0) {
+          // Update the first/default configuration instead of creating new
+          const configToUpdate = existingConfigs.find((c: any) => c.is_default) || existingConfigs[0];
+          return await this.updateConfig(configToUpdate.id, config);
+        }
       }
-    } catch (e) {
-      // If we can't check, assume it's not the first config to be safe
-      isFirstConfig = false;
+      
+      // No existing configs, create new one
+      return await this.createConfig(config);
+    } catch (error) {
+      console.error('Error in saveConfig:', error);
+      throw error;
     }
+  }
+
+  private async createConfig(config: HAConfig): Promise<HAConfig> {
+    const headers = await this.getAuthHeaders();
     
     // Transform frontend config format to backend API format
     const backendConfig = {
@@ -126,7 +205,7 @@ class HomeAssistantService {
       cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
       cloudflare_client_id: config.cloudflare_client_id,
       cloudflare_client_secret: config.cloudflare_client_secret,
-      is_default: isFirstConfig // Only set as default if it's the first config
+      is_default: true // First config should be default
     };
     
     const response = await fetch(`${this.baseUrl}/config`, {
@@ -137,7 +216,47 @@ class HomeAssistantService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to save configuration');
+      throw new Error(error.detail || 'Failed to create configuration');
+    }
+
+    const savedConfig = await response.json();
+    
+    // Transform backend response back to frontend format
+    return {
+      url: savedConfig.url,
+      token: config.token, // Backend doesn't return the token for security
+      enabled: savedConfig.is_default,
+      cloudflare_client_id: config.cloudflare_client_id,
+      cloudflare_client_secret: config.cloudflare_client_secret,
+      name: savedConfig.name,
+      local_url: savedConfig.local_url
+    };
+  }
+
+  private async updateConfig(configId: string, config: HAConfig): Promise<HAConfig> {
+    const headers = await this.getAuthHeaders();
+    
+    // Transform frontend config format to backend API format
+    const backendConfig = {
+      name: config.name || 'Default Configuration',
+      url: config.url,
+      access_token: config.token,
+      local_url: config.local_url,
+      cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
+      cloudflare_client_id: config.cloudflare_client_id,
+      cloudflare_client_secret: config.cloudflare_client_secret,
+      is_default: true // Keep as default when updating
+    };
+    
+    const response = await fetch(`${this.baseUrl}/config/${configId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(backendConfig),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update configuration');
     }
 
     const savedConfig = await response.json();
@@ -304,7 +423,7 @@ class HomeAssistantService {
 
   async getAssignments(): Promise<DeviceAssignment[]> {
     const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}/assignments`, {
+    const response = await fetch(`${this.baseUrl}/devices/assignments`, {
       headers,
     });
 
@@ -313,12 +432,13 @@ class HomeAssistantService {
       throw new Error(error.detail || 'Failed to fetch assignments');
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result.assignments || [];
   }
 
   async saveAssignment(assignment: DeviceAssignment): Promise<DeviceAssignment> {
     const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}/assignments`, {
+    const response = await fetch(`${this.baseUrl}/devices/${assignment.entity_id}/assign`, {
       method: 'POST',
       headers,
       body: JSON.stringify(assignment),
@@ -334,7 +454,7 @@ class HomeAssistantService {
 
   async removeAssignment(entityId: string): Promise<void> {
     const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}/assignments/${entityId}`, {
+    const response = await fetch(`${this.baseUrl}/devices/${entityId}/assignment`, {
       method: 'DELETE',
       headers,
     });

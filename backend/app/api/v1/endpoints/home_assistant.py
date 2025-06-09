@@ -934,13 +934,15 @@ async def test_connection(
 async def update_user_config(
     config_id: str,
     config_request: HomeAssistantConfigRequest,
-    current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user = Depends(get_current_user)
 ) -> HomeAssistantConfigResponse:
     """Update an existing Home Assistant configuration"""
     try:
+        # Get Supabase client
+        db = await get_async_supabase_client()
+        
         # Verify ownership and get existing config
-        existing_result = await db.from_("user_home_assistant_configs").select("*").eq("id", config_id).eq("user_id", current_user.id).execute()
+        existing_result = await db.from_("user_home_assistant_configs").select("*").eq("id", config_id).eq("user_id", str(current_user.id)).execute()
         
         if not existing_result.data:
             raise HTTPException(
@@ -1004,13 +1006,15 @@ async def update_user_config(
 )
 async def delete_user_config(
     config_id: str,
-    current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user = Depends(get_current_user)
 ):
     """Delete a Home Assistant configuration"""
     try:
+        # Get Supabase client
+        db = await get_async_supabase_client()
+        
         # Verify ownership and delete
-        result = await db.from_("user_home_assistant_configs").delete().eq("id", config_id).eq("user_id", current_user.id).execute()
+        result = await db.from_("user_home_assistant_configs").delete().eq("id", config_id).eq("user_id", str(current_user.id)).execute()
         
         if not result.data:
             raise HTTPException(
