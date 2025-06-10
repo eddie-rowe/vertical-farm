@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   FaHome, FaCheck, FaExclamationTriangle, FaPlug, FaLightbulb, FaFan, 
   FaThermometerHalf, FaDownload, FaFilter, FaSearch, FaCog, FaMapPin,
-  FaCheckCircle, FaCircle, FaArrowRight
+  FaCheckCircle, FaCircle, FaArrowRight, FaWifi
 } from 'react-icons/fa';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,49 @@ import {
   HAConnectionStatus, 
   DeviceAssignment 
 } from '@/services/homeAssistantService';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
+import { useRealtime } from '@/context/RealtimeContext';
 
 export default function HomeAssistantPage() {
+  // Real-time connection status
+  const { isConnected: realtimeConnected, connectionStatus } = useRealtime();
+
+  // Use real-time subscriptions for HA configs
+  const {
+    data: allConfigs,
+    loading: configsLoading,
+    refetch: refetchConfigs,
+    optimisticUpdate: updateConfigOptimistically,
+    optimisticDelete: deleteConfigOptimistically
+  } = useRealtimeTable('user_home_assistant_configs', {
+    showToasts: true,
+    toastMessages: {
+      insert: 'HA configuration added!',
+      update: 'HA configuration updated!',
+      delete: 'HA configuration removed!'
+    },
+    onUpdate: (record) => {
+      // Auto-test connection when config is updated
+      if (record.enabled && record.url && record.token) {
+        handleTestConnection();
+      }
+    }
+  });
+
+  // Use real-time subscriptions for device configs
+  const {
+    data: deviceConfigs,
+    loading: deviceConfigsLoading,
+    optimisticUpdate: updateDeviceOptimistically
+  } = useRealtimeTable('user_device_configs', {
+    showToasts: false, // Handle toasts manually for device updates
+    onUpdate: (record) => {
+      console.log('Device config updated:', record);
+    }
+  });
+
   // Connection state
   const [config, setConfig] = useState<HAConfig>({ url: '', token: '', enabled: false });
-  const [allConfigs, setAllConfigs] = useState<Array<HAConfig & { id: string; created_at: string; updated_at: string }>>([]);
   const [status, setStatus] = useState<HAConnectionStatus>({ connected: false });
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,14 +121,8 @@ export default function HomeAssistantPage() {
     }
   }, []);
 
-  const loadAllConfigs = useCallback(async () => {
-    try {
-      const allConfigsData = await homeAssistantService.getAllConfigs();
-      setAllConfigs(allConfigsData);
-    } catch (error) {
-      console.error('Error loading all configs:', error);
-    }
-  }, []);
+  // Remove loadAllConfigs since we now use real-time subscriptions
+  // Data is automatically loaded and synced via useRealtimeTable
 
   const loadAssignments = useCallback(async () => {
     try {
@@ -103,10 +135,10 @@ export default function HomeAssistantPage() {
 
   useEffect(() => {
     loadConfig();
-    loadAllConfigs();
     loadStatus();
     loadAssignments();
-  }, [loadConfig, loadAllConfigs, loadStatus, loadAssignments]);
+    // Real-time configs are loaded automatically via useRealtimeTable
+  }, [loadConfig, loadStatus, loadAssignments]);
 
   const handleSaveConfiguration = async () => {
     if (!config.url || !config.token) return;
@@ -350,8 +382,11 @@ export default function HomeAssistantPage() {
     setSaveSuccess(null);
     
     try {
+      // Optimistic delete for immediate UI update
+      deleteConfigOptimistically(configId);
+      
       await homeAssistantService.deleteConfig(configId);
-      await loadAllConfigs();
+      // Real-time subscription will handle the actual update
       
       setSaveSuccess('Configuration deleted successfully!');
       setTimeout(() => setSaveSuccess(null), 3000);
@@ -375,6 +410,16 @@ export default function HomeAssistantPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {/* Real-time Connection Status */}
+          <Badge 
+            variant={realtimeConnected ? "default" : "secondary"}
+            className={realtimeConnected ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+          >
+            <FaWifi className="mr-1" />
+            Real-time: {connectionStatus}
+          </Badge>
+          
+          {/* HA Connection Status */}
           {status.connected ? (
             <Badge className="bg-green-100 text-green-800">
               <FaCheck className="mr-1" /> Connected
