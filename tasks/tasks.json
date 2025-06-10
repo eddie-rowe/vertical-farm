@@ -239,7 +239,7 @@
             3
           ],
           "details": "Develop authentication mechanisms including token management, credential storage, refresh token handling, and session maintenance across both connection types.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,

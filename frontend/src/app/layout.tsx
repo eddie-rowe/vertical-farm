@@ -5,6 +5,7 @@ import "./globals.css";
 // import Sidebar from "../components/Sidebar"; // Removed
 import { ThemeProvider } from "../context/ThemeContext";
 import { AuthProvider } from "../context/AuthContext"; // Re-added for global access
+import { RealtimeProvider } from "../context/RealtimeContext";
 import DatadogInit from "./datadog-init";
 import { Toaster } from "react-hot-toast";
 
@@ -190,8 +191,9 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <AuthProvider>
-            {/* AuthProvider is now in AppLayout */}
-            {children}
+            <RealtimeProvider>
+              {children}
+            </RealtimeProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

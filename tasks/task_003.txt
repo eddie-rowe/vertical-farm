@@ -117,7 +117,7 @@ Ready for Assignment: A user can now technically assign devices via API, but fro
 Current Capability: Backend can now store and retrieve device assignments. Frontend can connect to HA and discover devices. Next step would be building the actual assignment interface in the frontend.
 </info added on 2025-06-06T22:39:57.141Z>
 
-## 4. Authentication System [pending]
+## 4. Authentication System [done]
 ### Dependencies: 3.2, 3.3
 ### Description: Implement secure authentication for both WebSocket and REST connections
 ### Details:

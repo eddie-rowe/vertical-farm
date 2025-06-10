@@ -7,16 +7,23 @@ user-isolated integration with the vertical farm system.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set, Any
+from typing import Dict, List, Optional, Set, Any, Tuple
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from uuid import UUID
+from supabase import AsyncClient as SupabaseAsyncClient
 
 from app.core.config import get_settings
+from app.core.security import (
+    validate_websocket_token, 
+    AuthenticationError, 
+    SessionExpiredError,
+    is_token_expired,
+    get_session_health
+)
 from app.services.home_assistant_client import (
     HomeAssistantClient,
     HomeAssistantClientError,
-    AuthenticationError,
     ConnectionError as HAConnectionError
 )
 from app.db.supabase_client import get_async_supabase_client
@@ -26,355 +33,383 @@ logger = logging.getLogger(__name__)
 
 class UserHomeAssistantService:
     """
-    User-specific service for managing Home Assistant integration.
-    
-    This service creates and manages separate Home Assistant client instances
-    for each user, providing complete isolation between users' devices and configurations.
+    Service for managing user-specific Home Assistant connections with enhanced session management.
+    Leverages Supabase's built-in security features for credential storage and user isolation.
     """
     
     def __init__(self):
+        self._connections: Dict[str, HomeAssistantClient] = {}
+        self._connection_health: Dict[str, Dict[str, Any]] = {}
         self.settings = get_settings()
-        self.user_clients: Dict[str, HomeAssistantClient] = {}
-        self.user_configs: Dict[str, Dict] = {}
         self.user_device_subscriptions: Dict[str, Set[str]] = {}
         self.user_device_cache: Dict[str, Dict[str, Dict]] = {}
         
-    async def get_user_config(self, user_id: str, config_id: Optional[str] = None) -> Optional[Dict]:
+    async def get_user_config(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get user's Home Assistant configuration from database.
+        Get user's Home Assistant configuration from Supabase with RLS enforcement.
         
         Args:
-            user_id: User ID
-            config_id: Specific config ID, or None for default/active config
+            user_id: User ID from JWT token
             
         Returns:
-            Configuration dict or None if not found
+            User configuration dict or None if not found
         """
         try:
-            db = await get_async_supabase_client()
+            db: SupabaseAsyncClient = await get_async_supabase_client()
             
-            if config_id:
-                # Get specific config by ID
-                result = await db.from_("user_home_assistant_configs").select("*").eq("id", config_id).eq("user_id", user_id).execute()
-                if result.data:
-                    config = result.data[0]
-                    # Map to expected format for client creation
-                    return {
-                        "id": config["id"],
-                        "home_assistant_url": config["url"],  # Map url to home_assistant_url for client
-                        "access_token": config["access_token"],
-                        "friendly_name": config["name"],  # Map name to friendly_name
-                        "cloudflare_client_id": config["cloudflare_client_id"],
-                        "cloudflare_client_secret": config["cloudflare_client_secret"],
-                        "cloudflare_access_protected": config["cloudflare_enabled"],  # Map cloudflare_enabled to cloudflare_access_protected
-                        "is_active": config["is_default"] and config["enabled"],  # Map is_default and enabled to is_active
-                        "enabled": config["enabled"]
-                    }
+            # Supabase RLS will automatically filter to user's data
+            response = await db.table("user_home_assistant_configs").select("*").eq("user_id", user_id).execute()
+            
+            if response.data:
+                config = response.data[0]
+                logger.info(f"Retrieved HA config for user {user_id}")
+                return config
             else:
-                # Get default config first, then any enabled config
-                result = await db.from_("user_home_assistant_configs").select("*").eq("user_id", user_id).eq("enabled", True).order("is_default", desc=True).order("created_at", desc=True).limit(1).execute()
-                if result.data:
-                    config = result.data[0]
-                    # Map to expected format for client creation
-                    return {
-                        "id": config["id"],
-                        "home_assistant_url": config["url"],  # Map url to home_assistant_url for client
-                        "access_token": config["access_token"],
-                        "friendly_name": config["name"],  # Map name to friendly_name
-                        "cloudflare_client_id": config["cloudflare_client_id"],
-                        "cloudflare_client_secret": config["cloudflare_client_secret"],
-                        "cloudflare_access_protected": config["cloudflare_enabled"],  # Map cloudflare_enabled to cloudflare_access_protected
-                        "is_active": config["enabled"],  # Just check if enabled, not necessarily default
-                        "enabled": config["enabled"]
-                    }
-            
-            return None
-            
+                logger.info(f"No HA config found for user {user_id}")
+                return None
+                
         except Exception as e:
-            logger.error(f"Failed to get user config for {user_id}: {e}")
-            return None
-
-    async def get_or_create_client(self, user_id: str, config_id: Optional[str] = None) -> Optional[HomeAssistantClient]:
+            logger.error(f"Error retrieving HA config for user {user_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve Home Assistant configuration: {str(e)}"
+            )
+    
+    async def save_user_config(self, user_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Get or create a Home Assistant client for the specified user.
+        Save user's Home Assistant configuration to Supabase with encryption.
+        Leverages Supabase's built-in encryption at rest.
         
         Args:
-            user_id: User ID
-            config_id: Optional specific config ID
+            user_id: User ID from JWT token
+            config: Configuration dictionary
             
         Returns:
-            HomeAssistantClient instance or None if no valid config
+            Saved configuration
         """
-        cache_key = f"{user_id}:{config_id or 'default'}"
-        
-        # Check if client already exists and is valid
-        if cache_key in self.user_clients:
-            client = self.user_clients[cache_key]
-            if client and client.is_connected():
-                return client
-            else:
-                # Remove invalid client
-                if cache_key in self.user_clients:
-                    del self.user_clients[cache_key]
-                if cache_key in self.user_configs:
-                    del self.user_configs[cache_key]
-        
-        # Get user configuration
-        config = await self.get_user_config(user_id, config_id)
-        if not config:
-            logger.warning(f"No Home Assistant configuration found for user {user_id}")
-            return None
-        
         try:
-            # Prepare client arguments
-            client_kwargs = {
-                "base_url": config["home_assistant_url"],
-                "access_token": config["access_token"]
+            db: SupabaseAsyncClient = await get_async_supabase_client()
+            
+            # Prepare config data - Supabase handles encryption at rest
+            config_data = {
+                "user_id": user_id,
+                "ha_url": config.get("ha_url"),
+                "access_token": config.get("access_token"),  # Securely stored by Supabase
+                "auth_type": config.get("auth_type", "bearer"),
+                "cloudflare_client_id": config.get("cloudflare_client_id"),
+                "cloudflare_client_secret": config.get("cloudflare_client_secret"),
+                "is_active": config.get("is_active", True)
             }
             
-            # Add Cloudflare service token if configured
-            if (config.get("cloudflare_access_protected") and 
-                config.get("cloudflare_client_id") and 
-                config.get("cloudflare_client_secret")):
-                client_kwargs.update({
-                    "cloudflare_client_id": config["cloudflare_client_id"],
-                    "cloudflare_client_secret": config["cloudflare_client_secret"]
-                })
-                logger.info(f"Configuring Home Assistant client for user {user_id} with Cloudflare Access protection")
+            # Check if config exists (RLS enforces user isolation)
+            existing = await self.get_user_config(user_id)
             
-            # Create client
-            client = HomeAssistantClient(**client_kwargs)
+            if existing:
+                # Update existing config
+                response = await db.table("user_home_assistant_configs").update(config_data).eq("user_id", user_id).execute()
+                logger.info(f"Updated HA config for user {user_id}")
+            else:
+                # Insert new config
+                response = await db.table("user_home_assistant_configs").insert(config_data).execute()
+                logger.info(f"Created new HA config for user {user_id}")
             
-            # Test connection
-            async with client:
-                health = await client.health_check()
-                
-                # Require REST API to work for basic functionality
-                if not health.get("rest_api", False):
-                    logger.error(f"Home Assistant REST API connection failed for user {user_id}: {health}")
-                    await client.close()
-                    return None
-                
-                # Cache the client and config
-                self.user_clients[cache_key] = client
-                self.user_configs[cache_key] = config
-                
-                # Initialize user-specific data structures
-                if cache_key not in self.user_device_subscriptions:
-                    self.user_device_subscriptions[cache_key] = set()
-                if cache_key not in self.user_device_cache:
-                    self.user_device_cache[cache_key] = {}
-                
-                logger.info(f"Successfully created Home Assistant client for user {user_id}")
-                return client
+            if response.data:
+                return response.data[0]
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to save Home Assistant configuration"
+                )
                 
         except Exception as e:
-            logger.error(f"Failed to create Home Assistant client for user {user_id}: {e}")
-            return None
-
-    async def close_user_client(self, user_id: str, config_id: Optional[str] = None):
-        """Close and cleanup a user's Home Assistant client"""
-        cache_key = f"{user_id}:{config_id or 'default'}"
-        
-        if cache_key in self.user_clients:
-            client = self.user_clients[cache_key]
-            if client:
-                await client.close()
-            del self.user_clients[cache_key]
-        
-        # Cleanup related data
-        if cache_key in self.user_configs:
-            del self.user_configs[cache_key]
-        if cache_key in self.user_device_subscriptions:
-            del self.user_device_subscriptions[cache_key]
-        if cache_key in self.user_device_cache:
-            del self.user_device_cache[cache_key]
-            
-        logger.info(f"Closed Home Assistant client for user {user_id}")
-
-    async def cleanup_all_clients(self):
-        """Close all user clients and cleanup resources"""
-        for cache_key, client in list(self.user_clients.items()):
-            if client:
-                await client.close()
-        
-        self.user_clients.clear()
-        self.user_configs.clear()
-        self.user_device_subscriptions.clear()
-        self.user_device_cache.clear()
-        
-        logger.info("Closed all user Home Assistant clients")
-
-    # Device Management Methods (User-Specific)
-    
-    async def get_user_devices(self, user_id: str, device_type: Optional[str] = None) -> List[Dict]:
-        """Get all devices for a specific user"""
-        client = await self.get_or_create_client(user_id)
-        if not client:
+            logger.error(f"Error saving HA config for user {user_id}: {e}")
             raise HTTPException(
-                status_code=503,
-                detail="Home Assistant integration not configured for this user"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to save Home Assistant configuration: {str(e)}"
+            )
+    
+    async def get_or_create_connection(self, user_id: str, session_token: Optional[str] = None) -> HomeAssistantClient:
+        """
+        Get or create a Home Assistant connection for the user with session validation.
+        
+        Args:
+            user_id: User ID from JWT token
+            session_token: Optional session token for additional validation
+            
+        Returns:
+            HomeAssistantClient instance
+        """
+        # Validate session if token provided
+        if session_token:
+            try:
+                if is_token_expired(session_token):
+                    logger.warning(f"Session token expired for user {user_id}")
+                    # Clean up any existing connections for this user
+                    if user_id in self._connections:
+                        await self._connections[user_id].close()
+                        del self._connections[user_id]
+                        del self._connection_health[user_id]
+                    
+                    raise SessionExpiredError("Session expired, please refresh token")
+            except Exception as e:
+                logger.error(f"Token validation error for user {user_id}: {e}")
+                raise AuthenticationError(f"Token validation failed: {str(e)}")
+        
+        # Check if we have an existing healthy connection
+        if user_id in self._connections:
+            connection = self._connections[user_id]
+            health = self._connection_health.get(user_id, {})
+            
+            # Check connection health
+            if health.get("status") == "healthy" and connection:
+                logger.debug(f"Reusing existing HA connection for user {user_id}")
+                return connection
+            else:
+                # Remove unhealthy connection
+                logger.info(f"Removing unhealthy HA connection for user {user_id}")
+                await connection.close()
+                del self._connections[user_id]
+                del self._connection_health[user_id]
+        
+        # Create new connection
+        config = await self.get_user_config(user_id)
+        if not config:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Home Assistant configuration not found. Please configure your Home Assistant connection first."
+            )
+        
+        if not config.get("is_active", True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Home Assistant integration is disabled for this user"
             )
         
         try:
-            if device_type:
-                entities = await client.get_entities(entity_type=device_type)
-            else:
-                entities = await client.get_entities()
+            # Create new client with config
+            client = HomeAssistantClient(
+                base_url=config["ha_url"],
+                auth_type=config.get("auth_type", "bearer"),
+                access_token=config.get("access_token"),
+                cloudflare_client_id=config.get("cloudflare_client_id"),
+                cloudflare_client_secret=config.get("cloudflare_client_secret")
+            )
             
-            # Filter for device types we care about
-            relevant_entities = []
-            for entity in entities:
-                entity_id = entity.get("entity_id", "")
+            # Test connection
+            await client.get_states()
+            
+            # Store connection and mark as healthy
+            self._connections[user_id] = client
+            self._connection_health[user_id] = {
+                "status": "healthy",
+                "last_check": asyncio.get_event_loop().time(),
+                "user_id": user_id
+            }
+            
+            logger.info(f"Created new HA connection for user {user_id}")
+            return client
+            
+        except Exception as e:
+            logger.error(f"Failed to create HA connection for user {user_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Failed to connect to Home Assistant: {str(e)}"
+            )
+    
+    async def validate_websocket_session(self, token: str) -> Tuple[str, Dict[str, Any]]:
+        """
+        Validate WebSocket session and return user info with session health.
+        
+        Args:
+            token: JWT token from WebSocket connection
+            
+        Returns:
+            Tuple of (user_id, session_health)
+        """
+        try:
+            payload, session_health = await validate_websocket_token(token)
+            user_id = payload.get("sub")
+            
+            if not user_id:
+                raise AuthenticationError("User ID not found in token")
+            
+            return user_id, session_health
+            
+        except SessionExpiredError:
+            raise AuthenticationError("WebSocket session expired")
+        except Exception as e:
+            logger.error(f"WebSocket session validation failed: {e}")
+            raise AuthenticationError(f"Session validation failed: {str(e)}")
+    
+    async def get_connection_health(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get health status of user's Home Assistant connection.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            Health status dictionary
+        """
+        health_info = {
+            "user_id": user_id,
+            "connection_exists": user_id in self._connections,
+            "connection_healthy": False,
+            "last_activity": None,
+            "config_exists": False
+        }
+        
+        # Check if config exists
+        try:
+            config = await self.get_user_config(user_id)
+            health_info["config_exists"] = config is not None
+        except:
+            pass
+        
+        # Check connection health
+        if user_id in self._connections:
+            connection_health = self._connection_health.get(user_id, {})
+            health_info.update({
+                "connection_healthy": connection_health.get("status") == "healthy",
+                "last_activity": connection_health.get("last_check")
+            })
+        
+        return health_info
+    
+    async def refresh_connection(self, user_id: str) -> HomeAssistantClient:
+        """
+        Force refresh of user's Home Assistant connection.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            New HomeAssistantClient instance
+        """
+        # Remove existing connection
+        if user_id in self._connections:
+            await self._connections[user_id].close()
+            del self._connections[user_id]
+            del self._connection_health[user_id]
+        
+        # Create new connection
+        return await self.get_or_create_connection(user_id)
+    
+    async def cleanup_expired_connections(self):
+        """
+        Clean up expired or unhealthy connections.
+        This method can be called periodically to maintain connection health.
+        """
+        current_time = asyncio.get_event_loop().time()
+        expired_users = []
+        
+        for user_id, health in self._connection_health.items():
+            # Consider connections stale after 1 hour of inactivity
+            if current_time - health.get("last_check", 0) > 3600:
+                expired_users.append(user_id)
+        
+        for user_id in expired_users:
+            logger.info(f"Cleaning up expired HA connection for user {user_id}")
+            if user_id in self._connections:
+                await self._connections[user_id].close()
+                del self._connections[user_id]
+                del self._connection_health[user_id]
+    
+    async def get_user_devices(self, user_id: str, session_token: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Get all devices/entities for a user with session validation.
+        
+        Args:
+            user_id: User ID
+            session_token: Optional session token for validation
+            
+        Returns:
+            List of device/entity dictionaries
+        """
+        client = await self.get_or_create_connection(user_id, session_token)
+        
+        try:
+            # Get all states and filter for relevant device types
+            states = await client.get_states()
+            
+            # Filter for devices that can be controlled (switches, lights, etc.)
+            relevant_domains = ["light", "switch", "fan", "valve", "cover"]
+            devices = []
+            
+            for state in states:
+                entity_id = state.get("entity_id", "")
                 domain = entity_id.split(".")[0] if "." in entity_id else ""
                 
-                if domain in ["light", "switch", "sensor", "fan", "cover", "climate"]:
-                    relevant_entities.append(entity)
+                if domain in relevant_domains:
+                    devices.append({
+                        "entity_id": entity_id,
+                        "name": state.get("attributes", {}).get("friendly_name", entity_id),
+                        "domain": domain,
+                        "state": state.get("state"),
+                        "attributes": state.get("attributes", {}),
+                        "last_changed": state.get("last_changed"),
+                        "last_updated": state.get("last_updated")
+                    })
             
-            logger.info(f"Retrieved {len(relevant_entities)} relevant devices for user {user_id}")
-            return relevant_entities
+            logger.info(f"Retrieved {len(devices)} devices for user {user_id}")
+            return devices
             
-        except HomeAssistantClientError as e:
-            logger.error(f"Failed to get devices for user {user_id}: {e}")
-            raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
-
-    async def get_user_device(self, user_id: str, entity_id: str) -> Optional[Dict]:
-        """Get a specific device for a user"""
-        client = await self.get_or_create_client(user_id)
-        if not client:
+        except Exception as e:
+            logger.error(f"Error retrieving devices for user {user_id}: {e}")
             raise HTTPException(
-                status_code=503,
-                detail="Home Assistant integration not configured for this user"
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Failed to retrieve devices from Home Assistant: {str(e)}"
             )
+    
+    async def control_device(self, user_id: str, entity_id: str, action: str, 
+                           session_token: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """
+        Control a specific device with session validation.
+        
+        Args:
+            user_id: User ID
+            entity_id: Home Assistant entity ID
+            action: Action to perform (turn_on, turn_off, toggle, etc.)
+            session_token: Optional session token for validation
+            **kwargs: Additional parameters for the action
+            
+        Returns:
+            Action result dictionary
+        """
+        client = await self.get_or_create_connection(user_id, session_token)
         
         try:
-            entity = await client.get_entity(entity_id)
-            if entity:
-                logger.debug(f"Retrieved device {entity_id} for user {user_id}")
-            return entity
+            # Call service on the device
+            domain = entity_id.split(".")[0] if "." in entity_id else "homeassistant"
             
-        except HomeAssistantClientError as e:
-            logger.error(f"Failed to get device {entity_id} for user {user_id}: {e}")
-            raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
-
-    async def control_user_device(self, user_id: str, entity_id: str, action: str, **kwargs) -> Dict:
-        """Control a device for a specific user"""
-        client = await self.get_or_create_client(user_id)
-        if not client:
-            raise HTTPException(
-                status_code=503,
-                detail="Home Assistant integration not configured for this user"
+            result = await client.call_service(
+                domain=domain,
+                service=action,
+                entity_id=entity_id,
+                **kwargs
             )
-        
-        domain = entity_id.split(".")[0] if "." in entity_id else ""
-        
-        if domain not in ["light", "switch", "fan", "cover"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot control device of type '{domain}'"
-            )
-        
-        try:
-            service_name = f"turn_{action}" if action in ["on", "off"] else action
             
-            # Prepare service data
-            service_data = {"entity_id": entity_id}
-            service_data.update(kwargs)
-            
-            # Call the service
-            result = await client.call_service(domain, service_name, service_data)
-            
-            logger.info(f"Successfully controlled device {entity_id} for user {user_id}: {action}")
+            logger.info(f"User {user_id} controlled device {entity_id} with action {action}")
             return {
                 "success": True,
                 "entity_id": entity_id,
                 "action": action,
-                "timestamp": datetime.now(),
                 "result": result
             }
             
-        except HomeAssistantClientError as e:
-            logger.error(f"Failed to control device {entity_id} for user {user_id}: {e}")
-            raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
-
-    async def test_user_connection(self, user_id: str, config: Dict) -> Dict:
-        """Test Home Assistant connection for a user without saving"""
-        try:
-            # Prepare client arguments
-            client_kwargs = {
-                "base_url": config["url"],
-                "access_token": config["access_token"]
-            }
-            
-            # Add Cloudflare if configured
-            if (config.get("cloudflare_enabled") and 
-                config.get("cloudflare_client_id") and 
-                config.get("cloudflare_client_secret")):
-                client_kwargs.update({
-                    "cloudflare_client_id": config["cloudflare_client_id"],
-                    "cloudflare_client_secret": config["cloudflare_client_secret"]
-                })
-            
-            # Create temporary client
-            test_client = HomeAssistantClient(**client_kwargs)
-            
-            try:
-                async with test_client:
-                    # Perform health check
-                    health = await test_client.health_check()
-                    
-                    # Get basic info
-                    entities = await test_client.get_entities()
-                    device_count = len([e for e in entities if e.get("entity_id", "").split(".")[0] in 
-                                      ["light", "switch", "sensor", "fan", "cover", "climate"]])
-                    
-                    # Try to get version info
-                    try:
-                        ha_info = await test_client.get_ha_info()
-                        version = ha_info.get("version", "Unknown")
-                    except:
-                        version = "Unknown"
-                    
-                    success = health.get("rest_api", False)
-                    
-                    return {
-                        "success": success,
-                        "url": config["url"],
-                        "status": "Connected" if success else "Failed",
-                        "message": "Connection successful" if success else "Connection failed",
-                        "home_assistant_version": version if success else None,
-                        "device_count": device_count if success else None,
-                        "websocket_supported": health.get("websocket", False),
-                        "rest_api_working": health.get("rest_api", False),
-                        "cloudflare_working": config.get("cloudflare_enabled", False) and success,
-                        "test_timestamp": datetime.now()
-                    }
-                    
-            finally:
-                await test_client.close()
-                
         except Exception as e:
-            logger.error(f"Connection test failed for user {user_id}: {e}")
-            return {
-                "success": False,
-                "url": config["url"],
-                "status": "Error",
-                "message": f"Connection test failed: {str(e)}",
-                "home_assistant_version": None,
-                "device_count": None,
-                "websocket_supported": False,
-                "rest_api_working": False,
-                "cloudflare_working": False,
-                "test_timestamp": datetime.now(),
-                "error_details": str(e)
-            }
+            logger.error(f"Error controlling device {entity_id} for user {user_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Failed to control device: {str(e)}"
+            )
 
     async def get_user_integration_status(self, user_id: str) -> Dict:
         """Get integration status for a specific user"""
         cache_key = f"{user_id}:default"
         
         # Check if user has a client
-        if cache_key not in self.user_clients:
+        if cache_key not in self._connections:
             config = await self.get_user_config(user_id)
             if not config:
                 return {
@@ -390,7 +425,7 @@ class UserHomeAssistantService:
                 }
         
         try:
-            client = await self.get_or_create_client(user_id)
+            client = await self.get_or_create_connection(user_id)
             if not client:
                 return {
                     "enabled": False,
@@ -406,7 +441,7 @@ class UserHomeAssistantService:
             
             # Get health status
             health = await client.health_check()
-            config = self.user_configs.get(cache_key, {})
+            config = self._connection_health.get(user_id, {})
             
             return {
                 "enabled": True,
@@ -416,7 +451,7 @@ class UserHomeAssistantService:
                 "websocket": health.get("websocket", False),
                 "cached_entities": len(self.user_device_cache.get(cache_key, {})),
                 "subscribed_devices": len(self.user_device_subscriptions.get(cache_key, set())),
-                "home_assistant_url": config.get("home_assistant_url"),
+                "home_assistant_url": config.get("ha_url"),
                 "message": "User-specific Home Assistant integration active"
             }
             
@@ -458,6 +493,6 @@ async def shutdown_user_home_assistant_service():
     """Cleanup the user Home Assistant service on shutdown"""
     global _user_ha_service
     if _user_ha_service:
-        await _user_ha_service.cleanup_all_clients()
+        await _user_ha_service.cleanup_expired_connections()
         _user_ha_service = None
     logger.info("User Home Assistant service shut down") 
