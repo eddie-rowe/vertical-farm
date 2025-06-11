@@ -134,27 +134,17 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
     try {
       setLoading(true);
 
-      // Convert empty strings to undefined/null for numeric fields
-      const cleanedData: CreateGrowRecipeInput = {
-        ...data,
-        grow_days: data.grow_days === '' ? undefined : Number(data.grow_days),
+      // Convert and map data to match service interface
+      const cleanedData = {
+        name: data.name,
+        species_id: data.species_id,
+        growth_stage: 'vegetative', // Default stage for the required field
+        duration_days: data.total_grow_days || data.grow_days || 14, // Map to required duration_days
         light_hours_per_day: data.light_hours_per_day === '' ? undefined : Number(data.light_hours_per_day),
-        watering_frequency_hours: data.watering_frequency_hours === '' ? undefined : Number(data.watering_frequency_hours),
-        target_temperature_min: data.target_temperature_min === '' ? undefined : Number(data.target_temperature_min),
-        target_temperature_max: data.target_temperature_max === '' ? undefined : Number(data.target_temperature_max),
-        target_humidity_min: data.target_humidity_min === '' ? undefined : Number(data.target_humidity_min),
-        target_humidity_max: data.target_humidity_max === '' ? undefined : Number(data.target_humidity_max),
-        target_ph_min: data.target_ph_min === '' ? undefined : Number(data.target_ph_min),
-        target_ph_max: data.target_ph_max === '' ? undefined : Number(data.target_ph_max),
-        target_ec_min: data.target_ec_min === '' ? undefined : Number(data.target_ec_min),
-        target_ec_max: data.target_ec_max === '' ? undefined : Number(data.target_ec_max),
-        average_yield: data.average_yield === '' ? undefined : Number(data.average_yield),
-        sowing_rate: data.sowing_rate === '' ? undefined : Number(data.sowing_rate),
-        germination_days: data.germination_days === '' ? undefined : Number(data.germination_days),
-        light_days: data.light_days === '' ? undefined : Number(data.light_days),
-        total_grow_days: data.total_grow_days === '' ? undefined : Number(data.total_grow_days),
-        water_intake: data.water_intake === '' ? undefined : Number(data.water_intake),
-        fridge_storage_temp: data.fridge_storage_temp === '' ? undefined : Number(data.fridge_storage_temp),
+        water_frequency_hours: data.watering_frequency_hours === '' ? undefined : Number(data.watering_frequency_hours),
+        nutrient_concentration: undefined, // Not captured in current form
+        ph_target: data.target_ph_min === '' ? undefined : Number(data.target_ph_min),
+        ec_target: data.target_ec_min === '' ? undefined : Number(data.target_ec_min),
       };
 
       if (recipe) {

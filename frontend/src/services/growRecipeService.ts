@@ -1,40 +1,132 @@
 'use client';
 import { supabase } from '../supabaseClient';
-import apiClient from '../lib/apiClient';
 import {
-  GrowRecipe,
   Species,
-  CreateGrowRecipeInput,
-  UpdateGrowRecipeInput,
-  CreateSpeciesInput,
-  UpdateSpeciesInput,
-  GrowRecipeFilters,
   PaginatedGrowRecipes
 } from '../types/grow-recipes';
+import { UUID } from '@/types/farm-layout';
 
-// Species Service Functions
+// =====================================================
+// TYPES
+// =====================================================
+
+export interface CreateSpeciesData {
+  name: string;
+  scientific_name?: string;
+  description?: string;
+  optimal_temp_min?: number;
+  optimal_temp_max?: number;
+  optimal_humidity_min?: number;
+  optimal_humidity_max?: number;
+  growth_cycle_days?: number;
+}
+
+export interface GrowRecipe {
+  id: UUID;
+  name: string;
+  description?: string;
+  species_id: UUID;
+  growth_stage: string;
+  duration_days: number;
+  light_hours_per_day?: number;
+  water_frequency_hours?: number;
+  nutrient_concentration?: number;
+  ph_target?: number;
+  ec_target?: number;
+  created_at?: string;
+  updated_at?: string;
+  species?: Species;
+}
+
+export interface CreateGrowRecipeData {
+  name: string;
+  description?: string;
+  species_id: UUID;
+  growth_stage: string;
+  duration_days: number;
+  light_hours_per_day?: number;
+  water_frequency_hours?: number;
+  nutrient_concentration?: number;
+  ph_target?: number;
+  ec_target?: number;
+}
+
+export interface UpdateGrowRecipeData {
+  name?: string;
+  description?: string;
+  species_id?: UUID;
+  growth_stage?: string;
+  duration_days?: number;
+  light_hours_per_day?: number;
+  water_frequency_hours?: number;
+  nutrient_concentration?: number;
+  ph_target?: number;
+  ec_target?: number;
+}
+
+// =====================================================
+// AUTHENTICATION HELPER
+// =====================================================
+
+const requireAuth = async () => {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!user) throw new Error('User not authenticated');
+  return user;
+};
+
+// =====================================================
+// SPECIES OPERATIONS
+// =====================================================
 
 /**
- * Fetches all species.
- * Uses Supabase direct query for simple read operations.
+ * Create a new species
+ * Replaces: POST /api/v1/species/
+ */
+export const createSpecies = async (speciesData: CreateSpeciesData): Promise<Species> => {
+  await requireAuth();
+  
+  const { data, error } = await supabase
+    .from('species')
+    .insert([speciesData])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating species:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+/**
+ * Get all species
+ * Replaces: GET /api/v1/species/
  */
 export const getSpecies = async (): Promise<Species[]> => {
+  await requireAuth();
+  
   const { data, error } = await supabase
     .from('species')
     .select('*')
-    .order('name');
+    .order('name', { ascending: true });
   
   if (error) {
     console.error('Error fetching species:', error);
     throw error;
   }
+  
   return data || [];
 };
 
 /**
- * Fetches a single species by ID.
+ * Get a single species by ID
+ * Replaces: GET /api/v1/species/{id}
  */
-export const getSpeciesById = async (id: string): Promise<Species | null> => {
+export const getSpeciesById = async (id: UUID): Promise<Species> => {
+  await requireAuth();
+  
   const { data, error } = await supabase
     .from('species')
     .select('*')
@@ -45,223 +137,276 @@ export const getSpeciesById = async (id: string): Promise<Species | null> => {
     console.error(`Error fetching species ${id}:`, error);
     throw error;
   }
+  
   return data;
 };
 
 /**
- * Creates a new species.
+ * Delete a species
+ * Replaces: DELETE /api/v1/species/{id}
  */
-export const createSpecies = async (speciesData: CreateSpeciesInput): Promise<Species | null> => {
-  try {
-    return await apiClient<Species>(`/api/v1/species/`, {
-      method: 'POST',
-      body: JSON.stringify(speciesData),
-    });
-  } catch (error) {
-    console.error('Error creating species:', error);
-    throw error;
-  }
-};
-
-/**
- * Updates an existing species.
- */
-export const updateSpecies = async (id: string, speciesData: Partial<CreateSpeciesInput>): Promise<Species | null> => {
-  try {
-    return await apiClient<Species>(`/api/v1/species/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(speciesData),
-    });
-  } catch (error) {
-    console.error(`Error updating species ${id}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Deletes a species by ID.
- */
-export const deleteSpecies = async (id: string): Promise<void> => {
-  try {
-    await apiClient<void>(`/api/v1/species/${id}`, {
-      method: 'DELETE',
-    });
-  } catch (error) {
+export const deleteSpecies = async (id: UUID): Promise<void> => {
+  await requireAuth();
+  
+  const { error } = await supabase
+    .from('species')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
     console.error(`Error deleting species ${id}:`, error);
     throw error;
   }
 };
 
-// Grow Recipe Service Functions
+// =====================================================
+// GROW RECIPE OPERATIONS
+// =====================================================
 
 /**
- * Fetches all grow recipes with optional filtering.
- * Uses Supabase with joins to include species data.
+ * Get grow recipes with pagination and filtering
+ * Replaces: GET /api/v1/grow-recipes/
  */
-export const getGrowRecipes = async (filters?: GrowRecipeFilters): Promise<GrowRecipe[]> => {
+export const getGrowRecipes = async (
+  page: number = 1,
+  size: number = 10,
+  species?: string,
+  growth_stage?: string
+): Promise<PaginatedGrowRecipes> => {
+  await requireAuth();
+  
   let query = supabase
     .from('grow_recipes')
     .select(`
       *,
-      species (
-        id,
-        name,
-        description
-      )
-    `)
-    .order('name');
-
-  // Apply filters if provided
-  if (filters) {
-    if (filters.species_id) {
-      query = query.eq('species_id', filters.species_id);
-    }
-    if (filters.difficulty) {
-      query = query.eq('difficulty', filters.difficulty);
-    }
-    if (filters.pythium_risk) {
-      query = query.eq('pythium_risk', filters.pythium_risk);
-    }
-    if (filters.min_grow_days) {
-      query = query.gte('total_grow_days', filters.min_grow_days);
-    }
-    if (filters.max_grow_days) {
-      query = query.lte('total_grow_days', filters.max_grow_days);
-    }
-    if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,species.name.ilike.%${filters.search}%`);
-    }
+      species:species_id(*)
+    `, { count: 'exact' });
+  
+  // Apply filters
+  if (species) {
+    query = query.ilike('species.name', `%${species}%`);
   }
-
-  const { data, error } = await query;
+  
+  if (growth_stage) {
+    query = query.eq('growth_stage', growth_stage);
+  }
+  
+  // Apply pagination
+  const offset = (page - 1) * size;
+  query = query.range(offset, offset + size - 1);
+  
+  // Order by name
+  query = query.order('name', { ascending: true });
+  
+  const { data, error, count } = await query;
   
   if (error) {
     console.error('Error fetching grow recipes:', error);
     throw error;
   }
-  return data || [];
+  
+  const total = count || 0;
+  const pages = Math.ceil(total / size);
+  
+  return {
+    recipes: data || [],
+    total,
+    page,
+    limit: size,
+    has_next: page < pages,
+    has_prev: page > 1
+  };
 };
 
 /**
- * Fetches paginated grow recipes with optional filtering.
+ * Create a new grow recipe
+ * Replaces: POST /api/v1/grow-recipes/
  */
-export const getGrowRecipesPaginated = async (
-  page: number = 1,
-  limit: number = 20,
-  filters?: GrowRecipeFilters
-): Promise<PaginatedGrowRecipes> => {
-  try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...(filters && Object.fromEntries(
-        Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== '')
-      ))
-    });
-
-    return await apiClient<PaginatedGrowRecipes>(`/api/v1/grow-recipes/?${params}`, {
-      method: 'GET',
-    });
-  } catch (error) {
-    console.error('Error fetching paginated grow recipes:', error);
-    throw error;
-  }
-};
-
-/**
- * Fetches a single grow recipe by ID.
- */
-export const getGrowRecipeById = async (id: string): Promise<GrowRecipe | null> => {
+export const createGrowRecipe = async (recipeData: CreateGrowRecipeData): Promise<GrowRecipe> => {
+  await requireAuth();
+  
   const { data, error } = await supabase
     .from('grow_recipes')
+    .insert([recipeData])
     .select(`
       *,
-      species (
-        id,
-        name,
-        description
-      )
+      species:species_id(*)
     `)
-    .eq('id', id)
     .single();
   
   if (error) {
-    console.error(`Error fetching grow recipe ${id}:`, error);
+    console.error('Error creating grow recipe:', error);
     throw error;
   }
+  
   return data;
 };
 
 /**
- * Creates a new grow recipe.
+ * Update an existing grow recipe
+ * Replaces: PUT /api/v1/grow-recipes/{id}
  */
-export const createGrowRecipe = async (recipeData: CreateGrowRecipeInput): Promise<GrowRecipe | null> => {
-  try {
-    return await apiClient<GrowRecipe>(`/api/v1/grow-recipes/`, {
-      method: 'POST',
-      body: JSON.stringify(recipeData),
-    });
-  } catch (error) {
-    console.error('Error creating grow recipe:', error);
-    throw error;
-  }
-};
-
-/**
- * Updates an existing grow recipe.
- */
-export const updateGrowRecipe = async (id: string, recipeData: Partial<CreateGrowRecipeInput>): Promise<GrowRecipe | null> => {
-  try {
-    return await apiClient<GrowRecipe>(`/api/v1/grow-recipes/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(recipeData),
-    });
-  } catch (error) {
+export const updateGrowRecipe = async (id: UUID, recipeData: UpdateGrowRecipeData): Promise<GrowRecipe> => {
+  await requireAuth();
+  
+  const { data, error } = await supabase
+    .from('grow_recipes')
+    .update(recipeData)
+    .eq('id', id)
+    .select(`
+      *,
+      species:species_id(*)
+    `)
+    .single();
+  
+  if (error) {
     console.error(`Error updating grow recipe ${id}:`, error);
     throw error;
   }
+  
+  return data;
 };
 
 /**
- * Deletes a grow recipe by ID.
+ * Delete a grow recipe
+ * Replaces: DELETE /api/v1/grow-recipes/{id}
  */
-export const deleteGrowRecipe = async (id: string): Promise<void> => {
-  try {
-    await apiClient<void>(`/api/v1/grow-recipes/${id}`, {
-      method: 'DELETE',
-    });
-  } catch (error) {
+export const deleteGrowRecipe = async (id: UUID): Promise<void> => {
+  await requireAuth();
+  
+  const { error } = await supabase
+    .from('grow_recipes')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
     console.error(`Error deleting grow recipe ${id}:`, error);
     throw error;
   }
 };
 
 /**
- * Duplicates an existing grow recipe with a new name.
+ * Duplicate a grow recipe
+ * Replaces: POST /api/v1/grow-recipes/{id}/duplicate
  */
-export const duplicateGrowRecipe = async (id: string, newName: string): Promise<GrowRecipe | null> => {
-  try {
-    return await apiClient<GrowRecipe>(`/api/v1/grow-recipes/${id}/duplicate`, {
-      method: 'POST',
-      body: JSON.stringify({ name: newName }),
-    });
-  } catch (error) {
+export const duplicateGrowRecipe = async (id: UUID): Promise<GrowRecipe> => {
+  await requireAuth();
+  
+  // First, get the original recipe
+  const { data: original, error: fetchError } = await supabase
+    .from('grow_recipes')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (fetchError) {
+    console.error(`Error fetching original recipe ${id}:`, fetchError);
+    throw fetchError;
+  }
+  
+  // Create a copy with modified name
+  const { id: _originalId, created_at: _createdAt, updated_at: _updatedAt, ...recipeData } = original;
+  const duplicatedData = {
+    ...recipeData,
+    name: `${original.name} (Copy)`
+  };
+  
+  const { data, error } = await supabase
+    .from('grow_recipes')
+    .insert([duplicatedData])
+    .select(`
+      *,
+      species:species_id(*)
+    `)
+    .single();
+  
+  if (error) {
     console.error(`Error duplicating grow recipe ${id}:`, error);
     throw error;
   }
+  
+  return data;
 };
 
 /**
- * Fetches grow recipes suitable for a specific shelf/growing environment.
- * This could include compatibility checks based on environmental constraints.
+ * Get compatible grow recipes for a shelf
+ * Replaces: GET /api/v1/grow-recipes/compatible/{shelf_id}
+ * 
+ * For now, returns all recipes. In the future, this could be enhanced
+ * with shelf-specific compatibility logic.
  */
-export const getCompatibleGrowRecipes = async (shelfId: string): Promise<GrowRecipe[]> => {
-  try {
-    return await apiClient<GrowRecipe[]>(`/api/v1/grow-recipes/compatible/${shelfId}`, {
-      method: 'GET',
-    });
-  } catch (error) {
-    console.error(`Error fetching compatible grow recipes for shelf ${shelfId}:`, error);
+export const getCompatibleGrowRecipes = async (shelfId: UUID): Promise<GrowRecipe[]> => {
+  await requireAuth();
+  
+  // For now, just return all recipes
+  // In the future, this could include compatibility logic based on:
+  // - Shelf dimensions vs recipe space requirements
+  // - Environmental capabilities of the shelf location
+  // - Equipment availability (lights, pumps, sensors)
+  
+  const { data, error } = await supabase
+    .from('grow_recipes')
+    .select(`
+      *,
+      species:species_id(*)
+    `)
+    .order('name', { ascending: true });
+  
+  if (error) {
+    console.error(`Error fetching compatible recipes for shelf ${shelfId}:`, error);
     throw error;
   }
-}; 
+  
+  return data || [];
+};
+
+// =====================================================
+// UTILITY FUNCTIONS
+// =====================================================
+
+/**
+ * Get growth stages (static list for now)
+ */
+export const getGrowthStages = (): string[] => {
+  return [
+    'seedling',
+    'vegetative',
+    'flowering',
+    'fruiting',
+    'harvest'
+  ];
+};
+
+/**
+ * Get recipe statistics
+ */
+export const getRecipeStatistics = async () => {
+  await requireAuth();
+  
+  const { data: recipeCount, error: recipeError } = await supabase
+    .from('grow_recipes')
+    .select('*', { count: 'exact', head: true });
+  
+  const { data: speciesCount, error: speciesError } = await supabase
+    .from('species')
+    .select('*', { count: 'exact', head: true });
+  
+  if (recipeError || speciesError) {
+    console.error('Error fetching recipe statistics:', recipeError || speciesError);
+    throw recipeError || speciesError;
+  }
+  
+  return {
+    total_recipes: recipeCount || 0,
+    total_species: speciesCount || 0
+  };
+};
+
+// =====================================================
+// BACKWARDS COMPATIBILITY
+// =====================================================
+
+// Export aliases for any existing code that might use different names
+export { getSpecies as getAllSpecies };
+export { createGrowRecipe as addGrowRecipe };
+export { deleteGrowRecipe as removeGrowRecipe }; 

@@ -128,6 +128,7 @@ class HomeAssistantStatusResponse(BaseModel):
     enabled: bool = Field(..., description="Whether Home Assistant integration is enabled")
     initialized: bool = Field(..., description="Whether the service is initialized")
     healthy: bool = Field(..., description="Overall health status")
+    connected: bool = Field(default=False, description="Whether connected to Home Assistant (frontend compatibility)")
     rest_api: bool = Field(default=False, description="REST API connection status")
     websocket: bool = Field(default=False, description="WebSocket connection status")
     cached_entities: int = Field(default=0, description="Number of cached entities")

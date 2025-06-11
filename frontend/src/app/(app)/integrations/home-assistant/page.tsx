@@ -25,46 +25,41 @@ import {
   HAConnectionStatus, 
   DeviceAssignment 
 } from '@/services/homeAssistantService';
-import { useRealtimeTable } from '@/hooks/useRealtimeTable';
+// TODO: Re-enable real-time features once properly configured
+// import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { useRealtime } from '@/context/RealtimeContext';
 
 export default function HomeAssistantPage() {
   // Real-time connection status
   const { isConnected: realtimeConnected, connectionStatus } = useRealtime();
 
-  // Use real-time subscriptions for HA configs
-  const {
-    data: allConfigs,
-    loading: configsLoading,
-    refetch: refetchConfigs,
-    optimisticUpdate: updateConfigOptimistically,
-    optimisticDelete: deleteConfigOptimistically
-  } = useRealtimeTable('user_home_assistant_configs', {
-    showToasts: true,
-    toastMessages: {
-      insert: 'HA configuration added!',
-      update: 'HA configuration updated!',
-      delete: 'HA configuration removed!'
-    },
-    onUpdate: (record) => {
-      // Auto-test connection when config is updated
-      if (record.enabled && record.url && record.token) {
-        handleTestConnection();
-      }
-    }
-  });
+  // TODO: Re-enable real-time features once properly configured
+  // For now, using manual API calls to avoid continuous retry errors
+  const [allConfigs, setAllConfigs] = useState<any[]>([]);
+  const [configsLoading, setConfigsLoading] = useState(false);
+  const [deviceConfigs, setDeviceConfigs] = useState<any[]>([]);
+  const [deviceConfigsLoading, setDeviceConfigsLoading] = useState(false);
 
-  // Use real-time subscriptions for device configs
-  const {
-    data: deviceConfigs,
-    loading: deviceConfigsLoading,
-    optimisticUpdate: updateDeviceOptimistically
-  } = useRealtimeTable('user_device_configs', {
-    showToasts: false, // Handle toasts manually for device updates
-    onUpdate: (record) => {
-      console.log('Device config updated:', record);
-    }
-  });
+  /* 
+   * REAL-TIME STRATEGY:
+   * 
+   * ✅ SHOULD use real-time:
+   * - device_states: Live device status (on/off, brightness, etc.)
+   * - sensor_readings: Live temperature, humidity, pH readings  
+   * - device_commands: Immediate feedback for user controls
+   * - system_alerts: Critical notifications and alarms
+   * 
+   * ❌ DON'T need real-time:
+   * - user_home_assistant_configs: User settings (changed rarely)
+   * - device_assignments: Static device-to-location mappings
+   * - user_profiles: User account information
+   * - discovery_results: One-time device discovery results
+   * 
+   * 🔄 HYBRID approach:
+   * - Use manual API calls for configuration data
+   * - Use real-time only for live operational data
+   * - Implement proper fallbacks when real-time fails
+   */
 
   // Connection state
   const [config, setConfig] = useState<HAConfig>({ url: '', token: '', enabled: false });
@@ -74,6 +69,10 @@ export default function HomeAssistantPage() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // Edit configuration state
+  const [editingConfig, setEditingConfig] = useState<any | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Device state - separated into discovered and imported
   const [discoveredDevices, setDiscoveredDevices] = useState<HADevice[]>([]);
@@ -95,8 +94,7 @@ export default function HomeAssistantPage() {
     farm_id: 'farm_1',
     row_id: '',
     rack_id: '',
-    shelf_id: '',
-    device_role: 'lighting' as 'lighting' | 'irrigation' | 'ventilation' | 'monitoring'
+    shelf_id: ''
   });
 
   const loadStatus = useCallback(async () => {
@@ -133,12 +131,31 @@ export default function HomeAssistantPage() {
     }
   }, []);
 
+  // Load all configurations manually
+  const loadAllConfigs = useCallback(async () => {
+    setConfigsLoading(true);
+    try {
+      const configs = await homeAssistantService.getAllConfigs();
+      setAllConfigs(configs || []);
+    } catch (error) {
+      console.error('Error loading configurations:', error);
+      setAllConfigs([]);
+    } finally {
+      setConfigsLoading(false);
+    }
+  }, []);
+
+  // Manual functions to replace real-time optimistic updates
+  const refetchConfigs = useCallback(() => {
+    loadAllConfigs();
+  }, [loadAllConfigs]);
+
   useEffect(() => {
     loadConfig();
     loadStatus();
     loadAssignments();
-    // Real-time configs are loaded automatically via useRealtimeTable
-  }, [loadConfig, loadStatus, loadAssignments]);
+    loadAllConfigs();
+  }, [loadConfig, loadStatus, loadAssignments, loadAllConfigs]);
 
   const handleSaveConfiguration = async () => {
     if (!config.url || !config.token) return;
@@ -232,11 +249,12 @@ export default function HomeAssistantPage() {
     try {
       const assignment: DeviceAssignment = {
         entity_id: selectedDevice.entity_id,
+        entity_type: selectedDevice.domain || 'unknown', // Use the domain from Home Assistant
+        friendly_name: selectedDevice.friendly_name || selectedDevice.entity_id,
         farm_id: assignmentForm.farm_id,
         row_id: assignmentForm.row_id || undefined,
         rack_id: assignmentForm.rack_id || undefined,
         shelf_id: assignmentForm.shelf_id || undefined,
-        device_role: assignmentForm.device_role,
       };
 
       await homeAssistantService.saveAssignment(assignment);
@@ -247,8 +265,7 @@ export default function HomeAssistantPage() {
         farm_id: 'farm_1',
         row_id: '',
         rack_id: '',
-        shelf_id: '',
-        device_role: 'lighting'
+        shelf_id: ''
       });
     } catch (error) {
       console.error('Error assigning device:', error);
@@ -382,11 +399,15 @@ export default function HomeAssistantPage() {
     setSaveSuccess(null);
     
     try {
-      // Optimistic delete for immediate UI update
-      deleteConfigOptimistically(configId);
-      
       await homeAssistantService.deleteConfig(configId);
-      // Real-time subscription will handle the actual update
+      
+      // Refresh configurations after deletion
+      await Promise.all([
+        loadConfig(),
+        loadStatus(),
+        loadAssignments(),
+        loadAllConfigs()
+      ]);
       
       setSaveSuccess('Configuration deleted successfully!');
       setTimeout(() => setSaveSuccess(null), 3000);
@@ -394,6 +415,43 @@ export default function HomeAssistantPage() {
       setConnectionError(error instanceof Error ? error.message : 'Failed to delete configuration');
     } finally {
       setIsDeleting(null);
+    }
+  };
+
+  const handleEditConfiguration = (configItem: any) => {
+    setEditingConfig({
+      ...configItem,
+      token: '', // Don't populate token for security
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEditConfiguration = async () => {
+    if (!editingConfig) return;
+
+    setIsSaving(true);
+    setConnectionError(null);
+    setSaveSuccess(null);
+    
+    try {
+      await homeAssistantService.saveConfig(editingConfig);
+      
+      // Refresh configurations after saving
+      await Promise.all([
+        loadConfig(),
+        loadStatus(),
+        loadAssignments(),
+        loadAllConfigs()
+      ]);
+      
+      setSaveSuccess('Configuration updated successfully!');
+      setTimeout(() => setSaveSuccess(null), 3000);
+      setShowEditDialog(false);
+      setEditingConfig(null);
+    } catch (error) {
+      setConnectionError(error instanceof Error ? error.message : 'Failed to update configuration');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -422,11 +480,11 @@ export default function HomeAssistantPage() {
           {/* HA Connection Status */}
           {status.connected ? (
             <Badge className="bg-green-100 text-green-800">
-              <FaCheck className="mr-1" /> Connected
+              <FaCheck className="mr-1" /> Connection: connected
             </Badge>
           ) : (
             <Badge className="bg-gray-100 text-gray-800">
-              <FaExclamationTriangle className="mr-1" /> Not Connected
+              <FaExclamationTriangle className="mr-1" /> Connection: not connected
             </Badge>
           )}
         </div>
@@ -601,20 +659,9 @@ export default function HomeAssistantPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            // Load this configuration into the form
-                            setConfig({
-                              url: configItem.url,
-                              token: '', // Don't populate token for security
-                              enabled: configItem.enabled,
-                              cloudflare_client_id: configItem.cloudflare_client_id,
-                              cloudflare_client_secret: configItem.cloudflare_client_secret,
-                              name: configItem.name,
-                              local_url: configItem.local_url,
-                              id: configItem.id
-                            });
-                          }}
+                          onClick={() => handleEditConfiguration(configItem)}
                           disabled={isDeleting === configItem.id}
+                          title="Edit Configuration"
                         >
                           <FaCog className="h-4 w-4" />
                         </Button>
@@ -909,7 +956,7 @@ export default function HomeAssistantPage() {
                       <TableHead>Device</TableHead>
                       <TableHead>Entity ID</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead>Role</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>State</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -926,7 +973,7 @@ export default function HomeAssistantPage() {
                           <TableCell className="font-mono text-sm">{assignment.entity_id}</TableCell>
                           <TableCell>{getLocationString(assignment)}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{assignment.device_role}</Badge>
+                            <Badge variant="outline">{assignment.entity_type}</Badge>
                           </TableCell>
                           <TableCell>
                             {device && (
@@ -976,6 +1023,121 @@ export default function HomeAssistantPage() {
         </TabsContent>
       </Tabs>
 
+      {/* Edit Configuration Modal */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Configuration</DialogTitle>
+            <DialogDescription>
+              Update your Home Assistant connection settings
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingConfig && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Configuration Name</Label>
+                  <Input
+                    id="edit-name"
+                    placeholder="My Home Assistant"
+                    value={editingConfig.name || ''}
+                    onChange={(e) => setEditingConfig((prev: any) => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-url">Home Assistant URL</Label>
+                  <Input
+                    id="edit-url"
+                    placeholder="http://homeassistant.local:8123"
+                    value={editingConfig.url}
+                    onChange={(e) => setEditingConfig((prev: any) => ({ ...prev, url: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-token">Access Token</Label>
+                  <Input
+                    id="edit-token"
+                    type="password"
+                    placeholder="Enter new token to update"
+                    value={editingConfig.token || ''}
+                    onChange={(e) => setEditingConfig((prev: any) => ({ ...prev, token: e.target.value }))}
+                  />
+                  <p className="text-xs text-gray-500">Leave empty to keep existing token</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-local-url">Local URL (Optional)</Label>
+                  <Input
+                    id="edit-local-url"
+                    placeholder="http://192.168.1.100:8123"
+                    value={editingConfig.local_url || ''}
+                    onChange={(e) => setEditingConfig((prev: any) => ({ ...prev, local_url: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Cloudflare Settings */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm font-medium">Cloudflare Access (Optional)</Label>
+                  <Badge variant="secondary" className="text-xs">
+                    For Cloudflare-protected instances
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-cf-id">Service Client ID</Label>
+                    <Input
+                      id="edit-cf-id"
+                      placeholder="xxxxxxxx.access"
+                      value={editingConfig.cloudflare_client_id || ''}
+                      onChange={(e) => setEditingConfig((prev: any) => ({ 
+                        ...prev, 
+                        cloudflare_client_id: e.target.value || undefined 
+                      }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-cf-secret">Service Client Secret</Label>
+                    <Input
+                      id="edit-cf-secret"
+                      type="password"
+                      placeholder="Enter new secret to update"
+                      value={editingConfig.cloudflare_client_secret || ''}
+                      onChange={(e) => setEditingConfig((prev: any) => ({ 
+                        ...prev, 
+                        cloudflare_client_secret: e.target.value || undefined 
+                      }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowEditDialog(false);
+                    setEditingConfig(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveEditConfiguration}
+                  disabled={!editingConfig.url || isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Update Configuration'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Assignment Modal */}
       <Dialog open={assignmentModalOpen} onOpenChange={setAssignmentModalOpen}>
         <DialogContent>
@@ -987,24 +1149,11 @@ export default function HomeAssistantPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Device Role</Label>
-              <Select
-                value={assignmentForm.device_role}
-                onValueChange={(value: 'lighting' | 'irrigation' | 'ventilation' | 'monitoring') => 
-                  setAssignmentForm(prev => ({ ...prev, device_role: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lighting">Lighting</SelectItem>
-                  <SelectItem value="irrigation">Irrigation</SelectItem>
-                  <SelectItem value="ventilation">Ventilation</SelectItem>
-                  <SelectItem value="monitoring">Monitoring</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="bg-blue-50 p-3 rounded-lg mb-4">
+              <p className="text-sm text-blue-700">
+                <strong>Device Type:</strong> {selectedDevice?.domain || 'unknown'} 
+                <span className="text-blue-600 ml-2">({selectedDevice?.friendly_name})</span>
+              </p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">

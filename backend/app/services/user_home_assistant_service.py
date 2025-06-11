@@ -93,7 +93,7 @@ class UserHomeAssistantService:
             # Prepare config data - Supabase handles encryption at rest
             config_data = {
                 "user_id": user_id,
-                "ha_url": config.get("ha_url"),
+                "url": config.get("url"),  # Fixed: use "url" to match database schema
                 "access_token": config.get("access_token"),  # Securely stored by Supabase
                 "auth_type": config.get("auth_type", "bearer"),
                 "cloudflare_client_id": config.get("cloudflare_client_id"),
@@ -188,15 +188,14 @@ class UserHomeAssistantService:
         try:
             # Create new client with config
             client = HomeAssistantClient(
-                base_url=config["ha_url"],
-                auth_type=config.get("auth_type", "bearer"),
+                base_url=config["url"],  # Fixed: use "url" to match database schema
                 access_token=config.get("access_token"),
                 cloudflare_client_id=config.get("cloudflare_client_id"),
                 cloudflare_client_secret=config.get("cloudflare_client_secret")
             )
             
             # Test connection
-            await client.get_states()
+            await client.get_entities()
             
             # Store connection and mark as healthy
             self._connections[user_id] = client
@@ -329,8 +328,8 @@ class UserHomeAssistantService:
         client = await self.get_or_create_connection(user_id, session_token)
         
         try:
-            # Get all states and filter for relevant device types
-            states = await client.get_states()
+            # Get all entities and filter for relevant device types
+            states = await client.get_entities()
             
             # Filter for devices that can be controlled (switches, lights, etc.)
             relevant_domains = ["light", "switch", "fan", "valve", "cover"]
@@ -359,6 +358,50 @@ class UserHomeAssistantService:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"Failed to retrieve devices from Home Assistant: {str(e)}"
+            )
+    
+    async def get_user_device(self, user_id: str, entity_id: str, session_token: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific device/entity for a user with session validation.
+        
+        Args:
+            user_id: User ID
+            entity_id: Home Assistant entity ID
+            session_token: Optional session token for validation
+            
+        Returns:
+            Device/entity dictionary or None if not found
+        """
+        client = await self.get_or_create_connection(user_id, session_token)
+        
+        try:
+            # Get the specific entity state
+            state = await client.get_entity(entity_id)
+            
+            if not state:
+                return None
+            
+            # Convert to consistent format
+            domain = entity_id.split(".")[0] if "." in entity_id else ""
+            
+            device = {
+                "entity_id": entity_id,
+                "name": state.get("attributes", {}).get("friendly_name", entity_id),
+                "domain": domain,
+                "state": state.get("state"),
+                "attributes": state.get("attributes", {}),
+                "last_changed": state.get("last_changed"),
+                "last_updated": state.get("last_updated")
+            }
+            
+            logger.info(f"Retrieved device {entity_id} for user {user_id}")
+            return device
+            
+        except Exception as e:
+            logger.error(f"Error retrieving device {entity_id} for user {user_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Failed to retrieve device from Home Assistant: {str(e)}"
             )
     
     async def control_device(self, user_id: str, entity_id: str, action: str, 
@@ -390,10 +433,12 @@ class UserHomeAssistantService:
             )
             
             logger.info(f"User {user_id} controlled device {entity_id} with action {action}")
+            from datetime import datetime
             return {
                 "success": True,
                 "entity_id": entity_id,
                 "action": action,
+                "timestamp": datetime.utcnow().isoformat(),
                 "result": result
             }
             
@@ -416,6 +461,7 @@ class UserHomeAssistantService:
                     "enabled": False,
                     "initialized": False,
                     "healthy": False,
+                    "connected": False,
                     "rest_api": False,
                     "websocket": False,
                     "cached_entities": 0,
@@ -431,6 +477,7 @@ class UserHomeAssistantService:
                     "enabled": False,
                     "initialized": False,
                     "healthy": False,
+                    "connected": False,
                     "rest_api": False,
                     "websocket": False,
                     "cached_entities": 0,
@@ -447,11 +494,12 @@ class UserHomeAssistantService:
                 "enabled": True,
                 "initialized": True,
                 "healthy": health.get("rest_api", False),
+                "connected": health.get("rest_api", False),  # Add connected field for frontend compatibility
                 "rest_api": health.get("rest_api", False),
                 "websocket": health.get("websocket", False),
                 "cached_entities": len(self.user_device_cache.get(cache_key, {})),
                 "subscribed_devices": len(self.user_device_subscriptions.get(cache_key, set())),
-                "home_assistant_url": config.get("ha_url"),
+                "home_assistant_url": config.get("url"),  # Fixed: use "url" to match database schema
                 "message": "User-specific Home Assistant integration active"
             }
             
@@ -461,6 +509,7 @@ class UserHomeAssistantService:
                 "enabled": False,
                 "initialized": False,
                 "healthy": False,
+                "connected": False,
                 "rest_api": False,
                 "websocket": False,
                 "cached_entities": 0,

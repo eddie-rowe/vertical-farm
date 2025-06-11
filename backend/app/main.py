@@ -10,7 +10,7 @@ from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
 from app.core.security import get_validated_supabase_token_payload
 # Home Assistant service now uses user-specific configurations - no global imports needed
-from app.services.database_service import get_database_service
+# from app.services.database_service import get_database_service # Removed - no longer needed after PostGREST migration
 import logging
 
 # Set up logging
@@ -26,15 +26,9 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting application...")
     
-    # Initialize database service (with graceful degradation)
-    try:
-        db_service = await get_database_service()
-        app_state["database"] = db_service
-        logger.info("✅ Database service initialized successfully")
-    except Exception as e:
-        logger.warning(f"⚠️  Database service initialization failed: {e}")
-        logger.info("📝 Application will continue without database features")
-        app_state["database"] = None
+    # Database service no longer needed after PostGREST migration
+    # All database operations now go through Supabase PostGREST API
+    logger.info("✅ Database operations handled by Supabase PostGREST")
     
     # Home Assistant service is now user-specific - no global initialization needed
     app_state["home_assistant"] = True
@@ -50,13 +44,8 @@ async def lifespan(app: FastAPI):
     # Home Assistant service cleanup not needed (user-specific instances auto-cleanup)
     logger.info("✅ Home Assistant services cleaned up")
     
-    # Cleanup database connections
-    if app_state.get("database"):
-        try:
-            await app_state["database"].disconnect()
-            logger.info("✅ Database connections closed")
-        except Exception as e:
-            logger.error(f"❌ Error during database cleanup: {e}")
+    # No database connections to clean up - using PostGREST
+    logger.info("✅ No database connections to clean up (using PostGREST)")
     
     logger.info("👋 Application shutdown complete")
 
@@ -132,28 +121,12 @@ app.include_router(api_router_v1, prefix=settings.API_V1_STR)
 async def health_check():
     """Comprehensive health check endpoint with service status"""
     health_status = {
-        "status": "ok",
+        "status": "healthy",
         "services": {
-            "home_assistant": app_state.get("home_assistant", False)
+            "home_assistant": app_state.get("home_assistant", False),
+            "database": {"status": "supabase_postgrest", "note": "Database operations handled by Supabase PostGREST"}
         }
     }
-    
-    # Check database health
-    if app_state.get("database"):
-        try:
-            db_health = await app_state["database"].health_check()
-            health_status["services"]["database"] = db_health
-        except Exception as e:
-            health_status["services"]["database"] = {"status": "error", "error": str(e)}
-    else:
-        health_status["services"]["database"] = {"status": "unavailable", "error": "Database service not initialized"}
-    
-    # Determine overall status
-    all_healthy = all(
-        service.get("status") in ["healthy", True] if isinstance(service, dict) else service
-        for service in health_status["services"].values()
-    )
-    health_status["status"] = "healthy" if all_healthy else "degraded"
     
     return health_status
 

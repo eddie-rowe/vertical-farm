@@ -28,11 +28,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const response = await signIn({ email, password });
-
-      if (response && response.error) {
-        throw response.error;
-      }
+      await signIn(email, password);
       // On successful signIn, the AuthContext 'user' state will update.
       // The useEffect hook will then handle the redirection to '/dashboard'.
     } catch (err: unknown) {

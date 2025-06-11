@@ -13,12 +13,12 @@ import {
   DialogTitle,
   DialogTrigger 
 } from "@/components/ui/dialog";
-import { createFarm, CreateFarmData, FarmResponse } from "@/lib/apiClient";
+import { createFarm, CreateFarmData, Farm } from "@/services/supabaseService";
 import toast from 'react-hot-toast';
 import { Plus, Loader2 } from 'lucide-react';
 
 interface CreateFarmModalProps {
-  onFarmCreated: (farm: FarmResponse) => void;
+  onFarmCreated: (farm: Farm) => void;
   trigger?: React.ReactNode;
 }
 

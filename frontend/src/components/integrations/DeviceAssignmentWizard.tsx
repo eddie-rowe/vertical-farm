@@ -39,7 +39,6 @@ export default function DeviceAssignmentWizard({
   const [error, setError] = useState<string | null>(null);
   
   const [assignmentData, setAssignmentData] = useState({
-    device_role: existingAssignment?.device_role || 'lighting' as 'lighting' | 'irrigation' | 'ventilation' | 'monitoring',
     farm_id: existingAssignment?.farm_id || 'farm_1',
     row_id: existingAssignment?.row_id || '',
     rack_id: existingAssignment?.rack_id || '',
@@ -49,8 +48,7 @@ export default function DeviceAssignmentWizard({
   useEffect(() => {
     if (existingAssignment) {
       setAssignmentData({
-        device_role: existingAssignment.device_role,
-        farm_id: existingAssignment.farm_id,
+        farm_id: existingAssignment.farm_id || 'farm_1',
         row_id: existingAssignment.row_id || '',
         rack_id: existingAssignment.rack_id || '',
         shelf_id: existingAssignment.shelf_id || ''
@@ -68,19 +66,16 @@ export default function DeviceAssignmentWizard({
     }
   };
 
-  const getSuggestedRole = (deviceType: string): 'lighting' | 'irrigation' | 'ventilation' | 'monitoring' => {
-    switch (deviceType) {
-      case 'light': return 'lighting';
-      case 'fan': return 'ventilation';
-      case 'sensor': return 'monitoring';
-      case 'switch': return 'irrigation';
-      default: return 'lighting';
+  const getDeviceTypeLabel = (entityType: string): string => {
+    switch (entityType) {
+      case 'light': return 'Lighting';
+      case 'fan': return 'Ventilation';
+      case 'sensor': return 'Monitoring';
+      case 'switch': return 'Switch/Control';
+      case 'binary_sensor': return 'Sensor';
+      case 'climate': return 'Climate Control';
+      default: return entityType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
-  };
-
-  const handleRoleSelect = (role: 'lighting' | 'irrigation' | 'ventilation' | 'monitoring') => {
-    setAssignmentData(prev => ({ ...prev, device_role: role }));
-    setCurrentStep(2);
   };
 
   const handleLocationInput = (field: keyof LocationStep, value: string) => {
@@ -111,7 +106,7 @@ export default function DeviceAssignmentWizard({
       rack_id: suggestion.rack,
       shelf_id: suggestion.shelf
     }));
-    setCurrentStep(3);
+    setCurrentStep(2);
   };
 
   const handleAssign = async () => {
@@ -121,11 +116,12 @@ export default function DeviceAssignmentWizard({
     try {
       const assignment: DeviceAssignment = {
         entity_id: device.entity_id,
-        farm_id: assignmentData.farm_id,
+        entity_type: device.domain || 'unknown', // Use domain from device as entity_type
+        friendly_name: device.friendly_name || device.entity_id,
+        farm_id: assignmentData.farm_id || undefined,
         row_id: assignmentData.row_id || undefined,
         rack_id: assignmentData.rack_id || undefined,
         shelf_id: assignmentData.shelf_id || undefined,
-        device_role: assignmentData.device_role,
       };
 
       await homeAssistantService.saveAssignment(assignment);
@@ -147,66 +143,25 @@ export default function DeviceAssignmentWizard({
         return (
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Select Device Role</h3>
-              <p className="text-gray-600">What will this device be used for in your vertical farm?</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant={assignmentData.device_role === 'lighting' ? 'default' : 'outline'}
-                onClick={() => handleRoleSelect('lighting')}
-                className="h-16 flex-col space-y-1"
-              >
-                <FaLightbulb className="text-yellow-500" />
-                <span>Lighting</span>
-              </Button>
-              
-              <Button
-                variant={assignmentData.device_role === 'irrigation' ? 'default' : 'outline'}
-                onClick={() => handleRoleSelect('irrigation')}
-                className="h-16 flex-col space-y-1"
-              >
-                <FaPlug className="text-blue-500" />
-                <span>Irrigation</span>
-              </Button>
-              
-              <Button
-                variant={assignmentData.device_role === 'ventilation' ? 'default' : 'outline'}
-                onClick={() => handleRoleSelect('ventilation')}
-                className="h-16 flex-col space-y-1"
-              >
-                <FaFan className="text-green-500" />
-                <span>Ventilation</span>
-              </Button>
-              
-              <Button
-                variant={assignmentData.device_role === 'monitoring' ? 'default' : 'outline'}
-                onClick={() => handleRoleSelect('monitoring')}
-                className="h-16 flex-col space-y-1"
-              >
-                <FaThermometerHalf className="text-purple-500" />
-                <span>Monitoring</span>
-              </Button>
-            </div>
-
-            {device.domain && (
-              <Alert>
-                <FaMapMarkerAlt className="h-4 w-4" />
-                <AlertDescription>
-                  Suggested role based on device type: <strong>{getSuggestedRole(device.domain)}</strong>
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Choose Location</h3>
               <p className="text-gray-600">Where in your vertical farm will this device be located?</p>
             </div>
+
+            {/* Device Info */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-3">
+                  {getDeviceIcon(device.domain)}
+                  <div className="flex-1">
+                    <div className="font-medium">{device.friendly_name || device.entity_id}</div>
+                    <div className="text-sm text-gray-500">{device.entity_id}</div>
+                    <Badge variant="secondary" className="mt-1">
+                      {getDeviceTypeLabel(device.domain)}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Quick Assignment Options */}
             <div>
@@ -256,12 +211,9 @@ export default function DeviceAssignmentWizard({
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
-              <Button variant="outline" onClick={() => setCurrentStep(1)}>
-                Back
-              </Button>
+            <div className="flex justify-end pt-4">
               <Button 
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(2)}
                 disabled={!isLocationComplete}
               >
                 Next <FaArrowRight className="ml-2" />
@@ -270,7 +222,7 @@ export default function DeviceAssignmentWizard({
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -291,8 +243,8 @@ export default function DeviceAssignmentWizard({
 
                   <div className="border-t pt-4 space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Role:</span>
-                      <Badge className="capitalize">{assignmentData.device_role}</Badge>
+                      <span className="text-gray-600">Device Type:</span>
+                      <Badge className="capitalize">{getDeviceTypeLabel(device.domain)}</Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Location:</span>
@@ -314,16 +266,11 @@ export default function DeviceAssignmentWizard({
             )}
 
             <div className="flex justify-between pt-4">
-              <Button variant="outline" onClick={() => setCurrentStep(2)}>
+              <Button variant="outline" onClick={() => setCurrentStep(1)}>
                 Back
               </Button>
               <Button onClick={handleAssign} disabled={isAssigning}>
-                {isAssigning ? 'Assigning...' : (
-                  <>
-                    <FaCheck className="mr-2" />
-                    {existingAssignment ? 'Update Assignment' : 'Assign Device'}
-                  </>
-                )}
+                {isAssigning ? 'Assigning...' : 'Assign Device'}
               </Button>
             </div>
           </div>
@@ -339,7 +286,7 @@ export default function DeviceAssignmentWizard({
             {existingAssignment ? 'Update Device Assignment' : 'Assign Device to Farm'}
           </DialogTitle>
           <DialogDescription>
-            Step {currentStep} of 3
+            Step {currentStep} of 2
           </DialogDescription>
         </DialogHeader>
         

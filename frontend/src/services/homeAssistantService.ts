@@ -49,12 +49,22 @@ export interface DeviceControlRequest {
 }
 
 export interface DeviceAssignment {
-  entity_id: string;
-  farm_id: string;
-  row_id?: string;
-  rack_id?: string;
-  shelf_id?: string;
-  device_role: 'lighting' | 'irrigation' | 'ventilation' | 'monitoring';
+  id?: string;                    // UUID from database
+  entity_id: string;              // Home Assistant entity ID
+  entity_type: string;            // Device type from HA (light, switch, sensor, etc.)
+  friendly_name?: string;         // Human-readable name
+  shelf_id?: string;              // UUID if assigned to a shelf
+  rack_id?: string;               // UUID if assigned to a rack
+  row_id?: string;                // UUID if assigned to a row
+  farm_id?: string;               // UUID if assigned to a farm
+  assigned_by?: string;           // UUID of user who assigned the device
+  created_at?: string;            // ISO timestamp
+  updated_at?: string;            // ISO timestamp
+  // Additional fields from joined queries
+  farm_name?: string;             // Name of the farm (from JOIN)
+  row_name?: string;              // Name of the row (from JOIN)
+  rack_name?: string;             // Name of the rack (from JOIN)
+  shelf_name?: string;            // Name of the shelf (from JOIN)
 }
 
 export interface HomeAssistantEntity {
@@ -378,7 +388,10 @@ class HomeAssistantService {
       });
 
       await this.handleApiError(response, 'Discover devices');
-      return await response.json();
+      const result = await response.json();
+      
+      // Extract devices array from DeviceListResponse
+      return result.devices || [];
     } catch (error) {
       console.error('Failed to discover HA devices:', error);
       throw error;
@@ -391,7 +404,10 @@ class HomeAssistantService {
       const response = await fetch(`${this.baseUrl}/devices`, { headers });
 
       await this.handleApiError(response, 'Get devices');
-      return await response.json();
+      const result = await response.json();
+      
+      // Extract devices array from DeviceListResponse  
+      return result.devices || [];
     } catch (error) {
       console.error('Failed to get HA devices:', error);
       throw error;
@@ -404,7 +420,10 @@ class HomeAssistantService {
       const response = await fetch(`${this.baseUrl}/devices/${entityId}`, { headers });
 
       await this.handleApiError(response, 'Get device');
-      return await response.json();
+      const result = await response.json();
+      
+      // Extract device from DeviceDetailsResponse
+      return result.device || null;
     } catch (error) {
       console.error('Failed to get HA device:', error);
       throw error;
@@ -457,10 +476,11 @@ class HomeAssistantService {
   async getAssignments(): Promise<DeviceAssignment[]> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/assignments`, { headers });
+      const response = await fetch(`${this.baseUrl}/devices/assignments`, { headers });
 
       await this.handleApiError(response, 'Get assignments');
-      return await response.json();
+      const result = await response.json();
+      return result.assignments || []; // Backend returns {assignments: [...], count: N}
     } catch (error) {
       console.error('Failed to get device assignments:', error);
       throw error;
@@ -470,16 +490,29 @@ class HomeAssistantService {
   async saveAssignment(assignment: DeviceAssignment): Promise<DeviceAssignment> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/assignments`, {
+      
+      // Prepare the request body to match backend DeviceAssignmentRequest model
+      const requestBody = {
+        shelf_id: assignment.shelf_id || null,
+        rack_id: assignment.rack_id || null,
+        row_id: assignment.row_id || null,
+        farm_id: assignment.farm_id || null,
+        friendly_name: assignment.friendly_name || null,
+        assigned_by: assignment.assigned_by || null
+      };
+      
+      const response = await fetch(`${this.baseUrl}/devices/${assignment.entity_id}/assign`, {
         method: 'POST',
         headers,
-        body: JSON.stringify(assignment),
+        body: JSON.stringify(requestBody),
       });
 
       await this.handleApiError(response, 'Save assignment');
       const result = await response.json();
       toast.success('Device assignment saved successfully');
-      return result;
+      
+      // Backend returns { success: true, message: "...", assignment: {...} }
+      return result.assignment || result;
     } catch (error) {
       console.error('Failed to save device assignment:', error);
       throw error;
@@ -489,7 +522,7 @@ class HomeAssistantService {
   async removeAssignment(entityId: string): Promise<void> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/assignments/${entityId}`, {
+      const response = await fetch(`${this.baseUrl}/devices/${entityId}/assignment`, {
         method: 'DELETE',
         headers,
       });
