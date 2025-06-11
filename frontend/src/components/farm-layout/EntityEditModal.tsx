@@ -82,7 +82,10 @@ export default function EntityEditModal<TFormValues extends FieldValues>({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="entity-form-description">
+        <div id="entity-form-description" className="sr-only">
+          Form to edit {entityType} properties including name and configuration settings.
+        </div>
         <DialogHeader>
           <DialogTitle asChild>
             <div className={`flex items-center gap-3 p-2 rounded ${entityStyles[currentEntityType]}`}>

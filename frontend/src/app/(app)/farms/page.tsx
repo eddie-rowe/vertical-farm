@@ -1,27 +1,27 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext";
-import TopDownFarmView from '@/components/farm-config/TopDownFarmView';
-import RackDetailView from '@/components/farm-config/RackDetailView';
-import CreateFarmModal from '@/components/CreateFarmModal';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FarmPageData, UUID, Rack } from "@/types/farm-layout";
-import { getFarmDetails, getFarmsList, FarmBasicInfo, FarmResponse } from '@/lib/apiClient';
+import { Settings, Zap, Activity } from 'lucide-react';
+import CreateFarmModal from '@/components/CreateFarmModal';
+import LayoutConfigurationView from '@/components/farms/LayoutConfigurationView';
+import DevicesControlsView from '@/components/farms/DevicesControlsView';
+import EnvironmentMonitoringView from '@/components/farms/EnvironmentMonitoringView';
+import { FarmPageData, UUID, Farm } from "@/types/farm-layout";
+import { getFarms, getFarmById, Farm as SupabaseFarm } from '@/services/farmService';
 import toast from 'react-hot-toast';
 
 export default function FarmsPage() {
   const { user } = useAuth();
   
-  const [currentView, setCurrentView] = useState('top-down');
   const [editMode, setEditMode] = useState(false);
-  const [selectedRackId, setSelectedRackId] = useState<UUID | null>(null);
   const [farmPageData, setFarmPageData] = useState<FarmPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("layout");
 
-  const [availableFarms, setAvailableFarms] = useState<FarmBasicInfo[]>([]);
+  const [availableFarms, setAvailableFarms] = useState<Farm[]>([]);
   const [selectedFarmIdForDetails, setSelectedFarmIdForDetails] = useState<UUID | null>(null);
   const [isLoadingFarmsList, setIsLoadingFarmsList] = useState(true);
   const [farmsListError, setFarmsListError] = useState<string | null>(null);
@@ -31,12 +31,21 @@ export default function FarmsPage() {
       setIsLoadingFarmsList(true);
       setFarmsListError(null);
       try {
-        const response = await getFarmsList();
-        setAvailableFarms(response.farms);
-        if (response.farms.length > 0) {
-          setSelectedFarmIdForDetails(response.farms[0].id);
+        const response = await getFarms();
+        // Convert Supabase farms to layout farms by adding owner_id
+        const layoutFarms = response
+          .filter(farm => farm.id) // Filter out farms without ID
+          .map(farm => ({
+            ...farm,
+            id: farm.id!, // Non-null assertion since we filtered
+            owner_id: farm.id! // Use farm id as owner_id for compatibility
+          }));
+        setAvailableFarms(layoutFarms);
+        if (layoutFarms.length > 0) {
+          setSelectedFarmIdForDetails(layoutFarms[0].id!);
         } else {
-          toast.error("No farms available to display.");
+          // Don't show an error toast - this is normal for new users
+          console.log("No farms found for current user - this is normal for new users");
           setIsLoading(false);
         }
       } catch (err: unknown) {
@@ -63,8 +72,20 @@ export default function FarmsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getFarmDetails(selectedFarmIdForDetails);
-        setFarmPageData(data);
+        const farmData = await getFarmById(selectedFarmIdForDetails);
+        if (!farmData) {
+          throw new Error('Farm not found');
+        }
+        // Transform Supabase response to match expected FarmPageData structure
+        const transformedData: FarmPageData = {
+          farm: {
+            ...farmData,
+            id: farmData.id!,
+            owner_id: farmData.id!, // Use farm id as owner_id for compatibility
+            rows: [] // Empty for now, populate as needed
+          }
+        };
+        setFarmPageData(transformedData);
       } catch (err: unknown) {
         console.error("Failed to fetch farm data:", err);
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while fetching farm data.";
@@ -78,25 +99,22 @@ export default function FarmsPage() {
     fetchFarmData();
   }, [selectedFarmIdForDetails]);
 
-  const handleFarmCreated = (newFarm: FarmResponse) => {
-    // Add the new farm to the list
-    const newFarmBasicInfo: FarmBasicInfo = {
-      id: newFarm.id,
-      name: newFarm.name
+  const handleFarmCreated = (newFarm: SupabaseFarm) => {
+    // Transform Supabase farm to layout farm with owner_id
+    const layoutFarm = {
+      ...newFarm,
+      id: newFarm.id!,
+      owner_id: newFarm.id! // Use farm id as owner_id for compatibility
     };
     
-    setAvailableFarms(prev => [...prev, newFarmBasicInfo]);
+    // Add the new farm to the list
+    setAvailableFarms(prev => [...prev, layoutFarm]);
     
     // Select the newly created farm
-    setSelectedFarmIdForDetails(newFarm.id);
+    setSelectedFarmIdForDetails(newFarm.id!);
     
     // Clear any previous errors since we now have farms
     setFarmsListError(null);
-  };
-
-  const handleRackClick = (rackId: UUID) => {
-    setSelectedRackId(rackId);
-    setCurrentView('side-view');
   };
 
   const handleFarmPageDataChange = (newData: FarmPageData) => {
@@ -104,123 +122,102 @@ export default function FarmsPage() {
     console.log("Farm data updated in FarmsPage:", newData);
   };
 
-  const handleReturnToTopDownView = () => {
-    setCurrentView('top-down');
-    setSelectedRackId(null);
-  };
-
-  const handleRackDataChange = (updatedRack: Rack) => {
-    if (!farmPageData) return;
-
-    const newFarmPageData: FarmPageData = JSON.parse(JSON.stringify(farmPageData));
-    let rackFoundAndUpdated = false;
-
-    newFarmPageData.farm.rows = newFarmPageData.farm.rows?.map(row => {
-      if (row.racks) {
-        const rackIndex = row.racks.findIndex(r => r.id === updatedRack.id);
-        if (rackIndex !== -1) {
-          const newRacks = [...row.racks];
-          newRacks[rackIndex] = updatedRack;
-          rackFoundAndUpdated = true;
-          return { ...row, racks: newRacks };
-        }
-      }
-      return row;
-    });
-
-    if (rackFoundAndUpdated) {
-      setFarmPageData(newFarmPageData);
-      console.log("Specific rack data updated in FarmsPage:", newFarmPageData);
-    } else {
-      console.warn("handleRackDataChange: Rack not found, no update performed.");
-    }
-  };
-  
-  const getSelectedRack = (): Rack | null => {
-    if (!farmPageData || !selectedRackId) return null;
-    for (const row of farmPageData.farm.rows || []) {
-      const rack = row.racks?.find(r => r.id === selectedRackId);
-      if (rack) return rack;
-    }
-    return null;
-  };
-
   if (!user) {
     return <div className="flex items-center justify-center min-h-screen">Loading user data...</div>;
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 bg-gray-50 dark:bg-gray-950 flex flex-col items-center">
-      <div className="w-full max-w-7xl flex justify-between items-center mb-6 px-2">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Farm Configuration</h1>
-          {isLoadingFarmsList ? (
-            <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
-          ) : farmsListError ? (
-            <span className="text-sm text-red-500">{farmsListError}</span>
-          ) : availableFarms.length > 0 && selectedFarmIdForDetails ? (
-            <Select onValueChange={(value) => setSelectedFarmIdForDetails(value as UUID)} value={selectedFarmIdForDetails || undefined}>
-              <SelectTrigger className="w-[280px]">
-                <SelectValue placeholder="Select a farm" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableFarms.map(farm => (
-                  <SelectItem key={farm.id} value={farm.id}>
-                    {farm.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
-              <CreateFarmModal onFarmCreated={handleFarmCreated} />
-            </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-4">
-          <CreateFarmModal onFarmCreated={handleFarmCreated} />
-          <div className="flex items-center space-x-2">
-            <Switch id="edit-mode-toggle" checked={editMode} onCheckedChange={setEditMode} aria-label="Toggle Edit Mode"/>
-            <Label htmlFor="edit-mode-toggle" className="text-gray-700 dark:text-gray-200">Edit Mode</Label>
+    <div className="flex-1 p-8 animate-pop">
+      {/* Enhanced Header */}
+      <div className="mb-8 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-extrabold text-green-900 dark:text-green-100 drop-shadow-lg">
+              Farm Management
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mt-2">
+              Configure layouts, control devices, and monitor environmental conditions
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            {isLoadingFarmsList ? (
+              <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
+            ) : farmsListError ? (
+              <span className="text-sm text-red-500">{farmsListError}</span>
+            ) : availableFarms.length > 0 && selectedFarmIdForDetails ? (
+              <Select onValueChange={(value) => setSelectedFarmIdForDetails(value as UUID)} value={selectedFarmIdForDetails || undefined}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select a farm" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableFarms.map(farm => (
+                    <SelectItem key={farm.id} value={farm.id}>
+                      {farm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
+              </div>
+            )}
+            <CreateFarmModal onFarmCreated={handleFarmCreated} />
           </div>
         </div>
       </div>
-      
-      <div className="w-full max-w-7xl">
-        {currentView === 'top-down' && farmPageData ? (
-          <TopDownFarmView 
-            farmPageData={farmPageData}
-            editMode={editMode}
-            onRackClick={handleRackClick}
-            onFarmPageDataChange={handleFarmPageDataChange}
-          />
-        ) : currentView === 'side-view' && selectedRackId ? (
-          <RackDetailView
-            rackData={getSelectedRack()}
-            editMode={editMode}
-            onRackDataChange={handleRackDataChange}
-            onBack={handleReturnToTopDownView}
-          />
-        ) : isLoading ? (
-          <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
-        ) : error ? (
-          <div className="text-center py-10 text-red-600 dark:text-red-400">
-            <p>Error loading farm data: {error}</p>
-            <p>Please ensure the backend is running and the farm ID is correct.</p>
+
+      {/* Main Content */}
+      {availableFarms.length === 0 ? (
+        <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+          <div className="max-w-md mx-auto">
+            <h2 className="text-xl font-semibold mb-4">Welcome to Farm Management</h2>
+            <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
+            <CreateFarmModal onFarmCreated={handleFarmCreated} />
           </div>
-        ) : availableFarms.length === 0 ? (
-          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-xl font-semibold mb-4">Welcome to Farm Configuration</h2>
-              <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
-              <CreateFarmModal onFarmCreated={handleFarmCreated} />
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-10 text-gray-600 dark:text-gray-400">No farm data available or invalid view.</div>
-        )}
-      </div>
-    </main>
+        </div>
+      ) : isLoading ? (
+        <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
+      ) : error ? (
+        <div className="text-center py-10 text-red-600 dark:text-red-400">
+          <p>Error loading farm data: {error}</p>
+          <p>Please ensure the backend is running and the farm ID is correct.</p>
+        </div>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="layout" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Layout & Configuration
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Devices & Controls
+            </TabsTrigger>
+            <TabsTrigger value="environment" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Environment & Monitoring
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="layout" className="mt-6">
+            <LayoutConfigurationView 
+              farmPageData={farmPageData}
+              editMode={editMode}
+              setEditMode={setEditMode}
+              onFarmPageDataChange={handleFarmPageDataChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="devices" className="mt-6">
+            <DevicesControlsView farmPageData={farmPageData} />
+          </TabsContent>
+
+          <TabsContent value="environment" className="mt-6">
+            <EnvironmentMonitoringView farmPageData={farmPageData} />
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,5 @@
-'use client'; // Added 'use client' as this service now relies on apiClient which is client-side
+'use client';
 import { supabase } from '../supabaseClient';
-import apiClient from '../lib/apiClient'; // Adjusted path assuming services is sibling to lib
 
 // Define the type for Farm data based on your schema
 // Adjust this based on your actual farms table structure in database-schema.md
@@ -86,125 +85,67 @@ export const getFarmById = async (id: string): Promise<Farm | null> => {
 };
 
 /**
- * Creates a new farm by calling the backend API.
+ * Creates a new farm using Supabase directly.
  * @param farmData - The data for the new farm.
  */
 export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'updated_at' | 'manager_id'>): Promise<Farm | null> => {
-  try {
-    return await apiClient<Farm>(`/api/v1/farms/`, {
-      method: 'POST',
-      body: JSON.stringify(farmData),
-      // useAuth is true by default in apiClient
-    });
-  } catch (error) {
-    console.error('Error in createFarm service:', error);
-    throw error; // Re-throw the error from apiClient for the caller to handle
+  const { data, error } = await supabase
+    .from('farms')
+    .insert([farmData])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating farm via Supabase:', error);
+    throw error;
   }
+  
+  return data;
 };
 
 /**
- * Updates an existing farm by calling the backend API.
+ * Updates an existing farm using Supabase directly.
  * @param id - The ID of the farm to update.
  * @param farmData - The partial data to update the farm with.
  */
 export const updateFarm = async (id: string, farmData: Partial<Omit<Farm, 'id' | 'created_at' | 'manager_id'>>): Promise<Farm | null> => {
-  try {
-    const payload = { ...farmData };
-    if ('updated_at' in payload) {
-        delete (payload as Partial<Farm>).updated_at;
-    }
-    return await apiClient<Farm>(`/api/v1/farms/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    });
-  } catch (error) {
-    console.error(`Error in updateFarm service for id ${id}:`, error);
+  const payload = { ...farmData };
+  if ('updated_at' in payload) {
+    delete (payload as Partial<Farm>).updated_at;
+  }
+  
+  const { data, error } = await supabase
+    .from('farms')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error(`Error updating farm ${id} via Supabase:`, error);
     throw error;
   }
+  
+  return data;
 };
 
 /**
- * Deletes a farm by its ID by calling the backend API.
+ * Deletes a farm by its ID using Supabase directly.
  * @param id - The ID of the farm to delete.
  */
 export const deleteFarm = async (id: string): Promise<void> => {
-  try {
-    await apiClient<void>(`/api/v1/farms/${id}`, {
-      method: 'DELETE',
-    });
-  } catch (error) {
-    console.error(`Error in deleteFarm service for id ${id}:`, error);
+  const { error } = await supabase
+    .from('farms')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error(`Error deleting farm ${id} via Supabase:`, error);
     throw error;
   }
 };
 
 // --- Farm User Permission Management ---
-
-/**
- * Fetches all user permissions for a specific farm.
- * @param farmId - The ID of the farm.
- */
-export const getFarmUserPermissions = async (farmId: string): Promise<UserPermission[]> => {
-  try {
-    return await apiClient<UserPermission[]>(`/api/v1/user-permissions/${farmId}`, {
-      method: 'GET',
-    });
-  } catch (error) {
-    console.error(`Error in getFarmUserPermissions service for farm ${farmId}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Adds a user permission to a farm.
- * @param permissionData - The data for the new permission.
- */
-export const addUserPermissionToFarm = async (permissionData: UserPermissionCreatePayload): Promise<UserPermission | null> => {
-  try {
-    return await apiClient<UserPermission>(`/api/v1/user-permissions/`, {
-      method: 'POST',
-      body: JSON.stringify(permissionData),
-    });
-  } catch (error) {
-    console.error('Error in addUserPermissionToFarm service:', error);
-    throw error;
-  }
-};
-
-/**
- * Updates a user's permission on a farm.
- * @param farmId - The ID of the farm.
- * @param userId - The ID of the user whose permission is to be updated.
- * @param permissionUpdateData - The new permission level.
- */
-export const updateFarmUserPermission = async (
-  farmId: string, 
-  userId: string, 
-  permissionUpdateData: UserPermissionUpdatePayload
-): Promise<UserPermission | null> => {
-  try {
-    return await apiClient<UserPermission>(`/api/v1/user-permissions/${farmId}/user/${userId}`, {
-      method: 'PUT',
-      body: JSON.stringify(permissionUpdateData),
-    });
-  } catch (error) {
-    console.error(`Error in updateFarmUserPermission service for farm ${farmId}, user ${userId}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Removes a user's permission from a farm.
- * @param farmId - The ID of the farm.
- * @param userId - The ID of the user whose permission is to be removed.
- */
-export const removeUserPermissionFromFarm = async (farmId: string, userId: string): Promise<void> => {
-  try {
-    await apiClient<void>(`/api/v1/user-permissions/${farmId}/user/${userId}`, {
-      method: 'DELETE',
-    });
-  } catch (error) {
-    console.error(`Error in removeUserPermissionFromFarm service for farm ${farmId}, user ${userId}:`, error);
-    throw error;
-  }
-}; 
+// User permissions are now handled through Supabase RLS policies
+// and the main supabaseService.ts file. These FastAPI endpoints 
+// have been deprecated in favor of the Supabase PostGREST migration. 

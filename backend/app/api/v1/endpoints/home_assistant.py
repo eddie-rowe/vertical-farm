@@ -107,6 +107,70 @@ async def health_check(
 
 # Device Discovery Endpoints
 
+@router.post(
+    "/discover",
+    response_model=DeviceListResponse,
+    summary="Discover Home Assistant Devices",
+    description="Discover and retrieve all Home Assistant devices/entities for the current user"
+)
+async def discover_devices(
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
+) -> DeviceListResponse:
+    """Discover all available Home Assistant devices for the authenticated user"""
+    try:
+        user_id = str(current_user.id)
+        
+        # Get devices from Home Assistant
+        devices = await user_ha_service.get_user_devices(user_id)
+        
+        # Convert to Pydantic models
+        device_models = []
+        for device in devices:
+            try:
+                # Extract domain from entity_id
+                entity_id = device.get("entity_id", "")
+                domain = entity_id.split(".")[0] if "." in entity_id else "unknown"
+                
+                # Handle both service format (name) and HA format (friendly_name in attributes)
+                friendly_name = (device.get("name") or 
+                               device.get("attributes", {}).get("friendly_name") or 
+                               entity_id)
+                
+                device_model = HomeAssistantDevice(
+                    entity_id=entity_id,
+                    friendly_name=friendly_name,
+                    state=device.get("state", "unknown"),
+                    attributes=device.get("attributes", {}),
+                    last_changed=device.get("last_changed"),
+                    last_updated=device.get("last_updated"),
+                    domain=domain,
+                    device_class=device.get("attributes", {}).get("device_class"),
+                    unit_of_measurement=device.get("attributes", {}).get("unit_of_measurement")
+                )
+                device_models.append(device_model)
+            except Exception as e:
+                logger.warning(f"Failed to parse device {device.get('entity_id', 'unknown')} for user {user_id}: {e}")
+                continue
+        
+        logger.info(f"Discovered {len(device_models)} devices for user {user_id}")
+        
+        return DeviceListResponse(
+            devices=device_models,
+            total_count=len(device_models),
+            device_type=None
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to discover devices for user {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to discover devices"
+        )
+
+
 @router.get(
     "/devices",
     response_model=DeviceListResponse,
@@ -234,7 +298,7 @@ async def control_device(
     """Control a device (on/off/toggle) for the authenticated user"""
     try:
         user_id = str(current_user.id)
-        result = await user_ha_service.control_user_device(
+        result = await user_ha_service.control_device(
             user_id, 
             request.entity_id, 
             request.action
@@ -282,7 +346,7 @@ async def control_light(
         if request.rgb_color is not None:
             kwargs["rgb_color"] = request.rgb_color
         
-        result = await user_ha_service.control_user_device(
+        result = await user_ha_service.control_device(
             user_id,
             request.entity_id,
             request.action,
@@ -331,7 +395,7 @@ async def control_irrigation(
             # This is a simplified implementation - ideally this would be handled by HA automation
             kwargs["duration"] = request.duration_seconds
         
-        result = await user_ha_service.control_user_device(
+        result = await user_ha_service.control_device(
             user_id,
             request.entity_id,
             action,
@@ -531,6 +595,7 @@ async def call_service(
 async def assign_device_to_location(
     entity_id: str,
     assignment: DeviceAssignmentRequest,
+    current_user = Depends(get_current_user),
     ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
     db = Depends(get_database)
 ):
@@ -594,64 +659,95 @@ async def get_device_assignments(
     row_id: Optional[str] = None,
     rack_id: Optional[str] = None,
     shelf_id: Optional[str] = None,
+    current_user = Depends(get_current_user),
     db = Depends(get_database)
 ):
     """Get device assignments, optionally filtered by farm location"""
     try:
+        logger.info(f"get_device_assignments called by user {current_user.id}")
+        
         # Check if database is available
         if db is None:
+            logger.error("Database service is None")
             raise HTTPException(
                 status_code=503,
                 detail="Database service is currently unavailable. Device assignments cannot be retrieved."
             )
-        base_query = """
-        SELECT 
-            da.*,
-            f.name as farm_name,
-            r.name as row_name,
-            ra.name as rack_name,
-            s.name as shelf_name
-        FROM device_assignments da
-        LEFT JOIN farms f ON da.farm_id = f.id
-        LEFT JOIN rows r ON da.row_id = r.id  
-        LEFT JOIN racks ra ON da.rack_id = ra.id
-        LEFT JOIN shelves s ON da.shelf_id = s.id
-        WHERE 1=1
-        """
         
-        conditions = []
-        values = []
+        logger.info(f"Database service is available: {db.is_available}")
         
-        if farm_id:
-            conditions.append(f"AND (da.farm_id = ${len(values)+1} OR r.farm_id = ${len(values)+1} OR ra.row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1}) OR s.rack_id IN (SELECT id FROM racks WHERE row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1})))")
-            values.append(farm_id)
-        if row_id:
-            conditions.append(f"AND (da.row_id = ${len(values)+1} OR ra.row_id = ${len(values)+1} OR s.rack_id IN (SELECT id FROM racks WHERE row_id = ${len(values)+1}))")
-            values.append(row_id)
-        if rack_id:
-            conditions.append(f"AND (da.rack_id = ${len(values)+1} OR s.rack_id = ${len(values)+1})")
-            values.append(rack_id)
-        if shelf_id:
-            conditions.append(f"AND da.shelf_id = ${len(values)+1}")
-            values.append(shelf_id)
+        # Start with a simple query to test basic database connectivity
+        try:
+            simple_query = "SELECT COUNT(*) FROM device_assignments"
+            count_result = await db.fetchval(simple_query)
+            logger.info(f"Found {count_result} device assignments in total")
+        except Exception as e:
+            logger.error(f"Simple count query failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
+        
+        # Now try the full query but simplified first
+        try:
+            base_query = """
+            SELECT 
+                da.*,
+                f.name as farm_name,
+                r.name as row_name,
+                ra.name as rack_name,
+                s.name as shelf_name
+            FROM device_assignments da
+            LEFT JOIN farms f ON da.farm_id = f.id
+            LEFT JOIN rows r ON da.row_id = r.id  
+            LEFT JOIN racks ra ON da.rack_id = ra.id
+            LEFT JOIN shelves s ON da.shelf_id = s.id
+            WHERE 1=1
+            """
             
-        query = base_query + " ".join(conditions) + " ORDER BY da.created_at DESC"
+            conditions = []
+            values = []
+            
+            if farm_id:
+                conditions.append(f"AND (da.farm_id = ${len(values)+1} OR r.farm_id = ${len(values)+1} OR ra.row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1}) OR s.rack_id IN (SELECT id FROM racks WHERE row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1})))")
+                values.append(farm_id)
+            if row_id:
+                conditions.append(f"AND (da.row_id = ${len(values)+1} OR ra.row_id = ${len(values)+1} OR s.rack_id IN (SELECT id FROM racks WHERE row_id = ${len(values)+1}))")
+                values.append(row_id)
+            if rack_id:
+                conditions.append(f"AND (da.rack_id = ${len(values)+1} OR s.rack_id = ${len(values)+1})")
+                values.append(rack_id)
+            if shelf_id:
+                conditions.append(f"AND da.shelf_id = ${len(values)+1}")
+                values.append(shelf_id)
+                
+            query = base_query + " ".join(conditions) + " ORDER BY da.created_at DESC"
+            
+            logger.info(f"Executing query with {len(values)} parameters")
+            results = await db.fetch(query, *values)
+            logger.info(f"Query returned {len(results)} results")
+            
+            return {
+                "assignments": [dict(row) for row in results],
+                "count": len(results)
+            }
+        except Exception as e:
+            logger.error(f"Main query execution failed: {str(e)}")
+            logger.error(f"Query was: {query}")
+            logger.error(f"Values were: {values}")
+            raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
         
-        results = await db.fetch(query, *values)
-        
-        return {
-            "assignments": [dict(row) for row in results],
-            "count": len(results)
-        }
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error fetching device assignments: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error in get_device_assignments: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
 @router.delete("/devices/{entity_id}/assignment")
 async def remove_device_assignment(
     entity_id: str,
+    current_user = Depends(get_current_user),
     db = Depends(get_database)
 ):
     """Remove device assignment from farm location"""
@@ -681,6 +777,7 @@ async def remove_device_assignment(
 @router.get("/farms/{farm_id}/assigned-devices")
 async def get_farm_assigned_devices(
     farm_id: str,
+    current_user = Depends(get_current_user),
     ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
     db = Depends(get_database)
 ):
@@ -693,7 +790,7 @@ async def get_farm_assigned_devices(
                 detail="Database service is currently unavailable. Farm device assignments cannot be retrieved."
             )
         # Get device assignments for this farm
-        assignments_response = await get_device_assignments(farm_id=farm_id, db=db)
+        assignments_response = await get_device_assignments(farm_id=farm_id, current_user=current_user, db=db)
         assignments = assignments_response["assignments"]
         
         # Get current states from Home Assistant

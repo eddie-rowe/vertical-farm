@@ -14,7 +14,6 @@ const navItems = [
   { href: "/team", label: "Team Management", icon: <FaUsers /> },
   { href: "/ai", label: "AI Intelligence", icon: <FaBrain /> },
   { href: "/integrations", label: "Integrations", icon: <FaPlug /> },
-  { href: "/account", label: "Account", icon: <FaCog /> },
   { href: "/help", label: "Help", icon: <FaQuestionCircle /> },
 ];
 

@@ -30,10 +30,10 @@ export default function GrowParametersView() {
     try {
       setLoading(true);
       const [recipesData, speciesData] = await Promise.all([
-        getGrowRecipes(),
+        getGrowRecipes(1, 100), // Get first 100 recipes for the initial load
         getSpecies()
       ]);
-      setRecipes(recipesData);
+      setRecipes(recipesData.recipes);
       setSpecies(speciesData);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -45,12 +45,10 @@ export default function GrowParametersView() {
 
   const loadRecipes = useCallback(async () => {
     try {
-      const currentFilters: GrowRecipeFilters = {
-        ...filters,
-        search: searchTerm || undefined
-      };
-      const recipesData = await getGrowRecipes(currentFilters);
-      setRecipes(recipesData);
+      // Extract filter values that match the function signature
+      const speciesFilter = filters.species_id === 'all' ? undefined : filters.species_id;
+      const recipesData = await getGrowRecipes(1, 50, speciesFilter, filters.difficulty);
+      setRecipes(recipesData.recipes);
     } catch (error) {
       console.error('Error loading recipes:', error);
       toast.error('Failed to load recipes');

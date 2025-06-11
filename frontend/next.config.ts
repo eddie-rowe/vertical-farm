@@ -106,6 +106,7 @@ const nextConfig: NextConfig = {
               "wss://vertical-farm-api.goodgoodgreens.org",
               "https://vertical-farm.goodgoodgreens.org",
               "https://*.supabase.co",
+              "wss://*.supabase.co",  // Added WebSocket support for Supabase Realtime
               "https://browser-intake-us5-datadoghq.com"
             ].join(' '),
             "worker-src 'self' blob:",

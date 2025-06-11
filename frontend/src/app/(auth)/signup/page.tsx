@@ -38,7 +38,7 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      await signUp({ email, password });
+      await signUp(email, password);
       setMessage("Signup successful! Please check your email to confirm your account.");
     } catch (err) {
       if (err instanceof Error) {
