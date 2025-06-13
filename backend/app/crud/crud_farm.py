@@ -1,7 +1,7 @@
 from typing import Optional, List, Tuple, Dict, Any
 from uuid import UUID
 # Use AsyncClient for asynchronous operations
-from supabase import AsyncClient as SupabaseClient # Use AsyncClient
+from supabase import AClient as SupabaseClient # Use AClient
 from httpx import HTTPStatusError
 
 from app.schemas import farm as farm_schema # Pydantic schemas

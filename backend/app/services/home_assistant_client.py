@@ -3,7 +3,7 @@ Home Assistant Client Service
 
 This service provides a comprehensive interface for communicating with Home Assistant
 via both WebSocket and REST API, handling authentication, connection management,
-and real-time updates.
+and real-time updates with enhanced error handling and recovery.
 """
 
 import asyncio
@@ -15,6 +15,15 @@ import aiohttp
 import websockets
 from websockets.exceptions import ConnectionClosed, WebSocketException
 from asyncio_throttle import Throttler
+
+from .error_handling import (
+    global_error_handler,
+    ErrorType,
+    HomeAssistantError,
+    RetryConfig,
+    CircuitBreakerConfig,
+    with_error_handling
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +53,7 @@ class HomeAssistantClient:
     - Authentication management
     - Real-time entity state updates
     - Caching layer for entity states
-    - Error handling and recovery
+    - Enhanced error handling and recovery with circuit breaker
     """
     
     def __init__(
@@ -112,6 +121,65 @@ class HomeAssistantClient:
         
         # HTTP session
         self.session: Optional[aiohttp.ClientSession] = None
+        
+        # Enhanced error handling setup
+        self._setup_error_handling()
+
+    def _setup_error_handling(self):
+        """Setup enhanced error handling for this client instance"""
+        # Register custom retry configs for this client
+        rest_config = RetryConfig(
+            max_attempts=self.max_retry_attempts,
+            base_delay=self.retry_delay,
+            max_delay=60.0,
+            retryable_errors=[
+                ErrorType.CONNECTION_ERROR,
+                ErrorType.TIMEOUT_ERROR,
+                ErrorType.SERVICE_UNAVAILABLE,
+                ErrorType.RATE_LIMIT_ERROR
+            ]
+        )
+        
+        websocket_config = RetryConfig(
+            max_attempts=self.max_retry_attempts,
+            base_delay=self.retry_delay * 2,  # Longer delay for WebSocket
+            max_delay=120.0,
+            retryable_errors=[
+                ErrorType.CONNECTION_ERROR,
+                ErrorType.TIMEOUT_ERROR,
+                ErrorType.SERVICE_UNAVAILABLE
+            ]
+        )
+        
+        circuit_config = CircuitBreakerConfig(
+            failure_threshold=5,
+            recovery_timeout=60.0,
+            success_threshold=3
+        )
+        
+        # Register services with error handler
+        global_error_handler.register_service(
+            f"ha_rest_{id(self)}",
+            rest_config,
+            circuit_config
+        )
+        
+        global_error_handler.register_service(
+            f"ha_websocket_{id(self)}",
+            websocket_config,
+            circuit_config
+        )
+        
+        # Add error callback for logging
+        def error_callback(error: HomeAssistantError):
+            logger.error(
+                f"Home Assistant error: {error.message} "
+                f"(Type: {error.error_type.value}, Retryable: {error.retryable})"
+            )
+            if error.context:
+                logger.debug(f"Error context: {error.context}")
+        
+        global_error_handler.add_error_callback(error_callback)
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -134,8 +202,8 @@ class HomeAssistantClient:
                 timeout=timeout
             )
             
-            # Test authentication with a simple API call
-            await self._test_authentication()
+            # Test authentication with enhanced error handling
+            await self._test_authentication_with_retry()
             
             # Start WebSocket connection
             self.connection_task = asyncio.create_task(self._maintain_websocket_connection())
@@ -179,9 +247,11 @@ class HomeAssistantClient:
         self.connected = False
         logger.info("Home Assistant client closed")
 
-    async def _test_authentication(self):
-        """Test authentication by making a simple API call"""
-        try:
+    async def _test_authentication_with_retry(self):
+        """Test authentication with enhanced error handling"""
+        service_name = f"ha_rest_{id(self)}"
+        
+        async def auth_operation():
             async with self.session.get(f"{self.base_url}/api/") as response:
                 if response.status == 401:
                     raise AuthenticationError("Invalid access token")
@@ -190,33 +260,47 @@ class HomeAssistantClient:
                 
                 data = await response.json()
                 logger.info(f"Successfully authenticated with Home Assistant {data.get('version', 'unknown')}")
-                
-        except aiohttp.ClientError as e:
-            raise ConnectionError(f"Failed to connect to Home Assistant: {e}")
+                return data
+        
+        try:
+            return await global_error_handler.execute_with_retry(
+                service_name,
+                auth_operation,
+                context={"operation": "authentication_test", "url": self.base_url}
+            )
+        except HomeAssistantError as e:
+            if e.error_type == ErrorType.AUTHENTICATION_ERROR:
+                raise AuthenticationError(e.message)
+            else:
+                raise ConnectionError(e.message)
 
     async def _maintain_websocket_connection(self):
-        """Maintain WebSocket connection with automatic reconnection"""
-        retry_count = 0
+        """Maintain WebSocket connection with enhanced error handling"""
+        service_name = f"ha_websocket_{id(self)}"
         
-        while retry_count < self.max_retry_attempts:
+        while True:
             try:
-                await self._connect_websocket()
-                retry_count = 0  # Reset on successful connection
-                
-            except Exception as e:
-                retry_count += 1
-                delay = self.retry_delay * (2 ** (retry_count - 1))  # Exponential backoff
-                
-                logger.warning(
-                    f"WebSocket connection failed (attempt {retry_count}/{self.max_retry_attempts}): {e}. "
-                    f"Retrying in {delay} seconds..."
+                await global_error_handler.execute_with_retry(
+                    service_name,
+                    self._connect_websocket,
+                    context={"operation": "websocket_connection", "url": self.websocket_url}
                 )
+                # If we get here, connection was successful and closed normally
+                break
                 
-                if retry_count < self.max_retry_attempts:
-                    await asyncio.sleep(delay)
-                else:
-                    logger.error("Max retry attempts reached. WebSocket connection failed permanently.")
+            except HomeAssistantError as e:
+                if e.error_type == ErrorType.AUTHENTICATION_ERROR:
+                    logger.error("WebSocket authentication failed permanently")
                     break
+                elif not global_error_handler.can_execute(service_name):
+                    logger.error("WebSocket connection failed permanently (circuit breaker open)")
+                    break
+                else:
+                    # Wait before trying again
+                    await asyncio.sleep(30)
+            except Exception as e:
+                logger.error(f"Unexpected error in WebSocket maintenance: {e}")
+                await asyncio.sleep(30)
 
     async def _connect_websocket(self):
         """Establish WebSocket connection and handle messages"""
@@ -355,11 +439,11 @@ class HomeAssistantClient:
             error = data.get("error", {})
             logger.warning(f"Command {message_id} failed: {error.get('message', 'Unknown error')}")
 
-    # REST API Methods
+    # REST API Methods with enhanced error handling
     
     async def get_entities(self, entity_type: Optional[str] = None) -> List[Dict]:
         """
-        Get all entities or entities of a specific type.
+        Get all entities or entities of a specific type with enhanced error handling.
         
         Args:
             entity_type: Optional entity type filter (e.g., 'light', 'switch', 'sensor')
@@ -367,7 +451,9 @@ class HomeAssistantClient:
         Returns:
             List of entity dictionaries
         """
-        try:
+        service_name = f"ha_rest_{id(self)}"
+        
+        async def get_entities_operation():
             # Create a temporary session if one doesn't exist
             session_to_use = self.session
             should_close_session = False
@@ -394,33 +480,42 @@ class HomeAssistantClient:
                         
                         logger.debug(f"Retrieved {len(entities)} entities" + (f" of type {entity_type}" if entity_type else ""))
                         return entities
+                        
             finally:
                 if should_close_session:
                     await session_to_use.close()
-                    
-        except aiohttp.ClientError as e:
-            logger.error(f"Failed to get entities: {e}")
-            raise ConnectionError(f"Failed to get entities: {e}")
+        
+        return await global_error_handler.execute_with_retry(
+            service_name,
+            get_entities_operation,
+            context={
+                "operation": "get_entities",
+                "entity_type": entity_type,
+                "url": f"{self.base_url}/api/states"
+            }
+        )
 
     async def get_entity(self, entity_id: str, use_cache: bool = True) -> Optional[Dict]:
         """
-        Get a specific entity by ID.
+        Get a specific entity by ID with enhanced error handling.
         
         Args:
-            entity_id: Entity ID (e.g., 'light.kitchen')
+            entity_id: Entity ID to retrieve
             use_cache: Whether to use cached data if available
             
         Returns:
             Entity dictionary or None if not found
         """
-        # Check cache first
+        # Check cache first if requested
         if use_cache and entity_id in self.entity_cache:
             cache_time = self.cache_timestamps.get(entity_id)
-            if cache_time and (datetime.now() - cache_time).seconds < self.cache_ttl:
+            if cache_time and (datetime.now() - cache_time).total_seconds() < self.cache_ttl:
                 logger.debug(f"Returning cached entity: {entity_id}")
                 return self.entity_cache[entity_id]
         
-        try:
+        service_name = f"ha_rest_{id(self)}"
+        
+        async def get_entity_operation():
             # Create a temporary session if one doesn't exist
             session_to_use = self.session
             should_close_session = False
@@ -433,7 +528,7 @@ class HomeAssistantClient:
                 async with self.throttler:
                     async with session_to_use.get(f"{self.base_url}/api/states/{entity_id}") as response:
                         if response.status == 404:
-                            logger.warning(f"Entity not found: {entity_id}")
+                            logger.debug(f"Entity not found: {entity_id}")
                             return None
                         
                         response.raise_for_status()
@@ -445,13 +540,27 @@ class HomeAssistantClient:
                         
                         logger.debug(f"Retrieved entity: {entity_id}")
                         return entity
+                        
             finally:
                 if should_close_session:
                     await session_to_use.close()
-                    
-        except aiohttp.ClientError as e:
-            logger.error(f"Failed to get entity {entity_id}: {e}")
-            raise ConnectionError(f"Failed to get entity {entity_id}: {e}")
+        
+        try:
+            return await global_error_handler.execute_with_retry(
+                service_name,
+                get_entity_operation,
+                context={
+                    "operation": "get_entity",
+                    "entity_id": entity_id,
+                    "use_cache": use_cache,
+                    "url": f"{self.base_url}/api/states/{entity_id}"
+                }
+            )
+        except HomeAssistantError as e:
+            if e.error_type == ErrorType.VALIDATION_ERROR:
+                # Entity not found is not an error we should retry
+                return None
+            raise
 
     async def call_service(
         self,
@@ -461,23 +570,20 @@ class HomeAssistantClient:
         data: Optional[Dict] = None
     ) -> Dict:
         """
-        Call a Home Assistant service.
+        Call a Home Assistant service with enhanced error handling.
         
         Args:
             domain: Service domain (e.g., 'light', 'switch')
             service: Service name (e.g., 'turn_on', 'turn_off')
-            entity_id: Target entity ID
-            data: Additional service data
+            entity_id: Optional entity ID to target
+            data: Optional service data
             
         Returns:
             Service call result
         """
-        service_data = data.copy() if data else {}
+        service_name = f"ha_rest_{id(self)}"
         
-        if entity_id:
-            service_data["entity_id"] = entity_id
-        
-        try:
+        async def call_service_operation():
             # Create a temporary session if one doesn't exist
             session_to_use = self.session
             should_close_session = False
@@ -487,6 +593,11 @@ class HomeAssistantClient:
                 should_close_session = True
             
             try:
+                # Prepare service call data
+                service_data = data or {}
+                if entity_id:
+                    service_data["entity_id"] = entity_id
+                
                 async with self.throttler:
                     async with session_to_use.post(
                         f"{self.base_url}/api/services/{domain}/{service}",
@@ -495,19 +606,36 @@ class HomeAssistantClient:
                         response.raise_for_status()
                         result = await response.json()
                         
-                        logger.info(f"Called service {domain}.{service}" + (f" on {entity_id}" if entity_id else ""))
+                        logger.debug(f"Called service {domain}.{service} for {entity_id or 'all entities'}")
                         return result
+                        
             finally:
                 if should_close_session:
                     await session_to_use.close()
-                    
-        except aiohttp.ClientError as e:
-            logger.error(f"Failed to call service {domain}.{service}: {e}")
-            raise ConnectionError(f"Failed to call service {domain}.{service}: {e}")
+        
+        return await global_error_handler.execute_with_retry(
+            service_name,
+            call_service_operation,
+            context={
+                "operation": "call_service",
+                "domain": domain,
+                "service": service,
+                "entity_id": entity_id,
+                "data": data,
+                "url": f"{self.base_url}/api/services/{domain}/{service}"
+            }
+        )
 
     async def get_services(self) -> Dict:
-        """Get all available services"""
-        try:
+        """
+        Get all available services with enhanced error handling.
+        
+        Returns:
+            Dictionary of available services
+        """
+        service_name = f"ha_rest_{id(self)}"
+        
+        async def get_services_operation():
             # Create a temporary session if one doesn't exist
             session_to_use = self.session
             should_close_session = False
@@ -522,19 +650,32 @@ class HomeAssistantClient:
                         response.raise_for_status()
                         services = await response.json()
                         
-                        logger.debug("Retrieved available services")
+                        logger.debug(f"Retrieved {len(services)} service domains")
                         return services
+                        
             finally:
                 if should_close_session:
                     await session_to_use.close()
-                    
-        except aiohttp.ClientError as e:
-            logger.error(f"Failed to get services: {e}")
-            raise ConnectionError(f"Failed to get services: {e}")
+        
+        return await global_error_handler.execute_with_retry(
+            service_name,
+            get_services_operation,
+            context={
+                "operation": "get_services",
+                "url": f"{self.base_url}/api/services"
+            }
+        )
 
     async def get_config(self) -> Dict:
-        """Get Home Assistant configuration"""
-        try:
+        """
+        Get Home Assistant configuration with enhanced error handling.
+        
+        Returns:
+            Configuration dictionary
+        """
+        service_name = f"ha_rest_{id(self)}"
+        
+        async def get_config_operation():
             # Create a temporary session if one doesn't exist
             session_to_use = self.session
             should_close_session = False
@@ -551,36 +692,42 @@ class HomeAssistantClient:
                         
                         logger.debug("Retrieved Home Assistant configuration")
                         return config
+                        
             finally:
                 if should_close_session:
                     await session_to_use.close()
-                    
-        except aiohttp.ClientError as e:
-            logger.error(f"Failed to get config: {e}")
-            raise ConnectionError(f"Failed to get config: {e}")
+        
+        return await global_error_handler.execute_with_retry(
+            service_name,
+            get_config_operation,
+            context={
+                "operation": "get_config",
+                "url": f"{self.base_url}/api/config"
+            }
+        )
 
     # Subscription and Event Methods
     
     def subscribe_to_entity(self, entity_id: str, callback: Callable[[str, Dict], None]):
         """
-        Subscribe to state changes for a specific entity.
+        Subscribe to entity state changes.
         
         Args:
-            entity_id: Entity ID to monitor
-            callback: Async callback function to call on state changes
+            entity_id: Entity ID to subscribe to
+            callback: Callback function to call on state changes
         """
         if entity_id not in self.subscribers:
             self.subscribers[entity_id] = []
         
         self.subscribers[entity_id].append(callback)
-        logger.info(f"Subscribed to state changes for {entity_id}")
+        logger.debug(f"Subscribed to entity: {entity_id}")
 
     def unsubscribe_from_entity(self, entity_id: str, callback: Callable[[str, Dict], None]):
         """
-        Unsubscribe from state changes for a specific entity.
+        Unsubscribe from entity state changes.
         
         Args:
-            entity_id: Entity ID to stop monitoring
+            entity_id: Entity ID to unsubscribe from
             callback: Callback function to remove
         """
         if entity_id in self.subscribers:
@@ -588,63 +735,72 @@ class HomeAssistantClient:
                 self.subscribers[entity_id].remove(callback)
                 if not self.subscribers[entity_id]:
                     del self.subscribers[entity_id]
-                logger.info(f"Unsubscribed from state changes for {entity_id}")
+                logger.debug(f"Unsubscribed from entity: {entity_id}")
             except ValueError:
-                logger.warning(f"Callback not found for entity {entity_id}")
+                logger.warning(f"Callback not found for entity: {entity_id}")
 
     # Utility Methods
     
     def is_connected(self) -> bool:
-        """Check if WebSocket is connected"""
+        """
+        Check if the client is connected.
+        
+        Returns:
+            True if connected, False otherwise
+        """
         return self.connected and self.websocket is not None
 
     def get_cached_entity(self, entity_id: str) -> Optional[Dict]:
-        """Get entity from cache without making API call"""
+        """Get cached entity data without making API calls"""
         return self.entity_cache.get(entity_id)
 
     def clear_cache(self):
-        """Clear entity cache"""
+        """Clear the entity cache"""
         self.entity_cache.clear()
         self.cache_timestamps.clear()
-        logger.info("Entity cache cleared")
+        logger.debug("Entity cache cleared")
 
     async def health_check(self) -> Dict:
-        """Perform a health check of the Home Assistant connection"""
-        try:
-            # Create a temporary session if one doesn't exist
-            session_to_use = self.session
-            should_close_session = False
-            
-            if session_to_use is None:
-                session_to_use = aiohttp.ClientSession(headers=self.headers)
-                should_close_session = True
-            
-            try:
-                # Test REST API
-                async with session_to_use.get(f"{self.base_url}/api/") as response:
-                    rest_healthy = response.status == 200
-                
-                # Check WebSocket connection
-                websocket_healthy = self.is_connected()
-                
-                return {
-                    "healthy": rest_healthy and websocket_healthy,
-                    "rest_api": rest_healthy,
-                    "websocket": websocket_healthy,
-                    "cached_entities": len(self.entity_cache),
-                    "active_subscriptions": sum(len(callbacks) for callbacks in self.subscribers.values())
-                }
-            finally:
-                if should_close_session:
-                    await session_to_use.close()
-            
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
-            return {
-                "healthy": False,
-                "error": str(e),
-                "rest_api": False,
-                "websocket": False,
+        """
+        Perform a comprehensive health check with enhanced error reporting.
+        
+        Returns:
+            Health status dictionary
+        """
+        health_status = {
+            "timestamp": datetime.now().isoformat(),
+            "overall_healthy": True,
+            "services": {},
+            "connection_status": {
+                "websocket": self.is_connected(),
+                "http_session": self.session is not None and not self.session.closed
+            },
+            "cache_stats": {
                 "cached_entities": len(self.entity_cache),
-                "active_subscriptions": sum(len(callbacks) for callbacks in self.subscribers.values())
-            } 
+                "cache_size_bytes": sum(len(str(entity)) for entity in self.entity_cache.values())
+            }
+        }
+        
+        # Get error handler health for this client's services
+        rest_service = f"ha_rest_{id(self)}"
+        websocket_service = f"ha_websocket_{id(self)}"
+        
+        if rest_service in global_error_handler.metrics:
+            health_status["services"]["rest_api"] = global_error_handler.get_service_health(rest_service)
+            if health_status["services"]["rest_api"]["status"] != "healthy":
+                health_status["overall_healthy"] = False
+        
+        if websocket_service in global_error_handler.metrics:
+            health_status["services"]["websocket"] = global_error_handler.get_service_health(websocket_service)
+            if health_status["services"]["websocket"]["status"] != "healthy":
+                health_status["overall_healthy"] = False
+        
+        # Test basic connectivity
+        try:
+            await self.get_config()
+            health_status["api_test"] = {"status": "success", "message": "API accessible"}
+        except Exception as e:
+            health_status["api_test"] = {"status": "failed", "message": str(e)}
+            health_status["overall_healthy"] = False
+        
+        return health_status 

@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, Union
 from uuid import UUID
-from supabase import AsyncClient as SupabaseClient # Use AsyncClient
+from supabase import AClient as SupabaseClient # Use AClient
 from supabase.lib.client_options import ClientOptions
 from httpx import HTTPStatusError
 from gotrue.errors import AuthApiError as APIError

@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any, Tuple
 from uuid import UUID
-from supabase import AsyncClient as SupabaseClient
+from supabase import AClient as SupabaseClient
 from httpx import HTTPStatusError
 
 from app.schemas.row import RowCreate, RowUpdate, RowResponse # Added RowResponse

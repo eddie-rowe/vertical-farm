@@ -1,9 +1,9 @@
 # Task ID: 7
 # Title: Real-Time Monitoring Dashboard
-# Status: pending
+# Status: in_progress
 # Dependencies: 3, 4
 # Priority: medium
-# Description: Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets.
+# Description: Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets. Implement a robust caching layer to optimize performance and scalability.
 # Details:
 1. Create WebSocket endpoint in FastAPI for real-time updates:
    ```python
@@ -31,8 +31,14 @@
 7. Create visual indicators for normal/warning/critical states
 8. Implement auto-refresh and manual refresh options
 
+**Caching Implementation Status:**
+- Basic in-memory entity caching (5min TTL) is in place for Home Assistant entities.
+- User-specific device caches and automatic cache cleanup are functional.
+- Redis-based caching layer, dynamic cache policy adjustment, and comprehensive API response caching are NOT yet implemented.
+- Enterprise-level caching architecture is still required for full scalability and performance.
+
 # Test Strategy:
-Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic.
+Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic. Validate in-memory cache correctness, TTL expiry, and user-specific cache isolation. Once Redis and advanced caching are implemented, add tests for cache persistence, eviction, and policy adjustment.
 
 # Subtasks:
 ## 1. Create Secure WebSocket Endpoint [pending]
@@ -82,4 +88,10 @@ Create UI indicators for connection status (connected, disconnected, reconnectin
 ### Description: Implement intelligent refresh mechanisms for dashboard components
 ### Details:
 Create component-specific refresh strategies, implement partial UI updates to minimize rendering, and develop fallback mechanisms for when WebSocket connections fail.
+
+## 9. Implement Redis-Based Caching Layer [pending]
+### Dependencies: None
+### Description: Develop a Redis-backed caching layer for Home Assistant entities and API responses, supporting dynamic cache policies and persistence.
+### Details:
+Integrate Redis for scalable, persistent caching. Implement dynamic cache policy adjustment (e.g., TTL, eviction strategies) and support for comprehensive API response caching. Ensure cache consistency and high availability.
 

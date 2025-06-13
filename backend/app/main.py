@@ -11,6 +11,9 @@ from app.core.config import settings
 from app.core.security import get_validated_supabase_token_payload
 # Home Assistant service now uses user-specific configurations - no global imports needed
 # from app.services.database_service import get_database_service # Removed - no longer needed after PostGREST migration
+# from app.services.background_processor import background_processor  # Deprecated Redis-based processor
+from app.services.supabase_background_service import supabase_background_service  # New Supabase-based service
+# from app.services import home_assistant_background_tasks  # Import to register tasks - no longer needed
 import logging
 
 # Set up logging
@@ -34,12 +37,30 @@ async def lifespan(app: FastAPI):
     app_state["home_assistant"] = True
     logger.info("✅ Home Assistant service ready (user-specific configurations only)")
     
+    # Initialize Supabase background service (no startup needed - it's stateless)
+    try:
+        # Test the service connection
+        health = await supabase_background_service.get_system_health()
+        app_state["background_processor"] = True
+        logger.info("✅ Supabase background service initialized successfully")
+        logger.info(f"Background service health: {health['status']}")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Supabase background service: {e}")
+        app_state["background_processor"] = False
+    
     logger.info("🚀 Application startup complete")
     
     yield
     
     # Shutdown
     logger.info("Shutting down application...")
+    
+    # Clean up Supabase background service
+    try:
+        await supabase_background_service.close()
+        logger.info("✅ Supabase background service cleaned up")
+    except Exception as e:
+        logger.error(f"❌ Error cleaning up Supabase background service: {e}")
     
     # Home Assistant service cleanup not needed (user-specific instances auto-cleanup)
     logger.info("✅ Home Assistant services cleaned up")
@@ -120,13 +141,36 @@ app.include_router(api_router_v1, prefix=settings.API_V1_STR)
 @app.get("/health")
 async def health_check():
     """Comprehensive health check endpoint with service status"""
+    
+    # Get detailed background service health
+    try:
+        bg_health = await supabase_background_service.get_system_health()
+        background_status = {
+            "status": bg_health["status"],
+            "success_rate": bg_health["success_rate"],
+            "total_queue_length": bg_health["total_queue_length"],
+            "type": "supabase_queues"
+        }
+    except Exception as e:
+        background_status = {
+            "status": "unhealthy",
+            "error": str(e),
+            "type": "supabase_queues"
+        }
+    
     health_status = {
         "status": "healthy",
         "services": {
             "home_assistant": app_state.get("home_assistant", False),
+            "background_processor": background_status,
             "database": {"status": "supabase_postgrest", "note": "Database operations handled by Supabase PostGREST"}
         }
     }
+    
+    # Check if any critical services are down
+    if (not app_state.get("background_processor", False) or 
+        background_status["status"] in ["unhealthy", "degraded"]):
+        health_status["status"] = "degraded"
     
     return health_status
 

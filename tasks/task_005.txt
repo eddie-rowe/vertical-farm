@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Grow Recipe Management System
-# Status: pending
+# Status: in-progress
 # Dependencies: 1
 # Priority: medium
 # Description: Develop a system for defining and managing grow recipes including grow days, light duration, watering frequency, and other parameters.

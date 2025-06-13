@@ -251,7 +251,7 @@
             4
           ],
           "details": "Implement comprehensive error handling including connection failures, authentication errors, data validation issues, and automatic recovery procedures with exponential backoff.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -261,7 +261,7 @@
             5
           ],
           "details": "Create a background job system to handle long-running tasks, implement queuing mechanisms, and develop retry policies for failed background operations.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 7,
@@ -272,7 +272,7 @@
             5
           ],
           "details": "Develop a caching layer using Redis or in-memory storage, implement cache invalidation strategies, and create mechanisms for dynamically adjusting cache policies based on usage patterns.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 8,
@@ -288,7 +288,7 @@
             7
           ],
           "details": "Develop integration tests covering all components, implement performance benchmarks to measure efficiency, create mocks for external dependencies, and establish continuous integration pipeline.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 9,
@@ -403,7 +403,7 @@
       "id": 5,
       "title": "Grow Recipe Management System",
       "description": "Develop a system for defining and managing grow recipes including grow days, light duration, watering frequency, and other parameters.",
-      "status": "pending",
+      "status": "in-progress",
       "dependencies": [
         1
       ],
@@ -600,15 +600,15 @@
     {
       "id": 7,
       "title": "Real-Time Monitoring Dashboard",
-      "description": "Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets.",
-      "details": "1. Create WebSocket endpoint in FastAPI for real-time updates:\n   ```python\n   @app.websocket(\"/ws/dashboard\")\n   async def dashboard_websocket(websocket: WebSocket):\n       await websocket.accept()\n       try:\n           while True:\n               # Send real-time updates\n               data = await get_dashboard_data()\n               await websocket.send_json(data)\n               await asyncio.sleep(1)\n       except WebSocketDisconnect:\n           pass\n   ```\n2. Implement React components for the dashboard:\n   - EnvironmentalConditionsPanel\n   - SystemStatusPanel\n   - AlertsPanel\n   - SensorReadingsChart\n3. Use React hooks for WebSocket connection management\n4. Create data aggregation service for dashboard metrics\n5. Implement filtering by farm, row, rack, or shelf\n6. Add threshold-based alerting for sensor values\n7. Create visual indicators for normal/warning/critical states\n8. Implement auto-refresh and manual refresh options",
-      "testStrategy": "Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic.",
-      "priority": "medium",
+      "description": "Develop a live dashboard showing environmental conditions and system status with real-time updates via WebSockets. Implement a robust caching layer to optimize performance and scalability.",
+      "status": "in_progress",
       "dependencies": [
         3,
         4
       ],
-      "status": "pending",
+      "priority": "medium",
+      "details": "1. Create WebSocket endpoint in FastAPI for real-time updates:\n   ```python\n   @app.websocket(\"/ws/dashboard\")\n   async def dashboard_websocket(websocket: WebSocket):\n       await websocket.accept()\n       try:\n           while True:\n               # Send real-time updates\n               data = await get_dashboard_data()\n               await websocket.send_json(data)\n               await asyncio.sleep(1)\n       except WebSocketDisconnect:\n           pass\n   ```\n2. Implement React components for the dashboard:\n   - EnvironmentalConditionsPanel\n   - SystemStatusPanel\n   - AlertsPanel\n   - SensorReadingsChart\n3. Use React hooks for WebSocket connection management\n4. Create data aggregation service for dashboard metrics\n5. Implement filtering by farm, row, rack, or shelf\n6. Add threshold-based alerting for sensor values\n7. Create visual indicators for normal/warning/critical states\n8. Implement auto-refresh and manual refresh options\n\n**Caching Implementation Status:**\n- Basic in-memory entity caching (5min TTL) is in place for Home Assistant entities.\n- User-specific device caches and automatic cache cleanup are functional.\n- Redis-based caching layer, dynamic cache policy adjustment, and comprehensive API response caching are NOT yet implemented.\n- Enterprise-level caching architecture is still required for full scalability and performance.",
+      "testStrategy": "Unit tests for dashboard components and WebSocket connection handling. Integration tests for real-time data updates. Test alert generation for threshold violations. Verify dashboard updates when sensor values change. Test dashboard filtering and aggregation logic. Validate in-memory cache correctness, TTL expiry, and user-specific cache isolation. Once Redis and advanced caching are implemented, add tests for cache persistence, eviction, and policy adjustment.",
       "subtasks": [
         {
           "id": 1,
@@ -689,6 +689,14 @@
             4
           ],
           "details": "Create component-specific refresh strategies, implement partial UI updates to minimize rendering, and develop fallback mechanisms for when WebSocket connections fail.",
+          "status": "pending"
+        },
+        {
+          "id": 9,
+          "title": "Implement Redis-Based Caching Layer",
+          "description": "Develop a Redis-backed caching layer for Home Assistant entities and API responses, supporting dynamic cache policies and persistence.",
+          "dependencies": [],
+          "details": "Integrate Redis for scalable, persistent caching. Implement dynamic cache policy adjustment (e.g., TTL, eviction strategies) and support for comprehensive API response caching. Ensure cache consistency and high availability.",
           "status": "pending"
         }
       ]

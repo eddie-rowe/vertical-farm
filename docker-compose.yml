@@ -13,21 +13,21 @@ services:
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      # Home Assistant Integration
-      - HOME_ASSISTANT_ENABLED=${HOME_ASSISTANT_ENABLED}
-      - HOME_ASSISTANT_URL=${HOME_ASSISTANT_URL}
-      - HOME_ASSISTANT_TOKEN=${HOME_ASSISTANT_TOKEN}
-      - CLOUDFLARE_ACCESS_PROTECTED=${CLOUDFLARE_ACCESS_PROTECTED}
-      - CLOUDFLARE_SERVICE_CLIENT_ID=${CLOUDFLARE_SERVICE_CLIENT_ID}
-      - CLOUDFLARE_SERVICE_CLIENT_SECRET=${CLOUDFLARE_SERVICE_CLIENT_SECRET}
       - DD_SERVICE=vertical-farm-backend
       - DD_ENV=dev
       - DD_VERSION=1.0.0
       - DD_AGENT_HOST=dd-agent
+      - FRONTEND_HOST=${FRONTEND_HOST}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - API_V1_STR=${API_V1_STR}
+      - DEBUG=${DEBUG}
+      - ENVIRONMENT=${ENVIRONMENT}
+      # Background Tasks Configuration (Supabase-based)
+      - BACKGROUND_TASKS_ENABLED=true
+      - BACKGROUND_TASK_SYSTEM=supabase
+    restart: unless-stopped
     labels:
-      com.datadoghq.ad.logs: '[{"source": "vertical-farm-backend", "service": "vertical-farm-backend"}]'
-    depends_on:
-      - datadog
+      com.datadoghq.ad.logs: '[{"source": "fastapi", "service": "vertical-farm-backend"}]'
 
   frontend:
     container_name: frontend
@@ -50,7 +50,8 @@ services:
       - NEXT_PUBLIC_DD_SERVICE=${NEXT_PUBLIC_DD_SERVICE}
       - NEXT_PUBLIC_DD_ENV=${NEXT_PUBLIC_DD_ENV}
     labels:
-      com.datadoghq.ad.logs: '[{"source": "vertical-farm-frontend", "service": "vertical-farm-frontend"}]'
+      com.datadoghq.ad.logs: '[{"source": "nextjs", "service": "vertical-farm-frontend"}]'
+
     depends_on:
       - backend
       - datadog

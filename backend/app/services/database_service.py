@@ -18,38 +18,83 @@ class DatabaseService:
         """Check if database service is available"""
         return self._pool is not None and not self._connection_failed
     
+    def _get_pooler_url(self) -> str:
+        """Convert direct database URL to Supavisor pooler URL for caching"""
+        database_url = self.settings.database_url
+        if not database_url:
+            # If no database URL is configured, return empty string
+            # This will cause graceful degradation
+            return ""
+        
+        # If already using pooler, return as-is
+        if "pooler.supabase.com" in database_url:
+            return database_url
+        
+        # Convert direct connection to pooler (transaction mode for caching)
+        # Example: postgresql://postgres:pass@db.xxx.supabase.co:5432/postgres
+        # Becomes: postgresql://postgres.xxx:pass@aws-0-region.pooler.supabase.com:6543/postgres
+        try:
+            url = database_url
+            if "db." in url and ".supabase.co" in url:
+                # Extract project reference from direct URL
+                project_ref = url.split("db.")[1].split(".supabase.co")[0]
+                # Extract password and other parts
+                parts = url.split("@")
+                if len(parts) == 2:
+                    auth_part = parts[0]  # postgresql://postgres:password
+                    password = auth_part.split(":")[-1]
+                    # Construct pooler URL (transaction mode port 6543 for caching)
+                    pooler_url = f"postgresql://postgres.{project_ref}:{password}@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+                    logger.info(f"🚀 Using Supavisor pooler with caching: {pooler_url[:50]}...")
+                    return pooler_url
+        except Exception as e:
+            logger.warning(f"Could not convert to pooler URL: {e}, using direct connection")
+        
+        return database_url
+    
     async def connect(self):
         """Initialize database connection pool with validation"""
         if self._pool is not None:
             return  # Already connected
             
-        if not self.settings.database_url:
-            raise RuntimeError("Database URL is not configured. Set DATABASE_URL or configure Supabase settings.")
+        database_url = self._get_pooler_url()
+        if not database_url:
+            logger.warning("⚠️  No database URL configured - database service will be unavailable")
+            logger.warning("   Set DATABASE_URL environment variable or configure Supabase settings")
+            self._connection_failed = True
+            return  # Graceful degradation - service will report as unavailable
         
         try:
             # Test connection first
-            test_conn = await asyncpg.connect(self.settings.database_url)
+            test_conn = await asyncpg.connect(database_url)
             await test_conn.close()
             
             # Create pool if test connection succeeded
             self._pool = await asyncpg.create_pool(
-                self.settings.database_url,
-                min_size=1,
-                max_size=10,
+                database_url,
+                min_size=2,  # Slightly higher for pooler
+                max_size=20,  # Higher for better caching performance
                 command_timeout=60,
                 server_settings={
                     'application_name': 'vertical-farm-backend',
-                    'jit': 'off'  # Disable JIT for better compatibility
+                    'jit': 'off',  # Disable JIT for better compatibility
+                    'statement_timeout': '30s',  # Optimize for cached queries
+                    'idle_in_transaction_session_timeout': '10s'  # Clean up idle connections
                 }
             )
             self._connection_failed = False
-            logger.info(f"✅ Database connection pool created successfully (URL: {self.settings.database_url[:50]}...)")
+            
+            # Log whether we're using caching
+            is_pooler = "pooler.supabase.com" in database_url
+            cache_status = "✅ WITH QUERY CACHING" if is_pooler else "⚠️  Direct connection (no caching)"
+            logger.info(f"✅ Database connection pool created successfully {cache_status}")
             
         except Exception as e:
             self._connection_failed = True
             logger.error(f"❌ Failed to create database connection pool: {str(e)}")
-            logger.error(f"🔧 Database URL: {self.settings.database_url[:50]}...")
-            raise
+            logger.error(f"🔧 Database URL: {database_url[:50]}...")
+            # Don't raise - allow graceful degradation
+            logger.warning("⚠️  Database service will be unavailable - continuing with degraded functionality")
     
     async def disconnect(self):
         """Close database connection pool"""

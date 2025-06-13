@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Set, Any, Tuple
 from datetime import datetime
 from fastapi import HTTPException, status
 from uuid import UUID
-from supabase import AsyncClient as SupabaseAsyncClient
+from supabase import AClient as SupabaseAsyncClient
 
 from app.core.config import get_settings
 from app.core.security import (
@@ -25,6 +25,14 @@ from app.services.home_assistant_client import (
     HomeAssistantClient,
     HomeAssistantClientError,
     ConnectionError as HAConnectionError
+)
+from app.services.error_handling import (
+    global_error_handler,
+    HomeAssistantError,
+    ErrorType,
+    with_error_handling,
+    RetryConfig,
+    RecoveryStrategy
 )
 from app.db.supabase_client import get_async_supabase_client
 
@@ -43,6 +51,46 @@ class UserHomeAssistantService:
         self.settings = get_settings()
         self.user_device_subscriptions: Dict[str, Set[str]] = {}
         self.user_device_cache: Dict[str, Dict[str, Dict]] = {}
+        
+        # Register recovery callbacks with the global error handler
+        global_error_handler.register_recovery_callback(
+            "user_home_assistant", 
+            self._attempt_connection_recovery
+        )
+    
+    async def _attempt_connection_recovery(self):
+        """Automatic recovery for failing Home Assistant connections"""
+        try:
+            logger.info("Attempting automatic recovery of Home Assistant connections")
+            
+            # Check all existing connections and try to recover them
+            failed_connections = []
+            for user_id, connection in self._connections.items():
+                health = self._connection_health.get(user_id, {})
+                if health.get("status") != "healthy":
+                    failed_connections.append(user_id)
+            
+            # Attempt to refresh failed connections
+            for user_id in failed_connections:
+                try:
+                    await self.refresh_connection(user_id)
+                    logger.info(f"Successfully recovered connection for user {user_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to recover connection for user {user_id}: {e}")
+            
+            # Clear old device caches
+            current_time = datetime.now()
+            for user_id in list(self.user_device_cache.keys()):
+                cache = self.user_device_cache[user_id]
+                if cache.get("timestamp"):
+                    cache_age = (current_time - cache["timestamp"]).total_seconds()
+                    if cache_age > 300:  # 5 minutes
+                        del self.user_device_cache[user_id]
+                        logger.debug(f"Cleared stale device cache for user {user_id}")
+                        
+        except Exception as e:
+            logger.error(f"Error during connection recovery: {e}")
+            raise
         
     async def get_user_config(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -316,7 +364,7 @@ class UserHomeAssistantService:
     
     async def get_user_devices(self, user_id: str, session_token: Optional[str] = None) -> List[Dict[str, Any]]:
         """
-        Get all devices/entities for a user with session validation.
+        Get all devices/entities for a user with session validation and enhanced error handling.
         
         Args:
             user_id: User ID
@@ -325,40 +373,57 @@ class UserHomeAssistantService:
         Returns:
             List of device/entity dictionaries
         """
+        return await global_error_handler.execute_with_retry(
+            "user_home_assistant",
+            lambda: self._get_user_devices_impl(user_id, session_token),
+            context={"user_id": user_id, "operation": "get_devices"}
+        )
+    
+    async def _get_user_devices_impl(self, user_id: str, session_token: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Implementation of get_user_devices with error handling"""
+        # Check cache first
+        cache_key = f"{user_id}_devices"
+        if cache_key in self.user_device_cache:
+            cache_data = self.user_device_cache[cache_key]
+            cache_age = (datetime.now() - cache_data["timestamp"]).total_seconds()
+            
+            # Use cache if less than 5 minutes old
+            if cache_age < 300:
+                logger.debug(f"Using cached devices for user {user_id}")
+                return cache_data["devices"]
+        
         client = await self.get_or_create_connection(user_id, session_token)
         
-        try:
-            # Get all entities and filter for relevant device types
-            states = await client.get_entities()
+        # Get all entities and filter for relevant device types
+        states = await client.get_entities()
+        
+        # Filter for devices that can be controlled (switches, lights, etc.)
+        relevant_domains = ["light", "switch", "fan", "valve", "cover"]
+        devices = []
+        
+        for state in states:
+            entity_id = state.get("entity_id", "")
+            domain = entity_id.split(".")[0] if "." in entity_id else ""
             
-            # Filter for devices that can be controlled (switches, lights, etc.)
-            relevant_domains = ["light", "switch", "fan", "valve", "cover"]
-            devices = []
-            
-            for state in states:
-                entity_id = state.get("entity_id", "")
-                domain = entity_id.split(".")[0] if "." in entity_id else ""
-                
-                if domain in relevant_domains:
-                    devices.append({
-                        "entity_id": entity_id,
-                        "name": state.get("attributes", {}).get("friendly_name", entity_id),
-                        "domain": domain,
-                        "state": state.get("state"),
-                        "attributes": state.get("attributes", {}),
-                        "last_changed": state.get("last_changed"),
-                        "last_updated": state.get("last_updated")
-                    })
-            
-            logger.info(f"Retrieved {len(devices)} devices for user {user_id}")
-            return devices
-            
-        except Exception as e:
-            logger.error(f"Error retrieving devices for user {user_id}: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Failed to retrieve devices from Home Assistant: {str(e)}"
-            )
+            if domain in relevant_domains:
+                devices.append({
+                    "entity_id": entity_id,
+                    "name": state.get("attributes", {}).get("friendly_name", entity_id),
+                    "domain": domain,
+                    "state": state.get("state"),
+                    "attributes": state.get("attributes", {}),
+                    "last_changed": state.get("last_changed"),
+                    "last_updated": state.get("last_updated")
+                })
+        
+        # Update cache
+        self.user_device_cache[cache_key] = {
+            "devices": devices,
+            "timestamp": datetime.now()
+        }
+        
+        logger.info(f"Retrieved {len(devices)} devices for user {user_id}")
+        return devices
     
     async def get_user_device(self, user_id: str, entity_id: str, session_token: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
@@ -407,7 +472,7 @@ class UserHomeAssistantService:
     async def control_device(self, user_id: str, entity_id: str, action: str, 
                            session_token: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         """
-        Control a specific device with session validation.
+        Control a specific device with session validation and enhanced error handling.
         
         Args:
             user_id: User ID
@@ -419,35 +484,36 @@ class UserHomeAssistantService:
         Returns:
             Action result dictionary
         """
+        return await global_error_handler.execute_with_retry(
+            "user_home_assistant",
+            lambda: self._control_device_impl(user_id, entity_id, action, session_token, **kwargs),
+            context={"user_id": user_id, "entity_id": entity_id, "action": action}
+        )
+    
+    async def _control_device_impl(self, user_id: str, entity_id: str, action: str, 
+                                  session_token: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """Implementation of control_device with error handling"""
         client = await self.get_or_create_connection(user_id, session_token)
         
-        try:
-            # Call service on the device
-            domain = entity_id.split(".")[0] if "." in entity_id else "homeassistant"
-            
-            result = await client.call_service(
-                domain=domain,
-                service=action,
-                entity_id=entity_id,
-                **kwargs
-            )
-            
-            logger.info(f"User {user_id} controlled device {entity_id} with action {action}")
-            from datetime import datetime
-            return {
-                "success": True,
-                "entity_id": entity_id,
-                "action": action,
-                "timestamp": datetime.utcnow().isoformat(),
-                "result": result
-            }
-            
-        except Exception as e:
-            logger.error(f"Error controlling device {entity_id} for user {user_id}: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Failed to control device: {str(e)}"
-            )
+        # Call service on the device
+        domain = entity_id.split(".")[0] if "." in entity_id else "homeassistant"
+        
+        result = await client.call_service(
+            domain=domain,
+            service=action,
+            entity_id=entity_id,
+            **kwargs
+        )
+        
+        logger.info(f"User {user_id} controlled device {entity_id} with action {action}")
+        from datetime import datetime
+        return {
+            "success": True,
+            "entity_id": entity_id,
+            "action": action,
+            "timestamp": datetime.utcnow().isoformat(),
+            "result": result
+        }
 
     async def get_user_integration_status(self, user_id: str) -> Dict:
         """Get integration status for a specific user"""
