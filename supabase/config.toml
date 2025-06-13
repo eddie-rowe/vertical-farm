@@ -69,7 +69,7 @@ enabled = true
 # Port to use for Supabase Studio.
 port = 54323
 # External URL of the API server that frontend connects to.
-api_url = "http://127.0.0.1"
+api_url = "http://localhost:54321"
 # OpenAI API Key to use for Supabase AI in the Supabase Studio.
 openai_api_key = "env(OPENAI_API_KEY)"
 
@@ -80,8 +80,8 @@ enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
 # Uncomment to expose additional ports for testing user applications that send emails.
-# smtp_port = 54325
-# pop3_port = 54326
+smtp_port = 54325
+pop3_port = 54326
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
@@ -91,8 +91,7 @@ enabled = true
 file_size_limit = "50MiB"
 
 # Image transformation API is available to Supabase Pro plan.
-# [storage.image_transformation]
-# enabled = true
+image_transformation = true
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
@@ -105,9 +104,9 @@ file_size_limit = "50MiB"
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+site_url = "http://localhost:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+additional_redirect_urls = ["https://localhost:3000"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.
@@ -289,7 +288,7 @@ deno_version = 1
 # secret_key = "env(SECRET_VALUE)"
 
 [analytics]
-enabled = true
+enabled = false
 port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
@@ -306,3 +305,43 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# Supabase Configuration for Vertical Farm Management System
+
+[edge_functions]
+enabled = true
+port = 54327
+
+# Background task processing functions
+[[edge_functions.functions]]
+name = "background-task-processor"
+verify_jwt = false
+
+[[edge_functions.functions]]
+name = "queue-scheduler"
+verify_jwt = false
+
+# Cron jobs for background task processing
+[edge_functions.cron]
+enabled = true
+
+# Process queues every 2 minutes
+[[edge_functions.cron.jobs]]
+name = "process-background-tasks"
+schedule = "*/2 * * * *"
+function_name = "queue-scheduler"
+payload = '{"action": "process_queues"}'
+
+# Schedule recurring tasks every 5 minutes
+[[edge_functions.cron.jobs]]
+name = "schedule-recurring-tasks"
+schedule = "*/5 * * * *"
+function_name = "queue-scheduler"
+payload = '{"action": "schedule_recurring_tasks"}'
+
+# Cleanup old tasks daily at 2 AM
+[[edge_functions.cron.jobs]]
+name = "cleanup-old-tasks"
+schedule = "0 2 * * *"
+function_name = "queue-scheduler"
+payload = '{"action": "cleanup_old_tasks"}'

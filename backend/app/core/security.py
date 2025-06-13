@@ -210,7 +210,7 @@ async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
 # from app.models.user import User as UserModel # Remove this import
 from app.crud import crud_user
 # from app.db.supabase_client import get_async_supabase_client # Remove this top-level import
-from supabase import AsyncClient as SupabaseAsyncClient # create_async_client removed as not used here directly
+from supabase import AClient as SupabaseAsyncClient # acreate_client removed as not used here directly
 # from app.schemas.user import User # Remove this top-level import, will use string literal or local import
 
 

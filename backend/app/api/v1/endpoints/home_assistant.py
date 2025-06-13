@@ -8,8 +8,9 @@ Home Assistant devices within the vertical farm system.
 import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
 from app.services.user_home_assistant_service import (
     get_user_home_assistant_service,
@@ -39,9 +40,14 @@ from app.models.home_assistant import (
     UserDeviceConfigRequest,
     UserDeviceConfigResponse
 )
-from app.db.supabase_client import get_async_supabase_client
-from app.services.database_service import get_database
+from app.db.supabase_client import get_async_supabase_client, get_async_rls_client
+# from app.services.database_service import get_database  # Removed - using Supabase now
 from app.core.security import get_current_active_user as get_current_user
+from app.services.error_handling import (
+    global_error_handler,
+    HomeAssistantError,
+    ErrorType
+)
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +184,7 @@ async def discover_devices(
     description="Retrieve all Home Assistant devices/entities for the current user"
 )
 async def get_all_devices(
+    response: Response,
     device_type: Optional[str] = Query(None, description="Filter by device type (light, switch, sensor, etc.)"),
     current_user = Depends(get_current_user),
     user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
@@ -210,6 +217,10 @@ async def get_all_devices(
             except Exception as e:
                 logger.warning(f"Failed to parse device {device.get('entity_id', 'unknown')} for user {user_id}: {e}")
                 continue
+        
+        # Add cache headers for device list (cache for 2 minutes)
+        response.headers["Cache-Control"] = "public, max-age=120"
+        response.headers["ETag"] = f'"{hash(str(device_models))}"'
         
         return DeviceListResponse(
             devices=device_models,
@@ -597,7 +608,7 @@ async def assign_device_to_location(
     assignment: DeviceAssignmentRequest,
     current_user = Depends(get_current_user),
     ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
-    db = Depends(get_database)
+    db = Depends(get_async_rls_client)
 ):
     """Assign a Home Assistant device to a farm location (shelf, rack, row, or farm level)"""
     try:
@@ -613,37 +624,34 @@ async def assign_device_to_location(
         if not device:
             raise HTTPException(status_code=404, detail="Device not found in Home Assistant")
         
-        # Store the assignment in the database
-        query = """
-        INSERT INTO device_assignments (shelf_id, rack_id, row_id, farm_id, entity_id, entity_type, friendly_name, assigned_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (entity_id) DO UPDATE SET
-            shelf_id = EXCLUDED.shelf_id,
-            rack_id = EXCLUDED.rack_id,
-            row_id = EXCLUDED.row_id,
-            farm_id = EXCLUDED.farm_id,
-            friendly_name = EXCLUDED.friendly_name,
-            updated_at = NOW()
-        RETURNING *
-        """
+        # Store the assignment in the database using Supabase
+        assignment_data = {
+            "user_id": str(current_user.id),
+            "entity_id": entity_id,
+            "entity_type": device.get("entity_type", "unknown"),
+            "friendly_name": assignment.friendly_name or device.get("name", entity_id),
+            "farm_id": str(assignment.farm_id) if assignment.farm_id else None,
+            "row_id": str(assignment.row_id) if assignment.row_id else None,
+            "rack_id": str(assignment.rack_id) if assignment.rack_id else None,
+            "shelf_id": str(assignment.shelf_id) if assignment.shelf_id else None,
+            "assigned_by": assignment.assigned_by
+        }
         
-        values = [
-            assignment.shelf_id,
-            assignment.rack_id, 
-            assignment.row_id,
-            assignment.farm_id,
-            entity_id,
-            device.get("entity_type", "unknown"),
-            assignment.friendly_name or device.get("name", entity_id),
-            assignment.assigned_by
-        ]
+        # Use upsert to handle conflicts
+        result = await db.table("device_assignments").upsert(
+            assignment_data,
+            on_conflict="user_id,entity_id"
+        ).execute()
         
-        result = await db.fetchrow(query, *values)
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to store device assignment")
+        
+        assignment_record = result.data[0]
         
         return {
             "success": True,
             "message": f"Device {entity_id} assigned successfully",
-            "assignment": dict(result)
+            "assignment": assignment_record
         }
         
     except HTTPException:
@@ -660,85 +668,45 @@ async def get_device_assignments(
     rack_id: Optional[str] = None,
     shelf_id: Optional[str] = None,
     current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    db = Depends(get_async_rls_client)
 ):
     """Get device assignments, optionally filtered by farm location"""
     try:
         logger.info(f"get_device_assignments called by user {current_user.id}")
         
-        # Check if database is available
-        if db is None:
-            logger.error("Database service is None")
-            raise HTTPException(
-                status_code=503,
-                detail="Database service is currently unavailable. Device assignments cannot be retrieved."
-            )
+        # Build query with filters using Supabase
+        query = db.table("device_assignments").select(
+            "*, farms(name), rows(name), racks(name), shelves(name)"
+        )
         
-        logger.info(f"Database service is available: {db.is_available}")
+        # Apply filters
+        if farm_id:
+            query = query.or_(f"farm_id.eq.{farm_id},rows.farm_id.eq.{farm_id}")
+        if row_id:
+            query = query.or_(f"row_id.eq.{row_id},racks.row_id.eq.{row_id}")
+        if rack_id:
+            query = query.or_(f"rack_id.eq.{rack_id},shelves.rack_id.eq.{rack_id}")
+        if shelf_id:
+            query = query.eq("shelf_id", shelf_id)
         
-        # Start with a simple query to test basic database connectivity
-        try:
-            simple_query = "SELECT COUNT(*) FROM device_assignments"
-            count_result = await db.fetchval(simple_query)
-            logger.info(f"Found {count_result} device assignments in total")
-        except Exception as e:
-            logger.error(f"Simple count query failed: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
+        # Execute query
+        result = await query.order("created_at", desc=True).execute()
         
-        # Now try the full query but simplified first
-        try:
-            base_query = """
-            SELECT 
-                da.*,
-                f.name as farm_name,
-                r.name as row_name,
-                ra.name as rack_name,
-                s.name as shelf_name
-            FROM device_assignments da
-            LEFT JOIN farms f ON da.farm_id = f.id
-            LEFT JOIN rows r ON da.row_id = r.id  
-            LEFT JOIN racks ra ON da.rack_id = ra.id
-            LEFT JOIN shelves s ON da.shelf_id = s.id
-            WHERE 1=1
-            """
-            
-            conditions = []
-            values = []
-            
-            if farm_id:
-                conditions.append(f"AND (da.farm_id = ${len(values)+1} OR r.farm_id = ${len(values)+1} OR ra.row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1}) OR s.rack_id IN (SELECT id FROM racks WHERE row_id IN (SELECT id FROM rows WHERE farm_id = ${len(values)+1})))")
-                values.append(farm_id)
-            if row_id:
-                conditions.append(f"AND (da.row_id = ${len(values)+1} OR ra.row_id = ${len(values)+1} OR s.rack_id IN (SELECT id FROM racks WHERE row_id = ${len(values)+1}))")
-                values.append(row_id)
-            if rack_id:
-                conditions.append(f"AND (da.rack_id = ${len(values)+1} OR s.rack_id = ${len(values)+1})")
-                values.append(rack_id)
-            if shelf_id:
-                conditions.append(f"AND da.shelf_id = ${len(values)+1}")
-                values.append(shelf_id)
-                
-            query = base_query + " ".join(conditions) + " ORDER BY da.created_at DESC"
-            
-            logger.info(f"Executing query with {len(values)} parameters")
-            results = await db.fetch(query, *values)
-            logger.info(f"Query returned {len(results)} results")
-            
-            return {
-                "assignments": [dict(row) for row in results],
-                "count": len(results)
-            }
-        except Exception as e:
-            logger.error(f"Main query execution failed: {str(e)}")
-            logger.error(f"Query was: {query}")
-            logger.error(f"Values were: {values}")
-            raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
+        if result.data is None:
+            logger.error("Query returned None data")
+            raise HTTPException(status_code=500, detail="Failed to retrieve device assignments")
+        
+        logger.info(f"Query returned {len(result.data)} results")
+        
+        return {
+            "assignments": result.data,
+            "count": len(result.data)
+        }
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error in get_device_assignments: {str(e)}")
-        logger.error(f"Error type: {type(e)}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
@@ -748,20 +716,14 @@ async def get_device_assignments(
 async def remove_device_assignment(
     entity_id: str,
     current_user = Depends(get_current_user),
-    db = Depends(get_database)
+    db = Depends(get_async_rls_client)
 ):
     """Remove device assignment from farm location"""
     try:
-        # Check if database is available
-        if db is None:
-            raise HTTPException(
-                status_code=503,
-                detail="Database service is currently unavailable. Device assignments cannot be removed."
-            )
-        query = "DELETE FROM device_assignments WHERE entity_id = $1 RETURNING *"
-        result = await db.fetchrow(query, entity_id)
+        # Delete the assignment using Supabase
+        result = await db.table("device_assignments").delete().eq("entity_id", entity_id).execute()
         
-        if not result:
+        if not result.data:
             raise HTTPException(status_code=404, detail="Device assignment not found")
             
         return {
@@ -769,6 +731,8 @@ async def remove_device_assignment(
             "message": f"Device assignment for {entity_id} removed successfully"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error removing device assignment {entity_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -779,7 +743,7 @@ async def get_farm_assigned_devices(
     farm_id: str,
     current_user = Depends(get_current_user),
     ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
-    db = Depends(get_database)
+    db = Depends(get_async_rls_client)
 ):
     """Get all devices assigned to a specific farm with their current states"""
     try:
@@ -1128,4 +1092,222 @@ async def delete_user_config(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete configuration"
+        )
+
+
+@router.get(
+    "/error-monitoring/health",
+    summary="Get Error Monitoring Health",
+    description="Get comprehensive error monitoring and health status for Home Assistant integration"
+)
+async def get_error_monitoring_health(
+    service_name: Optional[str] = Query(None, description="Specific service to check (home_assistant_rest, home_assistant_websocket, user_home_assistant)"),
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get comprehensive error monitoring and health status"""
+    try:
+        if service_name:
+            # Get health for specific service
+            health = global_error_handler.get_service_health(service_name)
+            if health.get("status") == "unknown":
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Service '{service_name}' not found"
+                )
+            return {"service": service_name, "health": health}
+        else:
+            # Get overall health status
+            return global_error_handler.get_overall_health()
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get error monitoring health: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve error monitoring health"
+        )
+
+
+@router.get(
+    "/error-monitoring/metrics",
+    summary="Export Error Metrics",
+    description="Export comprehensive error metrics and statistics"
+)
+async def export_error_metrics(
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Export comprehensive error metrics"""
+    try:
+        return global_error_handler.export_metrics()
+    except Exception as e:
+        logger.error(f"Failed to export error metrics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to export error metrics"
+        )
+
+
+@router.post(
+    "/error-monitoring/test-recovery",
+    summary="Test Error Recovery",
+    description="Manually trigger error recovery mechanisms for testing"
+)
+async def test_error_recovery(
+    service_name: str = Query(..., description="Service to test recovery for"),
+    current_user = Depends(get_current_user),
+    user_ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service)
+) -> Dict[str, Any]:
+    """Manually trigger error recovery for testing purposes"""
+    try:
+        if service_name == "user_home_assistant":
+            user_id = str(current_user.id)
+            await user_ha_service._attempt_connection_recovery()
+            
+            return {
+                "success": True,
+                "message": f"Recovery triggered for service '{service_name}'",
+                "service": service_name,
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Recovery testing not supported for service '{service_name}'"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to test recovery for service {service_name}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to test recovery: {str(e)}"
+        )
+
+
+@router.get(
+    "/error-monitoring/circuit-breaker-status",
+    summary="Get Circuit Breaker Status",
+    description="Get current circuit breaker status for all services"
+)
+async def get_circuit_breaker_status(
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get circuit breaker status for all services"""
+    try:
+        overall_health = global_error_handler.get_overall_health()
+        circuit_breaker_info = {}
+        
+        for service_name, health in overall_health.get("services", {}).items():
+            circuit_breaker_info[service_name] = {
+                "circuit_state": health.get("circuit_state"),
+                "failure_count": health.get("failure_count"),
+                "next_attempt_time": health.get("next_attempt_time"),
+                "circuit_breaker_triggers": health.get("circuit_breaker_triggers", 0),
+                "status": health.get("status")
+            }
+        
+        return {
+            "overall_healthy": overall_health.get("overall_healthy"),
+            "circuit_breakers": circuit_breaker_info,
+            "timestamp": overall_health.get("timestamp")
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get circuit breaker status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve circuit breaker status"
+        )
+
+
+@router.get(
+    "/error-monitoring/error-patterns",
+    summary="Get Error Patterns",
+    description="Analyze error patterns and provide insights"
+)
+async def get_error_patterns(
+    hours: int = Query(24, description="Number of hours to analyze", ge=1, le=168),
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Analyze error patterns and provide insights"""
+    try:
+        overall_health = global_error_handler.get_overall_health()
+        
+        # Analyze error patterns across services
+        total_errors = 0
+        error_distribution = {}
+        service_reliability = {}
+        
+        for service_name, health in overall_health.get("services", {}).items():
+            service_errors = health.get("total_errors", 0)
+            total_errors += service_errors
+            
+            # Calculate reliability score
+            health_score = health.get("health_score", 0)
+            service_reliability[service_name] = {
+                "health_score": health_score,
+                "reliability_tier": (
+                    "excellent" if health_score >= 95 else
+                    "good" if health_score >= 85 else
+                    "fair" if health_score >= 70 else
+                    "poor"
+                ),
+                "total_errors": service_errors,
+                "error_rate": health.get("error_rate_percent", 0),
+                "consecutive_failures": health.get("consecutive_failures", 0),
+                "recovery_count": health.get("recovery_count", 0)
+            }
+            
+            # Error type distribution
+            for error_type, count in health.get("error_types", {}).items():
+                if error_type not in error_distribution:
+                    error_distribution[error_type] = 0
+                error_distribution[error_type] += count
+        
+        # Generate insights
+        insights = []
+        
+        if total_errors == 0:
+            insights.append("No errors detected in the analyzed period")
+        else:
+            # Most common error type
+            if error_distribution:
+                most_common_error = max(error_distribution.items(), key=lambda x: x[1])
+                insights.append(f"Most common error type: {most_common_error[0]} ({most_common_error[1]} occurrences)")
+            
+            # Service reliability insights
+            unreliable_services = [
+                name for name, stats in service_reliability.items()
+                if stats["reliability_tier"] in ["fair", "poor"]
+            ]
+            
+            if unreliable_services:
+                insights.append(f"Services needing attention: {', '.join(unreliable_services)}")
+            
+            # Recovery insights
+            total_recoveries = sum(stats["recovery_count"] for stats in service_reliability.values())
+            if total_recoveries > 0:
+                insights.append(f"Total successful recoveries: {total_recoveries}")
+        
+        return {
+            "analysis_period_hours": hours,
+            "total_errors": total_errors,
+            "error_distribution": error_distribution,
+            "service_reliability": service_reliability,
+            "insights": insights,
+            "overall_system_health": (
+                "excellent" if overall_health.get("overall_healthy") and total_errors == 0 else
+                "good" if overall_health.get("overall_healthy") else
+                "needs_attention"
+            ),
+            "timestamp": overall_health.get("timestamp")
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to analyze error patterns: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to analyze error patterns"
         ) 

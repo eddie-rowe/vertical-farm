@@ -19,5 +19,4 @@ pytest-asyncio
 python-multipart
 websockets
 aiohttp
-redis
 asyncio-throttle
