@@ -1,0 +1,1366 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/postgrest-migration-strategy/">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>PostGREST Migration Strategy - Vertical Farm Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#postgrest-migration-strategy" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Vertical Farm Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PostGREST Migration Strategy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Vertical Farm Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DB Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-challenges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Challenges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-responsibilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Responsibilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Backend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI/CD Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-flow-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Flow Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../improvement-recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Improvement Recommendations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_17" >
+        
+          
+          <label class="md-nav__link" for="__nav_17" id="__nav_17_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reviews
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_17_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_17">
+            <span class="md-nav__icon md-icon"></span>
+            Reviews
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" >
+        
+          
+          <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Updated
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_18">
+            <span class="md-nav__icon md-icon"></span>
+            Updated
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updated/changes-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changes Summary – Hermes Sync 2025-05-17
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updated/farm-config-page-vision.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-backend-11-endpoint-files-58kb-total" class="md-nav__link">
+    <span class="md-ellipsis">
+      FastAPI Backend: 11 Endpoint Files (~58KB total)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Classification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eliminate-80-of-code-replace-with-postgrestsupabase" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟢 ELIMINATE (80% of code) - Replace with PostGREST/Supabase
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🟢 ELIMINATE (80% of code) - Replace with PostGREST/Supabase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication &amp; Users
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farm-management-complete-crud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Farm Management (Complete CRUD)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hierarchy-management-complete-crud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hierarchy Management (Complete CRUD)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-management-complete-crud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device Management (Complete CRUD)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permissions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simplify-15-of-code-minimal-fastapi-edge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟡 SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🟡 SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#home-assistant-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Home Assistant Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enhance-5-of-code-database-functions-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 ENHANCE (5% of code) - Database Functions + Triggers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔴 ENHANCE (5% of code) - Database Functions + Triggers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#background-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background Processing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-frontend-migration-this-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Frontend Migration (This Phase)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Frontend Migration (This Phase)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-authentication-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1: Authentication Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-crud-operations-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2: CRUD Operations Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-complex-queries-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3: Complex Queries Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-backend-simplification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Backend Simplification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Backend Simplification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-remove-crud-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1: Remove CRUD Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-keep-home-assistant-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2: Keep Home Assistant Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-database-function-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Database Function Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Database Function Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-complex-business-logic-database-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1: Complex Business Logic → Database Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-automated-operations-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2: Automated Operations → Triggers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Outcomes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Outcomes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-reduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reduction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Velocity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Timeline
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="postgrest-migration-strategy">PostGREST Migration Strategy</h1>
+<h2 id="current-state-analysis">Current State Analysis</h2>
+<h3 id="fastapi-backend-11-endpoint-files-58kb-total">FastAPI Backend: 11 Endpoint Files (~58KB total)</h3>
+<ul>
+<li><strong>auth.py</strong> (2.3KB) - Authentication endpoints</li>
+<li><strong>login.py</strong> (1.7KB) - Login/logout endpoints </li>
+<li><strong>users.py</strong> (1.9KB) - User management</li>
+<li><strong>farms.py</strong> (4.9KB) - Farm CRUD operations</li>
+<li><strong>rows.py</strong> (6.6KB) - Row CRUD operations</li>
+<li><strong>racks.py</strong> (7.4KB) - Rack CRUD operations</li>
+<li><strong>shelves.py</strong> (8.9KB) - Shelf CRUD operations</li>
+<li><strong>fans.py</strong> (7.8KB) - Fan device CRUD</li>
+<li><strong>sensor_devices.py</strong> (8.6KB) - Sensor device CRUD</li>
+<li><strong>user_permissions.py</strong> (8.5KB) - Permission management</li>
+<li><strong>home_assistant.py</strong> (38KB) - External HA integration</li>
+</ul>
+<h3 id="migration-classification">Migration Classification</h3>
+<h2 id="eliminate-80-of-code-replace-with-postgrestsupabase">🟢 <strong>ELIMINATE (80% of code) - Replace with PostGREST/Supabase</strong></h2>
+<p>Standard CRUD operations that can be handled entirely by Supabase:</p>
+<h3 id="authentication-users">Authentication &amp; Users</h3>
+<ul>
+<li><code>POST /auth/register</code> → Supabase Auth</li>
+<li><code>POST /auth/login</code> → Supabase Auth  </li>
+<li><code>GET /users/me</code> → Supabase Auth user context</li>
+<li><code>PUT /users/{id}</code> → Direct Supabase table update</li>
+</ul>
+<h3 id="farm-management-complete-crud">Farm Management (Complete CRUD)</h3>
+<ul>
+<li><code>GET /farms</code> → <code>GET /rest/v1/farms</code></li>
+<li><code>POST /farms</code> → <code>POST /rest/v1/farms</code></li>
+<li><code>GET /farms/{id}</code> → <code>GET /rest/v1/farms?id=eq.{id}</code></li>
+<li><code>PUT /farms/{id}</code> → <code>PATCH /rest/v1/farms?id=eq.{id}</code></li>
+<li><code>DELETE /farms/{id}</code> → <code>DELETE /rest/v1/farms?id=eq.{id}</code></li>
+</ul>
+<h3 id="hierarchy-management-complete-crud">Hierarchy Management (Complete CRUD)</h3>
+<ul>
+<li>All rows, racks, shelves endpoints → Direct Supabase table operations</li>
+<li>Complex queries → Use database functions we implemented</li>
+</ul>
+<h3 id="device-management-complete-crud">Device Management (Complete CRUD)</h3>
+<ul>
+<li>All fans, sensor_devices endpoints → Direct Supabase table operations</li>
+<li>Device assignments → Use RLS policies and database functions</li>
+</ul>
+<h3 id="permissions">Permissions</h3>
+<ul>
+<li>User permissions → Leverage RLS policies + database functions</li>
+</ul>
+<h2 id="simplify-15-of-code-minimal-fastapi-edge-functions">🟡 <strong>SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions</strong></h2>
+<p>Complex business logic and external integrations:</p>
+<h3 id="home-assistant-integration">Home Assistant Integration</h3>
+<p><strong>Keep in FastAPI:</strong>
+- External API calls to HA instances
+- WebSocket connections to HA
+- Device control commands
+- Real-time subscription management</p>
+<p><strong>Move to Edge Functions:</strong>
+- Configuration validation
+- Connection testing
+- Data transformation</p>
+<h2 id="enhance-5-of-code-database-functions-triggers">🔴 <strong>ENHANCE (5% of code) - Database Functions + Triggers</strong></h2>
+<p>Move complex operations to PostgreSQL:</p>
+<h3 id="background-processing">Background Processing</h3>
+<ul>
+<li>Automated device monitoring</li>
+<li>Schedule calculations</li>
+<li>Data aggregation and analytics</li>
+</ul>
+<h2 id="migration-phases">Migration Phases</h2>
+<h3 id="phase-1-frontend-migration-this-phase">Phase 1: Frontend Migration (This Phase)</h3>
+<p><strong>Replace FastAPI client calls with Supabase client calls</strong></p>
+<h4 id="11-authentication-migration">1.1: Authentication Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: FastAPI calls</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/auth/login&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="kt">JSON.stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">email</span><span class="p">,</span><span class="w"> </span><span class="nx">password</span><span class="w"> </span><span class="p">})</span>
+<span class="p">});</span>
+
+<span class="c1">// After: Supabase Auth</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">auth</span><span class="p">.</span><span class="nx">signInWithPassword</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">email</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">password</span>
+<span class="p">});</span>
+</code></pre></div>
+<h4 id="12-crud-operations-migration">1.2: CRUD Operations Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: FastAPI farms endpoint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/farms&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">farms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+
+<span class="c1">// After: Supabase PostGREST</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">farms</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">);</span>
+</code></pre></div>
+<h4 id="13-complex-queries-migration">1.3: Complex Queries Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Custom FastAPI endpoint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`/api/farms/</span><span class="si">${</span><span class="nx">farmId</span><span class="si">}</span><span class="sb">/devices`</span><span class="p">);</span>
+
+<span class="c1">// After: Supabase with joins</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">devices</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;device_assignments&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="sb">`</span>
+<span class="sb">    *,</span>
+<span class="sb">    farms(name),</span>
+<span class="sb">    rows(name),</span>
+<span class="sb">    racks(name),</span>
+<span class="sb">    shelves(name)</span>
+<span class="sb">  `</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;farm_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">farmId</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="phase-2-backend-simplification">Phase 2: Backend Simplification</h3>
+<p><strong>Reduce FastAPI to minimal external integration layer</strong></p>
+<h4 id="21-remove-crud-endpoints">2.1: Remove CRUD Endpoints</h4>
+<ul>
+<li>Delete farms.py, rows.py, racks.py, shelves.py</li>
+<li>Delete auth.py, login.py, users.py  </li>
+<li>Delete fans.py, sensor_devices.py</li>
+<li>Delete user_permissions.py</li>
+</ul>
+<h4 id="22-keep-home-assistant-integration">2.2: Keep Home Assistant Integration</h4>
+<ul>
+<li>Maintain home_assistant.py for external API calls</li>
+<li>Add Edge Functions for data processing</li>
+<li>Use Supabase real-time for device updates</li>
+</ul>
+<h3 id="phase-3-database-function-integration">Phase 3: Database Function Integration</h3>
+<p><strong>Leverage advanced PostgreSQL features</strong></p>
+<h4 id="31-complex-business-logic-database-functions">3.1: Complex Business Logic → Database Functions</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Farm statistics (already implemented)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">get_farm_statistics</span><span class="p">(</span><span class="s1">&#39;farm-uuid&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Device status monitoring (already implemented)  </span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">get_device_status_summary</span><span class="p">(</span><span class="s1">&#39;farm-uuid&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Search functionality (already implemented)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">search_devices</span><span class="p">(</span><span class="s1">&#39;pump&#39;</span><span class="p">);</span>
+</code></pre></div>
+<h4 id="32-automated-operations-triggers">3.2: Automated Operations → Triggers</h4>
+<ul>
+<li>Auto-update timestamps (already implemented)</li>
+<li>Schedule calculations (already implemented)</li>
+<li>Data validation (already implemented)</li>
+</ul>
+<h2 id="expected-outcomes">Expected Outcomes</h2>
+<h3 id="code-reduction">Code Reduction</h3>
+<ul>
+<li><strong>~1,180 lines</strong> FastAPI → <strong>~300 lines</strong> (75% reduction)</li>
+<li><strong>11 endpoint files</strong> → <strong>1 file</strong> (home_assistant.py only)</li>
+<li><strong>~58KB backend</strong> → <strong>~15KB backend</strong> (74% reduction)</li>
+</ul>
+<h3 id="performance-improvements">Performance Improvements</h3>
+<ul>
+<li><strong>2-3x faster</strong> CRUD operations (direct database access)</li>
+<li><strong>Real-time updates</strong> out of the box</li>
+<li><strong>Automatic caching</strong> with HTTP headers</li>
+<li><strong>Connection pooling</strong> efficiency</li>
+</ul>
+<h3 id="development-velocity">Development Velocity</h3>
+<ul>
+<li><strong>Zero boilerplate</strong> for new endpoints</li>
+<li><strong>Auto-generated APIs</strong> from schema changes</li>
+<li><strong>Built-in filtering/pagination</strong> </li>
+<li><strong>Type-safe</strong> operations with generated types</li>
+</ul>
+<h3 id="maintenance-benefits">Maintenance Benefits</h3>
+<ul>
+<li><strong>Single source of truth</strong> (database schema)</li>
+<li><strong>Automatic documentation</strong> (OpenAPI spec)</li>
+<li><strong>Simplified deployment</strong> (fewer moving parts)</li>
+<li><strong>Better error handling</strong> (database-level constraints)</li>
+</ul>
+<h2 id="implementation-timeline">Implementation Timeline</h2>
+<ul>
+<li><strong>Phase 1</strong>: 2-3 hours (Frontend migration)</li>
+<li><strong>Phase 2</strong>: 1 hour (Backend simplification)  </li>
+<li><strong>Phase 3</strong>: 30 minutes (Database function integration)</li>
+</ul>
+<p><strong>Total Migration Time: ~4 hours for 75% code reduction and 2-3x performance improvement!</strong> </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

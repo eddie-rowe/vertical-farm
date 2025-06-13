@@ -1,0 +1,1306 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/postgrest-migration-analysis/">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>PostGREST Migration Analysis for Vertical Farm - Vertical Farm Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#postgrest-migration-analysis-for-vertical-farm" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Vertical Farm Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PostGREST Migration Analysis for Vertical Farm
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Vertical Farm Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DB Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-challenges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Challenges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-responsibilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Responsibilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Backend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI/CD Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-flow-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Flow Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../improvement-recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Improvement Recommendations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_17" >
+        
+          
+          <label class="md-nav__link" for="__nav_17" id="__nav_17_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reviews
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_17_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_17">
+            <span class="md-nav__icon md-icon"></span>
+            Reviews
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" >
+        
+          
+          <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Updated
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_18">
+            <span class="md-nav__icon md-icon"></span>
+            Updated
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updated/changes-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changes Summary – Hermes Sync 2025-05-17
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updated/farm-config-page-vision.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-endpoints-that-can-be-eliminated-80" class="md-nav__link">
+    <span class="md-ellipsis">
+      FastAPI Endpoints That Can Be Eliminated (80%)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoints-perfect-for-postgrest" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoints Perfect for PostGREST
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postgrest-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostGREST Advanced Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PostGREST Advanced Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complex-queries-made-simple" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Queries Made Simple
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-functions-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Functions Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keep-fastapi-for-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep FastAPI For (20%)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keep FastAPI For (20%)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#home-assistant-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Home Assistant Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#background-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background Jobs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-replace-simple-crud-week-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Replace Simple CRUD (Week 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-leverage-database-functions-week-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Leverage Database Functions (Week 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-minimize-fastapi-week-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Minimize FastAPI (Week 3)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Benefits
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Benefits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Velocity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operational-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-reduction-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reduction Example
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Reduction Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before (FastAPI)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-postgrest-minimal-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      After (PostGREST + Minimal FastAPI)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommendation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommendation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="postgrest-migration-analysis-for-vertical-farm">PostGREST Migration Analysis for Vertical Farm</h1>
+<h2 id="current-state-analysis">Current State Analysis</h2>
+<h3 id="fastapi-endpoints-that-can-be-eliminated-80">FastAPI Endpoints That Can Be Eliminated (80%)</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ❌ Current FastAPI - 50+ lines of boilerplate</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/farms/</span><span class="si">{farm_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_farm</span><span class="p">(</span><span class="n">farm_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farm</span> <span class="o">=</span> <span class="k">await</span> <span class="n">db_session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">select</span><span class="p">(</span><span class="n">Farm</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Farm</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">farm_id</span><span class="p">,</span> <span class="n">Farm</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">farm</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/farms&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_farm</span><span class="p">(</span><span class="n">farm_data</span><span class="p">:</span> <span class="n">FarmCreate</span><span class="p">,</span> <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farm</span> <span class="o">=</span> <span class="n">Farm</span><span class="p">(</span><span class="o">**</span><span class="n">farm_data</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">user_id</span><span class="o">=</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">db_session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">farm</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">db_session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1">// ✅ PostGREST/Supabase - 2 lines, auto-authenticated via RLS</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">farm</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">farmId</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">single</span><span class="p">()</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">newFarm</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">insert</span><span class="p">([</span><span class="nx">farmData</span><span class="p">])</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="endpoints-perfect-for-postgrest">Endpoints Perfect for PostGREST</h3>
+<table>
+<thead>
+<tr>
+<th>Current FastAPI Endpoint</th>
+<th>PostGREST Replacement</th>
+<th>Lines Saved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/farms</code></td>
+<td><code>farms?select=*</code></td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td><code>POST /api/farms</code></td>
+<td><code>farms</code> (POST)</td>
+<td>~25 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/farms/{id}/rows</code></td>
+<td><code>rows?farm_id=eq.{id}&amp;select=*,racks(*)</code></td>
+<td>~40 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/devices</code></td>
+<td><code>device_assignments?select=*,shelves(*)</code></td>
+<td>~35 lines</td>
+</tr>
+<tr>
+<td><code>PUT /api/devices/{id}</code></td>
+<td><code>device_assignments?id=eq.{id}</code> (PATCH)</td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/schedules</code></td>
+<td><code>schedules?select=*,grow_recipes(*)</code></td>
+<td>~45 lines</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Elimination: ~200+ lines of boilerplate code</strong></p>
+<h2 id="postgrest-advanced-features">PostGREST Advanced Features</h2>
+<h3 id="complex-queries-made-simple">Complex Queries Made Simple</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get farm with complete hierarchy and device status</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="sb">`</span>
+<span class="sb">    *,</span>
+<span class="sb">    rows (</span>
+<span class="sb">      *,</span>
+<span class="sb">      racks (</span>
+<span class="sb">        *,</span>
+<span class="sb">        shelves (</span>
+<span class="sb">          *,</span>
+<span class="sb">          device_assignments (</span>
+<span class="sb">            *,</span>
+<span class="sb">            user_device_configs (*)</span>
+<span class="sb">          )</span>
+<span class="sb">        )</span>
+<span class="sb">      )</span>
+<span class="sb">    )</span>
+<span class="sb">  `</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">userId</span><span class="p">)</span>
+
+<span class="c1">// Advanced filtering and aggregation</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;sensor_readings&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;device_id, avg(value)&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">gte</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01-01&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">order</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ascending</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="w"> </span><span class="p">})</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">limit</span><span class="p">(</span><span class="mf">100</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="database-functions-integration">Database Functions Integration</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use the functions we implemented in the audit</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">stats</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;get_farm_statistics&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">farm_uuid</span><span class="o">:</span><span class="w"> </span><span class="kt">farmId</span>
+<span class="p">})</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">devices</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;search_devices&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">search_term</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;light&#39;</span>
+<span class="p">})</span>
+</code></pre></div>
+<h2 id="keep-fastapi-for-20">Keep FastAPI For (20%)</h2>
+<h3 id="home-assistant-integration">Home Assistant Integration</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Complex external API integration - keep in FastAPI</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/integrations/home-assistant/sync&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">sync_home_assistant_devices</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">HAConfig</span><span class="p">):</span>
+    <span class="c1"># Multi-step process:</span>
+    <span class="c1"># 1. Call Home Assistant API</span>
+    <span class="c1"># 2. Process device entities</span>
+    <span class="c1"># 3. Update multiple database tables</span>
+    <span class="c1"># 4. Send notifications</span>
+    <span class="c1"># 5. Update device assignments</span>
+</code></pre></div>
+<h3 id="background-jobs">Background Jobs</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Scheduled operations - keep in FastAPI with Celery</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/farms/</span><span class="si">{farm_id}</span><span class="s2">/automate&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_farm_automation</span><span class="p">(</span><span class="n">farm_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># Complex business logic:</span>
+    <span class="c1"># 1. Read sensor data</span>
+    <span class="c1"># 2. Apply growing algorithms</span>
+    <span class="c1"># 3. Control devices via Home Assistant</span>
+    <span class="c1"># 4. Log actions and results</span>
+</code></pre></div>
+<h2 id="migration-strategy">Migration Strategy</h2>
+<h3 id="phase-1-replace-simple-crud-week-1">Phase 1: Replace Simple CRUD (Week 1)</h3>
+<ul>
+<li>Replace all basic GET/POST/PUT/DELETE endpoints</li>
+<li>Update frontend to use Supabase client directly</li>
+<li>Remove 60% of FastAPI code</li>
+</ul>
+<h3 id="phase-2-leverage-database-functions-week-2">Phase 2: Leverage Database Functions (Week 2)</h3>
+<ul>
+<li>Move complex queries to PostgreSQL functions</li>
+<li>Replace aggregation endpoints with RPC calls</li>
+<li>Remove another 20% of FastAPI code</li>
+</ul>
+<h3 id="phase-3-minimize-fastapi-week-3">Phase 3: Minimize FastAPI (Week 3)</h3>
+<ul>
+<li>Keep only external integrations and background tasks</li>
+<li>Deploy smaller, focused FastAPI service</li>
+<li>80% code reduction achieved</li>
+</ul>
+<h2 id="expected-benefits">Expected Benefits</h2>
+<h3 id="performance-improvements">Performance Improvements</h3>
+<ul>
+<li><strong>Query Performance</strong>: 2-3x faster (no ORM overhead)</li>
+<li><strong>Real-time</strong>: Native WebSocket subscriptions</li>
+<li><strong>Caching</strong>: HTTP cache headers work perfectly</li>
+<li><strong>Scaling</strong>: Database connection pooling optimized</li>
+</ul>
+<h3 id="development-velocity">Development Velocity</h3>
+<ul>
+<li><strong>New Features</strong>: Add database column → API endpoint exists</li>
+<li><strong>Type Safety</strong>: Auto-generated TypeScript types</li>
+<li><strong>Documentation</strong>: OpenAPI spec always up-to-date</li>
+<li><strong>Testing</strong>: Database-level testing more reliable</li>
+</ul>
+<h3 id="operational-benefits">Operational Benefits</h3>
+<ul>
+<li><strong>Deployment</strong>: Smaller FastAPI service, easier deploys</li>
+<li><strong>Monitoring</strong>: Database metrics tell the whole story</li>
+<li><strong>Security</strong>: RLS policies centralize all access control</li>
+<li><strong>Maintenance</strong>: Less code = fewer bugs</li>
+</ul>
+<h2 id="code-reduction-example">Code Reduction Example</h2>
+<h3 id="before-fastapi">Before (FastAPI)</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># farm_router.py - 150 lines</span>
+<span class="c1"># device_router.py - 200 lines  </span>
+<span class="c1"># schedule_router.py - 180 lines</span>
+<span class="c1"># auth_middleware.py - 100 lines</span>
+<span class="c1"># database_models.py - 300 lines</span>
+<span class="c1"># pydantic_schemas.py - 250 lines</span>
+<span class="c1"># TOTAL: ~1,180 lines</span>
+</code></pre></div>
+<h3 id="after-postgrest-minimal-fastapi">After (PostGREST + Minimal FastAPI)</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># integration_router.py - 80 lines (Home Assistant only)</span>
+<span class="c1"># automation_tasks.py - 60 lines (background jobs)</span>
+<span class="c1"># TOTAL: ~140 lines</span>
+</code></pre></div>
+<p><strong>Result: 88% code reduction</strong> 🎉</p>
+<h2 id="migration-checklist">Migration Checklist</h2>
+<ul>
+<li>[ ] Audit current FastAPI endpoints</li>
+<li>[ ] Identify PostGREST candidates vs FastAPI-only</li>
+<li>[ ] Update frontend to use Supabase client</li>
+<li>[ ] Test RLS policies with direct API calls</li>
+<li>[ ] Migrate complex queries to database functions</li>
+<li>[ ] Deploy minimal FastAPI for remaining use cases</li>
+<li>[ ] Monitor performance and iterate</li>
+</ul>
+<h2 id="recommendation">Recommendation</h2>
+<p><strong>Go PostGREST-first.</strong> Your comprehensive Supabase setup makes this a natural evolution. You'll dramatically reduce complexity while gaining performance and leveraging all the advanced features we just implemented.</p>
+<p>The hybrid approach gives you the best of both worlds: PostGREST's speed and simplicity for 80% of operations, FastAPI's flexibility for the remaining 20% of specialized logic. </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
