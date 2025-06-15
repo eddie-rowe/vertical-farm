@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-17T02:37:12.105Z",
+    "tasksAnalyzed": 10,
+    "thresholdScore": 5,
+    "projectName": "Sandbox",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Codebase Analysis and Architecture Documentation",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the codebase analysis and documentation process into subtasks such as repository setup, architecture review, frontend analysis, backend analysis, deployment documentation (local and remote), diagram creation, and identification of architectural challenges.",
+      "reasoning": "This task requires deep understanding of multiple system layers (frontend, backend, deployment), synthesis of technical information, and production of comprehensive documentation with diagrams. Each step involves significant investigation and cross-referencing, making it a high-complexity task."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Farm Layout Configuration UI",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand this task into subtasks for UI component development, drag-and-drop interface implementation, database schema design, Supabase API integration, validation logic, visual feedback, and testing.",
+      "reasoning": "The task spans frontend UI/UX, backend schema design, API integration, and validation, each with its own challenges. The drag-and-drop interface and hierarchical data management add to the complexity."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Home Assistant Integration",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Decompose this integration into subtasks for client service creation, WebSocket handling, REST endpoint development, authentication, error handling, background tasks, caching, and testing.",
+      "reasoning": "Integrating with an external system via both WebSocket and REST, handling real-time updates, authentication, error recovery, and caching requires advanced backend skills and careful coordination."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Device Assignment UI",
+      "complexityScore": 6,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "List subtasks for schema creation, UI component development, drag-and-drop assignment, entity filtering, API endpoints, validation, search functionality, and visual indicators.",
+      "reasoning": "While primarily a UI task, it involves backend schema, real-time assignment logic, and interactive features like drag-and-drop and filtering, making it moderately complex."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Grow Recipe Management System",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand into subtasks for schema design, UI component development, CRUD API implementation, versioning, duplication, validation, and search/filtering.",
+      "reasoning": "Managing recipes involves complex data structures, versioning, validation, and user interface considerations, requiring careful design and implementation."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Scheduling and Automation Engine",
+      "complexityScore": 9,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down into subtasks for schedule schema design, scheduler service implementation, background task setup, recipe locking, manual override, UI development, conflict detection, and notification system.",
+      "reasoning": "This is a highly complex task involving real-time scheduling, automation, concurrency, conflict resolution, and integration with multiple system components."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Real-Time Monitoring Dashboard",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "List subtasks for WebSocket endpoint creation, dashboard UI components, WebSocket management, data aggregation, filtering, alerting, visual indicators, and refresh logic.",
+      "reasoning": "Building a real-time dashboard requires backend and frontend coordination, real-time data handling, alerting, and advanced UI features."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Historical Analytics and Reporting",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Expand into subtasks for schema design, data retention/aggregation, API development, analytics UI components, filtering, export functionality, scheduled reports, and metrics calculation.",
+      "reasoning": "This task involves large-scale data handling, analytics, reporting, and UI/UX for complex visualizations, making it a high-complexity effort."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Role-Based Access Control",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down into subtasks for role definition, authentication UI, protected route setup, API authorization, invitation system, audit logging, and session management.",
+      "reasoning": "Implementing RBAC requires careful schema design, secure authentication, authorization logic, and auditability, all of which are critical for system security."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Harvest Logging and Yield Tracking",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "List subtasks for UI component development, responsive design, API endpoints, offline support, data synchronization, barcode/QR scanning, photo upload, and yield comparison logic.",
+      "reasoning": "This task combines mobile-friendly UI, offline-first architecture, data synchronization, and integration with device features, each adding to the overall complexity."
+    }
+  ]
+}
