@@ -1,0 +1,24 @@
+name = "vertical-farm-health-cache"
+main = "index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Account configuration
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+
+# Environment variables
+[vars]
+HEALTH_TTL = "30"
+ENABLE_AGGREGATION = "true"
+ORIGIN_URL = "${BACKEND_PROD_URL}"
+
+# KV namespace binding (can share with main cache or use separate)
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "${CLOUDFLARE_KV_NAMESPACE_ID}"
+preview_id = "${CLOUDFLARE_KV_PREVIEW_ID}"
+
+# Routes for health endpoints
+routes = [
+  { pattern = "${HEALTH_DOMAIN}/*", zone_name = "${DOMAIN}" }
+] 

@@ -1,0 +1,30 @@
+name = "sensor-processor"
+main = "index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Account configuration
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+
+# Routes for sensor processing
+routes = [
+  { pattern = "${DOMAIN}/api/sensors/*", zone_name = "${DOMAIN}" }
+]
+
+# KV namespace for caching
+[[kv_namespaces]]
+binding = "DEVICE_CACHE"
+id = "${CLOUDFLARE_KV_NAMESPACE_ID}"
+preview_id = "${CLOUDFLARE_KV_PREVIEW_ID}"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+SUPABASE_URL = "${SUPABASE_URL}"
+SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+
+# Resource limits removed for Free plan compatibility
+
+# Cron triggers for cleanup (optional) - commented out for Free plan
+# [[triggers.crons]]
+# cron = "0 */6 * * *"  # Every 6 hours 
