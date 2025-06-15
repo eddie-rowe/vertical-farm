@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-06-14T15:11:06.910Z",
+  "testDuration": 60000,
+  "scenarios": {
+    "background-task-processor": {
+      "scenario": "background-task-processor",
+      "totalRequests": 1120,
+      "successfulRequests": 1120,
+      "errorRate": "0.00",
+      "avgResponseTime": "351.79",
+      "p95ResponseTime": "465.63",
+      "p99ResponseTime": "722.01",
+      "throughput": "18.67"
+    }
+  },
+  "testType": "NO_CACHE_SIMPLIFIED",
+  "summary": {
+    "totalRequests": 1120,
+    "successfulRequests": 1120,
+    "errorRate": "0.00",
+    "avgResponseTime": "351.79",
+    "p95ResponseTime": "465.63",
+    "throughput": "18.67"
+  }
+}

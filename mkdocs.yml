@@ -14,36 +14,101 @@ theme:
     - content.code.annotate
 
 markdown_extensions:
+  - attr_list
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-    - Home: index.md
-    - API Reference: api-reference.md
-    - DB Schema: database-schema.md
-    - Architecture Summary: architecture-summary.md
-    - Architecture Challenges: architecture-challenges.md
-    - Architecture Responsibilities: architecture-responsibilities.md
-    - Backend Architecture: backend-architecture.md
-    - CI/CD Workflow: ci-cd-workflow.md
-    - Contributing Guide: contributing-guide.md
-    - Data Flow Diagram: data-flow-diagram.md
-    - Deployment Workflow: deployment-workflow.md
-    - Frontend Architecture: frontend-architecture.md
-    - Improvement Recommendations: improvement-recommendations.md
-    - Release Notes: release-notes.md
-    - Security Model: security-model.md
-    - Testing Strategy: testing-strategy.md
-    - Reviews: 
-      - reviews/grow-parameters-code-review-2024-01-20.md
-      - reviews/grow-parameters-testing-report-2024-01-20.md
-    - Updated: 
-      - updated/changes-summary.md
-      - updated/farm-config-page-vision.md
+    - Home: README.md
+    
+    - Architecture:
+      - Overview: architecture/README.md
+      - Summary: architecture/summary.md
+      - Backend Architecture: architecture/backend.md
+      - Frontend Architecture: architecture/frontend.md
+      - Database Schema: architecture/database-schema.md
+      - Data Flow Diagram: architecture/data-flow-diagram.md
+      - Challenges: architecture/challenges.md
+      - Responsibilities: architecture/responsibilities.md
+    
+    - Development:
+      - Overview: development/README.md
+      - Contributing Guide: development/contributing.md
+      - CI/CD Workflow: development/ci-cd-workflow.md
+      - Release Notes: development/release-notes.md
+      - Improvement Recommendations: development/improvement-recommendations.md
+    
+    - API Reference:
+      - Overview: api/README.md
+      - API Reference: api/reference.md
+    
+    - Testing:
+      - Overview: testing/README.md
+      - Testing Strategy: testing/strategy.md
+      - Testing Guide: testing/TESTING_GUIDE.md
+      - Security Testing Results: testing/POST-SECURITY-TESTING.md
+    
+    - Deployment:
+      - Overview: deployment/README.md
+      - Deployment Workflow: deployment/workflow.md
+      - Cloudflare Cache Implementation: deployment/cloudflare-cache-implementation.md
+      - Caching Deployment Checklist: deployment/CACHING_DEPLOYMENT_CHECKLIST.md
+    
+    - Security:
+      - Overview: security/README.md
+      - Security Model: security/model.md
+    
+    - Performance:
+      - Overview: performance/README.md
+      - Cache vs No-Cache Analysis: performance/cache-vs-no-cache-analysis.md
+      - Caching Issues Analysis: performance/caching-issues-analysis.md
+      - Caching Optimization Results: performance/caching-optimization-results.md
+    
+    - Migration:
+      - Overview: migration/README.md
+      - PostgREST Analysis: migration/postgrest-analysis.md
+      - PostgREST Strategy: migration/postgrest-strategy.md
+    
+    - Project Management:
+      - Overview: project-management/README.md
+      - Dashboard: project-management/dashboard.md
+      - Summaries:
+        - Changes Summary: project-management/summaries/changes-summary.md
+        - Tonight Summary: project-management/summaries/TONIGHT_SUMMARY.md
+    
+    - Guides:
+      - Overview: guides/README.md
+      - Index: guides/index.md
+      - Caching Implementation Guide: guides/CACHING_IMPLEMENTATION_GUIDE.md
+      - Supabase Queues Setup: guides/SUPABASE_QUEUES_SETUP.md
+    
+    - Reports:
+      - Overview: reports/README.md
+      - Performance Reports:
+        - K6 Database Load Test: reports/performance/k6-database-load-test-2025-06-12.md
+        - Phase 1 Caching Performance: reports/performance/phase-1-caching-performance-report.md
+        - Phase 1 Complete: reports/performance/PHASE-1-COMPLETE.md
+        - Phase 1 Summary: reports/performance/phase-1-summary.md
+      - Code Reviews:
+        - Edge Functions Caching Review: reports/reviews/edge-functions-caching-review.md
+        - Grow Parameters Code Review: reports/reviews/grow-parameters-code-review-2024-01-20.md
+        - Grow Parameters Testing Report: reports/reviews/grow-parameters-testing-report-2024-01-20.md
+        - Supabase Audit Completion: reports/reviews/supabase-audit-completion-report.md
+        - Supabase Review: reports/reviews/supabase-review.md
+      - Analysis & Research:
+        - Cursor Workflow Research: reports/summaries/cursor-workflow-research-2025-05-17.md
+        - Cursor Workflow Techniques: reports/summaries/cursor-workflow-techniques-2025.md
+        - Hermes Synchronization Report: reports/summaries/HERMES_SYNCHRONIZATION_REPORT.md
+        - Inspiration UI/UX Analysis: reports/summaries/inspiration-ui-ux-analysis-2025-05-18.md
+        - Security Report Frontend/Backend: reports/summaries/security-report-frontend-backend-2025.md
+        - Security Vulnerability Review: reports/summaries/security-vulnerability-review-2025.md
+        - UI/UX Playwright Review: reports/summaries/ui_ux_playwright_review_shadcn_recommendations.md
+        - UI/UX Analysis: reports/summaries/ui-ux-analysis-2025-05-18.md
+        - Vertical Farm UI/UX Review: reports/summaries/vertical_farm_ui_ux_review.md
+        - Vertigro UI/UX Analysis: reports/summaries/vertigro-uiux-analysis-2025-05-17.md

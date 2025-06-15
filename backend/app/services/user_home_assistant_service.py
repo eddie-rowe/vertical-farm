@@ -554,18 +554,28 @@ class UserHomeAssistantService:
             
             # Get health status
             health = await client.health_check()
-            config = self._connection_health.get(user_id, {})
+            config = await self.get_user_config(user_id)  # Get actual config instead of connection health
+            
+            # Extract health status from the complex health check response
+            overall_healthy = health.get("overall_healthy", False)
+            services = health.get("services", {})
+            rest_api_healthy = services.get("rest_api", {}).get("status") == "healthy" if "rest_api" in services else overall_healthy
+            websocket_healthy = services.get("websocket", {}).get("status") == "healthy" if "websocket" in services else False
+            api_test_success = health.get("api_test", {}).get("status") == "success"
+            
+            # Use API test result as primary indicator of REST API health
+            final_rest_api_status = api_test_success if "api_test" in health else rest_api_healthy
             
             return {
                 "enabled": True,
                 "initialized": True,
-                "healthy": health.get("rest_api", False),
-                "connected": health.get("rest_api", False),  # Add connected field for frontend compatibility
-                "rest_api": health.get("rest_api", False),
-                "websocket": health.get("websocket", False),
+                "healthy": final_rest_api_status,
+                "connected": final_rest_api_status,  # Add connected field for frontend compatibility
+                "rest_api": final_rest_api_status,
+                "websocket": websocket_healthy,
                 "cached_entities": len(self.user_device_cache.get(cache_key, {})),
                 "subscribed_devices": len(self.user_device_subscriptions.get(cache_key, set())),
-                "home_assistant_url": config.get("url"),  # Fixed: use "url" to match database schema
+                "home_assistant_url": config.get("url") if config else None,  # Get URL from actual config
                 "message": "User-specific Home Assistant integration active"
             }
             

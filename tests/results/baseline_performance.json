@@ -1,0 +1,99 @@
+[
+  {
+    "timestamp": "2025-06-14T21:13:09.452071",
+    "test_name": "/api/v1/test/background/queue-stats (Local Development)",
+    "avg_response_time": 0.001117837429046631,
+    "min_response_time": 0.00044608116149902344,
+    "max_response_time": 0.008033990859985352,
+    "p95_response_time": 0.007729446887969971,
+    "p99_response_time": 0.008033990859985352,
+    "cache_hit_rate": 100.0,
+    "error_rate": 0.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:10.483658",
+    "test_name": "/api/v1/test/db-query (Local Development)",
+    "avg_response_time": 0.0014701008796691895,
+    "min_response_time": 0.0007379055023193359,
+    "max_response_time": 0.005825996398925781,
+    "p95_response_time": 0.005667197704315186,
+    "p99_response_time": 0.005825996398925781,
+    "cache_hit_rate": 100.0,
+    "error_rate": 0.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:11.520987",
+    "test_name": "/api/v1/test/cache-test (Local Development)",
+    "avg_response_time": 0.0017941594123840332,
+    "min_response_time": 0.0007166862487792969,
+    "max_response_time": 0.0072062015533447266,
+    "p95_response_time": 0.007084846496582031,
+    "p99_response_time": 0.0072062015533447266,
+    "cache_hit_rate": 100.0,
+    "error_rate": 0.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:12.547356",
+    "test_name": "/api/v1/test/health-detailed (Local Development)",
+    "avg_response_time": 0.0012150287628173828,
+    "min_response_time": 0.0006520748138427734,
+    "max_response_time": 0.002054929733276367,
+    "p95_response_time": 0.0020496368408203123,
+    "p99_response_time": 0.002054929733276367,
+    "cache_hit_rate": 0.0,
+    "error_rate": 0.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:13.584741",
+    "test_name": "/api/v1/cache/health (Local Development)",
+    "avg_response_time": 0.0017529964447021485,
+    "min_response_time": 0.0010759830474853516,
+    "max_response_time": 0.003662109375,
+    "p95_response_time": 0.003656911849975586,
+    "p99_response_time": 0.003662109375,
+    "cache_hit_rate": 0.0,
+    "error_rate": 0.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:14.627233",
+    "test_name": "/api/v1/cache/stats (Local Development)",
+    "avg_response_time": 0.0020527243614196777,
+    "min_response_time": 0.0009191036224365234,
+    "max_response_time": 0.011038064956665039,
+    "p95_response_time": 0.010623800754547118,
+    "p99_response_time": 0.011038064956665039,
+    "cache_hit_rate": 0.0,
+    "error_rate": 100.0,
+    "total_requests": 20,
+    "successful_requests": 20
+  },
+  {
+    "timestamp": "2025-06-14T21:13:16.170666",
+    "test_name": "Cache Warming Performance",
+    "cold_cache_time": 0.011245250701904297,
+    "avg_warm_cache_time": 0.004964685440063477,
+    "performance_improvement": 55.850824746639525,
+    "cold_status": 200
+  },
+  {
+    "timestamp": "2025-06-14T21:13:16.191225",
+    "test_name": "Concurrent Load Performance",
+    "total_duration": 0.02026510238647461,
+    "concurrent_requests": 20,
+    "successful_requests": 20,
+    "success_rate": 100.0,
+    "avg_response_time": 0.015694844722747802,
+    "max_response_time": 0.01835012435913086,
+    "requests_per_second": 986.9182804301278
+  }
+]

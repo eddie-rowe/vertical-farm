@@ -1,4 +1,7 @@
+/// <reference types="https://deno.land/x/deno@v1.36.4/lib/deno.ns.d.ts" />
+
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { HomeAssistantCloudflareCache, ResponseCache, cloudflareCache } from './cloudflare-cache-utils.ts'
 
 // Types for our task system
 interface TaskMessage {
@@ -45,7 +48,7 @@ const taskProcessors = {
 }
 
 // Main Edge Function handler
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   const startTime = Date.now()
   
   try {
@@ -66,13 +69,16 @@ Deno.serve(async (req) => {
     const executionTime = Date.now() - startTime
     console.log(`✅ Processed ${totalProcessed} tasks in ${executionTime}ms`)
     
-    return new Response(JSON.stringify({
+    // Add cache statistics to response
+    const cacheStats = HomeAssistantCloudflareCache.getStats()
+    
+    return ResponseCache.createCachedResponse({
       success: true,
       processed: totalProcessed,
-      execution_time: executionTime
-    }), {
-      headers: { 'Content-Type': 'application/json' }
-    })
+      execution_time: executionTime,
+      cache_stats: cacheStats,
+      cache_type: 'cloudflare_cache_api'
+    }, 60) // Cache for 1 minute
     
   } catch (error) {
     console.error('❌ Background processor error:', error)
@@ -245,23 +251,32 @@ async function logTaskResult(task: TaskMessage, result: TaskResult) {
   }
 }
 
+// Cached Home Assistant config fetcher
+const getHomeAssistantConfig = cloudflareCache(
+  async (userId: string) => {
+    const { data: haConfig } = await supabaseDb
+      .from('integrations')
+      .select('config')
+      .eq('type', 'home_assistant')
+      .eq('user_id', userId)
+      .single()
+    
+    if (!haConfig) {
+      throw new Error('Home Assistant not configured')
+    }
+    
+    return haConfig.config
+  },
+  (userId: string) => `ha:config:${userId}`,
+  5 * 60 * 1000 // 5 minutes TTL
+)
+
 // Home Assistant task processors
 async function processDeviceDiscovery(payload: any) {
   console.log('🔍 Processing device discovery')
   
-  // Get Home Assistant connection details
-  const { data: haConfig } = await supabaseDb
-    .from('integrations')
-    .select('config')
-    .eq('type', 'home_assistant')
-    .eq('user_id', payload.user_id)
-    .single()
-  
-  if (!haConfig) {
-    throw new Error('Home Assistant not configured')
-  }
-  
-  const config = haConfig.config
+  // Get Home Assistant connection details (cached)
+  const config = await getHomeAssistantConfig(payload.user_id)
   
   // Fetch entities from Home Assistant
   const response = await fetch(`${config.url}/api/states`, {
@@ -305,54 +320,99 @@ async function processDeviceDiscovery(payload: any) {
 async function processStateSync(payload: any) {
   console.log('🔄 Processing state sync')
   
-  // Get devices to sync
-  const { data: devices } = await supabaseDb
-    .from('home_assistant_devices')
-    .select('*')
-    .eq('user_id', payload.user_id)
+  // Start parallel operations for better performance
+  const [devicesResult, config] = await Promise.all([
+    supabaseDb
+      .from('home_assistant_devices')
+      .select('*')
+      .eq('user_id', payload.user_id),
+    getHomeAssistantConfig(payload.user_id)
+  ])
+  
+  const { data: devices } = devicesResult
   
   if (!devices || devices.length === 0) {
     return { synced: 0 }
   }
   
-  // Get HA config
-  const { data: haConfig } = await supabaseDb
-    .from('integrations')
-    .select('config')
-    .eq('type', 'home_assistant')
-    .eq('user_id', payload.user_id)
-    .single()
-  
-  const config = haConfig.config
   let synced = 0
+  const deviceIds = devices.map(d => d.entity_id)
+  const batchSize = 10 // Process in batches of 10
   
-  // Sync each device state
-  for (const device of devices) {
-    try {
-      const response = await fetch(`${config.url}/api/states/${device.entity_id}`, {
-        headers: {
-          'Authorization': `Bearer ${config.access_token}`,
-          'Content-Type': 'application/json'
+  // Check if cache is effective for this user (async, non-blocking)
+  const shouldUseCache = await HomeAssistantCloudflareCache.shouldUseCache(payload.user_id)
+  
+  for (let i = 0; i < deviceIds.length; i += batchSize) {
+    const batch = deviceIds.slice(i, i + batchSize)
+    let uncachedDevices = batch
+    let cachedStates: Record<string, any> = {}
+    
+    // Only check cache if it's proven effective
+    if (shouldUseCache) {
+      cachedStates = await HomeAssistantCloudflareCache.getDeviceStatesBatch(payload.user_id) || {}
+      uncachedDevices = batch.filter(id => !cachedStates[id])
+    }
+    
+    // Fetch uncached device states in parallel
+    if (uncachedDevices.length > 0) {
+      const fetchPromises = uncachedDevices.map(async (entityId) => {
+        try {
+          const response = await fetch(`${config.url}/api/states/${entityId}`, {
+            headers: {
+              'Authorization': `Bearer ${config.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.ok) {
+            const state = await response.json()
+            return { entityId, state, fromCache: false }
+          }
+        } catch (error) {
+          console.error(`Failed to sync ${entityId}:`, error)
         }
+        return null
       })
       
-      if (response.ok) {
-        const state = await response.json()
-        
-        await supabaseDb
-          .from('home_assistant_devices')
-          .update({
-            state: state.state,
-            attributes: state.attributes,
-            last_seen: new Date().toISOString()
-          })
-          .eq('entity_id', device.entity_id)
-          .eq('user_id', payload.user_id)
-        
-        synced++
+      const fetchResults = await Promise.all(fetchPromises)
+      const newStates: Record<string, any> = {}
+      
+      // Process fresh API results
+      for (const result of fetchResults) {
+        if (result) {
+          newStates[result.entityId] = result.state
+        }
       }
-    } catch (error) {
-      console.error(`Failed to sync ${device.entity_id}:`, error)
+      
+      // Cache new states asynchronously (don't wait)
+      if (Object.keys(newStates).length > 0 && shouldUseCache) {
+        HomeAssistantCloudflareCache.setDeviceStates(newStates, payload.user_id)
+      }
+      
+      // Add cached states to the results
+      for (const entityId of batch) {
+        if (cachedStates[entityId] && !uncachedDevices.includes(entityId)) {
+          newStates[entityId] = cachedStates[entityId]
+        }
+      }
+      
+      // Batch database updates for better performance
+      if (Object.keys(newStates).length > 0) {
+        const updatePromises = Object.entries(newStates).map(([entityId, state]) =>
+          supabaseDb
+            .from('home_assistant_devices')
+            .update({
+              state: state.state,
+              attributes: state.attributes,
+              last_seen: new Date().toISOString()
+            })
+            .eq('entity_id', entityId)
+            .eq('user_id', payload.user_id)
+        )
+        
+        const updateResults = await Promise.all(updatePromises)
+        synced += updateResults.filter(r => !r.error).length
+      }
     }
   }
   
@@ -362,18 +422,8 @@ async function processStateSync(payload: any) {
 async function processHealthCheck(payload: any) {
   console.log('🏥 Processing health check')
   
-  const { data: haConfig } = await supabaseDb
-    .from('integrations')
-    .select('config')
-    .eq('type', 'home_assistant')
-    .eq('user_id', payload.user_id)
-    .single()
-  
-  if (!haConfig) {
-    throw new Error('Home Assistant not configured')
-  }
-  
-  const config = haConfig.config
+  // Get HA config (cached)
+  const config = await getHomeAssistantConfig(payload.user_id)
   const startTime = Date.now()
   
   try {
@@ -424,14 +474,8 @@ async function processBulkControl(payload: any) {
   
   const { entity_ids, action, value, user_id } = payload
   
-  const { data: haConfig } = await supabaseDb
-    .from('integrations')
-    .select('config')
-    .eq('type', 'home_assistant')
-    .eq('user_id', user_id)
-    .single()
-  
-  const config = haConfig.config
+  // Get HA config (cached)
+  const config = await getHomeAssistantConfig(user_id)
   let controlled = 0
   
   for (const entityId of entity_ids) {
@@ -510,14 +554,8 @@ async function processDataCollection(payload: any) {
   
   const { entity_ids, user_id, time_range } = payload
   
-  const { data: haConfig } = await supabaseDb
-    .from('integrations')
-    .select('config')
-    .eq('type', 'home_assistant')
-    .eq('user_id', user_id)
-    .single()
-  
-  const config = haConfig.config
+  // Get HA config (cached)
+  const config = await getHomeAssistantConfig(user_id)
   let collected = 0
   
   for (const entityId of entity_ids) {
