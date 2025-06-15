@@ -1,0 +1,95 @@
+{
+  "timestamp": "2025-06-14T15:12:45.400Z",
+  "testDuration": 60000,
+  "scenarios": {
+    "homeAssistantConfig": {
+      "scenario": "home-assistant-config-fetch",
+      "totalRequests": 1150,
+      "successfulRequests": 1150,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 205.57633299999725,
+        "max": 1236.9424589999999,
+        "avg": 335.8831862573916,
+        "p50": 320.8599580000009,
+        "p90": 412.64537500000006,
+        "p95": 465.3748749999995,
+        "p99": 633.177042
+      },
+      "throughput": {
+        "requestsPerSecond": 19.166666666666668,
+        "avgDataSize": 133
+      }
+    },
+    "deviceStateSync": {
+      "scenario": "device-state-sync",
+      "totalRequests": 1060,
+      "successfulRequests": 1060,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 226.5197499999922,
+        "max": 1562.9949580000102,
+        "avg": 366.5059645905657,
+        "p50": 354.2639999999956,
+        "p90": 452.56558300000324,
+        "p95": 483.89337499999965,
+        "p99": 659.8982909999904
+      },
+      "throughput": {
+        "requestsPerSecond": 17.666666666666668,
+        "avgDataSize": 133
+      }
+    },
+    "backgroundTaskProcessing": {
+      "scenario": "background-task-processing",
+      "totalRequests": 310,
+      "successfulRequests": 310,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 219.03391699999338,
+        "max": 24042.352291000017,
+        "avg": 522.1840665258057,
+        "p50": 344.70108300002175,
+        "p90": 555.463791999995,
+        "p95": 592.3326249999809,
+        "p99": 2425.714082999999
+      },
+      "throughput": {
+        "requestsPerSecond": 5.166666666666667,
+        "avgDataSize": 133
+      }
+    },
+    "queueOperations": {
+      "scenario": "queue-operations",
+      "totalRequests": 700,
+      "successfulRequests": 700,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 291.95745899999747,
+        "max": 2511.2706250000047,
+        "avg": 484.59324788285625,
+        "p50": 459.5198340000061,
+        "p90": 592.7815420000115,
+        "p95": 656.1664579999924,
+        "p99": 903.0466249999881
+      },
+      "throughput": {
+        "requestsPerSecond": 11.666666666666666,
+        "avgDataSize": 185
+      }
+    }
+  },
+  "summary": {
+    "totalRequests": 3220,
+    "totalSuccessful": 3220,
+    "totalErrors": 0,
+    "overallErrorRate": 0,
+    "avgResponseTime": 427.29161631415485,
+    "avgP95ResponseTime": 549.4418332499931,
+    "overallThroughput": 53.666666666666664
+  }
+}

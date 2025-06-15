@@ -91,7 +91,8 @@ enabled = true
 file_size_limit = "50MiB"
 
 # Image transformation API is available to Supabase Pro plan.
-image_transformation = true
+[storage.image_transformation]
+enabled = true
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
@@ -307,41 +308,4 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 s3_secret_key = "env(S3_SECRET_KEY)"
 
 # Supabase Configuration for Vertical Farm Management System
-
-[edge_functions]
-enabled = true
-port = 54327
-
-# Background task processing functions
-[[edge_functions.functions]]
-name = "background-task-processor"
-verify_jwt = false
-
-[[edge_functions.functions]]
-name = "queue-scheduler"
-verify_jwt = false
-
-# Cron jobs for background task processing
-[edge_functions.cron]
-enabled = true
-
-# Process queues every 2 minutes
-[[edge_functions.cron.jobs]]
-name = "process-background-tasks"
-schedule = "*/2 * * * *"
-function_name = "queue-scheduler"
-payload = '{"action": "process_queues"}'
-
-# Schedule recurring tasks every 5 minutes
-[[edge_functions.cron.jobs]]
-name = "schedule-recurring-tasks"
-schedule = "*/5 * * * *"
-function_name = "queue-scheduler"
-payload = '{"action": "schedule_recurring_tasks"}'
-
-# Cleanup old tasks daily at 2 AM
-[[edge_functions.cron.jobs]]
-name = "cleanup-old-tasks"
-schedule = "0 2 * * *"
-function_name = "queue-scheduler"
-payload = '{"action": "cleanup_old_tasks"}'
+# Note: Edge Functions configuration is handled by the edge_runtime section above

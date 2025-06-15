@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-06-13T19:08:15.408Z",
+  "testDuration": 60000,
+  "scenarios": {
+    "homeAssistantConfig": {
+      "scenario": "home-assistant-config-fetch",
+      "error": "No valid results",
+      "totalRequests": 5410,
+      "errors": 5410
+    },
+    "deviceStateSync": {
+      "scenario": "device-state-sync",
+      "error": "No valid results",
+      "totalRequests": 5370,
+      "errors": 5370
+    },
+    "backgroundTaskProcessing": {
+      "scenario": "background-task-processing",
+      "error": "No valid results",
+      "totalRequests": 3710,
+      "errors": 3710
+    },
+    "queueOperations": {
+      "scenario": "queue-operations",
+      "error": "No valid results",
+      "totalRequests": 2840,
+      "errors": 2840
+    }
+  },
+  "summary": {
+    "error": "No successful test scenarios"
+  }
+}

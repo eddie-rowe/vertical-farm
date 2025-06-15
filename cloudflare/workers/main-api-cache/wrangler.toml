@@ -1,0 +1,26 @@
+name = "vertical-farm-api-cache"
+main = "index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Account configuration
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+
+# Environment variables
+[vars]
+ORIGIN_URL = "${BACKEND_PROD_URL}"
+DEFAULT_TTL = "30"
+HEALTH_TTL = "30"
+STATS_TTL = "60"
+QUEUE_TTL = "15"
+
+# KV namespace binding
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "${CLOUDFLARE_KV_NAMESPACE_ID}"
+preview_id = "${CLOUDFLARE_KV_PREVIEW_ID}"
+
+# Routes
+routes = [
+  { pattern = "${API_DOMAIN}/*", zone_name = "${DOMAIN}" }
+] 

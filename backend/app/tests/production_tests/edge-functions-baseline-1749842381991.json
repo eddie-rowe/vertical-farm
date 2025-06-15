@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-06-13T19:15:41.000Z",
+  "testDuration": 60000,
+  "scenarios": {
+    "homeAssistantConfig": {
+      "scenario": "home-assistant-config-fetch",
+      "totalRequests": 910,
+      "successfulRequests": 910,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 248.41220799999792,
+        "max": 3400.988792,
+        "avg": 404.9865971637363,
+        "p50": 378.53479199999856,
+        "p90": 504.9772920000032,
+        "p95": 566.9694170000002,
+        "p99": 1024.6440830000001
+      },
+      "throughput": {
+        "requestsPerSecond": 15.166666666666666,
+        "avgDataSize": 133.0010989010989
+      }
+    },
+    "deviceStateSync": {
+      "scenario": "device-state-sync",
+      "totalRequests": 930,
+      "successfulRequests": 930,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 239.68320899999526,
+        "max": 2756.611499999999,
+        "avg": 388.42881594946294,
+        "p50": 366.6497079999972,
+        "p90": 472.76174999999057,
+        "p95": 513.2672920000041,
+        "p99": 722.4964999999938
+      },
+      "throughput": {
+        "requestsPerSecond": 15.5,
+        "avgDataSize": 133
+      }
+    },
+    "backgroundTaskProcessing": {
+      "scenario": "background-task-processing",
+      "totalRequests": 920,
+      "successfulRequests": 920,
+      "errorCount": 0,
+      "errorRate": 0,
+      "responseTime": {
+        "min": 243.10629199999676,
+        "max": 1690.082208000007,
+        "avg": 380.43346851304443,
+        "p50": 366.3119579999766,
+        "p90": 457.590750000003,
+        "p95": 493.8511250000156,
+        "p99": 624.0122499999998
+      },
+      "throughput": {
+        "requestsPerSecond": 15.333333333333334,
+        "avgDataSize": 133.00108695652173
+      }
+    },
+    "queueOperations": {
+      "scenario": "queue-operations",
+      "error": "No valid results",
+      "totalRequests": 1230,
+      "errors": 1230
+    }
+  },
+  "summary": {
+    "totalRequests": 2760,
+    "totalSuccessful": 2760,
+    "totalErrors": 0,
+    "overallErrorRate": 0,
+    "avgResponseTime": 391.2829605420813,
+    "avgP95ResponseTime": 524.6959446666733,
+    "overallThroughput": 46
+  }
+}

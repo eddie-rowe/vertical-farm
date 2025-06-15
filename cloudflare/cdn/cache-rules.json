@@ -1,0 +1,71 @@
+{
+  "cache_rules": [
+    {
+      "id": "static_assets_long_cache",
+      "description": "Long cache for static assets",
+      "expression": "(http.request.uri.path matches \".*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_level": "cache_everything",
+        "edge_ttl": 2592000,
+        "browser_ttl": 2592000
+      }
+    },
+    {
+      "id": "api_no_cache",
+      "description": "Never cache API responses",
+      "expression": "(http.request.uri.path matches \"^/api/.*\")",
+      "action": "bypass_cache"
+    },
+    {
+      "id": "dashboard_short_cache",
+      "description": "Short cache for dashboard pages",
+      "expression": "(http.request.uri.path matches \"^/(dashboard|app)/.*\" and http.request.method eq \"GET\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_level": "cache_everything",
+        "edge_ttl": 300,
+        "browser_ttl": 300
+      }
+    },
+    {
+      "id": "sensor_data_no_cache",
+      "description": "Never cache real-time sensor data",
+      "expression": "(http.request.uri.path matches \"^/api/(sensors|devices|realtime)/.*\")",
+      "action": "bypass_cache"
+    },
+    {
+      "id": "public_pages_medium_cache",
+      "description": "Medium cache for public pages",
+      "expression": "(http.request.uri.path matches \"^/(about|contact|pricing|features).*\" and http.request.method eq \"GET\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_level": "cache_everything",
+        "edge_ttl": 3600,
+        "browser_ttl": 3600
+      }
+    },
+    {
+      "id": "home_page_cache",
+      "description": "Cache home page with custom rules",
+      "expression": "(http.request.uri.path eq \"/\" and http.request.method eq \"GET\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_level": "cache_everything",
+        "edge_ttl": 1800,
+        "browser_ttl": 1800
+      }
+    }
+  ],
+  "cache_key_settings": {
+    "custom_key": {
+      "query_string": {
+        "include": ["version", "theme"]
+      },
+      "headers": {
+        "include": ["Accept-Language"]
+      }
+    }
+  },
+  "origin_error_page_pass_thru": false
+} 

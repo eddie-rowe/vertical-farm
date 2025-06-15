@@ -1,0 +1,53 @@
+{
+  "rules": [
+    {
+      "id": "block_sql_injection",
+      "description": "Block SQL injection attempts",
+      "expression": "(http.request.body matches \"(?i)(union|select|insert|delete|drop|create|alter|exec|script)\" or http.request.uri.query matches \"(?i)(union|select|insert|delete|drop|create|alter|exec|script)\")",
+      "action": "block"
+    },
+    {
+      "id": "block_xss_attempts",
+      "description": "Block XSS attempts",
+      "expression": "(http.request.body matches \"(?i)(<script|javascript:|onload=|onerror=)\" or http.request.uri.query matches \"(?i)(<script|javascript:|onload=|onerror=)\")",
+      "action": "block"
+    },
+    {
+      "id": "validate_iot_user_agent",
+      "description": "Validate IoT device user agents",
+      "expression": "(http.request.uri.path matches \"^/api/sensors/.*\" and not http.user_agent matches \"^(VerticalFarm-Device|HomeAssistant|ESP32|Arduino).*\")",
+      "action": "challenge"
+    },
+    {
+      "id": "block_suspicious_payloads",
+      "description": "Block suspicious large payloads from IoT devices",
+      "expression": "(http.request.uri.path matches \"^/api/sensors/.*\" and http.request.body.size gt 10240)",
+      "action": "block"
+    },
+    {
+      "id": "require_content_type",
+      "description": "Require proper content type for API requests",
+      "expression": "(http.request.method eq \"POST\" and http.request.uri.path matches \"^/api/.*\" and not http.request.headers[\"content-type\"][0] matches \"^application/(json|x-www-form-urlencoded).*\")",
+      "action": "block"
+    },
+    {
+      "id": "block_directory_traversal",
+      "description": "Block directory traversal attempts",
+      "expression": "(http.request.uri.path contains \"../\" or http.request.uri.path contains \"..\\\\\")",
+      "action": "block"
+    },
+    {
+      "id": "geographic_restrictions",
+      "description": "Allow only specific countries (customize as needed)",
+      "expression": "(not ip.geoip.country in {\"US\" \"CA\" \"GB\" \"DE\" \"FR\" \"AU\" \"JP\"})",
+      "action": "challenge",
+      "enabled": false
+    },
+    {
+      "id": "block_known_bad_bots",
+      "description": "Block known malicious bots",
+      "expression": "(cf.bot_management.score lt 30 and not cf.bot_management.verified_bot)",
+      "action": "block"
+    }
+  ]
+} 

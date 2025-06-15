@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:realtime": "node ../test-realtime-subscriptions.js",
+    "test:auth": "node ../test-auth-permissions.js",
+    "test:iot": "node ../test-iot-integration.js",
+    "test:all": "node ../run-all-tests.js",
+    "test:post-security": "npm run test:all"
   },
   "dependencies": {
     "@datadog/browser-rum": "^6.6.4",
