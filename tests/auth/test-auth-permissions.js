@@ -5,7 +5,7 @@
  * Tests user authentication and role-based access after RLS policy changes
  */
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 // Configuration
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -596,8 +596,8 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = { AuthPermissionTester }; 
+export { AuthPermissionTester }; 

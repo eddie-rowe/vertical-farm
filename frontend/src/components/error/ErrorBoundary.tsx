@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FaExclamationTriangle, FaRedo, FaHome } from 'react-icons/fa';
+import React, { ErrorInfo } from 'react';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { FaExclamationTriangle, FaRedo, FaHome } from '@/lib/icons';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -111,7 +111,7 @@ export function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) 
 export function ComponentErrorBoundary({ children, componentName }: { children: React.ReactNode; componentName?: string }) {
   return (
     <ErrorBoundary
-      fallback={({ error, resetError }) => (
+      fallback={({ resetError }) => (
         <Card className="border-red-200 dark:border-red-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 text-red-600 dark:text-red-400">

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { FaUser, FaCertificate, FaBook, FaChartLine, FaPlus, FaSearch, FaFilter, FaStar } from 'react-icons/fa'
+import { Card } from '../ui/card'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Badge } from '../ui/badge'
+import { FaUser, FaCertificate, FaBook, FaChartLine, FaPlus, FaSearch, FaStar } from '@/lib/icons'
 
 interface Employee {
   id: string
@@ -113,7 +113,6 @@ export default function SkillsView() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [showTrainingModal, setShowTrainingModal] = useState(false)
 
   const getSkillLevelText = (level: number) => {
     const levels = ['', 'Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert']
@@ -189,7 +188,7 @@ export default function SkillsView() {
             <FaBook className="text-green-600" />
             <h3 className="text-lg font-semibold">Active Training Programs</h3>
           </div>
-          <Button onClick={() => setShowTrainingModal(true)}>
+          <Button>
             <FaPlus className="mr-2" />
             Add Training
           </Button>

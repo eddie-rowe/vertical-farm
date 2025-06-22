@@ -1,7 +1,7 @@
 name: Deploy on unRAID
 on:
   workflow_run:
-    workflows: ["Build & push image"]
+    workflows: ["Build & push images"]
     types:
       - completed
     branches: [ main ]

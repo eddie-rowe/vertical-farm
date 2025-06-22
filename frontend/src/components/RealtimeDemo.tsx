@@ -5,7 +5,7 @@ import { useRealtime } from '../context/RealtimeContext'
 import { useRealtimeTable } from '../hooks/useRealtimeTable'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
-import { FaWifi, FaCircle } from 'react-icons/fa'
+import { FaWifi, FaCircle } from '@/lib/icons'
 
 export function RealtimeDemo() {
   const { 
@@ -52,10 +52,7 @@ export function RealtimeDemo() {
     )
   }
 
-  const formatTimestamp = (timestamp?: string) => {
-    if (!timestamp) return 'Never'
-    return new Date(timestamp).toLocaleTimeString()
-  }
+  // formatTimestamp function removed as it was not being used
 
   return (
     <div className="space-y-4">

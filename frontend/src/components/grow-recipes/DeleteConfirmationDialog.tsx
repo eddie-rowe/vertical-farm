@@ -34,7 +34,7 @@ export function DeleteConfirmationDialog({
             Delete Grow Recipe
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete "{recipe?.name}"? This action cannot be undone.
+            Are you sure you want to delete &quot;{recipe?.name}&quot;? This action cannot be undone.
             {recipe?.species?.name && (
               <span className="block mt-2 text-sm text-gray-600">
                 Species: {recipe.species.name}

@@ -14,8 +14,6 @@ import {
   XCircle, 
   AlertTriangle,
   Activity,
-  BarChart3,
-  Settings,
   Database,
   Zap
 } from 'lucide-react';

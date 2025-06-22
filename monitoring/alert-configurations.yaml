@@ -1,0 +1,545 @@
+# Vertical Farm - Datadog Alert Configurations
+# Phase 2C: Advanced Monitoring and Alerting Setup
+
+alerts:
+  # =====================================================
+  # DATABASE PERFORMANCE ALERTS
+  # =====================================================
+  
+  - name: "Supabase - High Database Response Time"
+    type: "metric alert"
+    query: "avg(last_5m):avg:supabase.database.avg_query_time{env:production} > 500"
+    message: |
+      🚨 **CRITICAL: High Database Response Time**
+      
+      Average database query time is {{value}}ms, which exceeds the critical threshold of 500ms.
+      
+      **Immediate Actions:**
+      - Check slow query log: `SELECT * FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;`
+      - Review RLS policy performance
+      - Check database connection pool utilization
+      
+      **Dashboard:** [Vertical Farm Database Performance](https://app.datadoghq.com/dashboard/vertical-farm-db)
+      
+      @slack-alerts @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:database"
+      - "severity:critical"
+    thresholds:
+      critical: 500
+      warning: 200
+      critical_recovery: 400
+      warning_recovery: 150
+    
+  - name: "Supabase - RLS Policy Performance Degradation"
+    type: "metric alert"
+    query: "avg(last_10m):avg:supabase.rls.execution_time{env:production} by {table_name} > 200"
+    message: |
+      ⚠️ **WARNING: RLS Policy Performance Issue**
+      
+      RLS policy execution time for table {{table_name.name}} is {{value}}ms.
+      
+      **Investigation Steps:**
+      - Check policy complexity for table: {{table_name.name}}
+      - Review recent schema changes
+      - Analyze query patterns
+      
+      @vertical-farm-team
+    tags:
+      - "service:vertical-farm"
+      - "component:rls"
+      - "severity:warning"
+    thresholds:
+      warning: 200
+      critical: 500
+
+  - name: "Supabase - Low Cache Hit Ratio"
+    type: "metric alert"
+    query: "avg(last_15m):avg:supabase.database.cache_hit_ratio{env:production} < 0.8"
+    message: |
+      ⚠️ **WARNING: Low Database Cache Hit Ratio**
+      
+      Cache hit ratio is {{value}}% (target: >80%).
+      
+      **Possible Causes:**
+      - Increased query diversity
+      - Memory pressure
+      - Large table scans
+      
+      **Actions:**
+      - Review query patterns
+      - Check memory utilization
+      - Consider index optimization
+      
+      @database-team
+    tags:
+      - "service:vertical-farm"
+      - "component:database"
+      - "severity:warning"
+    thresholds:
+      warning: 0.8
+      critical: 0.6
+
+  # =====================================================
+  # EDGE FUNCTION ALERTS
+  # =====================================================
+
+  - name: "Edge Functions - High Error Rate"
+    type: "metric alert"
+    query: "avg(last_5m):rate:vertical_farm.edge_functions.errors{env:production} by {function_name} > 0.05"
+    message: |
+      🚨 **CRITICAL: High Edge Function Error Rate**
+      
+      Function {{function_name.name}} error rate is {{value}}% (threshold: 5%).
+      
+      **Immediate Actions:**
+      - Check function logs: `supabase functions logs {{function_name.name}}`
+      - Review recent deployments
+      - Check function memory/timeout limits
+      
+      **Function Performance Dashboard:** [Edge Functions](https://app.datadoghq.com/dashboard/edge-functions)
+      
+      @on-call-engineer @vertical-farm-team
+    tags:
+      - "service:vertical-farm"
+      - "component:edge-functions"
+      - "severity:critical"
+    thresholds:
+      warning: 0.02
+      critical: 0.05
+
+  - name: "Edge Functions - High Processing Time"
+    type: "metric alert"
+    query: "avg(last_10m):avg:vertical_farm.edge_functions.processing_time{env:production} by {function_name} > 30000"
+    message: |
+      ⚠️ **WARNING: Slow Edge Function Performance**
+      
+      Function {{function_name.name}} average processing time is {{value}}ms.
+      
+      **Investigation:**
+      - Check function complexity
+      - Review database query performance
+      - Analyze memory usage patterns
+      
+      @vertical-farm-team
+    tags:
+      - "service:vertical-farm"
+      - "component:edge-functions"
+      - "severity:warning"
+    thresholds:
+      warning: 30000
+      critical: 60000
+
+  # =====================================================
+  # SENSOR AND ENVIRONMENTAL ALERTS
+  # =====================================================
+
+  - name: "Sensors - Critical Temperature Alert"
+    type: "metric alert"
+    query: "max(last_5m):max:vertical_farm.sensors.temperature{env:production} by {farm_id,shelf_id} > 28"
+    message: |
+      🌡️ **CRITICAL: High Temperature Alert**
+      
+      Temperature in Farm {{farm_id.name}}, Shelf {{shelf_id.name}} is {{value}}°C.
+      
+      **Immediate Actions Required:**
+      - Check cooling system status
+      - Verify fan operation
+      - Review automation rules
+      - Consider manual intervention
+      
+      **Farm Dashboard:** [Farm {{farm_id.name}}](https://app.datadoghq.com/dashboard/farm-{{farm_id.name}})
+      
+      @farm-operators @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:sensors"
+      - "type:temperature"
+      - "severity:critical"
+    thresholds:
+      warning: 25
+      critical: 28
+
+  - name: "Sensors - Low Temperature Alert"
+    type: "metric alert"
+    query: "min(last_5m):min:vertical_farm.sensors.temperature{env:production} by {farm_id,shelf_id} < 18"
+    message: |
+      🥶 **CRITICAL: Low Temperature Alert**
+      
+      Temperature in Farm {{farm_id.name}}, Shelf {{shelf_id.name}} is {{value}}°C.
+      
+      **Immediate Actions:**
+      - Check heating system
+      - Verify insulation integrity
+      - Review environmental controls
+      
+      @farm-operators @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:sensors"
+      - "type:temperature"
+      - "severity:critical"
+    thresholds:
+      warning: 20
+      critical: 18
+
+  - name: "Sensors - High Humidity Alert"
+    type: "metric alert"
+    query: "max(last_5m):max:vertical_farm.sensors.humidity{env:production} by {farm_id,shelf_id} > 75"
+    message: |
+      💧 **WARNING: High Humidity Detected**
+      
+      Humidity in Farm {{farm_id.name}}, Shelf {{shelf_id.name}} is {{value}}%.
+      
+      **Risk Assessment:**
+      - Increased disease risk
+      - Potential mold growth
+      - Reduced plant transpiration
+      
+      **Actions:**
+      - Increase ventilation
+      - Check dehumidification system
+      - Monitor plant health
+      
+      @farm-operators
+    tags:
+      - "service:vertical-farm"
+      - "component:sensors"
+      - "type:humidity"
+      - "severity:warning"
+    thresholds:
+      warning: 70
+      critical: 75
+
+  - name: "Sensors - Critical pH Level"
+    type: "metric alert"
+    query: "max(last_5m):max:vertical_farm.sensors.ph{env:production} by {farm_id,shelf_id} > 7.2 OR min(last_5m):min:vertical_farm.sensors.ph{env:production} by {farm_id,shelf_id} < 5.8"
+    message: |
+      ⚗️ **CRITICAL: pH Level Out of Range**
+      
+      pH in Farm {{farm_id.name}}, Shelf {{shelf_id.name}} is {{value}}.
+      
+      **Critical Actions:**
+      - Stop nutrient feeding immediately
+      - Check pH adjustment system
+      - Test calibration of pH sensors
+      - Consider manual pH adjustment
+      
+      **Target Range:** 6.0 - 7.0
+      
+      @farm-operators @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:sensors"
+      - "type:ph"
+      - "severity:critical"
+    thresholds:
+      warning_high: 7.0
+      critical_high: 7.2
+      warning_low: 6.0
+      critical_low: 5.8
+
+  - name: "Sensors - Low Water Level"
+    type: "metric alert"
+    query: "min(last_5m):min:vertical_farm.sensors.water_level{env:production} by {farm_id} < 30"
+    message: |
+      🚰 **CRITICAL: Low Water Level**
+      
+      Water level in Farm {{farm_id.name}} is {{value}}%.
+      
+      **Immediate Actions:**
+      - Refill water reservoir
+      - Check for leaks
+      - Verify pump operation
+      - Review water consumption patterns
+      
+      @farm-operators @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:sensors"
+      - "type:water_level"
+      - "severity:critical"
+    thresholds:
+      warning: 50
+      critical: 30
+
+  # =====================================================
+  # AUTOMATION SYSTEM ALERTS
+  # =====================================================
+
+  - name: "Automation - Rule Execution Failure"
+    type: "log alert"
+    query: 'logs("source:vertical-farm service:automation-processor status:error").index("*").rollup("count").last("5m") > 5'
+    message: |
+      🤖 **CRITICAL: Automation Rule Failures**
+      
+      {{value}} automation rule execution failures in the last 5 minutes.
+      
+      **Investigation Required:**
+      - Check automation processor logs
+      - Review rule configurations
+      - Verify device connectivity
+      - Check sensor data availability
+      
+      @automation-team @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:automation"
+      - "severity:critical"
+    thresholds:
+      warning: 3
+      critical: 5
+
+  - name: "Automation - High Queue Depth"
+    type: "metric alert"
+    query: "avg(last_10m):avg:vertical_farm.queue.depth{env:production} by {queue_name} > 100"
+    message: |
+      📋 **WARNING: High Queue Depth**
+      
+      Queue {{queue_name.name}} depth is {{value}} items.
+      
+      **Possible Causes:**
+      - Processing bottleneck
+      - Increased task volume
+      - Worker performance issues
+      
+      **Actions:**
+      - Check queue processing rate
+      - Review worker performance
+      - Consider scaling workers
+      
+      @automation-team
+    tags:
+      - "service:vertical-farm"
+      - "component:queue"
+      - "severity:warning"
+    thresholds:
+      warning: 100
+      critical: 500
+
+  # =====================================================
+  # APPLICATION PERFORMANCE ALERTS
+  # =====================================================
+
+  - name: "Application - High Frontend Response Time"
+    type: "metric alert"
+    query: "avg(last_5m):p95:trace.nextjs.request{service:vertical-farm-frontend,env:production} > 2000"
+    message: |
+      🌐 **WARNING: Slow Frontend Performance**
+      
+      P95 frontend response time is {{value}}ms.
+      
+      **Investigation:**
+      - Check API response times
+      - Review database query performance
+      - Analyze frontend bundle size
+      - Check CDN performance
+      
+      @frontend-team @vertical-farm-team
+    tags:
+      - "service:vertical-farm-frontend"
+      - "component:frontend"
+      - "severity:warning"
+    thresholds:
+      warning: 2000
+      critical: 5000
+
+  - name: "Application - High Backend Response Time"
+    type: "metric alert"
+    query: "avg(last_5m):p95:trace.fastapi.request{service:vertical-farm-backend,env:production} > 1000"
+    message: |
+      ⚙️ **WARNING: Slow Backend Performance**
+      
+      P95 backend response time is {{value}}ms.
+      
+      **Investigation:**
+      - Check database query performance
+      - Review API endpoint efficiency
+      - Analyze resource utilization
+      - Check external service dependencies
+      
+      @backend-team @vertical-farm-team
+    tags:
+      - "service:vertical-farm-backend"
+      - "component:backend"
+      - "severity:warning"
+    thresholds:
+      warning: 1000
+      critical: 3000
+
+  # =====================================================
+  # BACKUP AND RECOVERY ALERTS
+  # =====================================================
+
+  - name: "Backup - Failed Backup Operation"
+    type: "log alert"
+    query: 'logs("source:vertical-farm service:backup status:failed").index("*").rollup("count").last("1h") > 0'
+    message: |
+      💾 **CRITICAL: Backup Failure**
+      
+      {{value}} backup operation(s) failed in the last hour.
+      
+      **Immediate Actions:**
+      - Check backup logs for error details
+      - Verify storage availability
+      - Test backup system connectivity
+      - Consider manual backup if critical
+      
+      **Backup Dashboard:** [Backup Status](https://app.datadoghq.com/dashboard/backup-status)
+      
+      @infrastructure-team @on-call-engineer
+    tags:
+      - "service:vertical-farm"
+      - "component:backup"
+      - "severity:critical"
+    thresholds:
+      critical: 0
+
+  - name: "Backup - Overdue Backup"
+    type: "metric alert"
+    query: "max(last_1h):hours_since_last_backup{backup_type:full,env:production} > 25"
+    message: |
+      ⏰ **WARNING: Overdue Backup**
+      
+      Last successful full backup was {{value}} hours ago.
+      
+      **Actions Required:**
+      - Check backup schedule configuration
+      - Verify backup system health
+      - Review backup logs
+      - Consider manual backup initiation
+      
+      @infrastructure-team
+    tags:
+      - "service:vertical-farm"
+      - "component:backup"
+      - "severity:warning"
+    thresholds:
+      warning: 25
+      critical: 49
+
+  # =====================================================
+  # INFRASTRUCTURE ALERTS
+  # =====================================================
+
+  - name: "Infrastructure - High Memory Usage"
+    type: "metric alert"
+    query: "avg(last_5m):avg:docker.mem.in_use{service:vertical-farm,env:production} by {container_name} / avg:docker.mem.limit{service:vertical-farm,env:production} by {container_name} > 0.85"
+    message: |
+      🧠 **WARNING: High Memory Usage**
+      
+      Container {{container_name.name}} memory usage is {{value}}%.
+      
+      **Actions:**
+      - Check for memory leaks
+      - Review application performance
+      - Consider container resource limits
+      - Monitor garbage collection
+      
+      @infrastructure-team
+    tags:
+      - "service:vertical-farm"
+      - "component:infrastructure"
+      - "severity:warning"
+    thresholds:
+      warning: 0.8
+      critical: 0.9
+
+  - name: "Infrastructure - High CPU Usage"
+    type: "metric alert"
+    query: "avg(last_5m):avg:docker.cpu.user{service:vertical-farm,env:production} by {container_name} > 80"
+    message: |
+      🔥 **WARNING: High CPU Usage**
+      
+      Container {{container_name.name}} CPU usage is {{value}}%.
+      
+      **Investigation:**
+      - Check application performance
+      - Review recent deployments
+      - Analyze CPU-intensive operations
+      - Consider scaling options
+      
+      @infrastructure-team
+    tags:
+      - "service:vertical-farm"
+      - "component:infrastructure"
+      - "severity:warning"
+    thresholds:
+      warning: 80
+      critical: 95
+
+# =====================================================
+# NOTIFICATION CHANNELS
+# =====================================================
+
+notification_channels:
+  - name: "slack-alerts"
+    type: "slack"
+    settings:
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#vertical-farm-alerts"
+      username: "Datadog"
+      
+  - name: "on-call-engineer"
+    type: "pagerduty"
+    settings:
+      service_key: "${PAGERDUTY_SERVICE_KEY}"
+      
+  - name: "vertical-farm-team"
+    type: "email"
+    settings:
+      recipients:
+        - "team@vertical-farm.com"
+        - "devops@vertical-farm.com"
+        
+  - name: "farm-operators"
+    type: "sms"
+    settings:
+      recipients:
+        - "+1234567890"  # Farm Manager
+        - "+1234567891"  # Lead Operator
+
+# =====================================================
+# ALERT SCHEDULES AND DOWNTIMES
+# =====================================================
+
+scheduled_downtimes:
+  - name: "Maintenance Window"
+    description: "Weekly maintenance window for system updates"
+    schedule:
+      timezone: "UTC"
+      recurrence: "weekly"
+      start_time: "02:00"
+      duration: "2h"
+      days: ["Sunday"]
+    scope:
+      - "service:vertical-farm"
+      - "component:infrastructure"
+    
+  - name: "Backup Window"
+    description: "Daily backup operation window"
+    schedule:
+      timezone: "UTC"
+      recurrence: "daily"
+      start_time: "02:00"
+      duration: "30m"
+    scope:
+      - "component:backup"
+
+# =====================================================
+# ALERT DEPENDENCIES
+# =====================================================
+
+alert_dependencies:
+  # If database is down, suppress edge function alerts
+  - parent_alert: "Supabase - Database Connection Failed"
+    child_alerts:
+      - "Edge Functions - High Error Rate"
+      - "Edge Functions - High Processing Time"
+    
+  # If automation system is down, suppress sensor alerts
+  - parent_alert: "Automation - System Offline"
+    child_alerts:
+      - "Sensors - Data Collection Lag"
+      - "Automation - Rule Execution Failure" 

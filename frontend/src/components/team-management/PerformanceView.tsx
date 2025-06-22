@@ -162,7 +162,7 @@ export default function PerformanceView() {
     return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
   };
 
-  const getTrendIcon = (trend: string, value: number) => {
+  const getTrendIcon = (trend: string) => {
     if (trend === "up") return <TrendingUp className="h-4 w-4 text-green-600" />;
     if (trend === "down") return <TrendingDown className="h-4 w-4 text-red-600" />;
     return <span className="h-4 w-4 text-gray-600">—</span>;
@@ -295,7 +295,7 @@ export default function PerformanceView() {
                       {employee.overallScore}% Overall
                     </Badge>
                     <div className="flex items-center gap-1">
-                      {getTrendIcon(employee.trend, employee.trendValue)}
+                      {getTrendIcon(employee.trend)}
                       <span className={`text-sm ${employee.trend === 'up' ? 'text-green-600' : employee.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
                         {employee.trend === 'up' ? '+' : employee.trend === 'down' ? '' : ''}{employee.trendValue}%
                       </span>

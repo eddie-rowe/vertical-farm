@@ -305,7 +305,7 @@ export default function ScheduleView() {
       {/* Today's Schedule */}
       <Card>
         <CardContent className="p-6">
-          <h4 className="font-semibold text-lg mb-4">Today's Schedule - {new Date().toLocaleDateString()}</h4>
+                          <h4 className="font-semibold text-lg mb-4">Today&apos;s Schedule - {new Date().toLocaleDateString()}</h4>
           <div className="grid gap-3">
             {scheduleData.shifts.map((shift) => (
               <div key={shift.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">

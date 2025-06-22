@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from app.core.auth import get_current_user
+from app.core.security import get_current_active_user as get_current_user
 from app.services.sensor_cache_service import get_sensor_cache_service, SensorCacheService
 from app.models.user import User
 from app.schemas.sensor import (

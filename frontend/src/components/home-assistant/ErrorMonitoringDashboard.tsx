@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { 
   AlertTriangle, 
@@ -186,18 +185,7 @@ const ErrorMonitoringDashboard: React.FC = () => {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return 'bg-green-500'
-      case 'degraded':
-        return 'bg-yellow-500'
-      case 'unhealthy':
-        return 'bg-red-500'
-      default:
-        return 'bg-gray-500'
-    }
-  }
+
 
   const getCircuitBreakerColor = (state: string) => {
     switch (state) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaBoxes, FaShoppingCart, FaBuilding, FaArrowUp, FaArrowDown, FaCheck, FaSearch, FaPlus, FaEdit } from 'react-icons/fa';
+import { FaBoxes, FaShoppingCart, FaBuilding, FaArrowUp, FaArrowDown, FaCheck, FaSearch, FaPlus, FaEdit } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

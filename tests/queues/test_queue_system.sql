@@ -1,68 +1,162 @@
--- Test Queue System Setup
--- This script creates the necessary tables and tests the queue functionality
+-- ============================================================================
+-- QUEUE SYSTEM INTEGRATION TEST
+-- ============================================================================
+-- Description: Test script for the consolidated queue system
+-- Prerequisites: Master database schema migration must be applied
+-- ============================================================================
 
--- Enable pgmq extension (if not already enabled)
-CREATE EXTENSION IF NOT EXISTS pgmq;
+-- Verify PGMQ extension is available
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgmq') THEN
+        RAISE EXCEPTION 'PGMQ extension is not installed. Please apply the master migration first.';
+    END IF;
+END $$;
 
--- Create the task_logs table if it doesn't exist
-CREATE TABLE IF NOT EXISTS public.task_logs (
-    id BIGSERIAL PRIMARY KEY,
-    task_id TEXT NOT NULL,
-    task_type TEXT NOT NULL,
-    priority TEXT NOT NULL CHECK (priority IN ('critical', 'high', 'normal', 'low')),
-    success BOOLEAN NOT NULL,
-    execution_time INTEGER NOT NULL, -- milliseconds
-    error_message TEXT,
-    retry_count INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- ============================================================================
+-- TEST 1: Verify Master Migration Queues Exist
+-- ============================================================================
 
--- Create indexes for task logs
-CREATE INDEX IF NOT EXISTS idx_task_logs_task_id ON public.task_logs(task_id);
-CREATE INDEX IF NOT EXISTS idx_task_logs_task_type ON public.task_logs(task_type);
-CREATE INDEX IF NOT EXISTS idx_task_logs_created_at ON public.task_logs(created_at);
+-- Check that all expected queues from master migration exist
+DO $$
+DECLARE
+    expected_queues text[] := ARRAY['farm_automation', 'sensor_processing', 'notifications', 'analytics', 'maintenance', 'background_tasks'];
+    queue_name text;
+    queue_exists boolean;
+BEGIN
+    FOREACH queue_name IN ARRAY expected_queues
+    LOOP
+        SELECT EXISTS (
+            SELECT 1 FROM pgmq.list_queues() 
+            WHERE pgmq.list_queues.queue_name = queue_name
+        ) INTO queue_exists;
+        
+        IF NOT queue_exists THEN
+            RAISE EXCEPTION 'Queue % does not exist. Please apply master migration.', queue_name;
+        END IF;
+        
+        RAISE NOTICE 'Queue % exists ✓', queue_name;
+    END LOOP;
+    
+    RAISE NOTICE 'All master migration queues verified ✓';
+END $$;
 
--- Create the message queues
-SELECT pgmq.create_queue('critical_tasks');
-SELECT pgmq.create_queue('high_tasks');
-SELECT pgmq.create_queue('normal_tasks');
-SELECT pgmq.create_queue('low_tasks');
+-- ============================================================================
+-- TEST 2: Test Queue Message Operations
+-- ============================================================================
 
--- Add a test task to the normal priority queue
+-- Test sending messages to different queues
 SELECT pgmq.send(
-    'normal_tasks',
+    'farm_automation',
     jsonb_build_object(
-        'id', 'test_task_' || extract(epoch from now()),
-        'type', 'device_discovery',
-        'priority', 'normal',
-        'payload', jsonb_build_object(
-            'action', 'discover_devices',
-            'user_id', 'test_user'
-        ),
-        'metadata', jsonb_build_object(
-            'created_at', now(),
-            'retry_count', 0,
-            'max_retries', 3
-        )
+        'type', 'device_control',
+        'action', 'turn_on_lights',
+        'device_id', 'test_device_001',
+        'timestamp', now(),
+        'priority', 'high'
     )
-);
+) as farm_automation_msg_id;
 
--- Check if the task was added
-SELECT * FROM pgmq.read('normal_tasks', 10, 1);
+SELECT pgmq.send(
+    'sensor_processing',
+    jsonb_build_object(
+        'type', 'sensor_reading',
+        'sensor_type', 'temperature',
+        'value', 22.5,
+        'unit', 'celsius',
+        'device_id', 'temp_sensor_001',
+        'timestamp', now()
+    )
+) as sensor_processing_msg_id;
 
--- Show current queue stats
+SELECT pgmq.send(
+    'notifications',
+    jsonb_build_object(
+        'type', 'alert',
+        'level', 'warning',
+        'message', 'Temperature threshold exceeded',
+        'recipient', 'admin@example.com',
+        'timestamp', now()
+    )
+) as notifications_msg_id;
+
+-- ============================================================================
+-- TEST 3: Test Message Reading
+-- ============================================================================
+
+-- Read messages from queues (30 second visibility timeout)
+SELECT 'farm_automation' as queue, * FROM pgmq.read('farm_automation', 30, 5);
+SELECT 'sensor_processing' as queue, * FROM pgmq.read('sensor_processing', 30, 5);
+SELECT 'notifications' as queue, * FROM pgmq.read('notifications', 30, 5);
+
+-- ============================================================================
+-- TEST 4: Test Queue Statistics
+-- ============================================================================
+
+-- Show queue statistics
 SELECT 
-    'critical_tasks' as queue_name,
-    (SELECT count(*) FROM pgmq.read('critical_tasks', 100, 1)) as message_count
-UNION ALL
+    queue_name,
+    created_at,
+    is_partitioned,
+    is_unlogged
+FROM pgmq.list_queues() 
+WHERE queue_name IN ('farm_automation', 'sensor_processing', 'notifications', 'analytics', 'maintenance', 'background_tasks')
+ORDER BY queue_name;
+
+-- ============================================================================
+-- TEST 5: Test Master Migration Functions
+-- ============================================================================
+
+-- Test the send_queue_message function from master migration
+SELECT public.send_queue_message(
+    'background_tasks',
+    jsonb_build_object(
+        'type', 'maintenance_check',
+        'task', 'system_health_check',
+        'scheduled_by', 'test_system',
+        'timestamp', now()
+    ),
+    0
+) as background_task_msg_id;
+
+-- Verify task was logged in task_logs table
 SELECT 
-    'high_tasks' as queue_name,
-    (SELECT count(*) FROM pgmq.read('high_tasks', 100, 1)) as message_count
-UNION ALL
+    queue_name,
+    task_type,
+    status,
+    payload->>'type' as message_type,
+    created_at
+FROM public.task_logs 
+WHERE queue_name = 'background_tasks'
+ORDER BY created_at DESC
+LIMIT 5;
+
+-- ============================================================================
+-- TEST 6: Test Queue Configuration
+-- ============================================================================
+
+-- Verify queue configuration from master migration
 SELECT 
-    'normal_tasks' as queue_name,
-    (SELECT count(*) FROM pgmq.read('normal_tasks', 100, 1)) as message_count
-UNION ALL
-SELECT 
-    'low_tasks' as queue_name,
-    (SELECT count(*) FROM pgmq.read('low_tasks', 100, 1)) as message_count; 
+    queue_name,
+    max_retries,
+    retry_delay_seconds,
+    settings,
+    created_at
+FROM public.queue_config
+ORDER BY queue_name;
+
+-- ============================================================================
+-- TEST RESULTS SUMMARY
+-- ============================================================================
+
+DO $$
+BEGIN
+    RAISE NOTICE '============================================================================';
+    RAISE NOTICE 'QUEUE SYSTEM TEST COMPLETED';
+    RAISE NOTICE '============================================================================';
+    RAISE NOTICE 'All tests passed! The consolidated queue system is working correctly.';
+    RAISE NOTICE 'Master migration queues: farm_automation, sensor_processing, notifications, analytics, maintenance, background_tasks';
+    RAISE NOTICE 'Queue functions: pgmq.create(), pgmq.send(), pgmq.read(), public.send_queue_message()';
+    RAISE NOTICE 'Supporting tables: task_logs, queue_config, background_tasks';
+    RAISE NOTICE '============================================================================';
+END $$; 

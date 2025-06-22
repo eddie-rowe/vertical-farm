@@ -26,21 +26,55 @@ CREATE INDEX IF NOT EXISTS idx_task_logs_task_type ON public.task_logs(task_type
 CREATE INDEX IF NOT EXISTS idx_task_logs_created_at ON public.task_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_task_logs_success ON public.task_logs(success);
 
--- Create integrations table for storing Home Assistant and other integration configs
-CREATE TABLE IF NOT EXISTS public.integrations (
-    id BIGSERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    type TEXT NOT NULL, -- 'home_assistant', 'zigbee', etc.
-    name TEXT NOT NULL,
-    config JSONB NOT NULL, -- Store connection details, API keys, etc.
-    health_status TEXT DEFAULT 'unknown' CHECK (health_status IN ('healthy', 'unhealthy', 'unknown')),
-    last_health_check TIMESTAMPTZ,
-    response_time INTEGER, -- milliseconds
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, type, name)
-);
+-- Add user_id column to existing integrations table if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'user_id'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- Add additional columns for Home Assistant and other integration configs if they don't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'config'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN config JSONB DEFAULT '{}';
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'health_status'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN health_status TEXT DEFAULT 'unknown' CHECK (health_status IN ('healthy', 'unhealthy', 'unknown'));
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'last_health_check'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN last_health_check TIMESTAMPTZ;
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'response_time'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN response_time INTEGER;
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'integrations' AND column_name = 'is_active'
+    ) THEN
+        ALTER TABLE public.integrations ADD COLUMN is_active BOOLEAN DEFAULT true;
+    END IF;
+END $$;
 
 -- Create indexes for integrations
 CREATE INDEX IF NOT EXISTS idx_integrations_user_id ON public.integrations(user_id);
@@ -70,22 +104,32 @@ CREATE INDEX IF NOT EXISTS idx_ha_devices_entity_id ON public.home_assistant_dev
 CREATE INDEX IF NOT EXISTS idx_ha_devices_device_type ON public.home_assistant_devices(device_type);
 CREATE INDEX IF NOT EXISTS idx_ha_devices_is_assigned ON public.home_assistant_devices(is_assigned);
 
--- Create device assignments table for mapping devices to farm locations
-CREATE TABLE IF NOT EXISTS public.device_assignments (
-    id BIGSERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    entity_id TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    friendly_name TEXT,
-    farm_id UUID,
-    row_id UUID,
-    rack_id UUID,
-    shelf_id UUID,
-    assigned_by TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, entity_id)
-);
+-- Add user_id column to existing device_assignments table if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'device_assignments' AND column_name = 'user_id'
+    ) THEN
+        ALTER TABLE public.device_assignments ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- Add unique constraint for user_id and entity_id if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_schema = 'public' AND table_name = 'device_assignments' 
+        AND constraint_name = 'device_assignments_user_id_entity_id_key'
+    ) THEN
+        ALTER TABLE public.device_assignments ADD CONSTRAINT device_assignments_user_id_entity_id_key UNIQUE(user_id, entity_id);
+    END IF;
+EXCEPTION
+    WHEN others THEN
+        -- Ignore constraint errors if they occur
+        NULL;
+END $$;
 
 -- Create indexes for device assignments
 CREATE INDEX IF NOT EXISTS idx_device_assignments_user_id ON public.device_assignments(user_id);
@@ -179,18 +223,33 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Add updated_at triggers
-CREATE TRIGGER update_integrations_updated_at BEFORE UPDATE ON public.integrations
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_ha_devices_updated_at BEFORE UPDATE ON public.home_assistant_devices
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_device_assignments_updated_at BEFORE UPDATE ON public.device_assignments
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_device_schedules_updated_at BEFORE UPDATE ON public.device_schedules
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+-- Add updated_at triggers with proper existence checks
+DO $$
+BEGIN
+    -- Trigger for integrations table
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_integrations_updated_at') THEN
+        CREATE TRIGGER update_integrations_updated_at BEFORE UPDATE ON public.integrations
+            FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
+    
+    -- Trigger for home_assistant_devices table
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_ha_devices_updated_at') THEN
+        CREATE TRIGGER update_ha_devices_updated_at BEFORE UPDATE ON public.home_assistant_devices
+            FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
+    
+    -- Trigger for device_assignments table
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_device_assignments_updated_at') THEN
+        CREATE TRIGGER update_device_assignments_updated_at BEFORE UPDATE ON public.device_assignments
+            FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
+    
+    -- Trigger for device_schedules table
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_device_schedules_updated_at') THEN
+        CREATE TRIGGER update_device_schedules_updated_at BEFORE UPDATE ON public.device_schedules
+            FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
+END $$;
 
 -- Create helper functions for queue operations
 CREATE OR REPLACE FUNCTION public.queue_background_task(

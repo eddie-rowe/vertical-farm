@@ -30,6 +30,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- =====================================================
 
 -- User uploads policies (profile images, personal documents)
+DROP POLICY IF EXISTS "user_uploads_own_access" ON storage.objects;
 CREATE POLICY "user_uploads_own_access" ON storage.objects
   FOR ALL USING (
     bucket_id = 'user-uploads' 
@@ -41,6 +42,7 @@ CREATE POLICY "user_uploads_own_access" ON storage.objects
   );
 
 -- Farm documentation policies (farm managers and operators can access)
+DROP POLICY IF EXISTS "farm_documentation_access" ON storage.objects;
 CREATE POLICY "farm_documentation_access" ON storage.objects
   FOR ALL USING (
     bucket_id = 'farm-documentation' 
@@ -78,6 +80,7 @@ CREATE POLICY "farm_documentation_access" ON storage.objects
   );
 
 -- Harvest photos policies (accessible by farm hierarchy permissions)
+DROP POLICY IF EXISTS "harvest_photos_access" ON storage.objects;
 CREATE POLICY "harvest_photos_access" ON storage.objects
   FOR ALL USING (
     bucket_id = 'harvest-photos' 
@@ -116,9 +119,11 @@ CREATE POLICY "harvest_photos_access" ON storage.objects
   );
 
 -- Device manuals policies (public read, admin write)
+DROP POLICY IF EXISTS "device_manuals_public_read" ON storage.objects;
 CREATE POLICY "device_manuals_public_read" ON storage.objects
   FOR SELECT USING (bucket_id = 'device-manuals');
 
+DROP POLICY IF EXISTS "device_manuals_admin_write" ON storage.objects;
 CREATE POLICY "device_manuals_admin_write" ON storage.objects
   FOR ALL USING (
     bucket_id = 'device-manuals' 
@@ -136,6 +141,7 @@ CREATE POLICY "device_manuals_admin_write" ON storage.objects
   );
 
 -- System backups policies (admin only)
+DROP POLICY IF EXISTS "system_backups_admin_only" ON storage.objects;
 CREATE POLICY "system_backups_admin_only" ON storage.objects
   FOR ALL USING (
     bucket_id = 'system-backups' 

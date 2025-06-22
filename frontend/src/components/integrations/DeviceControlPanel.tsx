@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaLightbulb, FaPlug, FaFan, FaThermometerHalf, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaLightbulb, FaPlug, FaFan, FaThermometerHalf, FaToggleOn, FaToggleOff } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,22 +67,7 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
     }
   };
 
-  const handleBrightnessChange = async (value: number[]) => {
-    const newBrightness = value[0];
-    setBrightness(newBrightness);
-    
-    // Debounced brightness control
-    setIsControlling(true);
-    try {
-      await homeAssistantService.controlLight(device.entity_id, 'turn_on', {
-        brightness: Math.round((newBrightness / 100) * 255)
-      });
-    } catch (error) {
-      console.error('Error setting brightness:', error);
-    } finally {
-      setIsControlling(false);
-    }
-  };
+
 
   const isOn = device.state === 'on';
   const isControllable = device.domain === 'light' || device.domain === 'switch' || device.domain === 'fan';

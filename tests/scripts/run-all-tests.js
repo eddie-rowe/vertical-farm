@@ -6,11 +6,18 @@
  */
 
 // Load environment variables from root .env file
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const { RealtimeSubscriptionTester } = require('../integration/test-realtime-subscriptions');
-const { AuthPermissionTester } = require('../auth/test-auth-permissions');
-const { IoTIntegrationTester } = require('../iot/test-iot-integration');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+import { RealtimeSubscriptionTester } from '../integration/test-realtime-subscriptions.js';
+import { AuthPermissionTester } from '../auth/test-auth-permissions.js';
+import { IoTIntegrationTester } from '../iot/test-iot-integration.js';
 
 class MasterTestRunner {
   constructor() {
@@ -205,9 +212,9 @@ class MasterTestRunner {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const runner = new MasterTestRunner();
   runner.runAllTests();
 }
 
-module.exports = { MasterTestRunner }; 
+export { MasterTestRunner }; 

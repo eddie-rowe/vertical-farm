@@ -4,11 +4,16 @@ from jose import jwt, JWTError
 import os
 # Removed httpx import
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Dict, List, Tuple
+from typing import Any, Optional, Dict, List, Tuple, TYPE_CHECKING
 import logging
 # Removed time import
 
 from app.core.config import settings
+
+# TYPE_CHECKING imports - only imported during type checking, not at runtime
+if TYPE_CHECKING:
+    from app.schemas.user import User
+
 # Note: app.models.user, app.crud, app.db.supabase_client imports are moved lower
 
 logger = logging.getLogger(__name__)
@@ -219,7 +224,7 @@ from supabase import AClient as SupabaseAsyncClient # acreate_client removed as 
 async def get_current_active_user(
     token_data: Tuple[dict, str] = Depends(get_validated_supabase_token_payload),
     # db: SupabaseAsyncClient = Depends(get_async_supabase_client) # Remove Depends from here
-) -> 'User': # Change return type to string literal 'User'
+) -> "User":
     from app.db.supabase_client import get_async_supabase_client # Import locally
     from app.schemas.user import User # Import User locally
     db: SupabaseAsyncClient = await get_async_supabase_client() # Get client instance
@@ -232,72 +237,21 @@ async def get_current_active_user(
             detail="Could not validate credentials, user ID (sub) missing from token payload"
         )
     
-    # Ensure user_id is correctly formatted if it needs to be UUID
-    # user_id_uuid = uuid.UUID(user_id_str) # If crud_user.get_user expects UUID
-    
-    user_data = await crud_user.user.get(supabase=db, id=user_id_str) # Use crud_user.user.get and pass supabase client as 'supabase'
-    
-    # If user doesn't exist in user_profiles, create one automatically
-    if user_data is None:
-        print(f"DEBUG: User {user_id_str} not found in user_profiles, creating profile...")
-        
-        # Extract user metadata from JWT payload
-        user_metadata = payload.get("user_metadata", {})
-        app_metadata = payload.get("app_metadata", {})
-        email = payload.get("email")
-        
-        # Create user profile with data from JWT
-        profile_payload = {
-            "id": user_id_str,
-            "name": user_metadata.get("full_name") or user_metadata.get("name") or email,
-            "role": app_metadata.get("role", "operator"),  # Default to 'operator'
-        }
-        
-        try:
-            # Insert the user profile
-            profile_response = await db.table("user_profiles").insert(profile_payload).execute()
-            if profile_response.data:
-                user_data = profile_response.data[0]
-                print(f"DEBUG: Successfully created user profile for {user_id_str}")
-            else:
-                print(f"ERROR: Failed to create user profile for {user_id_str}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to create user profile"
-                )
-        except Exception as e:
-            print(f"ERROR: Exception creating user profile for {user_id_str}: {e}")
-            # Check if it's a unique constraint violation (user already exists)
-            if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
-                # Try to fetch again in case another request created it
-                user_data = await crud_user.user.get(supabase=db, id=user_id_str)
-                if user_data is None:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="User profile creation failed with duplicate key but user still not found"
-                    )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Failed to create user profile: {str(e)}"
-                )
+    # Get user data from user_profiles table
+    user_data = await crud_user.user.get(supabase=db, id=user_id_str)
     
     if user_data is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {user_id_str} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"User profile not found for ID {user_id_str}. This should have been created automatically during signup."
+        )
     
-    # Assuming user_data contains is_active, if not, this check needs adjustment
-    # For Supabase, active status is usually implicit unless you have a specific 'is_active' column you manage
-    # if not user_data.get("is_active", True): # Default to True if not present, or adjust as per your schema
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
-    
-    # Convert dict to UserResponse Pydantic model
-    # This assumes the keys in user_data match the fields in UserResponse
-    # You might need to map fields if they don't match directly
+    # Convert dict to User Pydantic model
     return User(**user_data)
 
 async def get_current_active_user_with_session_health(
     token_data: Tuple[dict, str, Dict[str, Any]] = Depends(get_validated_supabase_token_with_refresh_check),
-) -> Tuple['User', Dict[str, Any]]:
+) -> Tuple["User", Dict[str, Any]]:
     """
     Get current user with session health information.
     

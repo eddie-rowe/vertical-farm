@@ -1,11 +1,10 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card } from '../ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { FaMapMarkedAlt, FaThermometerHalf, FaTint, FaBolt, FaLeaf, FaUsers, FaDollarSign, FaBoxes, FaFilter, FaSearch, FaDownload, FaEye, FaCog, FaChartLine, FaRobot } from 'react-icons/fa'
+import { FaMapMarkedAlt, FaThermometerHalf, FaTint, FaBolt, FaLeaf, FaUsers, FaDollarSign, FaBoxes, FaChartLine, FaRobot, FaDownload, FaEye, FaCog } from 'react-icons/fa'
 
 interface HeatmapData {
   id: string

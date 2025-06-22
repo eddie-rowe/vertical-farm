@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import EntityEditModal, { EntityType } from "@/components/farm-layout/EntityEditModal";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor, DragEndEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, horizontalListSortingStrategy } from "@dnd-kit/sortable";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { PlusIcon, TrashIcon, PencilIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
@@ -38,11 +38,9 @@ import {
   ShelfSchema 
 } from '@/lib/validations/shelfSchemas';
 import { 
-  FanFormData, 
   FanSchema 
 } from '@/lib/validations/fanSchemas';
 import { 
-  SensorDeviceFormData, 
   SensorDeviceSchema 
 } from '@/lib/validations/sensorDeviceSchemas';
 import { Farm, Row, Rack, Shelf, UUID, FarmPageData } from "@/types/farm-layout";
@@ -61,15 +59,13 @@ import {
   createRack, 
   updateRack, 
   deleteRack, 
-  getRacksByRowId, 
-  reorderRacks 
+  getRacksByRowId 
 } from "@/services/rackService";
 import { 
   createShelf, 
   updateShelf, 
   deleteShelf, 
-  getShelvesByRackId,
-  reorderShelves 
+  getShelvesByRackId 
 } from "@/services/shelfService";
 
 // Type for the entity being edited in the modal
@@ -213,7 +209,7 @@ export default function TopDownFarmView({ farmPageData, editMode, onRackClick, o
     parentRackId?: UUID;
   }>({ type: null, entity: null, isNew: false });
 
-  const [dragging, setDragging] = useState<{ type: string; id: UUID } | null>(null);
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     type?: 'farm' | 'row' | 'rack' | 'shelf'; 
@@ -228,7 +224,6 @@ export default function TopDownFarmView({ farmPageData, editMode, onRackClick, o
 
   async function handleRowsReorder(event: DragEndEvent) {
     const { active, over } = event;
-    setDragging(null);
     
     if (!over || active.id === over.id || !internalFarmData?.farm.rows) return;
 
@@ -548,7 +543,6 @@ export default function TopDownFarmView({ farmPageData, editMode, onRackClick, o
     <DndContext 
       sensors={sensors} 
       collisionDetection={closestCenter} 
-      onDragStart={(e) => setDragging({ type: e.active.data.current?.type as string, id: e.active.id as UUID })} 
       onDragEnd={handleRowsReorder}
     >
       <div className="space-y-6 w-full max-w-7xl mx-auto p-4 md:p-6">
@@ -776,7 +770,7 @@ export default function TopDownFarmView({ farmPageData, editMode, onRackClick, o
             <AlertDialogHeader>
               <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete {confirmDialog.type} "{confirmDialog.name}"? 
+                Are you sure you want to delete {confirmDialog.type} &quot;{confirmDialog.name}&quot;? 
                 {confirmDialog.type === 'row' && ' This will also delete all racks and shelves in this row.'}
                 {confirmDialog.type === 'rack' && ' This will also delete all shelves in this rack.'}
                 {' '}This action cannot be undone.

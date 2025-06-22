@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import {
   Dialog,
@@ -12,7 +12,6 @@ import { useForm, FieldValues, SubmitHandler, Path, DefaultValues } from "react-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ZodType } from "zod";
 
-interface Shelf { id: string; name: string; }
 export type EntityType = 'farm' | 'row' | 'rack' | 'shelf' | 'fan' | 'sensorDevice';
 
 interface EntityEditModalProps<TFormValues extends FieldValues> {

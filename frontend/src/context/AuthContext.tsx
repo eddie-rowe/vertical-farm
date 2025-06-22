@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/supabaseClient";
 import toast from 'react-hot-toast';
 
 import type { User, Session } from '@supabase/supabase-js';

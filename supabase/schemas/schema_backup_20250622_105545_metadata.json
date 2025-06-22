@@ -1,0 +1,11 @@
+{
+  "backup_name": "schema_backup_20250622_105545",
+  "timestamp": "20250622_105545",
+  "date": "2025-06-22T10:56:02-05:00",
+  "type": "comprehensive_schema_backup",
+  "file": "schema_backup_20250622_105545.sql",
+  "size": "196K",
+  "project_root": "/Users/eddie.rowe/Repos/vertical-farm",
+  "git_commit": "798dc00ce9cf3278a4687d51406e27d72c21e94e",
+  "git_branch": "feature-queue-tasks"
+}

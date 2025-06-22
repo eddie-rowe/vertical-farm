@@ -74,9 +74,15 @@ services:
       - DD_HOSTNAME=vertical-farm-docker-desktop
       - DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED=true
       - SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL}
-      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - POSTGRES_DATADOG_USERNAME=${POSTGRES_DATADOG_USERNAME}
+      - POSTGRES_DATADOG_PASSWORD=${POSTGRES_DATADOG_PASSWORD}
+      - POSTGRES_DATADOG_DBNAME=${POSTGRES_DATADOG_DBNAME}
     labels:
+      #com.datadoghq.ad.checks: '{postgres: {"instances": [{"host": "%%host%%","port":"5432","username":"postgres","password":"%%env_POSTGRES_PASSWORD%%","dbname":"postgres"}]}}'
+      #com.datadoghq.ad.logs: '[{"source": "supabase", "service": "vertical-farm-supabase"}]'
       com.datadoghq.ad.checks: '{"supabase": {"instances": [{"privileged_metrics_endpoint": "%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_SERVICE_KEY%%"}]}}'
+      #com.datadoghq.ad.checks: '{"supabase": {"instances": [{"privileged_metrics_endpoint": "%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_SERVICE_KEY%%"}]}},{"postgres": {"instances": [{"host": "%%host%%","port":"6543","username":"%%env_POSTGRES_DATADOG_USERNAME%%","password":"%%env_POSTGRES_DATADOG_PASSWORD%%","dbname":"%%env_POSTGRES_DATADOG_DBNAME%%"}]}}'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc/:/host/proc/:ro
@@ -96,10 +102,29 @@ services:
 #    image: supabase/postgres:17.0.1.086-orioledb
 #    ports:
 #      - "54322:5432"
-#    command: postgres -c config_file=/etc/postgresql/postgresql.conf 
+#    command: >
+#      postgres 
+#      -c shared_preload_libraries=pg_stat_statements
+#      -c log_statement=all
+#      -c log_duration=on
+#      -c log_min_duration_statement=0
 #    environment:
 #      POSTGRES_PASSWORD: postgres
-
+#      POSTGRES_USER: postgres
+#      POSTGRES_DB: postgres
+#      POSTGRES_PORT: 5432
+#      # Enable all Supabase extensions
+#      POSTGRES_EXTENSIONS: "pg_stat_statements,pgcrypto,pgjwt,uuid-ossp,postgis,pg_net"
+#    volumes:
+#      - supabase-data:/var/lib/postgresql/data
+#      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+#    restart: unless-stopped
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
 
 volumes:
   backend-logs: 
+  supabase-data:

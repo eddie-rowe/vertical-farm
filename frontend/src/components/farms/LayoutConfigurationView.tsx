@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Grid3X3, Layers, Settings, Archive, BarChart3, Edit2, Eye, Map } from 'lucide-react';
+import { Grid3X3, Layers, Archive, BarChart3, Edit2, Eye, Map } from 'lucide-react';
 import TopDownFarmView from '@/components/farm-config/TopDownFarmView';
 import RackDetailView from '@/components/farm-config/RackDetailView';
 import { FarmPageData, UUID, Rack } from "@/types/farm-layout";

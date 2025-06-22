@@ -5,7 +5,7 @@
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/supabaseClient';
 import { UUID } from '@/types/farm-layout';
 
 // =====================================================
@@ -330,7 +330,7 @@ export const getShelfWithHierarchy = async (shelfId: UUID) => {
 // EXPORT ALL FUNCTIONS
 // =====================================================
 
-export default {
+const shelfService = {
   createShelf,
   getShelfById,
   getShelvesByRackId,
@@ -342,4 +342,6 @@ export default {
   getShelvesByRowId,
   getShelvesByFarmId,
   getShelfWithHierarchy,
-}; 
+};
+
+export default shelfService; 

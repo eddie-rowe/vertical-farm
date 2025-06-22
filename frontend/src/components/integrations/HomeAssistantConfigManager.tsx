@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Settings, TestTube, Check, X, AlertCircle, Shield } from 'lucide-react';
+import { Trash2, Plus, Settings, TestTube, Check, AlertCircle, Shield } from 'lucide-react';
 import { homeAssistantService } from '@/services/homeAssistantService';
 import { supabase } from '@/supabaseClient';
 
@@ -25,15 +25,6 @@ interface HAUserConfig {
   test_result?: 'success' | 'failed' | 'pending';
   created_at: string;
   updated_at: string;
-}
-
-interface TestResult {
-  success: boolean;
-  status: string;
-  message: string;
-  device_count?: number;
-  home_assistant_version?: string;
-  error_details?: string;
 }
 
 const HomeAssistantConfigManager: React.FC = () => {
