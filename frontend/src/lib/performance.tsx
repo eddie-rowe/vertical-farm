@@ -344,7 +344,7 @@ export function observeWebVitals(callback: (metric: any) => void) {
 
   try {
     lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-  } catch (e) {
+  } catch (_e) {
     // LCP not supported
   }
 
@@ -363,7 +363,7 @@ export function observeWebVitals(callback: (metric: any) => void) {
 
   try {
     fidObserver.observe({ entryTypes: ['first-input'] });
-  } catch (e) {
+  } catch (_e) {
     // FID not supported
   }
 
@@ -385,7 +385,7 @@ export function observeWebVitals(callback: (metric: any) => void) {
 
   try {
     clsObserver.observe({ entryTypes: ['layout-shift'] });
-  } catch (e) {
+  } catch (_e) {
     // CLS not supported
   }
 } 

@@ -12,7 +12,7 @@
  * - Built-in filtering, pagination, and sorting
  */
 
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/supabaseClient';
 import { UUID } from '@/types/farm-layout';
 
 // =====================================================
@@ -23,7 +23,7 @@ export interface Farm {
   id: UUID;
   name: string;
   location?: string | null;
-  manager_id?: UUID | null;
+  user_id?: UUID | null;
   plan_image_url?: string | null;
   width?: number | null;
   depth?: number | null;
@@ -206,7 +206,7 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmWithHierarchy> =
 
 /**
  * Create a new farm
- * Uses database triggers for auto-setting manager_id
+ * Uses database triggers for auto-setting user_id
  */
 export const createFarm = async (farmData: CreateFarmData): Promise<Farm> => {
   const user = await requireAuth();
@@ -215,7 +215,7 @@ export const createFarm = async (farmData: CreateFarmData): Promise<Farm> => {
     .from('farms')
     .insert([{
       ...farmData,
-      manager_id: user.id
+      user_id: user.id
     }])
     .select()
     .single();

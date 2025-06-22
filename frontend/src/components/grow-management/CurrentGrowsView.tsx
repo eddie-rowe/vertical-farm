@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Droplets, Sun, Thermometer, Search, Filter, Eye, Trash2, Edit } from "lucide-react";
+import { Calendar, Clock, Search, Eye, Trash2, Edit, Bot } from "lucide-react";
+import AutomationMonitorCard from "./AutomationMonitorCard";
 
 interface CurrentGrow {
   id: string;
@@ -43,6 +44,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
   const [currentGrows, setCurrentGrows] = useState<CurrentGrow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showAutomation, setShowAutomation] = useState(true);
 
   // Mock data for demonstration - replace with actual API calls
   useEffect(() => {
@@ -144,11 +146,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
     }
   };
 
-  const getProgressColor = (percentage: number) => {
-    if (percentage < 30) return 'bg-red-500';
-    if (percentage < 70) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
+
 
   const handleViewDetails = (growId: string) => {
     // TODO: Navigate to detailed grow view
@@ -199,7 +197,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                 <Input
                   placeholder="Search grows by species, recipe, or location..."
                   value={searchTerm}
-                  onChange={(e) => {/* searchTerm is controlled by parent */}}
+                  onChange={() => {/* searchTerm is controlled by parent */}}
                   className="pl-10"
                 />
               </div>
@@ -218,6 +216,14 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                   <SelectItem value="aborted">Aborted</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <Button
+                variant="outline"
+                onClick={() => setShowAutomation(!showAutomation)}
+              >
+                <Bot className="h-4 w-4 mr-1" />
+                {showAutomation ? 'Hide' : 'Show'} Automation
+              </Button>
               
               <Button
                 variant="outline"
@@ -270,82 +276,93 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGrows.map(grow => (
-            <Card key={grow.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{grow.species_name}</CardTitle>
-                    <CardDescription>{grow.recipe_name}</CardDescription>
+            <div key={grow.id} className="space-y-4">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{grow.species_name}</CardTitle>
+                      <CardDescription>{grow.recipe_name}</CardDescription>
+                    </div>
+                    <Badge className={getStatusColor(grow.status)}>
+                      {grow.status}
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(grow.status)}>
-                    {grow.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{grow.progress_percentage}%</span>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{grow.progress_percentage}%</span>
+                    </div>
+                    <Progress value={grow.progress_percentage} className="h-2" />
+                    <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                      <span>Day {grow.days_elapsed}/{grow.total_days}</span>
+                      <span>{grow.days_remaining} days left</span>
+                    </div>
                   </div>
-                  <Progress value={grow.progress_percentage} className="h-2" />
-                  <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                    <span>Day {grow.days_elapsed}/{grow.total_days}</span>
-                    <span>{grow.days_remaining} days left</span>
-                  </div>
-                </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>Started: {new Date(grow.start_date).toLocaleDateString()}</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Started: {new Date(grow.start_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>Harvest: {new Date(grow.estimated_end_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      📍 {grow.farm_name} › {grow.row_name} › {grow.rack_name} › {grow.shelf_name}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>Harvest: {new Date(grow.estimated_end_date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                    📍 {grow.farm_name} › {grow.row_name} › {grow.rack_name} › {grow.shelf_name}
-                  </div>
-                </div>
 
-                {grow.notes && (
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 text-sm">
-                    <strong>Notes:</strong> {grow.notes}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleViewDetails(grow.id)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  {grow.status === 'active' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditGrow(grow.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleAbortGrow(grow.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
+                  {grow.notes && (
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 text-sm">
+                      <strong>Notes:</strong> {grow.notes}
+                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleViewDetails(grow.id)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    {grow.status === 'active' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditGrow(grow.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleAbortGrow(grow.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Automation Monitor */}
+              {showAutomation && grow.status === 'active' && (
+                <AutomationMonitorCard
+                  scheduleId={grow.id}
+                  shelfName={grow.shelf_name}
+                  recipeName={grow.recipe_name}
+                />
+              )}
+            </div>
           ))}
         </div>
       ) : (

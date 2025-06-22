@@ -83,7 +83,7 @@ const transformRow = (supabaseRow: SupabaseRow): FrontendRow => ({
 const transformFarm = (supabaseFarm: SupabaseFarm): FrontendFarm => ({
   id: supabaseFarm.id,
   name: supabaseFarm.name,
-  owner_id: supabaseFarm.manager_id || supabaseFarm.id,
+        user_id: supabaseFarm.user_id || supabaseFarm.id,
   location: supabaseFarm.location,
   plan_image_url: supabaseFarm.plan_image_url,
   width: supabaseFarm.width,

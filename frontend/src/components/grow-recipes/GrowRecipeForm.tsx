@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, Plus } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-import { GrowRecipe, Species, CreateGrowRecipeInput, LightingSchedule } from '@/types/grow-recipes';
+import { GrowRecipe, Species } from '@/types/grow-recipes';
 import { createGrowRecipe, updateGrowRecipe } from '@/services/growRecipeService';
 import { createSpecies } from '@/services/growRecipeService';
 

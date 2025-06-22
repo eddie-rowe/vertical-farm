@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   FaHome, FaCheck, FaExclamationTriangle, FaPlug, FaLightbulb, FaFan, 
   FaThermometerHalf, FaDownload, FaFilter, FaSearch, FaCog, FaMapPin,
-  FaCheckCircle, FaCircle, FaArrowRight, FaWifi
+  FaCheckCircle, FaCircle, FaArrowRight, FaWifi, FaPlus, FaEdit
 } from 'react-icons/fa';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,9 +36,6 @@ export default function HomeAssistantPage() {
   // TODO: Re-enable real-time features once properly configured
   // For now, using manual API calls to avoid continuous retry errors
   const [allConfigs, setAllConfigs] = useState<any[]>([]);
-  const [configsLoading, setConfigsLoading] = useState(false);
-  const [deviceConfigs, setDeviceConfigs] = useState<any[]>([]);
-  const [deviceConfigsLoading, setDeviceConfigsLoading] = useState(false);
 
   /* 
    * REAL-TIME STRATEGY:
@@ -62,7 +59,7 @@ export default function HomeAssistantPage() {
    */
 
   // Connection state
-  const [config, setConfig] = useState<HAConfig>({ url: '', token: '', enabled: false });
+  const [config, setConfig] = useState<HAConfig>({ url: '', token: '', enabled: false, name: '' });
   const [status, setStatus] = useState<HAConnectionStatus>({ connected: false });
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -78,8 +75,10 @@ export default function HomeAssistantPage() {
   const [discoveredDevices, setDiscoveredDevices] = useState<HADevice[]>([]);
   const [importedDevices, setImportedDevices] = useState<HADevice[]>([]);
   const [assignments, setAssignments] = useState<DeviceAssignment[]>([]);
-  const [isLoadingDevices, setIsLoadingDevices] = useState(false);
-  const [deviceError, setDeviceError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [haConfig, setHaConfig] = useState<HAConfig | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
 
   // New UX flow state
   const [deviceFilter, setDeviceFilter] = useState<'lights' | 'switches' | 'sensors' | 'all'>('lights');
@@ -108,57 +107,67 @@ export default function HomeAssistantPage() {
     }
   }, []);
 
-  const loadConfig = useCallback(async () => {
+  const loadConfig = async () => {
     try {
-      const configData = await homeAssistantService.getConfig();
-      if (configData) {
-        setConfig(configData);
-      }
+      setConfigLoading(true);
+      const config = await homeAssistantService.getConfig();
+      setHaConfig(config);
     } catch (error) {
-      console.error('Error loading config:', error);
+      console.error('Error loading HA config:', error);
+      setError('Failed to load Home Assistant configuration');
+    } finally {
+      setConfigLoading(false);
     }
-  }, []);
+  };
 
-  // Remove loadAllConfigs since we now use real-time subscriptions
-  // Data is automatically loaded and synced via useRealtimeTable
+  // Load device assignments (only if HA is configured)
+  const loadAssignments = async () => {
+    if (!haConfig) {
+      setAssignments([]);
+      setLoading(false);
+      return;
+    }
 
-  const loadAssignments = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
       const assignmentsData = await homeAssistantService.getAssignments();
       setAssignments(assignmentsData);
     } catch (error) {
       console.error('Error loading assignments:', error);
+      setError('Failed to load device assignments');
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
   // Load all configurations manually
   const loadAllConfigs = useCallback(async () => {
-    setConfigsLoading(true);
     try {
       const configs = await homeAssistantService.getAllConfigs();
       setAllConfigs(configs || []);
     } catch (error) {
       console.error('Error loading configurations:', error);
       setAllConfigs([]);
-    } finally {
-      setConfigsLoading(false);
     }
   }, []);
 
-  // Manual functions to replace real-time optimistic updates
-  const refetchConfigs = useCallback(() => {
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  useEffect(() => {
+    if (!configLoading) {
+      loadAssignments();
+    }
+  }, [haConfig, configLoading]);
+
+  useEffect(() => {
     loadAllConfigs();
   }, [loadAllConfigs]);
 
-  useEffect(() => {
-    loadConfig();
-    loadStatus();
-    loadAssignments();
-    loadAllConfigs();
-  }, [loadConfig, loadStatus, loadAssignments, loadAllConfigs]);
-
   const handleSaveConfiguration = async () => {
-    if (!config.url || !config.token) return;
+    if (!config.name || !config.url || !config.token) return;
 
     setIsSaving(true);
     setConnectionError(null);
@@ -206,8 +215,8 @@ export default function HomeAssistantPage() {
   };
 
   const handleDiscoverDevices = async () => {
-    setIsLoadingDevices(true);
-    setDeviceError(null);
+    setLoading(true);
+    setError(null);
     try {
       const newDevices = await homeAssistantService.discoverDevices();
       setDiscoveredDevices(newDevices);
@@ -216,9 +225,9 @@ export default function HomeAssistantPage() {
       setSelectedForImport(new Set());
     } catch (error) {
       console.error('Error discovering devices:', error);
-      setDeviceError(error instanceof Error ? error.message : 'Failed to discover devices');
+      setError(error instanceof Error ? error.message : 'Failed to discover devices');
     } finally {
-      setIsLoadingDevices(false);
+      setLoading(false);
     }
   };
 
@@ -467,561 +476,529 @@ export default function HomeAssistantPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {/* Real-time Connection Status */}
-          <Badge 
-            variant={realtimeConnected ? "default" : "secondary"}
-            className={realtimeConnected ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
-          >
-            <FaWifi className="mr-1" />
-            Real-time: {connectionStatus}
-          </Badge>
-          
-          {/* HA Connection Status */}
-          {status.connected ? (
-            <Badge className="bg-green-100 text-green-800">
-              <FaCheck className="mr-1" /> Connection: connected
+        <div className="flex items-center space-x-4">
+          {/* Home Assistant Connection Status */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400">HA Connection:</span>
+            <Badge 
+              variant={haConfig ? "default" : "secondary"}
+              className={`${
+                haConfig 
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
+                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+              }`}
+            >
+              <div className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${
+                  haConfig ? "bg-green-500" : "bg-gray-400"
+                }`}></div>
+                <span>{haConfig ? "Configured" : "Not Configured"}</span>
+              </div>
             </Badge>
-          ) : (
-            <Badge className="bg-gray-100 text-gray-800">
-              <FaExclamationTriangle className="mr-1" /> Connection: not connected
-            </Badge>
+          </div>
+
+          {/* Real-time Connection Status - Only show when HA is configured */}
+          {haConfig && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Real-time:</span>
+              <Badge 
+                variant={realtimeConnected ? "default" : "destructive"}
+                className={`${
+                  realtimeConnected 
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
+                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                }`}
+              >
+                <div className="flex items-center space-x-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    realtimeConnected ? "bg-green-500" : "bg-red-500"
+                  }`}></div>
+                  <span>{realtimeConnected ? "Connected" : "Disconnected"}</span>
+                </div>
+              </Badge>
+            </div>
           )}
         </div>
       </div>
 
-      <Tabs defaultValue="setup" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="setup">
-            <FaCog className="mr-2" />
-            Setup
-          </TabsTrigger>
-          <TabsTrigger value="devices">
-            <FaDownload className="mr-2" />
-            Import Devices
-          </TabsTrigger>
-          <TabsTrigger value="assignments">
-            <FaMapPin className="mr-2" />
-            Assignments
-          </TabsTrigger>
-        </TabsList>
+      {/* Show loading state while checking configuration */}
+      {configLoading && (
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center space-y-2">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 dark:text-gray-400">Checking Home Assistant configuration...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="setup" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Connection Configuration</CardTitle>
-              <CardDescription>
-                Configure your Home Assistant connection settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="ha-url">Home Assistant URL</Label>
-                  <Input
-                    id="ha-url"
-                    placeholder="http://homeassistant.local:8123"
-                    value={config.url}
-                    onChange={(e) => setConfig(prev => ({ ...prev, url: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ha-token">Access Token</Label>
-                  <Input
-                    id="ha-token"
-                    type="password"
-                    placeholder="Your long-lived access token"
-                    value={config.token}
-                    onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
-                  />
-                </div>
+      {/* Show setup prompt if no configuration exists */}
+      {!configLoading && !haConfig && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <div className="space-y-4">
+              <FaHome className="text-6xl text-gray-400 mx-auto" />
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">No Home Assistant Configuration</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                  You haven't configured Home Assistant yet. Set up your connection to get started.
+                </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {/* Cloudflare Access Configuration */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Label className="text-sm font-medium">Cloudflare Access (Optional)</Label>
-                  <Badge variant="secondary" className="text-xs">
-                    For Cloudflare-protected Home Assistant instances
-                  </Badge>
+      {/* Show main interface only when configuration exists or during initial setup */}
+      {!configLoading && (haConfig || !haConfig) && (
+        <Tabs defaultValue="setup" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="setup">
+              <FaCog className="mr-2" />
+              Setup
+            </TabsTrigger>
+            <TabsTrigger value="devices" disabled={!haConfig}>
+              <FaDownload className="mr-2" />
+              Import Devices
+            </TabsTrigger>
+            <TabsTrigger value="assignments" disabled={!haConfig}>
+              <FaMapPin className="mr-2" />
+              Assignments
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="setup" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Connection Configuration</CardTitle>
+                <CardDescription>
+                  Configure your Home Assistant connection settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ha-name">Configuration Name</Label>
+                  <Input
+                    id="ha-name"
+                    placeholder="My Home Assistant"
+                    value={config.name || ''}
+                    onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cf-client-id">Service Client ID</Label>
+                    <Label htmlFor="ha-url">Home Assistant URL</Label>
                     <Input
-                      id="cf-client-id"
-                      placeholder="xxxxxxxx.access"
-                      value={config.cloudflare_client_id || ''}
-                      onChange={(e) => setConfig(prev => ({ 
-                        ...prev, 
-                        cloudflare_client_id: e.target.value || undefined 
-                      }))}
+                      id="ha-url"
+                      placeholder="http://homeassistant.local:8123"
+                      value={config.url}
+                      onChange={(e) => setConfig(prev => ({ ...prev, url: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="cf-client-secret">Service Client Secret</Label>
+                    <Label htmlFor="ha-token">Access Token</Label>
                     <Input
-                      id="cf-client-secret"
+                      id="ha-token"
                       type="password"
-                      placeholder="Your Cloudflare service token"
-                      value={config.cloudflare_client_secret || ''}
-                      onChange={(e) => setConfig(prev => ({ 
-                        ...prev, 
-                        cloudflare_client_secret: e.target.value || undefined 
-                      }))}
+                      placeholder="Your long-lived access token"
+                      value={config.token}
+                      onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
                     />
                   </div>
                 </div>
-              </div>
 
-              {connectionError && (
-                <Alert variant="destructive">
-                  <FaExclamationTriangle className="h-4 w-4" />
-                  <AlertDescription>{connectionError}</AlertDescription>
-                </Alert>
-              )}
-
-              {saveSuccess && (
-                <Alert>
-                  <FaCheckCircle className="h-4 w-4" />
-                  <AlertDescription>{saveSuccess}</AlertDescription>
-                </Alert>
-              )}
-
-              {status.connected && (
-                <Alert>
-                  <FaCheck className="h-4 w-4" />
-                  <AlertDescription>
-                    Successfully connected to Home Assistant {status.version && `(${status.version})`}
-                    {status.device_count && ` with ${status.device_count} devices`}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleSaveConfiguration} 
-                  disabled={!config.url || !config.token || isSaving}
-                  variant="outline"
-                  className="w-full md:w-auto"
-                >
-                  {isSaving ? 'Saving...' : 'Save Configuration'}
-                </Button>
-                <Button 
-                  onClick={handleTestConnection} 
-                  disabled={!config.url || !config.token || isConnecting}
-                  className="w-full md:w-auto"
-                >
-                  {isConnecting ? 'Testing...' : 'Test Connection'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Saved Configurations */}
-          {allConfigs.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Saved Configurations</span>
-                  <Badge variant="secondary">{allConfigs.length} configuration{allConfigs.length !== 1 ? 's' : ''}</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Manage your saved Home Assistant configurations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {allConfigs.map((configItem) => (
-                    <div key={configItem.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            {configItem.name || 'Unnamed Configuration'}
-                          </h4>
-                          {configItem.enabled && (
-                            <Badge className="bg-green-100 text-green-800 text-xs">
-                              Default
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          <div>{configItem.url}</div>
-                          <div className="text-xs text-gray-500">
-                            Created: {new Date(configItem.created_at).toLocaleDateString()}
-                            {configItem.updated_at !== configItem.created_at && (
-                              <span> • Updated: {new Date(configItem.updated_at).toLocaleDateString()}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditConfiguration(configItem)}
-                          disabled={isDeleting === configItem.id}
-                          title="Edit Configuration"
-                        >
-                          <FaCog className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteConfiguration(configItem.id)}
-                          disabled={isDeleting === configItem.id}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          {isDeleting === configItem.id ? (
-                            <div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full" />
-                          ) : (
-                            <span>Delete</span>
-                          )}
-                        </Button>
-                      </div>
+                {/* Cloudflare Access Configuration */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Label className="text-sm font-medium">Cloudflare Access (Optional)</Label>
+                    <Badge variant="secondary" className="text-xs">
+                      For Cloudflare-protected Home Assistant instances
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cf-client-id">Service Client ID</Label>
+                      <Input
+                        id="cf-client-id"
+                        placeholder="xxxxxxxx.access"
+                        value={config.cloudflare_client_id || ''}
+                        onChange={(e) => setConfig(prev => ({ 
+                          ...prev, 
+                          cloudflare_client_id: e.target.value || undefined 
+                        }))}
+                      />
                     </div>
-                  ))}
+                    <div className="space-y-2">
+                      <Label htmlFor="cf-client-secret">Service Client Secret</Label>
+                      <Input
+                        id="cf-client-secret"
+                        type="password"
+                        placeholder="Your Cloudflare service token"
+                        value={config.cloudflare_client_secret || ''}
+                        onChange={(e) => setConfig(prev => ({ 
+                          ...prev, 
+                          cloudflare_client_secret: e.target.value || undefined 
+                        }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {connectionError && (
+                  <Alert variant="destructive">
+                    <FaExclamationTriangle className="h-4 w-4" />
+                    <AlertDescription>{connectionError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {saveSuccess && (
+                  <Alert>
+                    <FaCheckCircle className="h-4 w-4" />
+                    <AlertDescription>{saveSuccess}</AlertDescription>
+                  </Alert>
+                )}
+
+                {status.connected && (
+                  <Alert>
+                    <FaCheck className="h-4 w-4" />
+                    <AlertDescription>
+                      Successfully connected to Home Assistant {status.version && `(${status.version})`}
+                      {status.device_count && ` with ${status.device_count} devices`}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleSaveConfiguration} 
+                    disabled={!config.name || !config.url || !config.token || isSaving}
+                    variant="outline"
+                    className="w-full md:w-auto"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                  </Button>
+                  <Button 
+                    onClick={handleTestConnection} 
+                    disabled={!config.url || !config.token || isConnecting}
+                    className="w-full md:w-auto"
+                  >
+                    {isConnecting ? 'Testing...' : 'Test Connection'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
 
-        <TabsContent value="devices" className="space-y-6">
-          {/* Header with discovery and stats */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">Import Home Assistant Devices</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Discover and import devices from your Home Assistant instance
-              </p>
-            </div>
-            <Button 
-              onClick={handleDiscoverDevices} 
-              disabled={!status.connected || isLoadingDevices}
-              className="flex items-center space-x-2"
-            >
-              <FaSearch />
-              <span>{isLoadingDevices ? 'Discovering...' : 'Discover Devices'}</span>
-            </Button>
-          </div>
-
-          {/* Connection status and stats */}
-          {status.connected && discoveredDevices.length > 0 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{discoveredDevices.length}</div>
-                      <div className="text-sm text-gray-600">Discovered</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{importedDevices.length}</div>
-                      <div className="text-sm text-gray-600">Imported</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{assignments.length}</div>
-                      <div className="text-sm text-gray-600">Assigned</div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Badge variant="outline">
-                      💡 {getDeviceTypeCount(discoveredDevices, 'lights')} Lights
-                    </Badge>
-                    <Badge variant="outline">
-                      🔌 {getDeviceTypeCount(discoveredDevices, 'switches')} Switches
-                    </Badge>
-                    <Badge variant="outline">
-                      🌡️ {getDeviceTypeCount(discoveredDevices, 'sensors')} Sensors
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {deviceError && (
-            <Alert>
-              <FaExclamationTriangle className="h-4 w-4" />
-              <AlertDescription>{deviceError}</AlertDescription>
-            </Alert>
-          )}
-
-          {!status.connected ? (
-            <Card>
-              <CardContent className="flex items-center justify-center h-32">
-                <p className="text-gray-500">Please configure and connect to Home Assistant first</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column: Available Devices */}
+            {/* Saved Configurations */}
+            {allConfigs.length > 0 && (
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center space-x-2">
-                      <FaCircle className="text-gray-400" />
-                      <span>Available Devices</span>
-                    </CardTitle>
-                    <Badge variant="secondary">{getFilteredDevices(discoveredDevices).length}</Badge>
-                  </div>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Saved Configurations</span>
+                    <Badge variant="secondary">{allConfigs.length} configuration{allConfigs.length !== 1 ? 's' : ''}</Badge>
+                  </CardTitle>
                   <CardDescription>
-                    Select devices to import into your vertical farm system
+                    Manage your saved Home Assistant configurations
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Filters and Search */}
-                  <div className="flex space-x-2">
-                    <div className="flex-1">
+                <CardContent>
+                  <div className="space-y-3">
+                    {allConfigs.map((configItem) => (
+                      <div key={configItem.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              {configItem.name || 'Unnamed Configuration'}
+                            </h4>
+                            {configItem.enabled && (
+                              <Badge className="bg-green-100 text-green-800 text-xs">
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <div>{configItem.url}</div>
+                            <div className="text-xs text-gray-500">
+                              Created: {new Date(configItem.created_at).toLocaleDateString()}
+                              {configItem.updated_at !== configItem.created_at && (
+                                <span> • Updated: {new Date(configItem.updated_at).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditConfiguration(configItem)}
+                            disabled={isDeleting === configItem.id}
+                            title="Edit Configuration"
+                          >
+                            <FaCog className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteConfiguration(configItem.id)}
+                            disabled={isDeleting === configItem.id}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            {isDeleting === configItem.id ? (
+                              <div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full" />
+                            ) : (
+                              <span>Delete</span>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="devices" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Discovered Devices</h2>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleDiscoverDevices}
+                  disabled={!haConfig || isConnecting}
+                  className="flex items-center space-x-2"
+                >
+                  <FaDownload className="w-4 h-4" />
+                  <span>Refresh Devices</span>
+                </Button>
+              </div>
+            </div>
+
+            {!haConfig ? (
+              // No Home Assistant configured
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <FaPlug className="text-6xl text-gray-400 dark:text-gray-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Home Assistant Not Connected
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+                    Connect to your Home Assistant instance first to discover and manage your smart home devices.
+                  </p>
+                  <Button 
+                    onClick={() => {/* Navigate to setup tab - the tabs component handles this automatically */}}
+                    className="flex items-center space-x-2"
+                  >
+                    <FaPlus className="w-4 h-4" />
+                    <span>Set Up Home Assistant</span>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : isConnecting ? (
+              // Loading devices
+              <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Discovering devices...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : !discoveredDevices || discoveredDevices.length === 0 ? (
+              // No devices found
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <FaPlug className="text-6xl text-gray-400 dark:text-gray-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    No Devices Found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+                    No devices were discovered from your Home Assistant instance. Make sure your devices are properly configured and try refreshing.
+                  </p>
+                  <Button 
+                    onClick={handleDiscoverDevices}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                  >
+                    <FaDownload className="w-4 h-4" />
+                    <span>Refresh Devices</span>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              // Show devices list
+              <div className="space-y-4">
+                {/* Device filters and search */}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input
                         placeholder="Search devices..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full"
+                        className="pl-10 w-64"
                       />
                     </div>
                     <Select value={deviceFilter} onValueChange={(value: any) => setDeviceFilter(value)}>
-                      <SelectTrigger className="w-[140px]">
-                        <FaFilter className="mr-2" />
-                        <SelectValue />
+                      <SelectTrigger className="w-40">
+                        <FaFilter className="w-4 h-4 mr-2" />
+                        <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="lights">💡 Lights</SelectItem>
-                        <SelectItem value="switches">🔌 Switches</SelectItem>
-                        <SelectItem value="sensors">🌡️ Sensors</SelectItem>
-                        <SelectItem value="all">📱 All Types</SelectItem>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="lights">Lights</SelectItem>
+                        <SelectItem value="switches">Switches</SelectItem>
+                        <SelectItem value="sensors">Sensors</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {getFilteredDevices(discoveredDevices).length} of {discoveredDevices.length} devices
+                  </div>
+                </div>
 
-                  {/* Bulk actions */}
-                  {selectedForImport.size > 0 && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        {selectedForImport.size} devices selected
-                      </span>
-                      <Button 
-                        size="sm" 
-                        onClick={handleImportSelected}
-                        disabled={isImporting}
-                        className="flex items-center space-x-2"
-                      >
-                        <FaArrowRight />
-                        <span>{isImporting ? 'Importing...' : 'Import Selected'}</span>
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Device list */}
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {getFilteredDevices(discoveredDevices).map((device) => {
-                      const isSelected = selectedForImport.has(device.entity_id);
-                      const isAlreadyImported = importedDevices.some(d => d.entity_id === device.entity_id);
-                      
-                      return (
-                        <div 
-                          key={device.entity_id} 
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                            isAlreadyImported 
-                              ? 'bg-green-50 border-green-200 dark:bg-green-900/20' 
-                              : isSelected 
-                                ? 'bg-blue-50 border-blue-300 dark:bg-blue-900/20' 
-                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                          }`}
-                          onClick={() => !isAlreadyImported && toggleDeviceSelection(device.entity_id)}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Checkbox 
-                              checked={isAlreadyImported || isSelected}
-                              disabled={isAlreadyImported}
-                              onChange={() => !isAlreadyImported && toggleDeviceSelection(device.entity_id)}
-                            />
-                            {getDeviceIcon(device.domain)}
-                            <div className="flex-1">
-                              <div className="font-medium">{device.friendly_name || device.entity_id}</div>
-                              <div className="text-sm text-gray-500">{device.entity_id}</div>
-                              {device.area && (
-                                <div className="text-xs text-gray-400">📍 {device.area}</div>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant={device.state === 'on' ? 'default' : 'secondary'} className="text-xs">
-                                {device.state}
-                              </Badge>
-                              {getDeviceStatusIcon(device)}
-                            </div>
+                {/* Devices grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getFilteredDevices(discoveredDevices).map((device) => {
+                    const isAlreadyImported = importedDevices.some(d => d.entity_id === device.entity_id);
+                    const assignment = getAssignment(device.entity_id);
+                    
+                    return (
+                      <Card key={device.entity_id} className="p-4">
+                        <div className="flex items-center space-x-3">
+                          {getDeviceIcon(device.domain)}
+                          <div className="flex-1">
+                            <div className="font-medium">{device.friendly_name || device.entity_id}</div>
+                            <div className="text-sm text-gray-500">{device.entity_id}</div>
+                            {device.area && (
+                              <div className="text-xs text-gray-400">📍 {device.area}</div>
+                            )}
+                            {assignment && (
+                              <div className="text-xs text-blue-600 dark:text-blue-400">
+                                📍 {getLocationString(assignment)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={device.state === 'on' ? 'default' : 'secondary'} className="text-xs">
+                              {device.state}
+                            </Badge>
+                            {getDeviceStatusIcon(device)}
                           </div>
                         </div>
-                      );
-                    })}
-                    
-                    {getFilteredDevices(discoveredDevices).length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        {discoveredDevices.length === 0 
-                          ? 'No devices discovered yet. Click "Discover Devices" to start.'
-                          : 'No devices match your current filter.'
-                        }
-                      </div>
-                    )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="assignments" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Device Assignments</h2>
+            </div>
+
+            {/* Show loading state while assignments are being loaded */}
+            {loading && haConfig && (
+              <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading device assignments...</p>
                   </div>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Right Column: Imported Devices */}
+            {/* Show error state */}
+            {error && haConfig && (
+              <Alert variant="destructive">
+                <FaExclamationTriangle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Show assignments table when not loading */}
+            {!loading && haConfig && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <FaCheckCircle className="text-green-500" />
-                    <span>Imported Devices</span>
-                    <Badge variant="default">{importedDevices.length}</Badge>
-                  </CardTitle>
+                  <CardTitle>Assigned Devices</CardTitle>
                   <CardDescription>
-                    Devices ready for assignment to farm locations
+                    Devices currently assigned to farm locations
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {importedDevices.map((device) => {
-                      const assignment = getAssignment(device.entity_id);
-                      return (
-                        <div key={device.entity_id} className="p-3 border rounded-lg bg-green-50 dark:bg-green-900/20">
-                          <div className="flex items-center space-x-3">
-                            {getDeviceIcon(device.domain)}
-                            <div className="flex-1">
-                              <div className="font-medium">{device.friendly_name || device.entity_id}</div>
-                              <div className="text-sm text-gray-500">{device.entity_id}</div>
-                              {device.area && !assignment && (
-                                <div className="text-xs text-gray-400">📍 {device.area}</div>
-                              )}
-                              {assignment && (
-                                <div className="text-xs text-blue-600 dark:text-blue-400">
-                                  📍 {getLocationString(assignment)}
+                  {assignments.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Device</TableHead>
+                          <TableHead>Entity ID</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>State</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {assignments.map((assignment) => {
+                          const device = [...discoveredDevices, ...importedDevices].find(d => d.entity_id === assignment.entity_id);
+                          return (
+                            <TableRow key={assignment.entity_id}>
+                              <TableCell className="flex items-center space-x-2">
+                                {device && getDeviceIcon(device.domain)}
+                                <span>{device?.friendly_name || assignment.entity_id}</span>
+                              </TableCell>
+                              <TableCell className="font-mono text-sm">{assignment.entity_id}</TableCell>
+                              <TableCell>{getLocationString(assignment)}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{assignment.entity_type}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                {device && (
+                                  <Badge variant={device.state === 'on' ? 'default' : 'secondary'}>
+                                    {device.state}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  {device && (device.domain === 'light' || device.domain === 'switch') && (
+                                    <Switch
+                                      checked={device.state === 'on'}
+                                      onCheckedChange={(checked) => 
+                                        handleDeviceControl(device, checked ? 'turn_on' : 'turn_off')
+                                      }
+                                    />
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleRemoveAssignment(assignment.entity_id)}
+                                  >
+                                    Remove
+                                  </Button>
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant={device.state === 'on' ? 'default' : 'secondary'} className="text-xs">
-                                {device.state}
-                              </Badge>
-                              {assignment ? (
-                                <FaMapPin className="text-blue-500" title="Assigned" />
-                              ) : (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSelectedDevice(device);
-                                    setAssignmentModalOpen(true);
-                                  }}
-                                >
-                                  Assign
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    {importedDevices.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        No devices imported yet. Select devices from the left to import them.
-                      </div>
-                    )}
-                  </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No device assignments yet. Import devices and assign them to farm locations.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="assignments" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Device Assignments</h2>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Assigned Devices</CardTitle>
-              <CardDescription>
-                Devices currently assigned to farm locations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {assignments.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Device</TableHead>
-                      <TableHead>Entity ID</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>State</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {assignments.map((assignment) => {
-                      const device = [...discoveredDevices, ...importedDevices].find(d => d.entity_id === assignment.entity_id);
-                      return (
-                        <TableRow key={assignment.entity_id}>
-                          <TableCell className="flex items-center space-x-2">
-                            {device && getDeviceIcon(device.domain)}
-                            <span>{device?.friendly_name || assignment.entity_id}</span>
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">{assignment.entity_id}</TableCell>
-                          <TableCell>{getLocationString(assignment)}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{assignment.entity_type}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {device && (
-                              <Badge variant={device.state === 'on' ? 'default' : 'secondary'}>
-                                {device.state}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              {device && (device.domain === 'light' || device.domain === 'switch') && (
-                                <Switch
-                                  checked={device.state === 'on'}
-                                  onCheckedChange={(checked) => 
-                                    handleDeviceControl(device, checked ? 'turn_on' : 'turn_off')
-                                  }
-                                />
-                              )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleRemoveAssignment(assignment.entity_id)}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {assignments.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                          No device assignments yet. Import devices and assign them to farm locations.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No device assignments yet. Import devices and assign them to farm locations.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
 
       {/* Edit Configuration Modal */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>

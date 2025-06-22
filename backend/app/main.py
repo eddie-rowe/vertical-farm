@@ -14,7 +14,7 @@ from app.core.security import get_validated_supabase_token_payload
 # from app.services.background_processor import background_processor  # Deprecated Redis-based processor
 from app.services.supabase_background_service import supabase_background_service  # New Supabase-based service
 # from app.services import home_assistant_background_tasks  # Import to register tasks - no longer needed
-from app.middleware.cache_middleware import ResponseCacheMiddleware
+# Removed cache middleware - not needed at this stage of development
 import logging
 
 # Set up logging
@@ -121,9 +121,9 @@ if cors_origins_to_use:
 else:
     logger.error("No CORS origins available - CORS will not work!")
 
-# Add response caching middleware
-app.add_middleware(ResponseCacheMiddleware)
-logger.info("Response cache middleware added")
+# Cache middleware removed - was causing test issues and adding unnecessary complexity
+# Can be re-added later when the app has traffic that justifies caching
+logger.info("Cache middleware skipped - focusing on core functionality")
 
 # Simplified exception handlers (FastAPI handles CORS automatically with middleware)
 @app.exception_handler(StarletteHTTPException)

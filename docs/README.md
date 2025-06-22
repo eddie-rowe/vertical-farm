@@ -1,130 +1,88 @@
-# Documentation Directory
+# Vertical Farm Documentation
 
-This directory contains all project documentation organized by category for easy navigation and maintenance.
+Welcome to the comprehensive documentation for the Vertical Farm project. This documentation is organized into numbered sections for easy navigation and logical flow.
 
-## Directory Structure
+## 📁 Documentation Structure
 
-```
-docs/
-├── guides/                  # Implementation and setup guides
-│   ├── CACHING_IMPLEMENTATION_GUIDE.md
-│   └── SUPABASE_QUEUES_SETUP.md
-├── deployment/              # Deployment and configuration docs
-│   ├── CACHING_DEPLOYMENT_CHECKLIST.md
-│   └── cloudflare-config.txt
-├── testing/                 # Testing documentation
-│   ├── TESTING_GUIDE.md
-│   └── POST-SECURITY-TESTING.md
-└── TONIGHT_SUMMARY.md       # Project summaries and notes
-```
+### [01-architecture/](./01-architecture/)
+System architecture documentation including frontend, backend, database schemas, automation systems, and data flow diagrams. Contains technical design decisions and architectural patterns.
 
-## Documentation Categories
+### [02-development/](./02-development/)
+Development-related documentation including CI/CD workflows, contributing guidelines, release notes, and improvement recommendations. Essential reading for developers.
 
-### 📚 Implementation Guides (`guides/`)
-Comprehensive guides for implementing major features and integrations.
+### [03-api/](./03-api/)
+API documentation and reference materials. Includes endpoint specifications, authentication, and usage examples.
 
-- **CACHING_IMPLEMENTATION_GUIDE.md**: Complete guide for the three-layer caching strategy
-  - Frontend caching with Supabase
-  - Backend middleware caching
-  - Cloudflare CDN integration
-  - Performance optimization strategies
+### [04-deployment/](./04-deployment/)
+Deployment guides and configuration for various environments. Covers Cloudflare setup, caching strategies, and deployment workflows.
 
-- **SUPABASE_QUEUES_SETUP.md**: Setup and configuration guide for Supabase queue system
-  - Queue table creation
-  - Background job processing
-  - Integration with FastAPI
+### [05-testing/](./05-testing/)
+Testing strategies, guides, and results. Includes unit testing, integration testing, and security testing documentation.
 
-### 🚀 Deployment Documentation (`deployment/`)
-Production deployment guides and configuration files.
+### [06-security/](./06-security/)
+Security model, policies, and testing results. Contains security guidelines and vulnerability assessments.
 
-- **CACHING_DEPLOYMENT_CHECKLIST.md**: Step-by-step deployment checklist
-  - Pre-deployment verification
-  - Production configuration
-  - Monitoring setup
-  - Performance validation
+### [07-guides/](./07-guides/)
+User guides and setup instructions for various integrations and features. Step-by-step tutorials and configuration guides.
 
-- **cloudflare-config.txt**: Complete Cloudflare configuration
-  - Page rules for caching
-  - Security headers
-  - DNS settings
-  - Workers configuration
+### [08-reports/](./08-reports/)
+Project reports, summaries, and historical documentation organized by category:
+- `audits/` - Security and system audits
+- `migration-reports/` - Database migration reports
+- `optimization-reports/` - Performance optimization analyses
+- `project-summaries/` - Project phase summaries and organizational reports
+- `performance-analysis/` - Performance testing results
+- `reviews/` - Code reviews and assessments
+- `screenshots/` - Visual documentation
 
-### 🧪 Testing Documentation (`testing/`)
-Testing strategies, guides, and security documentation.
+### [09-migration/](./09-migration/)
+Database migration scripts, strategies, and documentation. Contains SQL files and migration planning documents.
 
-- **TESTING_GUIDE.md**: Comprehensive testing documentation
-  - Test categories and organization
-  - Running different test suites
-  - CI/CD integration
+## 🚀 Quick Start
 
-- **POST-SECURITY-TESTING.md**: Security testing results and recommendations
-  - Vulnerability assessments
-  - Security best practices
-  - Compliance guidelines
+1. **For Developers**: Start with [02-development/](./02-development/) for setup and contributing guidelines
+2. **For Deployment**: Check [04-deployment/](./04-deployment/) for environment setup
+3. **For API Usage**: Reference [03-api/](./03-api/) for endpoint documentation
+4. **For Architecture Understanding**: Review [01-architecture/](./01-architecture/) for system design
 
-## Quick Navigation
+## 📋 Document Types
 
-### For Developers
-- **Getting Started**: See implementation guides for feature setup
-- **Testing**: Check `testing/` for test execution instructions
-- **Deployment**: Follow deployment checklists for production releases
+- **README.md** - Overview and navigation for each section
+- **Guide files** - Step-by-step instructions (e.g., `SETUP_*.md`)
+- **Reference files** - Technical specifications and API docs
+- **Report files** - Analysis, testing results, and summaries
+- **Strategy files** - Planning and architectural decisions
 
-### For DevOps
-- **Configuration**: Use deployment docs for infrastructure setup
-- **Monitoring**: Reference performance guides for monitoring setup
-- **Security**: Review security testing documentation
+## 🔍 Finding Information
 
-### For Project Managers
-- **Progress**: Check project summaries and tonight summaries
-- **Features**: Review implementation guides for feature status
-- **Deployment**: Use checklists for release planning
+- Use the numbered directory structure for logical navigation
+- Each section contains a README with detailed contents
+- Search functionality works best with specific technical terms
+- Cross-references are provided where relevant
 
-## Contributing to Documentation
+## 📝 Contributing to Documentation
 
 When adding new documentation:
 
-1. **Choose the right category**:
-   - `guides/` for implementation and setup instructions
-   - `deployment/` for production configuration and deployment
-   - `testing/` for testing procedures and results
+1. Place files in the appropriate numbered directory
+2. Follow the naming conventions established in each section
+3. Update the relevant README.md file
+4. Use clear, descriptive filenames
+5. Include proper markdown formatting and links
 
-2. **Follow naming conventions**:
-   - Use UPPERCASE for major guides (e.g., `FEATURE_GUIDE.md`)
-   - Use descriptive names that indicate content
-   - Include version dates for time-sensitive docs
+## 🏗️ Architecture Overview
 
-3. **Include standard sections**:
-   - Overview/Introduction
-   - Prerequisites
-   - Step-by-step instructions
-   - Troubleshooting
-   - References/Links
+The Vertical Farm system consists of:
+- **Frontend**: Next.js application with real-time updates
+- **Backend**: FastAPI with Supabase integration
+- **Database**: PostgreSQL with automated migrations
+- **Deployment**: Cloudflare Workers and edge computing
+- **Integrations**: Home Assistant and IoT device management
 
-4. **Update this README** when adding new categories or major documents
+For detailed technical information, see [01-architecture/](./01-architecture/).
 
-## Document Maintenance
+---
 
-### Regular Updates
-- Review guides after major feature changes
-- Update deployment docs with new configuration requirements
-- Refresh testing docs when test suites change
-
-### Version Control
-- Keep deployment checklists current with latest infrastructure
-- Archive outdated guides to prevent confusion
-- Tag documentation versions with release numbers
-
-## External References
-
-- [Supabase Documentation](https://supabase.com/docs)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Cloudflare Documentation](https://developers.cloudflare.com/)
-
-## Support
-
-For questions about documentation:
-1. Check the relevant guide first
-2. Review troubleshooting sections
-3. Consult external references
-4. Create an issue for missing documentation 
+Last Updated: June 2025  
+Documentation Structure: v2.0  
+Total Sections: 9 

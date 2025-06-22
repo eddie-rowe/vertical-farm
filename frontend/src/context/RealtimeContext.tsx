@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { supabase } from '../supabaseClient'
+import { supabase } from '@/supabaseClient'
 import { useAuth } from './AuthContext'
 import toast from 'react-hot-toast'
 
@@ -91,7 +91,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       channel.unsubscribe()
       // Clean up all subscriptions
-      subscriptions.forEach((subscription, tableName) => {
+      subscriptions.forEach((subscription, _tableName) => {
         subscription.unsubscribe()
       })
       setSubscriptions(new Map())

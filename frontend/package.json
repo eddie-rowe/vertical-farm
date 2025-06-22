@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE=true npm run build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -56,6 +57,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.3.4",
     "@playwright/test": "^1.44.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",

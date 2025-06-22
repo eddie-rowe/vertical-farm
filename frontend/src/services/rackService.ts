@@ -5,7 +5,7 @@
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/supabaseClient';
 import { UUID } from '@/types/farm-layout';
 
 // =====================================================
@@ -271,7 +271,7 @@ export const getRacksByFarmId = async (farmId: UUID): Promise<Rack[]> => {
 // EXPORT ALL FUNCTIONS
 // =====================================================
 
-export default {
+const rackService = {
   createRack,
   getRackById,
   getRacksByRowId,
@@ -281,4 +281,6 @@ export default {
   getRackCount,
   getNextRackPosition,
   getRacksByFarmId,
-}; 
+};
+
+export default rackService; 

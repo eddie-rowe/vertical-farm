@@ -1,5 +1,5 @@
 'use client'; // Added 'use client' as it uses supabase.auth.getSession which is client-side
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/supabaseClient';
 
 // NEXT_PUBLIC_API_URL should point to the base of the backend, e.g., http://localhost:8000
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -108,7 +108,6 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmPageData> => {
   return {
     farm: {
       ...farmData,
-      owner_id: farmData.manager_id, // Backend uses manager_id, frontend expects owner_id
       rows: farmData.rows || []
     }
   };
@@ -133,7 +132,7 @@ export interface CreateFarmData {
 export interface FarmResponse {
   id: UUID;
   name: string;
-  owner_id: UUID;
+  user_id: UUID;
   location?: string | null;
   plan_image_url?: string | null;
   width?: number | null;

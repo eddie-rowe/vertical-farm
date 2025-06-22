@@ -1,22 +1,48 @@
-fastapi
-uvicorn[standard]
-supabase
-python-jose[cryptography]
-pydantic
-python-dotenv
-datadog
-psycopg2-binary
-asyncpg
-pytest
-pytest-cov
-httpx
-pytest-dotenv
-ddtrace
-pydantic[email]
-pydantic-settings
-passlib[bcrypt]
-pytest-asyncio 
-python-multipart
-websockets
-aiohttp
-asyncio-throttle
+# Core FastAPI and Web Server
+fastapi==0.115.13
+uvicorn==0.34.3
+
+# Pydantic for data validation
+pydantic==2.11.7
+pydantic[email]==2.11.7
+pydantic-settings==2.8.1
+
+# Supabase client and database
+supabase==2.12.0
+postgrest==0.19.0
+gotrue==2.11.0
+realtime==2.2.0
+storage3==0.11.3
+
+# Database drivers
+psycopg2-binary==2.9.10
+asyncpg==0.30.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.20
+passlib[bcrypt]==1.7.4
+
+# HTTP and WebSocket clients
+httpx==0.27.2
+aiohttp==3.11.11
+websockets==13.1
+
+# Monitoring and Logging
+datadog==0.51.0
+ddtrace==3.9.3
+
+# Testing dependencies
+pytest==8.3.5
+pytest-cov==6.1.1
+pytest-asyncio==0.26.0
+pytest-mock==3.14.0
+
+# Development dependencies
+black==25.1.0
+isort==5.13.2
+mypy==1.16.1
+
+# Additional Development Tools
+python-dotenv==1.1.0
+asyncio-throttle==1.0.2

@@ -1,0 +1,1 @@
+# Vertical Farm project root 

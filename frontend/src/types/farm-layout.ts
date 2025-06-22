@@ -65,7 +65,7 @@ export interface Row {
 export interface Farm {
   id: UUID;
   name: string;
-  owner_id: UUID; // Assuming owner_id comes from FarmInDBBase
+  user_id: UUID; // Farm user ID (changed from manager_id)
   location?: string | null;
   plan_image_url?: string | null;
   width?: number | null;

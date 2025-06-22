@@ -33,10 +33,12 @@ export const supabase = createClient(
 );
 
 // Service role client for admin operations (if available)
-export const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
+// Check for either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+export const supabaseAdmin = serviceKey 
     ? createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        serviceKey,
         {
             auth: {
                 autoRefreshToken: false,

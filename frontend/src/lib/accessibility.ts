@@ -2,7 +2,7 @@
  * Accessibility utilities for improved UX and WCAG compliance
  */
 
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Focus management utilities
 export const useFocusManagement = () => {

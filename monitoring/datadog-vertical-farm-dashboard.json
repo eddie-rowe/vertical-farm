@@ -1,0 +1,1294 @@
+{
+  "title": "Vertical Farm - Production Monitoring Dashboard",
+  "description": "Comprehensive monitoring dashboard for vertical farm operations including Supabase database performance, sensor data, automation systems, and application health.",
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "type": "note",
+        "content": "# 🌱 Vertical Farm Operations Dashboard\n\n**Real-time monitoring for:**\n- Database Performance & Health\n- Sensor Data & Environmental Controls\n- Automation Systems & Edge Functions\n- Application Performance & User Activity\n\n**Alert Status:** Monitor critical thresholds for temperature, humidity, pH, and system health.",
+        "background_color": "green",
+        "font_size": "18",
+        "text_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "title": "System Health Overview",
+        "background_color": "blue",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Active Farms",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.farms.active{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "last"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 2,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Connected Devices",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.devices.connected{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "last"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 2,
+              "y": 0,
+              "width": 2,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Active Alerts",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.alerts.active{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "last"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "value": 5,
+                      "palette": "white_on_red"
+                    },
+                    {
+                      "comparator": ">",
+                      "value": 0,
+                      "palette": "white_on_yellow"
+                    },
+                    {
+                      "comparator": "<=",
+                      "value": 0,
+                      "palette": "white_on_green"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 4,
+              "y": 0,
+              "width": 2,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Database Health Score",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 - (query1 * 10)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.database.avg_query_time{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "conditional_formats": [
+                    {
+                      "comparator": ">=",
+                      "value": 90,
+                      "palette": "white_on_green"
+                    },
+                    {
+                      "comparator": ">=",
+                      "value": 70,
+                      "palette": "white_on_yellow"
+                    },
+                    {
+                      "comparator": "<",
+                      "value": 70,
+                      "palette": "white_on_red"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": false,
+              "custom_unit": "%",
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 2,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 8,
+        "height": 3
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "title": "Critical Alerts",
+        "type": "manage_status",
+        "display_format": "countsAndList",
+        "color_preference": "background",
+        "hide_zero_counts": true,
+        "query": "tag:service:vertical-farm",
+        "sort": "triggered,desc",
+        "count": 10,
+        "summary_type": "monitors",
+        "show_priority": true,
+        "show_last_triggered": true
+      },
+      "layout": {
+        "x": 8,
+        "y": 2,
+        "width": 4,
+        "height": 3
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "title": "Database Performance",
+        "background_color": "purple",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Database Query Performance",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Avg Query Time (ms)"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "P95 Query Time (ms)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.database.avg_query_time{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "p95:supabase.database.query_time{env:production}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "purple",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "include_zero": true,
+                "min": "auto",
+                "max": "auto"
+              },
+              "markers": [
+                {
+                  "value": "y = 100",
+                  "display_type": "warning dashed"
+                },
+                {
+                  "value": "y = 500",
+                  "display_type": "error dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "RLS Policy Performance",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Avg RLS Execution Time (ms)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.rls.execution_time{env:production} by {table_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "cool",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "include_zero": true
+              },
+              "markers": [
+                {
+                  "value": "y = 200",
+                  "display_type": "warning dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Database Connections",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Active Connections"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "Max Connections"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.database.active_connections{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "avg:supabase.database.max_connections{env:production}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Cache Hit Ratio",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1 * 100"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.database.cache_hit_ratio{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "conditional_formats": [
+                    {
+                      "comparator": ">=",
+                      "value": 90,
+                      "palette": "white_on_green"
+                    },
+                    {
+                      "comparator": ">=",
+                      "value": 80,
+                      "palette": "white_on_yellow"
+                    },
+                    {
+                      "comparator": "<",
+                      "value": 80,
+                      "palette": "white_on_red"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": false,
+              "custom_unit": "%",
+              "text_align": "center",
+              "precision": 1
+            },
+            "layout": {
+              "x": 4,
+              "y": 2,
+              "width": 2,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Slow Queries",
+              "type": "toplist",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:supabase.database.query_time{env:production} by {table_name}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ]
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 6,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "width": 12,
+        "height": 5
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "title": "Environmental Monitoring",
+        "background_color": "orange",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Temperature Sensors",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Temperature (°C)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.temperature{env:production} by {farm_id,shelf_id}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "warm",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "min": "15",
+                "max": "30"
+              },
+              "markers": [
+                {
+                  "value": "y = 18",
+                  "display_type": "info dashed"
+                },
+                {
+                  "value": "y = 25",
+                  "display_type": "warning dashed"
+                },
+                {
+                  "value": "y = 28",
+                  "display_type": "error dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Humidity Sensors",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Humidity (%)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.humidity{env:production} by {farm_id,shelf_id}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "cool",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "min": "40",
+                "max": "80"
+              },
+              "markers": [
+                {
+                  "value": "y = 50",
+                  "display_type": "info dashed"
+                },
+                {
+                  "value": "y = 70",
+                  "display_type": "warning dashed"
+                },
+                {
+                  "value": "y = 75",
+                  "display_type": "error dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "pH Levels",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "pH Level"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.ph{env:production} by {farm_id,shelf_id}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "purple",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "min": "5.5",
+                "max": "7.5"
+              },
+              "markers": [
+                {
+                  "value": "y = 6.0",
+                  "display_type": "info dashed"
+                },
+                {
+                  "value": "y = 6.8",
+                  "display_type": "ok dashed"
+                },
+                {
+                  "value": "y = 7.2",
+                  "display_type": "warning dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Light Intensity",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Light (lux)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.light{env:production} by {farm_id,shelf_id}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "yellow",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "scale": "linear",
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 4,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Water Level",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.water_level{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "conditional_formats": [
+                    {
+                      "comparator": ">=",
+                      "value": 80,
+                      "palette": "white_on_green"
+                    },
+                    {
+                      "comparator": ">=",
+                      "value": 50,
+                      "palette": "white_on_yellow"
+                    },
+                    {
+                      "comparator": "<",
+                      "value": 50,
+                      "palette": "white_on_red"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": false,
+              "custom_unit": "%",
+              "text_align": "center",
+              "precision": 1
+            },
+            "layout": {
+              "x": 8,
+              "y": 2,
+              "width": 2,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "EC Levels",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.sensors.ec{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "custom_unit": "mS/cm",
+              "text_align": "center",
+              "precision": 2
+            },
+            "layout": {
+              "x": 10,
+              "y": 2,
+              "width": 2,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "width": 12,
+        "height": 5
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "title": "Edge Functions & Automation",
+        "background_color": "gray",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Edge Function Performance",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Avg Processing Time (ms)"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "Error Rate (%)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.edge_functions.processing_time{env:production} by {function_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "rate:vertical_farm.edge_functions.errors{env:production} by {function_name}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Automation Rules Triggered",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Rules Triggered"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.automation.rules_triggered{env:production} by {rule_type}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "green",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "bars"
+                }
+              ]
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Background Queue Depth",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Queue Depth"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:vertical_farm.queue.depth{env:production} by {queue_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "orange",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "area"
+                }
+              ],
+              "markers": [
+                {
+                  "value": "y = 100",
+                  "display_type": "warning dashed"
+                },
+                {
+                  "value": "y = 500",
+                  "display_type": "error dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Function Success Rate",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "(query1 / (query1 + query2)) * 100"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.edge_functions.success{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "sum"
+                    },
+                    {
+                      "query": "sum:vertical_farm.edge_functions.errors{env:production}",
+                      "data_source": "metrics",
+                      "name": "query2",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "conditional_formats": [
+                    {
+                      "comparator": ">=",
+                      "value": 99,
+                      "palette": "white_on_green"
+                    },
+                    {
+                      "comparator": ">=",
+                      "value": 95,
+                      "palette": "white_on_yellow"
+                    },
+                    {
+                      "comparator": "<",
+                      "value": 95,
+                      "palette": "white_on_red"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": false,
+              "custom_unit": "%",
+              "text_align": "center",
+              "precision": 2
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 3,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Active Schedules",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "sum:vertical_farm.schedules.active{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "last"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 9,
+              "y": 2,
+              "width": 3,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "width": 12,
+        "height": 5
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "title": "Application Performance",
+        "background_color": "vivid_blue",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Frontend Response Time",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Avg Response Time (ms)"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "P95 Response Time (ms)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:trace.nextjs.request{service:vertical-farm-frontend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "p95:trace.nextjs.request{service:vertical-farm-frontend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "blue",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Backend API Performance",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Avg Response Time (ms)"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "P95 Response Time (ms)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "avg:trace.fastapi.request{service:vertical-farm-backend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "p95:trace.fastapi.request{service:vertical-farm-backend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "green",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ]
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Error Rate",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "alias": "Frontend Errors (%)"
+                    },
+                    {
+                      "formula": "query2",
+                      "alias": "Backend Errors (%)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "rate:trace.nextjs.request.errors{service:vertical-farm-frontend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "rate:trace.fastapi.request.errors{service:vertical-farm-backend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "red",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "markers": [
+                {
+                  "value": "y = 1",
+                  "display_type": "warning dashed"
+                },
+                {
+                  "value": "y = 5",
+                  "display_type": "error dashed"
+                }
+              ]
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Active Users",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "count:vertical_farm.users.active{env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "last"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 3,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Requests/min",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "query": "rate:trace.nextjs.request.hits{service:vertical-farm-frontend,env:production}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": true,
+              "text_align": "center",
+              "precision": 0
+            },
+            "layout": {
+              "x": 9,
+              "y": 2,
+              "width": 3,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "width": 12,
+        "height": 5
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "title": "Recent Events & Logs",
+        "type": "event_stream",
+        "query": "sources:vertical-farm priority:all",
+        "event_size": "s"
+      },
+      "layout": {
+        "x": 0,
+        "y": 25,
+        "width": 12,
+        "height": 3
+      }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "env",
+      "default": "production",
+      "prefix": "env"
+    },
+    {
+      "name": "farm_id",
+      "default": "*",
+      "prefix": "farm_id"
+    },
+    {
+      "name": "service",
+      "default": "*",
+      "prefix": "service"
+    }
+  ],
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "reflow_type": "fixed"
+} 

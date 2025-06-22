@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { FaExclamationTriangle, FaShieldAlt, FaRobot, FaBell, FaEye, FaSearch, FaFilter, FaClock, FaMapMarkerAlt, FaThermometerHalf, FaTint, FaBolt, FaLeaf, FaBug, FaTools } from 'react-icons/fa'
+import { Card } from '../ui/card'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { Input } from '../ui/input'
+import { FaExclamationTriangle, FaClock, FaEye, FaBolt, FaLeaf, FaThermometerHalf, FaTint, FaShieldAlt, FaRobot, FaSearch, FaFilter, FaMapMarkerAlt, FaTools } from 'react-icons/fa'
 
 interface RiskAlert {
   id: string
@@ -353,7 +353,7 @@ export default function RiskIncidentView() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FaBell className="text-orange-600" />
+            <FaExclamationTriangle className="text-orange-600" />
             Active Risk Alerts
           </h3>
           

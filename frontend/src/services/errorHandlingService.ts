@@ -5,7 +5,7 @@
  * procedures for the Home Assistant integration with user-friendly feedback.
  */
 
-import { toast, success, error as toastError } from '@/hooks/use-toast';
+import { success, error as toastError } from '@/hooks/use-toast';
 
 export enum ErrorType {
   CONNECTION_ERROR = 'connection_error',

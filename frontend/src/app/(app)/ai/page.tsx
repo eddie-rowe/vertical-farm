@@ -1,14 +1,13 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { FaBrain, FaLeaf, FaBuilding, FaExclamationTriangle, FaChartLine, FaMapMarkedAlt } from 'react-icons/fa'
+import { Card } from "@/components/ui/card"
+import { FaBrain, FaLeaf, FaBuilding, FaExclamationTriangle, FaChartLine, FaMapMarkedAlt } from '@/lib/icons'
 import CropEnvironmentView from '@/components/ai-intelligence/CropEnvironmentView'
 import OperationalBusinessView from '@/components/ai-intelligence/OperationalBusinessView'
 import RiskIncidentView from '@/components/ai-intelligence/RiskIncidentView'
 import DashboardsForecastingView from '@/components/ai-intelligence/DashboardsForecastingView'
 import HeatmapsView from '@/components/ai-intelligence/HeatmapsView'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const tabs = [
   {

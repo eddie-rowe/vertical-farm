@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,7 +108,6 @@ const mockAlerts = [
 export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentMonitoringViewProps) {
   const [environmentalData] = useState(mockEnvironmentalData);
   const [alerts] = useState(mockAlerts);
-  const [activeAlerts, setActiveAlerts] = useState(alerts.filter(alert => alert.type !== 'success'));
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -119,14 +118,7 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'optimal': return 'text-green-600 dark:text-green-400';
-      case 'warning': return 'text-yellow-600 dark:text-yellow-400';
-      case 'critical': return 'text-red-600 dark:text-red-400';
-      default: return 'text-gray-600 dark:text-gray-400';
-    }
-  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -366,9 +358,9 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
-              {activeAlerts.length > 0 && (
+              {alerts.filter(alert => alert.type !== 'success').length > 0 && (
                 <Badge className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                  {activeAlerts.length} Active
+                  {alerts.filter(alert => alert.type !== 'success').length} Active
                 </Badge>
               )}
             </div>

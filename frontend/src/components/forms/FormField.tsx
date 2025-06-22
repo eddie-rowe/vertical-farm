@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { FaExclamationCircle, FaCheckCircle } from '@/lib/icons';
 
 interface FormFieldProps {
   label: string;

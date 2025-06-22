@@ -32,13 +32,13 @@ export default function FarmsPage() {
       setFarmsListError(null);
       try {
         const response = await getFarms();
-        // Convert Supabase farms to layout farms by adding owner_id
+        // Convert Supabase farms to layout farms
         const layoutFarms = response
           .filter(farm => farm.id) // Filter out farms without ID
           .map(farm => ({
             ...farm,
             id: farm.id!, // Non-null assertion since we filtered
-            owner_id: farm.id! // Use farm id as owner_id for compatibility
+            user_id: farm.user_id || farm.id! // Use user_id, fallback to farm.id if missing
           }));
         setAvailableFarms(layoutFarms);
         if (layoutFarms.length > 0) {
@@ -81,7 +81,7 @@ export default function FarmsPage() {
           farm: {
             ...farmData,
             id: farmData.id!,
-            owner_id: farmData.id!, // Use farm id as owner_id for compatibility
+            user_id: farmData.user_id || farmData.id!, // Use user_id, fallback to farm.id if missing
             rows: [] // Empty for now, populate as needed
           }
         };
@@ -100,11 +100,11 @@ export default function FarmsPage() {
   }, [selectedFarmIdForDetails]);
 
   const handleFarmCreated = (newFarm: SupabaseFarm) => {
-    // Transform Supabase farm to layout farm with owner_id
+    // Transform Supabase farm to layout farm with user_id
     const layoutFarm = {
       ...newFarm,
       id: newFarm.id!,
-      owner_id: newFarm.id! // Use farm id as owner_id for compatibility
+      user_id: newFarm.user_id || newFarm.id! // Use user_id, fallback to farm.id if missing
     };
     
     // Add the new farm to the list

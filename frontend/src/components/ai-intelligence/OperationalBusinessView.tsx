@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { FaBuilding, FaDollarSign, FaUsers, FaClock, FaChartLine, FaRobot, FaArrowUp, FaArrowDown, FaCalendarAlt, FaBoxes, FaBolt, FaTint } from 'react-icons/fa'
+import { Card } from '../ui/card'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { FaChartLine, FaArrowUp, FaArrowDown, FaDollarSign, FaUsers, FaBoxes, FaTruck } from 'react-icons/fa'
 
 interface OperationalMetric {
   id: string
@@ -133,7 +133,7 @@ const mockResourceUsage: ResourceUsage[] = [
     optimal: 2650,
     cost: '$340/day',
     trend: 'decreasing',
-    icon: <FaBolt className="text-yellow-500" />
+    icon: <FaTruck className="text-yellow-500" />
   },
   {
     resource: 'Water Usage',
@@ -141,7 +141,7 @@ const mockResourceUsage: ResourceUsage[] = [
     optimal: 820,
     cost: '$25/day',
     trend: 'stable',
-    icon: <FaTint className="text-blue-500" />
+    icon: <FaTruck className="text-blue-500" />
   },
   {
     resource: 'Labor Hours',
@@ -170,7 +170,7 @@ export default function OperationalBusinessView() {
       case 'production': return <FaBoxes className="text-blue-600" />
       case 'efficiency': return <FaChartLine className="text-green-600" />
       case 'cost': return <FaDollarSign className="text-yellow-600" />
-      case 'quality': return <FaBuilding className="text-purple-600" />
+      case 'quality': return <FaBoxes className="text-purple-600" />
       default: return <FaChartLine className="text-gray-600" />
     }
   }
@@ -202,7 +202,7 @@ export default function OperationalBusinessView() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FaBuilding className="text-blue-600" />
+            <FaBoxes className="text-blue-600" />
             Business Performance KPIs
           </h3>
           <div className="flex gap-2">
@@ -253,7 +253,7 @@ export default function OperationalBusinessView() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FaRobot className="text-purple-600" />
+            <FaTruck className="text-purple-600" />
             AI-Driven Operational Metrics
           </h3>
           <div className="flex gap-2">
@@ -262,7 +262,7 @@ export default function OperationalBusinessView() {
               { id: 'production', label: 'Production', icon: <FaBoxes /> },
               { id: 'efficiency', label: 'Efficiency', icon: <FaChartLine /> },
               { id: 'cost', label: 'Cost', icon: <FaDollarSign /> },
-              { id: 'quality', label: 'Quality', icon: <FaBuilding /> }
+              { id: 'quality', label: 'Quality', icon: <FaBoxes /> }
             ].map((category) => (
               <Button
                 key={category.id}
@@ -306,7 +306,7 @@ export default function OperationalBusinessView() {
 
                 <div className="bg-white dark:bg-gray-700 rounded p-2">
                   <p className="text-xs text-gray-600 flex items-start gap-1">
-                    <FaRobot className="text-purple-500 mt-0.5 flex-shrink-0" />
+                    <FaTruck className="text-purple-500 mt-0.5 flex-shrink-0" />
                     {metric.aiInsight}
                   </p>
                 </div>
@@ -319,7 +319,7 @@ export default function OperationalBusinessView() {
       {/* Resource Optimization */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <FaBolt className="text-orange-600" />
+          <FaTruck className="text-orange-600" />
           Resource Optimization Dashboard
         </h3>
 
@@ -371,7 +371,7 @@ export default function OperationalBusinessView() {
             <div className="space-y-3">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <FaRobot className="text-blue-600 mt-1" />
+                  <FaTruck className="text-blue-600 mt-1" />
                   <div>
                     <h5 className="font-medium text-blue-800 dark:text-blue-200">Energy Optimization</h5>
                     <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
@@ -384,7 +384,7 @@ export default function OperationalBusinessView() {
 
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <FaRobot className="text-green-600 mt-1" />
+                  <FaTruck className="text-green-600 mt-1" />
                   <div>
                     <h5 className="font-medium text-green-800 dark:text-green-200">Production Scheduling</h5>
                     <p className="text-sm text-green-700 dark:text-green-300 mt-1">
@@ -397,7 +397,7 @@ export default function OperationalBusinessView() {
 
               <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <FaRobot className="text-purple-600 mt-1" />
+                  <FaTruck className="text-purple-600 mt-1" />
                   <div>
                     <h5 className="font-medium text-purple-800 dark:text-purple-200">Quality Enhancement</h5>
                     <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
@@ -410,7 +410,7 @@ export default function OperationalBusinessView() {
 
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <FaRobot className="text-orange-600 mt-1" />
+                  <FaTruck className="text-orange-600 mt-1" />
                   <div>
                     <h5 className="font-medium text-orange-800 dark:text-orange-200">Predictive Maintenance</h5>
                     <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">

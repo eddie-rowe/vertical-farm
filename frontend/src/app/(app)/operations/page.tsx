@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers, FaArrowUp, FaArrowDown, FaChartLine } from 'react-icons/fa';
+import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers, FaArrowUp, FaArrowDown, FaChartLine } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

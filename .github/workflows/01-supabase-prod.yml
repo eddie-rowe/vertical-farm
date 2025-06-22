@@ -17,11 +17,69 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
+          
       - name: Set up environment
         run: supabase link --project-ref $SUPABASE_PROJECT_ID
+        
+      - name: Create pre-migration schema backup
+        run: |
+          echo "🗄️ Creating schema backup before migration..."
+          
+          # Create schemas directory if it doesn't exist
+          mkdir -p supabase/schemas
+          
+          # Create timestamped backup in the supabase/schemas folder
+          BACKUP_NAME="pre_migration_$(date +%Y%m%d_%H%M%S)"
+          
+          # Backup full schema
+          supabase db dump --schema-only --file "supabase/schemas/${BACKUP_NAME}_full_schema.sql"
+          
+          # Backup public schema only
+          supabase db dump --schema-only --schema public --file "supabase/schemas/${BACKUP_NAME}_public_schema.sql"
+          
+          # Create metadata file
+          cat > "supabase/schemas/${BACKUP_NAME}_metadata.json" << EOF
+          {
+            "backup_name": "$BACKUP_NAME",
+            "project_ref": "$SUPABASE_PROJECT_ID",
+            "timestamp": "$(date +%Y%m%d_%H%M%S)",
+            "date": "$(date -Iseconds)",
+            "type": "pre_migration_schema_backup",
+            "git_commit": "${{ github.sha }}",
+            "git_branch": "${{ github.ref_name }}",
+            "workflow_run": "${{ github.run_id }}",
+            "files": {
+              "full_schema": "${BACKUP_NAME}_full_schema.sql",
+              "public_schema": "${BACKUP_NAME}_public_schema.sql",
+              "metadata": "${BACKUP_NAME}_metadata.json"
+            }
+          }
+          EOF
+          
+          echo "✅ Schema backup created in supabase/schemas/"
+          ls -la supabase/schemas/${BACKUP_NAME}_*
+          
+      - name: Commit schema backup to repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add supabase/schemas/
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No schema backup changes to commit"
+          else
+            git commit -m "🗄️ Pre-migration schema backup - $(date -Iseconds)"
+            git push
+            echo "✅ Schema backup committed to repository"
+          fi
+          
       - name: Push migrations to Prod
         run: supabase db push --include-all

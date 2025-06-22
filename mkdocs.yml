@@ -28,87 +28,94 @@ nav:
     - Home: README.md
     
     - Architecture:
-      - Overview: architecture/README.md
-      - Summary: architecture/summary.md
-      - Backend Architecture: architecture/backend.md
-      - Frontend Architecture: architecture/frontend.md
-      - Database Schema: architecture/database-schema.md
-      - Data Flow Diagram: architecture/data-flow-diagram.md
-      - Challenges: architecture/challenges.md
-      - Responsibilities: architecture/responsibilities.md
+      - Overview: 01-architecture/README.md
+      - System Overview: 01-architecture/overview.md
+      - Backend Architecture: 01-architecture/backend.md
+      - Frontend Architecture: 01-architecture/frontend.md
+      - Database Schema: 01-architecture/database-schema.md
+      - Automation Architecture: 01-architecture/automation-architecture.md
+      - Edge Computing: 01-architecture/edge-computing.md
+      - Caching Strategy: 01-architecture/caching-strategy.md
+      - Responsibilities: 01-architecture/responsibilities.md
     
     - Development:
-      - Overview: development/README.md
-      - Contributing Guide: development/contributing.md
-      - CI/CD Workflow: development/ci-cd-workflow.md
-      - Release Notes: development/release-notes.md
-      - Improvement Recommendations: development/improvement-recommendations.md
+      - Overview: 02-development/README.md
+      - Contributing Guide: 02-development/contributing.md
+      - CI/CD Workflow: 02-development/ci-cd-workflow.md
+      - Release Notes: 02-development/release-notes.md
+      - Improvement Recommendations: 02-development/improvement-recommendations.md
     
     - API Reference:
-      - Overview: api/README.md
-      - API Reference: api/reference.md
-    
-    - Testing:
-      - Overview: testing/README.md
-      - Testing Strategy: testing/strategy.md
-      - Testing Guide: testing/TESTING_GUIDE.md
-      - Security Testing Results: testing/POST-SECURITY-TESTING.md
+      - Overview: 03-api/README.md
+      - API Reference: 03-api/reference.md
     
     - Deployment:
-      - Overview: deployment/README.md
-      - Deployment Workflow: deployment/workflow.md
-      - Cloudflare Cache Implementation: deployment/cloudflare-cache-implementation.md
-      - Caching Deployment Checklist: deployment/CACHING_DEPLOYMENT_CHECKLIST.md
+      - Overview: 04-deployment/README.md
+      - Deployment Workflow: 04-deployment/workflow.md
+      - Cloudflare Configuration: 04-deployment/cloudflare-config.md
+      - Cloudflare Caching Guide: 04-deployment/cloudflare-caching-guide.md
+    
+    - Testing:
+      - Overview: 05-testing/README.md
+      - Production Testing Strategy: 05-testing/production-testing-strategy.md
+      - Security Testing: 05-testing/security-testing.md
     
     - Security:
-      - Overview: security/README.md
-      - Security Model: security/model.md
-    
-    - Performance:
-      - Overview: performance/README.md
-      - Cache vs No-Cache Analysis: performance/cache-vs-no-cache-analysis.md
-      - Caching Issues Analysis: performance/caching-issues-analysis.md
-      - Caching Optimization Results: performance/caching-optimization-results.md
-    
-    - Migration:
-      - Overview: migration/README.md
-      - PostgREST Analysis: migration/postgrest-analysis.md
-      - PostgREST Strategy: migration/postgrest-strategy.md
-    
-    - Project Management:
-      - Overview: project-management/README.md
-      - Dashboard: project-management/dashboard.md
-      - Summaries:
-        - Changes Summary: project-management/summaries/changes-summary.md
-        - Tonight Summary: project-management/summaries/TONIGHT_SUMMARY.md
+      - Overview: 06-security/README.md
+      - Security Model: 06-security/model.md
     
     - Guides:
-      - Overview: guides/README.md
-      - Index: guides/index.md
-      - Caching Implementation Guide: guides/CACHING_IMPLEMENTATION_GUIDE.md
-      - Supabase Queues Setup: guides/SUPABASE_QUEUES_SETUP.md
+      - Overview: 07-guides/README.md
+      - Index: 07-guides/index.md
+      - Caching Implementation Guide: 07-guides/CACHING_IMPLEMENTATION_GUIDE.md
+      - Supabase Queues Setup: 07-guides/SUPABASE_QUEUES_SETUP.md
+      - Home Assistant Setup: 07-guides/SETUP_HOME_ASSISTANT.md
     
     - Reports:
-      - Overview: reports/README.md
+      - Overview: 08-reports/README.md
+      - Project Phases:
+        - Overview: 08-reports/01-project-phases/README.md
+        - Changes Summary: 08-reports/01-project-phases/changes-summary.md
+        - Dashboard: 08-reports/01-project-phases/dashboard.md
+        - Tonight Summary: 08-reports/01-project-phases/TONIGHT_SUMMARY.md
+        - Organization Summary: 08-reports/01-project-phases/ORGANIZATION_SUMMARY.md
+        - Hermes Synchronization: 08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md
+        - Edge Function Consolidation: 08-reports/01-project-phases/edge-function-consolidation-summary.md
+        - Phase 2C Completion: 08-reports/01-project-phases/phase-2c-completion-summary.md
       - Performance Reports:
-        - K6 Database Load Test: reports/performance/k6-database-load-test-2025-06-12.md
-        - Phase 1 Caching Performance: reports/performance/phase-1-caching-performance-report.md
-        - Phase 1 Complete: reports/performance/PHASE-1-COMPLETE.md
-        - Phase 1 Summary: reports/performance/phase-1-summary.md
-      - Code Reviews:
-        - Edge Functions Caching Review: reports/reviews/edge-functions-caching-review.md
-        - Grow Parameters Code Review: reports/reviews/grow-parameters-code-review-2024-01-20.md
-        - Grow Parameters Testing Report: reports/reviews/grow-parameters-testing-report-2024-01-20.md
-        - Supabase Audit Completion: reports/reviews/supabase-audit-completion-report.md
-        - Supabase Review: reports/reviews/supabase-review.md
+        - K6 Database Load Test: 08-reports/02-performance/k6-database-load-test-2025-06-12.md
+        - Cache vs No-Cache Analysis: 08-reports/02-performance/cache-vs-no-cache-analysis.md
+        - Caching Issues Analysis: 08-reports/02-performance/caching-issues-analysis.md
+        - Caching Optimization Results: 08-reports/02-performance/caching-optimization-results.md
+        - Phase 1 Complete: 08-reports/02-performance/PHASE-1-COMPLETE.md
+        - Phase 1 Summary: 08-reports/02-performance/phase-1-summary.md
+        - Phase 1 Caching Performance: 08-reports/02-performance/phase-1-caching-performance-report.md
+        - Phase 2A Schema Optimization: 08-reports/02-performance/phase-2a-schema-optimization-summary.md
+        - Queue Usage Opportunities: 08-reports/02-performance/queue-usage-opps-2025-06-13.txt
+        - Supabase Optimization: 08-reports/02-performance/supabase-optimization-recommendations.md
+      - Technical Reviews:
+        - Edge Functions Caching: 08-reports/03-technical-reviews/edge-functions-caching-review.md
+        - Grow Parameters Code Review: 08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md
+        - Grow Parameters Testing: 08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md
+        - Security Frontend/Backend: 08-reports/03-technical-reviews/security-report-frontend-backend-2025.md
+        - Security Vulnerability Review: 08-reports/03-technical-reviews/security-vulnerability-review-2025.md
+        - Supabase Architecture: 08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt
+        - Supabase Audit 2025: 08-reports/03-technical-reviews/2025-06-19-supabase-audit.md
+        - Supabase Audit Completion: 08-reports/03-technical-reviews/supabase-audit-completion-report.md
+        - Supabase Review: 08-reports/03-technical-reviews/supabase-review.md
       - Analysis & Research:
-        - Cursor Workflow Research: reports/summaries/cursor-workflow-research-2025-05-17.md
-        - Cursor Workflow Techniques: reports/summaries/cursor-workflow-techniques-2025.md
-        - Hermes Synchronization Report: reports/summaries/HERMES_SYNCHRONIZATION_REPORT.md
-        - Inspiration UI/UX Analysis: reports/summaries/inspiration-ui-ux-analysis-2025-05-18.md
-        - Security Report Frontend/Backend: reports/summaries/security-report-frontend-backend-2025.md
-        - Security Vulnerability Review: reports/summaries/security-vulnerability-review-2025.md
-        - UI/UX Playwright Review: reports/summaries/ui_ux_playwright_review_shadcn_recommendations.md
-        - UI/UX Analysis: reports/summaries/ui-ux-analysis-2025-05-18.md
-        - Vertical Farm UI/UX Review: reports/summaries/vertical_farm_ui_ux_review.md
-        - Vertigro UI/UX Analysis: reports/summaries/vertigro-uiux-analysis-2025-05-17.md
+        - Cursor Workflow Research: 08-reports/04-analysis/cursor-workflow-research-2025-05-17.md
+        - Cursor Workflow Techniques: 08-reports/04-analysis/cursor-workflow-techniques-2025.md
+        - Inspiration UI/UX Analysis: 08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md
+        - UI/UX Analysis: 08-reports/04-analysis/ui-ux-analysis-2025-05-18.md
+        - UI/UX Playwright Review: 08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md
+        - Vertical Farm UI/UX Review: 08-reports/04-analysis/vertical_farm_ui_ux_review.md
+        - Vertigro UI/UX Analysis: 08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md
+      - Task Reports:
+        - Task Complexity Report: 08-reports/07-task-reports/task-complexity-report.json
+    
+    - Migration:
+      - Overview: 09-migration/README.md
+      - PostgREST Migration Guide: 09-migration/postgrest-migration-guide.md
+      - Check Home Assistant Table: 09-migration/check_home_assistant_table.sql
+      - Check User Config: 09-migration/check_user_home_assistant_config.sql

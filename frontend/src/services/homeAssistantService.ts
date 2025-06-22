@@ -1,6 +1,6 @@
 'use client';
 
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
 
 // Home Assistant API service for frontend
@@ -251,11 +251,9 @@ class HomeAssistantService {
           name: config.name,
           url: config.url,
           access_token: config.token,
-          auth_type: config.cloudflare_client_id ? 'cloudflare_access' : 'bearer_token',
-          cloudflare_access_settings: config.cloudflare_client_id ? {
-            team_name: '',
-            service_token: config.cloudflare_client_id,
-          } : undefined,
+          cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
+          cloudflare_client_id: config.cloudflare_client_id,
+          cloudflare_client_secret: config.cloudflare_client_secret,
           is_default: config.enabled,
           local_url: config.local_url,
         }),
@@ -287,11 +285,9 @@ class HomeAssistantService {
           name: config.name,
           url: config.url,
           access_token: config.token,
-          auth_type: config.cloudflare_client_id ? 'cloudflare_access' : 'bearer_token',
-          cloudflare_access_settings: config.cloudflare_client_id ? {
-            team_name: '',
-            service_token: config.cloudflare_client_id,
-          } : undefined,
+          cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
+          cloudflare_client_id: config.cloudflare_client_id,
+          cloudflare_client_secret: config.cloudflare_client_secret,
           is_default: config.enabled,
           local_url: config.local_url,
         }),
@@ -326,11 +322,9 @@ class HomeAssistantService {
         body: JSON.stringify({
           url,
           access_token: token,
-          auth_type: options?.cloudflare_client_id ? 'cloudflare_access' : 'bearer_token',
-          cloudflare_access_settings: options?.cloudflare_client_id ? {
-            team_name: '',
-            service_token: options.cloudflare_client_id,
-          } : undefined,
+          cloudflare_enabled: !!(options?.cloudflare_client_id && options?.cloudflare_client_secret),
+          cloudflare_client_id: options?.cloudflare_client_id,
+          cloudflare_client_secret: options?.cloudflare_client_secret,
         }),
       });
 
@@ -477,6 +471,11 @@ class HomeAssistantService {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/devices/assignments`, { headers });
+
+      // Handle the case where no Home Assistant configuration exists
+      if (response.status === 404) {
+        return []; // Return empty array instead of throwing error
+      }
 
       await this.handleApiError(response, 'Get assignments');
       const result = await response.json();
