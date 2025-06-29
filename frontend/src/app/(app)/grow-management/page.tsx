@@ -1,61 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, Plus, SlidersHorizontal } from "lucide-react";
-import NewGrowSetup from "@/components/grow-management/NewGrowSetup";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+
 import CurrentGrowsView from "@/components/grow-management/CurrentGrowsView";
-import GrowHistoryView from "@/components/grow-management/GrowHistoryView";
+import NewGrowSetup from "@/components/grow-management/NewGrowSetup";
 import GrowParametersView from "@/components/grow-management/GrowParametersView";
 
 export default function GrowManagementPage() {
-  const [activeTab, setActiveTab] = useState("current");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   return (
-    <div className="flex-1 p-8 animate-pop">
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4">
+    <div className="container mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Grow Management
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-          Manage your vertical farm grows from seed to harvest
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage your growing operations, monitor progress, and configure parameters.
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="current" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Current Grows
-          </TabsTrigger>
-          <TabsTrigger value="new" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            New Grow Setup
-          </TabsTrigger>
-          <TabsTrigger value="parameters" className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4" />
-            Parameters & Recipes
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            History & Analytics
-          </TabsTrigger>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">Live Dashboard</TabsTrigger>
+          <TabsTrigger value="setup">New Grow Setup</TabsTrigger>
+          <TabsTrigger value="parameters">Parameters & Recipes</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="current" className="mt-6">
-          <CurrentGrowsView searchTerm="" statusFilter="all" />
+        
+        <TabsContent value="dashboard" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Search Active Grows</CardTitle>
+              <CardDescription>
+                Search by farm, shelf, species, or recipe name
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search grows..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <CurrentGrowsView searchTerm={searchTerm} statusFilter={statusFilter} />
         </TabsContent>
-
-        <TabsContent value="new" className="mt-6">
+        
+        <TabsContent value="setup" className="space-y-4">
           <NewGrowSetup />
         </TabsContent>
-
-        <TabsContent value="parameters" className="mt-6">
+        
+        <TabsContent value="parameters" className="space-y-4">
           <GrowParametersView />
-        </TabsContent>
-
-        <TabsContent value="history" className="mt-6">
-          <GrowHistoryView searchTerm="" />
         </TabsContent>
       </Tabs>
     </div>

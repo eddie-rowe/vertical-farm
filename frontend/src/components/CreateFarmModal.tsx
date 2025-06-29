@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { createFarm, CreateFarmData, Farm } from "@/services/supabaseService";
 import toast from 'react-hot-toast';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface CreateFarmModalProps {
   onFarmCreated: (farm: Farm) => void;
@@ -26,8 +26,6 @@ interface FormErrors {
   name?: string;
   location?: string;
   plan_image_url?: string;
-  width?: string;
-  depth?: string;
 }
 
 export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmModalProps) {
@@ -37,8 +35,6 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
     name: '',
     location: '',
     plan_image_url: '',
-    width: undefined,
-    depth: undefined,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -72,16 +68,6 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
       }
     }
 
-    // Width validation (optional, but if provided must be > 0)
-    if (formData.width !== undefined && formData.width <= 0) {
-      newErrors.width = 'Width must be greater than 0';
-    }
-
-    // Depth validation (optional, but if provided must be > 0)
-    if (formData.depth !== undefined && formData.depth <= 0) {
-      newErrors.depth = 'Depth must be greater than 0';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -108,14 +94,6 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
         cleanedData.plan_image_url = formData.plan_image_url.trim();
       }
 
-      if (typeof formData.width === 'number' && formData.width > 0) {
-        cleanedData.width = formData.width;
-      }
-
-      if (typeof formData.depth === 'number' && formData.depth > 0) {
-        cleanedData.depth = formData.depth;
-      }
-
       const newFarm = await createFarm(cleanedData);
       toast.success(`Farm "${newFarm.name}" created successfully!`);
       
@@ -124,8 +102,6 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
         name: '',
         location: '',
         plan_image_url: '',
-        width: undefined,
-        depth: undefined,
       });
       setErrors({});
       setIsOpen(false);
@@ -140,7 +116,7 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
     }
   };
 
-  const handleInputChange = (field: keyof CreateFarmData, value: string | number | undefined) => {
+  const handleInputChange = (field: keyof CreateFarmData, value: string | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -210,64 +186,19 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
             {errors.plan_image_url && <p className="text-sm text-red-500">{errors.plan_image_url}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="width">Width (m)</Label>
-              <Input
-                id="width"
-                type="number"
-                min="0"
-                step="0.1"
-                value={formData.width || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleInputChange('width', value ? parseFloat(value) : undefined);
-                }}
-                placeholder="10.5"
-                className={errors.width ? 'border-red-500' : ''}
-              />
-              {errors.width && <p className="text-sm text-red-500">{errors.width}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="depth">Depth (m)</Label>
-              <Input
-                id="depth"
-                type="number"
-                min="0"
-                step="0.1"
-                value={formData.depth || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleInputChange('depth', value ? parseFloat(value) : undefined);
-                }}
-                placeholder="8.0"
-                className={errors.depth ? 'border-red-500' : ''}
-              />
-              {errors.depth && <p className="text-sm text-red-500">{errors.depth}</p>}
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setIsOpen(false)}
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Farm'
-              )}
+              {isLoading ? 'Creating...' : 'Create Farm'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

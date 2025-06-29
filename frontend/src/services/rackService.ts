@@ -245,6 +245,47 @@ export const getNextRackPosition = async (rowId: UUID): Promise<number> => {
 };
 
 /**
+ * Generate a unique rack name for a row
+ * Checks existing rack names and finds the next available "Rack X" name
+ */
+export const generateUniqueRackName = async (rowId: UUID): Promise<string> => {
+  await requireAuth();
+  
+  const { data, error } = await supabase
+    .from('racks')
+    .select('name')
+    .eq('row_id', rowId);
+  
+  if (error) {
+    console.error(`Error getting rack names for row ${rowId}:`, error);
+    throw error;
+  }
+  
+  if (!data || data.length === 0) {
+    return 'Rack 1'; // First rack
+  }
+  
+  // Extract existing rack numbers from names that match "Rack X" pattern
+  const existingNumbers = new Set<number>();
+  const rackPattern = /^Rack (\d+)$/i;
+  
+  data.forEach(rack => {
+    const match = rack.name.match(rackPattern);
+    if (match) {
+      existingNumbers.add(parseInt(match[1], 10));
+    }
+  });
+  
+  // Find the next available number starting from 1
+  let nextNumber = 1;
+  while (existingNumbers.has(nextNumber)) {
+    nextNumber++;
+  }
+  
+  return `Rack ${nextNumber}`;
+};
+
+/**
  * Get all racks for a specific farm (across all rows)
  */
 export const getRacksByFarmId = async (farmId: UUID): Promise<Rack[]> => {

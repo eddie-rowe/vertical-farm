@@ -25,8 +25,6 @@ export interface Farm {
   location?: string | null;
   user_id?: UUID | null;
   plan_image_url?: string | null;
-  width?: number | null;
-  depth?: number | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -35,8 +33,6 @@ export interface CreateFarmData {
   name: string;
   location?: string;
   plan_image_url?: string;
-  width?: number;
-  depth?: number;
 }
 
 export interface FarmWithHierarchy extends Farm {
@@ -45,9 +41,9 @@ export interface FarmWithHierarchy extends Farm {
 
 export interface Row {
   id: UUID;
-  name: string;
+  name?: string;
   farm_id: UUID;
-  position?: number;
+  orientation?: string;
   racks?: Rack[];
   created_at?: string;
   updated_at?: string;
@@ -55,9 +51,8 @@ export interface Row {
 
 export interface Rack {
   id: UUID;
-  name: string;
+  name?: string;
   row_id: UUID;
-  position?: number;
   shelves?: Shelf[];
   created_at?: string;
   updated_at?: string;
@@ -65,11 +60,8 @@ export interface Rack {
 
 export interface Shelf {
   id: UUID;
-  name: string;
+  name?: string;
   rack_id: UUID;
-  position?: number;
-  width?: number;
-  depth?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -280,9 +272,9 @@ export const getRowsByFarm = async (farmId: UUID): Promise<Row[]> => {
   
   const { data, error } = await supabase
     .from('rows')
-    .select('*')
+    .select('id, name, farm_id, created_at, updated_at')
     .eq('farm_id', farmId)
-    .order('position', { ascending: true });
+    .order('name', { ascending: true });
   
   if (error) {
     console.error(`Error fetching rows for farm ${farmId}:`, error);
@@ -296,9 +288,8 @@ export const getRowsByFarm = async (farmId: UUID): Promise<Row[]> => {
  * Create a new row
  */
 export const createRow = async (rowData: {
-  name: string;
+  name?: string;
   farm_id: UUID;
-  position?: number;
 }): Promise<Row> => {
   await requireAuth();
   
@@ -324,9 +315,9 @@ export const getRacksByRow = async (rowId: UUID): Promise<Rack[]> => {
   
   const { data, error } = await supabase
     .from('racks')
-    .select('*')
+    .select('id, name, row_id, created_at, updated_at')
     .eq('row_id', rowId)
-    .order('position', { ascending: true });
+    .order('name', { ascending: true });
   
   if (error) {
     console.error(`Error fetching racks for row ${rowId}:`, error);
@@ -340,9 +331,8 @@ export const getRacksByRow = async (rowId: UUID): Promise<Rack[]> => {
  * Create a new rack
  */
 export const createRack = async (rackData: {
-  name: string;
+  name?: string;
   row_id: UUID;
-  position?: number;
 }): Promise<Rack> => {
   await requireAuth();
   
@@ -368,9 +358,9 @@ export const getShelvesByRack = async (rackId: UUID): Promise<Shelf[]> => {
   
   const { data, error } = await supabase
     .from('shelves')
-    .select('*')
+    .select('id, name, rack_id, created_at, updated_at')
     .eq('rack_id', rackId)
-    .order('position', { ascending: true });
+    .order('name', { ascending: true });
   
   if (error) {
     console.error(`Error fetching shelves for rack ${rackId}:`, error);
@@ -384,11 +374,8 @@ export const getShelvesByRack = async (rackId: UUID): Promise<Shelf[]> => {
  * Create a new shelf
  */
 export const createShelf = async (shelfData: {
-  name: string;
+  name?: string;
   rack_id: UUID;
-  position?: number;
-  width?: number;
-  depth?: number;
 }): Promise<Shelf> => {
   await requireAuth();
   

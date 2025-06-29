@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { homeAssistantService, HAConnectionStatus } from '@/services/homeAssistantService';
+import { squareService, SquareConnectionStatus } from '@/services/squareService';
 
 interface Integration {
   id: string;
@@ -31,12 +32,32 @@ export default function IntegrationsPage() {
     try {
       setLoading(true);
       
-      // Check Home Assistant status
+      // Check Home Assistant status safely
       let haStatus: HAConnectionStatus = { connected: false };
       try {
         haStatus = await homeAssistantService.getStatus();
-      } catch {
-        console.log('Home Assistant not configured or not available');
+        console.log('Home Assistant status:', haStatus);
+      } catch (error) {
+        console.log('Home Assistant not configured or not available:', error);
+        // Don't let HA status errors break the integrations page
+        haStatus = { connected: false };
+      }
+
+      // Check Square status safely
+      let squareStatus: SquareConnectionStatus = { connected: false, environment: 'sandbox' };
+      let squareConfiguredAt: string | undefined;
+      try {
+        // First check if user has any active Square configurations
+        const activeConfig = await squareService.getActiveConfig();
+        if (activeConfig) {
+          squareStatus = await squareService.getStatus(activeConfig.id!);
+          squareConfiguredAt = activeConfig.updated_at || activeConfig.created_at;
+          console.log('Square status:', squareStatus);
+        }
+      } catch (error) {
+        console.log('Square not configured or not available:', error);
+        // Don't let Square status errors break the integrations page
+        squareStatus = { connected: false, environment: 'sandbox' };
       }
 
       const integrationsList: Integration[] = [
@@ -67,13 +88,14 @@ export default function IntegrationsPage() {
           status: 'disconnected',
           setupUrl: '/integrations/modbus',
         },
-        // New placeholder integrations
+        // Square integration with dynamic status
         {
           id: 'square',
           name: 'Square',
           description: 'Connect Square for payment processing and sales tracking',
           icon: <FaCreditCard className="text-green-600" />,
-          status: 'disconnected',
+          status: squareStatus.connected ? 'connected' : 'disconnected',
+          configuredAt: squareConfiguredAt,
           setupUrl: '/integrations/square',
         },
         {

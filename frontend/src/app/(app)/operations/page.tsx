@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers, FaArrowUp, FaArrowDown, FaChartLine } from '@/lib/icons';
+import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers, FaArrowUp, FaArrowDown, FaChartLine, FaBoxes, FaTools } from '@/lib/icons';
+import DeliveryScheduleView from '@/components/operations/DeliveryScheduleView';
+import MaintenanceScheduleView from '@/components/operations/MaintenanceScheduleView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -218,10 +220,18 @@ export default function OperationsPage() {
       </div>
 
       <Tabs defaultValue="efficiency" className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="efficiency">Efficiency Metrics</TabsTrigger>
           <TabsTrigger value="costs">Cost Analysis</TabsTrigger>
           <TabsTrigger value="performance">Performance Tracking</TabsTrigger>
+          <TabsTrigger value="delivery" className="flex items-center gap-2">
+            <FaBoxes className="h-4 w-4" />
+            Delivery Schedule
+          </TabsTrigger>
+          <TabsTrigger value="maintenance" className="flex items-center gap-2">
+            <FaTools className="h-4 w-4" />
+            Maintenance
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="efficiency" className="space-y-6">
@@ -384,6 +394,14 @@ export default function OperationsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="delivery">
+          <DeliveryScheduleView />
+        </TabsContent>
+
+        <TabsContent value="maintenance">
+          <MaintenanceScheduleView />
         </TabsContent>
       </Tabs>
     </div>

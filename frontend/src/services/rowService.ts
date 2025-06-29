@@ -16,7 +16,6 @@ export interface Row {
   id: UUID;
   name: string;
   farm_id: UUID;
-  position?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -24,12 +23,10 @@ export interface Row {
 export interface CreateRowData {
   name: string;
   farm_id: UUID;
-  position?: number;
 }
 
 export interface UpdateRowData {
   name?: string;
-  position?: number;
 }
 
 // =====================================================
@@ -100,7 +97,7 @@ export const getRowsByFarmId = async (farmId: UUID): Promise<Row[]> => {
     .from('rows')
     .select('*')
     .eq('farm_id', farmId)
-    .order('position', { ascending: true });
+    .order('created_at', { ascending: true });
   
   if (error) {
     console.error(`Error fetching rows for farm ${farmId}:`, error);
@@ -150,39 +147,8 @@ export const deleteRow = async (rowId: UUID): Promise<void> => {
   }
 };
 
-/**
- * Reorder rows within a farm
- * Updates position values for multiple rows
- */
-export const reorderRows = async (farmId: UUID, rowOrders: Array<{ id: UUID; position: number }>): Promise<Row[]> => {
-  await requireAuth();
-  
-  // Update positions in a transaction-like manner
-  const updatePromises = rowOrders.map(({ id, position }) =>
-    supabase
-      .from('rows')
-      .update({ position })
-      .eq('id', id)
-      .eq('farm_id', farmId) // Extra safety check
-      .select()
-      .single()
-  );
-  
-  try {
-    const results = await Promise.all(updatePromises);
-    const errors = results.filter(result => result.error);
-    
-    if (errors.length > 0) {
-      console.error('Error reordering rows:', errors);
-      throw new Error('Failed to reorder some rows');
-    }
-    
-    return results.map(result => result.data!);
-  } catch (error) {
-    console.error('Error in bulk row reorder:', error);
-    throw error;
-  }
-};
+// Note: Row reordering functionality removed as position column no longer exists
+// Rows are now ordered by creation date
 
 // =====================================================
 // ROW STATISTICS & UTILITIES
@@ -207,30 +173,47 @@ export const getRowCount = async (farmId: UUID): Promise<number> => {
   return count || 0;
 };
 
+// Note: Position-based functionality removed - rows are now ordered by creation date
+
 /**
- * Get next available position for a new row in a farm
+ * Generate a unique row name for a farm
+ * Checks existing row names and finds the next available "Row X" name
  */
-export const getNextRowPosition = async (farmId: UUID): Promise<number> => {
+export const generateUniqueRowName = async (farmId: UUID): Promise<string> => {
   await requireAuth();
   
   const { data, error } = await supabase
     .from('rows')
-    .select('position')
-    .eq('farm_id', farmId)
-    .order('position', { ascending: false })
-    .limit(1);
+    .select('name')
+    .eq('farm_id', farmId);
   
   if (error) {
-    console.error(`Error getting next row position for farm ${farmId}:`, error);
+    console.error(`Error getting row names for farm ${farmId}:`, error);
     throw error;
   }
   
   if (!data || data.length === 0) {
-    return 1; // First row
+    return 'Row 1'; // First row
   }
   
-  const maxPosition = data[0].position || 0;
-  return maxPosition + 1;
+  // Extract existing row numbers from names that match "Row X" pattern
+  const existingNumbers = new Set<number>();
+  const rowPattern = /^Row (\d+)$/i;
+  
+  data.forEach(row => {
+    const match = row.name.match(rowPattern);
+    if (match) {
+      existingNumbers.add(parseInt(match[1], 10));
+    }
+  });
+  
+  // Find the next available number starting from 1
+  let nextNumber = 1;
+  while (existingNumbers.has(nextNumber)) {
+    nextNumber++;
+  }
+  
+  return `Row ${nextNumber}`;
 };
 
 // =====================================================

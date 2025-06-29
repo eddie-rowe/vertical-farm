@@ -1,13 +1,92 @@
 "use client";
 
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Receipt, DollarSign, Package, TrendingUp } from "lucide-react";
-import CustomersView from "@/components/business-management/CustomersView";
-import OrdersInvoicesView from "@/components/business-management/OrdersInvoicesView";
-import PaymentsView from "@/components/business-management/PaymentsView";
-import InventoryView from "@/components/business-management/InventoryView";
-import RevenueAnalyticsView from "@/components/business-management/RevenueAnalyticsView";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Users, 
+  DollarSign, 
+  Package, 
+  TrendingUp, 
+  Receipt, 
+  RotateCcw,
+  AlertTriangle,
+  UserCheck,
+  Banknote,
+  Search,
+  Eye,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle
+} from 'lucide-react';
+
+// Import view components
+import CustomersView from '@/components/business-management/CustomersView';
+import OrdersInvoicesView from '@/components/business-management/OrdersInvoicesView';
+import PaymentsView from '@/components/business-management/PaymentsView';
+import InventoryView from '@/components/business-management/InventoryView';
+// import TeamMembersView from '@/components/business-management/TeamMembersView';
+// import DisputesView from '@/components/business-management/DisputesView';
+// import RefundsView from '@/components/business-management/RefundsView';
+// import PayoutsView from '@/components/business-management/PayoutsView';
+
+// Create placeholder components for the new tabs
+const TeamMembersView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <UserCheck className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Team Members view with Square data loading...</p>
+    </div>
+  </div>
+);
+
+const DisputesView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <AlertTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Disputes view with Square data loading...</p>
+    </div>
+  </div>
+);
+
+const RefundsView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <RotateCcw className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Refunds view with Square data loading...</p>
+    </div>
+  </div>
+);
+
+const PayoutsView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <Banknote className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Payouts view with Square data loading...</p>
+    </div>
+  </div>
+);
+
+const SubscriptionsView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Subscriptions view coming soon...</p>
+    </div>
+  </div>
+);
+
+const InvoicesView = () => (
+  <div className="space-y-6">
+    <div className="text-center py-8">
+      <Receipt className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+      <p className="text-gray-500">Invoices view coming soon...</p>
+    </div>
+  </div>
+);
 
 export default function BusinessManagementPage() {
   const [activeTab, setActiveTab] = useState("customers");
@@ -19,32 +98,22 @@ export default function BusinessManagementPage() {
           Business Management
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-          Manage customers, orders, payments, and business analytics
+          Manage customers, orders, payments, team, and business analytics with live Square data
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="customers" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Customers
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Orders & Invoices
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Payments
-          </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Inventory
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Revenue Analytics
-          </TabsTrigger>
+      <Tabs defaultValue="customers" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="refunds">Refunds</TabsTrigger>
+          <TabsTrigger value="disputes">Disputes</TabsTrigger>
+          <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="customers" className="mt-6">
@@ -59,12 +128,32 @@ export default function BusinessManagementPage() {
           <PaymentsView />
         </TabsContent>
 
+        <TabsContent value="refunds" className="mt-6">
+          <RefundsView />
+        </TabsContent>
+
+        <TabsContent value="disputes" className="mt-6">
+          <DisputesView />
+        </TabsContent>
+
+        <TabsContent value="team" className="mt-6">
+          <TeamMembersView />
+        </TabsContent>
+
+        <TabsContent value="payouts" className="mt-6">
+          <PayoutsView />
+        </TabsContent>
+
         <TabsContent value="inventory" className="mt-6">
           <InventoryView />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-6">
-          <RevenueAnalyticsView />
+        <TabsContent value="subscriptions" className="mt-6">
+          <SubscriptionsView />
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-6">
+          <InvoicesView />
         </TabsContent>
       </Tabs>
     </div>

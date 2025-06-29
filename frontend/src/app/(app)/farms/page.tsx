@@ -1,50 +1,75 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Zap, Activity } from 'lucide-react';
+import { Home } from 'lucide-react';
 import CreateFarmModal from '@/components/CreateFarmModal';
-import LayoutConfigurationView from '@/components/farms/LayoutConfigurationView';
-import DevicesControlsView from '@/components/farms/DevicesControlsView';
-import EnvironmentMonitoringView from '@/components/farms/EnvironmentMonitoringView';
-import { FarmPageData, UUID, Farm } from "@/types/farm-layout";
+import UnifiedFarmView from '@/components/farms/UnifiedFarmView';
+import { FarmPageData, UUID, Farm, Row, Rack, Shelf } from "@/types/farm-layout";
 import { getFarms, getFarmById, Farm as SupabaseFarm } from '@/services/farmService';
+import { getRowsByFarm, getRacksByRow, getShelvesByRack } from '@/services/supabaseService';
 import toast from 'react-hot-toast';
 
 export default function FarmsPage() {
   const { user } = useAuth();
   
-  const [editMode, setEditMode] = useState(false);
+  // Core state
   const [farmPageData, setFarmPageData] = useState<FarmPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("layout");
-
+  
+  // Farm selection state
   const [availableFarms, setAvailableFarms] = useState<Farm[]>([]);
   const [selectedFarmIdForDetails, setSelectedFarmIdForDetails] = useState<UUID | null>(null);
   const [isLoadingFarmsList, setIsLoadingFarmsList] = useState(true);
   const [farmsListError, setFarmsListError] = useState<string | null>(null);
 
+  // Selection state for UnifiedFarmView
+  const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+  const [selectedRack, setSelectedRack] = useState<Rack | null>(null);
+  const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
+
+  // Selection handlers
+  const handleRowSelect = (row: Row) => {
+    setSelectedRow(row);
+    setSelectedRack(null); // Clear rack selection when row changes
+    setSelectedShelf(null); // Clear shelf selection when row changes
+  };
+
+  const handleRackSelect = (rack: Rack) => {
+    setSelectedRack(rack);
+    setSelectedShelf(null); // Clear shelf selection when rack changes
+  };
+
+  const handleShelfSelect = (shelf: Shelf) => {
+    setSelectedShelf(shelf);
+  };
+
+  // Clear selections when farm changes
+  useEffect(() => {
+    setSelectedRow(null);
+    setSelectedRack(null);
+    setSelectedShelf(null);
+  }, [selectedFarmIdForDetails]);
+
+  // Fetch available farms
   useEffect(() => {
     const fetchAvailableFarms = async () => {
       setIsLoadingFarmsList(true);
       setFarmsListError(null);
       try {
         const response = await getFarms();
-        // Convert Supabase farms to layout farms
         const layoutFarms = response
-          .filter(farm => farm.id) // Filter out farms without ID
+          .filter(farm => farm.id)
           .map(farm => ({
             ...farm,
-            id: farm.id!, // Non-null assertion since we filtered
-            user_id: farm.user_id || farm.id! // Use user_id, fallback to farm.id if missing
+            id: farm.id!,
+            user_id: farm.user_id || farm.id!
           }));
         setAvailableFarms(layoutFarms);
         if (layoutFarms.length > 0) {
           setSelectedFarmIdForDetails(layoutFarms[0].id!);
         } else {
-          // Don't show an error toast - this is normal for new users
           console.log("No farms found for current user - this is normal for new users");
           setIsLoading(false);
         }
@@ -61,6 +86,7 @@ export default function FarmsPage() {
     fetchAvailableFarms();
   }, []);
 
+  // Fetch selected farm data
   useEffect(() => {
     if (!selectedFarmIdForDetails) {
       setFarmPageData(null);
@@ -76,15 +102,57 @@ export default function FarmsPage() {
         if (!farmData) {
           throw new Error('Farm not found');
         }
-        // Transform Supabase response to match expected FarmPageData structure
+
+        // Load complete farm layout data
+        console.log('Loading farm layout data for farm:', farmData.id);
+        const dbRows = await getRowsByFarm(farmData.id!);
+        console.log('Loaded rows:', dbRows.length);
+
+        const rowsWithRacks = await Promise.all(
+          dbRows.map(async (dbRow) => {
+            const dbRacks = await getRacksByRow(dbRow.id);
+            console.log(`Loaded racks for row ${dbRow.id}:`, dbRacks.length);
+
+            const racksWithShelves = await Promise.all(
+              dbRacks.map(async (dbRack) => {
+                const dbShelves = await getShelvesByRack(dbRack.id);
+                console.log(`Loaded shelves for rack ${dbRack.id}:`, dbShelves.length);
+
+                return {
+                  ...dbRack,
+                  shelves: dbShelves.map(shelf => ({
+                    ...shelf,
+                    devices: [] // TODO: Load devices when needed
+                  }))
+                };
+              })
+            );
+
+            return {
+              ...dbRow,
+              orientation: 'horizontal' as const,
+              racks: racksWithShelves
+            };
+          })
+        );
+
         const transformedData: FarmPageData = {
           farm: {
             ...farmData,
             id: farmData.id!,
-            user_id: farmData.user_id || farmData.id!, // Use user_id, fallback to farm.id if missing
-            rows: [] // Empty for now, populate as needed
+            user_id: farmData.user_id || farmData.id!,
+            rows: rowsWithRacks
           }
         };
+
+        console.log('Complete farm layout loaded:', {
+          rows: transformedData.farm.rows?.length || 0,
+          racks: transformedData.farm.rows?.reduce((total, row) => total + (row.racks?.length || 0), 0) || 0,
+          shelves: transformedData.farm.rows?.reduce((total, row) => 
+            total + (row.racks?.reduce((rackTotal, rack) => 
+              rackTotal + (rack.shelves?.length || 0), 0) || 0), 0) || 0
+        });
+
         setFarmPageData(transformedData);
       } catch (err: unknown) {
         console.error("Failed to fetch farm data:", err);
@@ -100,26 +168,66 @@ export default function FarmsPage() {
   }, [selectedFarmIdForDetails]);
 
   const handleFarmCreated = (newFarm: SupabaseFarm) => {
-    // Transform Supabase farm to layout farm with user_id
     const layoutFarm = {
       ...newFarm,
       id: newFarm.id!,
-      user_id: newFarm.user_id || newFarm.id! // Use user_id, fallback to farm.id if missing
+      user_id: newFarm.user_id || newFarm.id!
     };
     
-    // Add the new farm to the list
     setAvailableFarms(prev => [...prev, layoutFarm]);
-    
-    // Select the newly created farm
     setSelectedFarmIdForDetails(newFarm.id!);
-    
-    // Clear any previous errors since we now have farms
     setFarmsListError(null);
   };
 
-  const handleFarmPageDataChange = (newData: FarmPageData) => {
-    setFarmPageData(newData);
-    console.log("Farm data updated in FarmsPage:", newData);
+  const handleDataRefresh = async () => {
+    if (!selectedFarmIdForDetails) return;
+    
+    try {
+      const farmData = await getFarmById(selectedFarmIdForDetails);
+      if (!farmData) {
+        throw new Error('Farm not found');
+      }
+
+      // Load complete farm layout data
+      const dbRows = await getRowsByFarm(farmData.id!);
+      const rowsWithRacks = await Promise.all(
+        dbRows.map(async (dbRow) => {
+          const dbRacks = await getRacksByRow(dbRow.id);
+          const racksWithShelves = await Promise.all(
+            dbRacks.map(async (dbRack) => {
+              const dbShelves = await getShelvesByRack(dbRack.id);
+              return {
+                ...dbRack,
+                shelves: dbShelves.map(shelf => ({
+                  ...shelf,
+                  devices: []
+                }))
+              };
+            })
+          );
+          return {
+            ...dbRow,
+            orientation: 'horizontal' as const,
+            racks: racksWithShelves
+          };
+        })
+      );
+
+      const transformedData: FarmPageData = {
+        farm: {
+          ...farmData,
+          id: farmData.id!,
+          user_id: farmData.user_id || farmData.id!,
+          rows: rowsWithRacks
+        }
+      };
+
+      setFarmPageData(transformedData);
+      console.log("Farm data refreshed successfully");
+    } catch (err) {
+      console.error("Failed to refresh farm data:", err);
+      toast.error("Failed to refresh farm data");
+    }
   };
 
   if (!user) {
@@ -127,19 +235,26 @@ export default function FarmsPage() {
   }
 
   return (
-    <div className="flex-1 p-8 animate-pop">
-      {/* Enhanced Header */}
-      <div className="mb-8 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700 shadow-lg">
+    <div className="flex-1 h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Enhanced Top Bar */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-extrabold text-green-900 dark:text-green-100 drop-shadow-lg">
-              Farm Management
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-              Configure layouts, control devices, and monitor environmental conditions
-            </p>
-          </div>
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <Home className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Farm Management
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Configure, monitor, and control your vertical farming operation
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {/* Farm Selector */}
             {isLoadingFarmsList ? (
               <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
             ) : farmsListError ? (
@@ -162,61 +277,49 @@ export default function FarmsPage() {
                 <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
               </div>
             )}
-            <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            
+            <div className="flex items-center space-x-2">
+              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       {availableFarms.length === 0 ? (
-        <div className="text-center py-20 text-gray-600 dark:text-gray-400">
-          <div className="max-w-md mx-auto">
-            <h2 className="text-xl font-semibold mb-4">Welcome to Farm Management</h2>
-            <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
-            <CreateFarmModal onFarmCreated={handleFarmCreated} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+            <div className="max-w-md mx-auto">
+              <h2 className="text-xl font-semibold mb-4">Welcome to Farm Management</h2>
+              <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
+              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            </div>
           </div>
         </div>
       ) : isLoading ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
+        </div>
       ) : error ? (
-        <div className="text-center py-10 text-red-600 dark:text-red-400">
-          <p>Error loading farm data: {error}</p>
-          <p>Please ensure the backend is running and the farm ID is correct.</p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-10 text-red-600 dark:text-red-400">
+            <p>Error loading farm data: {error}</p>
+            <p>Please ensure the backend is running and the farm ID is correct.</p>
+          </div>
         </div>
       ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="layout" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Layout & Configuration
-            </TabsTrigger>
-            <TabsTrigger value="devices" className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              Devices & Controls
-            </TabsTrigger>
-            <TabsTrigger value="environment" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Environment & Monitoring
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="layout" className="mt-6">
-            <LayoutConfigurationView 
-              farmPageData={farmPageData}
-              editMode={editMode}
-              setEditMode={setEditMode}
-              onFarmPageDataChange={handleFarmPageDataChange}
-            />
-          </TabsContent>
-
-          <TabsContent value="devices" className="mt-6">
-            <DevicesControlsView farmPageData={farmPageData} />
-          </TabsContent>
-
-          <TabsContent value="environment" className="mt-6">
-            <EnvironmentMonitoringView farmPageData={farmPageData} />
-          </TabsContent>
-        </Tabs>
+        <div className="flex-1 flex flex-col">
+          <UnifiedFarmView
+            farmData={farmPageData}
+            selectedRow={selectedRow}
+            selectedRack={selectedRack}
+            selectedShelf={selectedShelf}
+            onRowSelect={handleRowSelect}
+            onRackSelect={handleRackSelect}
+            onShelfSelect={handleShelfSelect}
+            onDataRefresh={handleDataRefresh}
+          />
+        </div>
       )}
     </div>
   );

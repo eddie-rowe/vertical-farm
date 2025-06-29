@@ -38,9 +38,6 @@ const transformShelf = (supabaseShelf: SupabaseShelf): FrontendShelf => ({
   id: supabaseShelf.id,
   name: supabaseShelf.name,
   rack_id: supabaseShelf.rack_id,
-  position_in_rack: supabaseShelf.position || 0,
-  width: supabaseShelf.width || 100,
-  depth: supabaseShelf.depth || 50,
   created_at: supabaseShelf.created_at,
   updated_at: supabaseShelf.updated_at
 });
@@ -52,10 +49,6 @@ const transformRack = (supabaseRack: SupabaseRack): FrontendRack => ({
   id: supabaseRack.id,
   name: supabaseRack.name,
   row_id: supabaseRack.row_id,
-  position_in_row: supabaseRack.position || 0,
-  width: 200, // Default width
-  depth: 100, // Default depth
-  height: 180, // Default height
   shelves: supabaseRack.shelves?.map(transformShelf) || [],
   created_at: supabaseRack.created_at,
   updated_at: supabaseRack.updated_at
@@ -68,9 +61,6 @@ const transformRow = (supabaseRow: SupabaseRow): FrontendRow => ({
   id: supabaseRow.id,
   name: supabaseRow.name,
   farm_id: supabaseRow.farm_id,
-  position_x: supabaseRow.position || 0,
-  position_y: 0, // Default Y position
-  length: 500, // Default length
   orientation: 'horizontal' as const,
   racks: supabaseRow.racks?.map(transformRack) || [],
   created_at: supabaseRow.created_at,
@@ -83,11 +73,9 @@ const transformRow = (supabaseRow: SupabaseRow): FrontendRow => ({
 const transformFarm = (supabaseFarm: SupabaseFarm): FrontendFarm => ({
   id: supabaseFarm.id,
   name: supabaseFarm.name,
-        user_id: supabaseFarm.user_id || supabaseFarm.id,
+  user_id: supabaseFarm.user_id || supabaseFarm.id,
   location: supabaseFarm.location,
   plan_image_url: supabaseFarm.plan_image_url,
-  width: supabaseFarm.width,
-  depth: supabaseFarm.depth,
   created_at: supabaseFarm.created_at,
   updated_at: supabaseFarm.updated_at
 });
