@@ -38,10 +38,14 @@ from app.models.home_assistant import (
     HomeAssistantTestConnectionRequest,
     HomeAssistantTestConnectionResponse,
     UserDeviceConfigRequest,
-    UserDeviceConfigResponse
+    UserDeviceConfigResponse,
+    DeviceImportRequest,
+    ImportedDeviceResponse,
+    ImportDevicesResponse,
+    ImportedDeviceListResponse,
+    ImportedDeviceUpdateRequest
 )
 from app.db.supabase_client import get_async_supabase_client, get_async_rls_client
-# from app.services.database_service import get_database  # Removed - using Supabase now
 from app.core.security import get_current_active_user as get_current_user
 from app.services.error_handling import (
     global_error_handler,
@@ -235,6 +239,112 @@ async def get_all_devices(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve devices"
+        )
+
+
+# Device Import Endpoints (Must be before /devices/{entity_id} to avoid routing conflicts)
+
+@router.post(
+    "/devices/import",
+    response_model=ImportDevicesResponse,
+    summary="Import Devices to User Library",
+    description="Import discovered Home Assistant devices to the user's device library for later assignment"
+)
+async def import_devices_endpoint(
+    request: DeviceImportRequest,
+    current_user = Depends(get_current_user),
+    ha_service: UserHomeAssistantService = Depends(get_user_home_assistant_service),
+    db = Depends(get_async_rls_client)
+) -> ImportDevicesResponse:
+    """Import devices to user's device library"""
+    try:
+        user_id = str(current_user.id)
+        imported_count = 0
+        updated_count = 0
+        skipped_count = 0
+        errors = []
+        imported_devices = []
+        
+        for entity_id in request.entity_ids:
+            try:
+                # Get device details from Home Assistant
+                device = await ha_service.get_user_device(user_id, entity_id)
+                if not device:
+                    errors.append(f"Device {entity_id} not found in Home Assistant")
+                    skipped_count += 1
+                    continue
+                
+                # Prepare device data for import
+                device_name = device.get("attributes", {}).get("friendly_name") or device.get("name") or entity_id
+                device_type = entity_id.split(".")[0] if "." in entity_id else "unknown"
+                
+                device_data = {
+                    "user_id": user_id,
+                    "entity_id": entity_id,
+                    "name": device_name,
+                    "device_type": device_type,
+                    "state": device.get("state", "unknown"),
+                    "attributes": device.get("attributes", {}),
+                    "is_assigned": False,
+                    "last_seen": datetime.now().isoformat(),
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                # Import or update device
+                if request.update_existing:
+                    result = await db.table("home_assistant_devices").upsert(
+                        device_data,
+                        on_conflict="user_id,entity_id"
+                    ).execute()
+                    
+                    if result.data:
+                        imported_count += 1
+                else:
+                    # Only insert if doesn't exist
+                    existing = await db.table("home_assistant_devices").select("id").eq("user_id", user_id).eq("entity_id", entity_id).execute()
+                    if existing.data:
+                        skipped_count += 1
+                        continue
+                    
+                    result = await db.table("home_assistant_devices").insert(device_data).execute()
+                    imported_count += 1
+                
+                if result.data:
+                    device_record = result.data[0]
+                    imported_device = ImportedDeviceResponse(
+                        id=device_record["id"],
+                        entity_id=device_record["entity_id"],
+                        name=device_record["name"],
+                        device_type=device_record["device_type"],
+                        state=device_record.get("state"),
+                        attributes=device_record.get("attributes", {}),
+                        is_assigned=device_record.get("is_assigned", False),
+                        last_seen=device_record["last_seen"],
+                        created_at=device_record["created_at"],
+                        updated_at=device_record["updated_at"]
+                    )
+                    imported_devices.append(imported_device)
+                else:
+                    errors.append(f"Failed to save device {entity_id} to database")
+            except Exception as e:
+                logger.error(f"Failed to import device {entity_id}: {e}")
+                errors.append(f"Failed to import {entity_id}: {str(e)}")
+                skipped_count += 1
+        
+        return ImportDevicesResponse(
+            success=len(errors) == 0 or (imported_count + updated_count) > 0,
+            imported_count=imported_count,
+            updated_count=updated_count,
+            skipped_count=skipped_count,
+            errors=errors,
+            imported_devices=imported_devices
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to import devices: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to import devices: {str(e)}"
         )
 
 
@@ -599,6 +709,165 @@ async def call_service(
         )
 
 
+
+
+
+@router.get(
+    "/devices/imported",
+    response_model=ImportedDeviceListResponse,
+    summary="Get Imported Devices",
+    description="Get all devices imported to the user's device library"
+)
+async def get_imported_devices(
+    device_type: Optional[str] = Query(None, description="Filter by device type"),
+    assigned: Optional[bool] = Query(None, description="Filter by assignment status"),
+    current_user = Depends(get_current_user),
+    db = Depends(get_async_rls_client)
+) -> ImportedDeviceListResponse:
+    """Get user's imported devices"""
+    try:
+        user_id = str(current_user.id)
+        
+        # Build query
+        query = db.table("home_assistant_devices").select("*").eq("user_id", user_id)
+        
+        # Apply filters
+        if device_type:
+            query = query.eq("device_type", device_type)
+        if assigned is not None:
+            query = query.eq("is_assigned", assigned)
+        
+        # Execute query
+        result = await query.order("created_at", desc=True).execute()
+        
+        if not result.data:
+            result.data = []
+        
+        # Convert to response models
+        devices = []
+        assigned_count = 0
+        for device_data in result.data:
+            device = ImportedDeviceResponse(
+                id=device_data["id"],
+                entity_id=device_data["entity_id"],
+                name=device_data["name"],
+                device_type=device_data["device_type"],
+                state=device_data.get("state"),
+                attributes=device_data.get("attributes", {}),
+                is_assigned=device_data.get("is_assigned", False),
+                last_seen=device_data["last_seen"],
+                created_at=device_data["created_at"],
+                updated_at=device_data["updated_at"]
+            )
+            devices.append(device)
+            if device.is_assigned:
+                assigned_count += 1
+        
+        return ImportedDeviceListResponse(
+            devices=devices,
+            total_count=len(devices),
+            assigned_count=assigned_count,
+            unassigned_count=len(devices) - assigned_count
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get imported devices: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get imported devices: {str(e)}"
+        )
+
+
+@router.put(
+    "/devices/imported/{entity_id}",
+    response_model=ImportedDeviceResponse,
+    summary="Update Imported Device",
+    description="Update information for an imported device"
+)
+async def update_imported_device(
+    entity_id: str,
+    request: ImportedDeviceUpdateRequest,
+    current_user = Depends(get_current_user),
+    db = Depends(get_async_rls_client)
+) -> ImportedDeviceResponse:
+    """Update imported device information"""
+    try:
+        user_id = str(current_user.id)
+        
+        # Prepare update data
+        update_data = {"updated_at": datetime.now().isoformat()}
+        if request.name is not None:
+            update_data["name"] = request.name
+        if request.device_type is not None:
+            update_data["device_type"] = request.device_type
+        
+        # Update device
+        result = await db.table("home_assistant_devices").update(update_data).eq("user_id", user_id).eq("entity_id", entity_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Imported device not found")
+        
+        device_data = result.data[0]
+        return ImportedDeviceResponse(
+            id=device_data["id"],
+            entity_id=device_data["entity_id"],
+            name=device_data["name"],
+            device_type=device_data["device_type"],
+            state=device_data.get("state"),
+            attributes=device_data.get("attributes", {}),
+            is_assigned=device_data.get("is_assigned", False),
+            last_seen=device_data["last_seen"],
+            created_at=device_data["created_at"],
+            updated_at=device_data["updated_at"]
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update imported device {entity_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update imported device: {str(e)}"
+        )
+
+
+@router.delete(
+    "/devices/imported/{entity_id}",
+    summary="Remove Imported Device",
+    description="Remove a device from the user's imported device library"
+)
+async def remove_imported_device(
+    entity_id: str,
+    current_user = Depends(get_current_user),
+    db = Depends(get_async_rls_client)
+):
+    """Remove device from user's imported library"""
+    try:
+        user_id = str(current_user.id)
+        
+        # Delete device
+        result = await db.table("home_assistant_devices").delete().eq("user_id", user_id).eq("entity_id", entity_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Imported device not found")
+        
+        return {
+            "success": True,
+            "message": f"Device {entity_id} removed from imported library"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to remove imported device {entity_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to remove imported device: {str(e)}"
+        )
+
+
+# Device Assignment Endpoints
+
 # Note: Exception handlers are not available on APIRouter, they need to be added to the main FastAPI app
 
 
@@ -620,7 +889,7 @@ async def assign_device_to_location(
             )
         
         # First verify the device exists in Home Assistant
-        device = await ha_service.get_device(entity_id)
+        device = await ha_service.get_user_device(str(current_user.id), entity_id)
         if not device:
             raise HTTPException(status_code=404, detail="Device not found in Home Assistant")
         
@@ -647,6 +916,22 @@ async def assign_device_to_location(
             raise HTTPException(status_code=500, detail="Failed to store device assignment")
         
         assignment_record = result.data[0]
+        
+        # Also mark the device as assigned in home_assistant_devices table if it exists
+        try:
+            await db.table("home_assistant_devices").update({
+                "is_assigned": True,
+                "farm_location": {
+                    "farm_id": assignment.farm_id,
+                    "row_id": assignment.row_id,
+                    "rack_id": assignment.rack_id,
+                    "shelf_id": assignment.shelf_id
+                },
+                "updated_at": datetime.now().isoformat()
+            }).eq("user_id", str(current_user.id)).eq("entity_id", entity_id).execute()
+        except Exception as e:
+            # Don't fail the assignment if updating imported device fails
+            logger.warning(f"Failed to update imported device assignment status: {e}")
         
         return {
             "success": True,
@@ -725,6 +1010,17 @@ async def remove_device_assignment(
         
         if not result.data:
             raise HTTPException(status_code=404, detail="Device assignment not found")
+        
+        # Also mark the device as unassigned in home_assistant_devices table if it exists
+        try:
+            await db.table("home_assistant_devices").update({
+                "is_assigned": False,
+                "farm_location": None,
+                "updated_at": datetime.now().isoformat()
+            }).eq("user_id", str(current_user.id)).eq("entity_id", entity_id).execute()
+        except Exception as e:
+            # Don't fail the unassignment if updating imported device fails
+            logger.warning(f"Failed to update imported device unassignment status: {e}")
             
         return {
             "success": True,
@@ -762,7 +1058,7 @@ async def get_farm_assigned_devices(
         for assignment in assignments:
             entity_id = assignment["entity_id"]
             try:
-                device_state = await ha_service.get_device(entity_id)
+                device_state = await ha_service.get_user_device(str(current_user.id), entity_id)
                 devices_with_states.append({
                     **assignment,
                     "current_state": device_state
@@ -1021,7 +1317,7 @@ async def update_user_config(
             "cloudflare_client_id": config_request.cloudflare_client_id,
             "cloudflare_client_secret": config_request.cloudflare_client_secret,
             "is_default": config_request.is_default,
-            "updated_at": "NOW()"
+            "updated_at": datetime.now().isoformat()
         }
         
         # Update configuration

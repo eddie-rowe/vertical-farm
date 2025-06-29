@@ -6,7 +6,7 @@ export type UUID = string; // Using string for UUIDs on the frontend for simplic
 
 export interface SensorDevice {
   id: UUID;
-  name: string;
+  name?: string;
   model_number?: string | null;
   sensor_type: 'temperature' | 'humidity' | 'co2' | 'ph' | 'ec' | 'water_level' | 'light_intensity' | 'air_flow' | 'soil_moisture';
   measurement_unit?: string | null;
@@ -15,21 +15,14 @@ export interface SensorDevice {
   accuracy?: string | null;
   parent_type: 'shelf' | 'rack' | 'row' | 'farm';
   parent_id: UUID;
-  position_x?: number | null;
-  position_y?: number | null;
-  position_z?: number | null;
   created_at?: string | null; 
   updated_at?: string | null; 
 }
 
 export interface Shelf {
   id: UUID;
-  name: string;
+  name?: string;
   rack_id: UUID;
-  position_in_rack?: number;
-  width?: number;
-  depth?: number;
-  max_weight?: number | null;
   devices?: SensorDevice[]; 
   created_at?: string | null; 
   updated_at?: string | null; 
@@ -37,13 +30,8 @@ export interface Shelf {
 
 export interface Rack {
   id: UUID;
-  name: string;
+  name?: string;
   row_id: UUID;
-  position_in_row?: number;
-  width?: number;
-  depth?: number;
-  height?: number;
-  max_shelves?: number | null;
   shelves?: Shelf[]; 
   created_at?: string | null; 
   updated_at?: string | null; 
@@ -51,11 +39,8 @@ export interface Rack {
 
 export interface Row {
   id: UUID;
-  name: string;
+  name?: string;
   farm_id: UUID;
-  position_x?: number;
-  position_y?: number;
-  length?: number;
   orientation: 'horizontal' | 'vertical';
   racks?: Rack[]; 
   created_at?: string | null; 
@@ -68,8 +53,6 @@ export interface Farm {
   user_id: UUID; // Farm user ID (changed from manager_id)
   location?: string | null;
   plan_image_url?: string | null;
-  width?: number | null;
-  depth?: number | null;
   rows?: Row[];
   created_at?: string | null; 
   updated_at?: string | null; 

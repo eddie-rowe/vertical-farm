@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,47 +14,36 @@ import {
   DollarSign,
   FileText,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
-
-// Mock orders and invoices data
-const orders = [
-  {
-    id: "ORD-001",
-    invoiceId: "INV-001",
-    customer: "Fresh Market Co.",
-    date: "2024-01-15",
-    dueDate: "2024-01-29",
-    status: "Delivered",
-    paymentStatus: "Paid",
-    amount: 485.00,
-    items: [
-      { product: "Organic Lettuce", quantity: 24, unit: "heads", price: 3.50 },
-      { product: "Fresh Basil", quantity: 12, unit: "bunches", price: 4.25 }
-    ],
-    squareInvoiceId: "gVJl-HnwLFUW7-ZNevGkFQ",
-    createdAt: "2024-01-10"
-  },
-  {
-    id: "ORD-002",
-    invoiceId: "INV-002",
-    customer: "Garden Bistro",
-    date: "2024-01-14",
-    dueDate: "2024-01-28",
-    status: "Ready",
-    paymentStatus: "Pending",
-    amount: 234.00,
-    items: [
-      { product: "Herb Mix", quantity: 16, unit: "bunches", price: 3.75 }
-    ],
-    squareInvoiceId: "aVKm-InxMGVX8-AOcvHlGR",
-    createdAt: "2024-01-09"
-  }
-];
+import { businessManagementService, BusinessOrder } from "@/services/businessManagementService";
 
 export default function OrdersInvoicesView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [orders, setOrders] = useState<BusinessOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedOrders = await businessManagementService.getOrders(30);
+      setOrders(fetchedOrders);
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders from Square. Please check your Square integration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,9 +77,18 @@ export default function OrdersInvoicesView() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Orders & Invoices</h2>
-          <p className="text-gray-600 dark:text-gray-400">Manage orders and track payments with Square</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage orders and track payments with Square ({orders.length} orders loaded)</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={fetchOrders}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
           <Button variant="outline" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Create Invoice
@@ -181,9 +179,45 @@ export default function OrdersInvoicesView() {
         </select>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+              <AlertCircle className="h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600 dark:text-gray-400">Loading orders from Square...</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Orders List */}
-      <div className="space-y-4">
-        {filteredOrders.map((order) => (
+      {!loading && (
+        <div className="space-y-4">
+          {filteredOrders.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Orders Found</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {orders.length === 0 
+                    ? "No orders available in your Square account." 
+                    : "No orders match your current filters."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredOrders.map((order) => (
           <Card key={order.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex justify-between items-start">
@@ -224,8 +258,10 @@ export default function OrdersInvoicesView() {
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 } 

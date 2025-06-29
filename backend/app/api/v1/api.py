@@ -5,6 +5,7 @@ from app.api.v1.endpoints import (
     home_assistant,  # Only remaining endpoint after migration
     supabase_background_tasks,  # Supabase-based background tasks
     farm_automation,  # Farm automation background tasks
+    square,  # Square payment integration
 )
 from app.api.v1 import sensors_cached  # Cached sensor data endpoints
 
@@ -25,5 +26,8 @@ api_router.include_router(sensors_cached.router, prefix="/sensors-cached", tags=
 
 # Farm automation endpoints - Background task management for farm operations
 api_router.include_router(farm_automation.router, prefix="/farm-automation", tags=["Farm Automation"])
+
+# Square payment integration endpoints
+api_router.include_router(square.router, prefix="/square", tags=["Square Integration"])
 
 # Add other v1 routers here as needed

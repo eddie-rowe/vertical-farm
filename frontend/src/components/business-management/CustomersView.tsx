@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { businessManagementService, BusinessCustomer } from "@/services/businessManagementService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,75 +19,35 @@ import {
   Eye
 } from "lucide-react";
 
-// Mock customer data
-const customers = [
-  {
-    id: 1,
-    name: "Fresh Market Co.",
-    email: "orders@freshmarket.com",
-    phone: "(555) 123-4567",
-    address: "123 Market St, Green Valley, CA 90210",
-    type: "Wholesale",
-    status: "Active",
-    totalOrders: 24,
-    totalSpent: 4850.00,
-    lastOrder: "2024-01-15",
-    preferredProducts: ["Lettuce", "Basil", "Microgreens"],
-    notes: "Regular weekly orders, prefers organic certification"
-  },
-  {
-    id: 2,
-    name: "Garden Bistro",
-    email: "chef@gardenbistro.com",
-    phone: "(555) 234-5678",
-    address: "456 Culinary Ave, Food City, CA 90211",
-    type: "Restaurant",
-    status: "Active",
-    totalOrders: 18,
-    totalSpent: 2340.00,
-    lastOrder: "2024-01-14",
-    preferredProducts: ["Herbs", "Leafy Greens"],
-    notes: "Seasonal menu focus, requests custom herb blends"
-  },
-  {
-    id: 3,
-    name: "Green Thumb CSA",
-    email: "coordinator@greenthumb.org",
-    phone: "(555) 345-6789",
-    address: "789 Community Rd, Organic Hills, CA 90212",
-    type: "CSA",
-    status: "Active",
-    totalOrders: 12,
-    totalSpent: 1800.00,
-    lastOrder: "2024-01-12",
-    preferredProducts: ["Mixed Greens", "Herbs"],
-    notes: "Community supported agriculture, weekly deliveries"
-  },
-  {
-    id: 4,
-    name: "Urban Eats Store",
-    email: "purchasing@urbaneats.com",
-    phone: "(555) 456-7890",
-    address: "321 Urban Blvd, Metro City, CA 90213",
-    type: "Retail",
-    status: "Inactive",
-    totalOrders: 8,
-    totalSpent: 920.00,
-    lastOrder: "2023-12-20",
-    preferredProducts: ["Packaged Salads"],
-    notes: "Seasonal customer, typically orders spring through fall"
-  }
-];
-
 export default function CustomersView() {
+  const [customers, setCustomers] = useState<BusinessCustomer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  // const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await businessManagementService.getCustomers(50);
+      setCustomers(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load customers');
+      console.error('Error loading customers:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || customer.status.toLowerCase() === statusFilter;
     const matchesType = typeFilter === "all" || customer.type.toLowerCase() === typeFilter;
     
@@ -240,7 +201,7 @@ export default function CustomersView() {
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Mail className="h-4 w-4" />
-                <span>{customer.email}</span>
+                <span>{customer.email || 'No email provided'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Phone className="h-4 w-4" />
@@ -265,7 +226,7 @@ export default function CustomersView() {
                 <div className="mt-2">
                   <p className="text-gray-600 dark:text-gray-400 text-sm">Last Order</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {new Date(customer.lastOrder).toLocaleDateString()}
+                    {customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'No orders yet'}
                   </p>
                 </div>
               </div>

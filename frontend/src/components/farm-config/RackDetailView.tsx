@@ -66,10 +66,6 @@ export default function RackDetailView({
         entity: {
           rack_id: internalRackData.id,
           name: "New Shelf",
-          position_in_rack: (internalRackData.shelves?.length || 0) + 1,
-          width: internalRackData.width, // Default to rack width
-          depth: internalRackData.depth, // Default to rack depth
-          max_weight: 20, // Default max weight
         },
         isNew: true,
       });
@@ -79,10 +75,6 @@ export default function RackDetailView({
         id: shelf.id,
         rack_id: shelf.rack_id,
         name: shelf.name,
-        position_in_rack: shelf.position_in_rack,
-        width: shelf.width,
-        depth: shelf.depth,
-        max_weight: shelf.max_weight,
       };
       setShelfModal({ entity: shelfFormData, isNew: false });
     } else {
@@ -188,9 +180,6 @@ export default function RackDetailView({
         </CardHeader>
         <CardContent>
           <p><span className="font-medium">ID:</span> {internalRackData.id}</p>
-          <p><span className="font-medium">Position in Row:</span> {internalRackData.position_in_row}</p>
-          <p><span className="font-medium">Dimensions:</span> {internalRackData.width}W x {internalRackData.depth}D x {internalRackData.height}H</p>
-          <p><span className="font-medium">Max Shelves:</span> {internalRackData.max_shelves || 'N/A'}</p>
           <p><span className="font-medium">Total Shelves:</span> {internalRackData.shelves?.length || 0}</p>
         </CardContent>
       </Card>
@@ -210,7 +199,7 @@ export default function RackDetailView({
               {internalRackData.shelves.map((shelf) => (
                 <li key={shelf.id} className="p-3 border rounded-md bg-slate-50 dark:bg-slate-800 shadow-sm">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{shelf.name} (Pos: {shelf.position_in_rack})</span>
+                    <span className="font-medium">{shelf.name}</span>
                     {editMode && (
                       <div className="flex space-x-2">
                         <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => openShelfModal(shelf)}>
@@ -222,7 +211,7 @@ export default function RackDetailView({
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Dims: {shelf.width}W x {shelf.depth}D, Max Weight: {shelf.max_weight || 'N/A'}kg</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Shelf ID: {shelf.id}</p>
                   {/* Devices/Sensors display can be added here later */}
                 </li>
               ))}

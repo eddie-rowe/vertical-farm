@@ -373,4 +373,58 @@ class UserDeviceConfigResponse(BaseModel):
     is_favorite: bool = Field(..., description="Whether this is a favorite device")
     custom_settings: Dict[str, Any] = Field(..., description="Custom device settings")
     created_at: datetime = Field(..., description="When device config was created")
-    updated_at: datetime = Field(..., description="When device config was last updated") 
+    updated_at: datetime = Field(..., description="When device config was last updated")
+
+
+class DeviceImportRequest(BaseModel):
+    """Request model for importing devices to user's device library"""
+    model_config = ConfigDict()
+    
+    entity_ids: List[str] = Field(..., description="List of entity IDs to import")
+    update_existing: bool = Field(default=True, description="Whether to update existing imported devices")
+
+
+class ImportedDeviceResponse(BaseModel):
+    """Response model for imported device information"""
+    model_config = ConfigDict()
+    
+    id: int = Field(..., description="Internal device ID")
+    entity_id: str = Field(..., description="Home Assistant entity ID")
+    name: str = Field(..., description="Device name")
+    device_type: str = Field(..., description="Device type (light, switch, sensor, etc.)")
+    state: Optional[str] = Field(None, description="Current device state")
+    attributes: Dict[str, Any] = Field(default_factory=dict, description="Device attributes")
+    is_assigned: bool = Field(default=False, description="Whether device is assigned to a farm location")
+    last_seen: datetime = Field(..., description="When device was last seen")
+    created_at: datetime = Field(..., description="When device was imported")
+    updated_at: datetime = Field(..., description="When device info was last updated")
+
+
+class ImportDevicesResponse(BaseModel):
+    """Response model for device import operation"""
+    model_config = ConfigDict()
+    
+    success: bool = Field(..., description="Whether the import was successful")
+    imported_count: int = Field(..., description="Number of devices imported")
+    updated_count: int = Field(..., description="Number of existing devices updated")
+    skipped_count: int = Field(..., description="Number of devices skipped")
+    errors: List[str] = Field(default_factory=list, description="Any errors that occurred")
+    imported_devices: List[ImportedDeviceResponse] = Field(default_factory=list, description="Details of imported devices")
+
+
+class ImportedDeviceListResponse(BaseModel):
+    """Response model for listing imported devices"""
+    model_config = ConfigDict()
+    
+    devices: List[ImportedDeviceResponse] = Field(..., description="List of imported devices")
+    total_count: int = Field(..., description="Total number of imported devices")
+    assigned_count: int = Field(..., description="Number of assigned devices")
+    unassigned_count: int = Field(..., description="Number of unassigned devices")
+
+
+class ImportedDeviceUpdateRequest(BaseModel):
+    """Request model for updating imported device information"""
+    model_config = ConfigDict()
+    
+    name: Optional[str] = Field(None, description="Updated device name")
+    device_type: Optional[str] = Field(None, description="Updated device type") 

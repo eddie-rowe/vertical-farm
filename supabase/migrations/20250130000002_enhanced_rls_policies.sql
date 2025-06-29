@@ -14,15 +14,21 @@ DROP POLICY IF EXISTS "Admins can manage all profiles" ON public.user_profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.user_profiles;
 
 -- Enhanced user profile policies
+DROP POLICY IF EXISTS "users_select_own_profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "users_select_own_profile" ON public.user_profiles;
 CREATE POLICY "users_select_own_profile" ON public.user_profiles
   FOR SELECT 
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "users_update_own_profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "users_update_own_profile" ON public.user_profiles;
 CREATE POLICY "users_update_own_profile" ON public.user_profiles
   FOR UPDATE 
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "admins_full_access_profiles" ON public.user_profiles;
+DROP POLICY IF EXISTS "admins_full_access_profiles" ON public.user_profiles;
 CREATE POLICY "admins_full_access_profiles" ON public.user_profiles
   FOR ALL 
   USING (
@@ -33,6 +39,8 @@ CREATE POLICY "admins_full_access_profiles" ON public.user_profiles
   );
 
 -- New users can insert their own profile during registration
+DROP POLICY IF EXISTS "users_insert_own_profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "users_insert_own_profile" ON public.user_profiles;
 CREATE POLICY "users_insert_own_profile" ON public.user_profiles
   FOR INSERT 
   WITH CHECK (auth.uid() = id);
@@ -48,24 +56,34 @@ ALTER TABLE public.user_home_assistant_configs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own HA configs" ON public.user_home_assistant_configs;
 
 -- Enhanced Home Assistant config policies
+DROP POLICY IF EXISTS "ha_configs_select_own" ON public.user_home_assistant_configs;
+DROP POLICY IF EXISTS "ha_configs_select_own" ON public.user_home_assistant_configs;
 CREATE POLICY "ha_configs_select_own" ON public.user_home_assistant_configs
   FOR SELECT 
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "ha_configs_insert_own" ON public.user_home_assistant_configs;
+DROP POLICY IF EXISTS "ha_configs_insert_own" ON public.user_home_assistant_configs;
 CREATE POLICY "ha_configs_insert_own" ON public.user_home_assistant_configs
   FOR INSERT 
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "ha_configs_update_own" ON public.user_home_assistant_configs;
+DROP POLICY IF EXISTS "ha_configs_update_own" ON public.user_home_assistant_configs;
 CREATE POLICY "ha_configs_update_own" ON public.user_home_assistant_configs
   FOR UPDATE 
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "ha_configs_delete_own" ON public.user_home_assistant_configs;
+DROP POLICY IF EXISTS "ha_configs_delete_own" ON public.user_home_assistant_configs;
 CREATE POLICY "ha_configs_delete_own" ON public.user_home_assistant_configs
   FOR DELETE 
   USING (user_id = auth.uid());
 
 -- Admins can view all HA configs for troubleshooting
+DROP POLICY IF EXISTS "admins_view_all_ha_configs" ON public.user_home_assistant_configs;
+DROP POLICY IF EXISTS "admins_view_all_ha_configs" ON public.user_home_assistant_configs;
 CREATE POLICY "admins_view_all_ha_configs" ON public.user_home_assistant_configs
   FOR SELECT 
   USING (
@@ -83,6 +101,7 @@ CREATE POLICY "admins_view_all_ha_configs" ON public.user_home_assistant_configs
 DROP POLICY IF EXISTS "Users can manage their own device configs" ON public.user_device_configs;
 
 -- Enhanced device config policies (access through user_home_assistant_configs)
+DROP POLICY IF EXISTS "device_configs_select_own" ON public.user_device_configs;
 CREATE POLICY "device_configs_select_own" ON public.user_device_configs
   FOR SELECT 
   USING (
@@ -93,6 +112,7 @@ CREATE POLICY "device_configs_select_own" ON public.user_device_configs
     )
   );
 
+DROP POLICY IF EXISTS "device_configs_insert_own" ON public.user_device_configs;
 CREATE POLICY "device_configs_insert_own" ON public.user_device_configs
   FOR INSERT 
   WITH CHECK (
@@ -103,6 +123,7 @@ CREATE POLICY "device_configs_insert_own" ON public.user_device_configs
     )
   );
 
+DROP POLICY IF EXISTS "device_configs_update_own" ON public.user_device_configs;
 CREATE POLICY "device_configs_update_own" ON public.user_device_configs
   FOR UPDATE 
   USING (
@@ -120,6 +141,7 @@ CREATE POLICY "device_configs_update_own" ON public.user_device_configs
     )
   );
 
+DROP POLICY IF EXISTS "device_configs_delete_own" ON public.user_device_configs;
 CREATE POLICY "device_configs_delete_own" ON public.user_device_configs
   FOR DELETE 
   USING (
@@ -138,15 +160,18 @@ CREATE POLICY "device_configs_delete_own" ON public.user_device_configs
 ALTER TABLE public.farms ENABLE ROW LEVEL SECURITY;
 
 -- Farm access policies (farm managers and assigned users can access)
+DROP POLICY IF EXISTS "farms_manager_access" ON public.farms;
 CREATE POLICY "farms_manager_access" ON public.farms
   FOR ALL 
-  USING (manager_id = auth.uid());
+  USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "farms_public_read" ON public.farms;
 CREATE POLICY "farms_public_read" ON public.farms
   FOR SELECT 
   USING (true); -- Allow reading farm list for assignment purposes
 
 -- Admins have full access to all farms
+DROP POLICY IF EXISTS "admins_full_access_farms" ON public.farms;
 CREATE POLICY "admins_full_access_farms" ON public.farms
   FOR ALL 
   USING (
@@ -160,6 +185,7 @@ CREATE POLICY "admins_full_access_farms" ON public.farms
 ALTER TABLE public.rows ENABLE ROW LEVEL SECURITY;
 
 -- Row access based on farm access
+DROP POLICY IF EXISTS "rows_farm_based_access" ON public.rows;
 CREATE POLICY "rows_farm_based_access" ON public.rows
   FOR ALL 
   USING (
@@ -167,7 +193,7 @@ CREATE POLICY "rows_farm_based_access" ON public.rows
       SELECT 1 FROM public.farms 
       WHERE id = rows.farm_id 
       AND (
-        manager_id = auth.uid() OR
+        user_id = auth.uid() OR
         EXISTS (
           SELECT 1 FROM public.user_profiles 
           WHERE id = auth.uid() AND role = 'admin'
@@ -180,6 +206,7 @@ CREATE POLICY "rows_farm_based_access" ON public.rows
 ALTER TABLE public.racks ENABLE ROW LEVEL SECURITY;
 
 -- Rack access based on row/farm access
+DROP POLICY IF EXISTS "racks_farm_based_access" ON public.racks;
 CREATE POLICY "racks_farm_based_access" ON public.racks
   FOR ALL 
   USING (
@@ -188,7 +215,7 @@ CREATE POLICY "racks_farm_based_access" ON public.racks
       JOIN public.farms f ON r.farm_id = f.id
       WHERE r.id = racks.row_id 
       AND (
-        f.manager_id = auth.uid() OR
+        f.user_id = auth.uid() OR
         EXISTS (
           SELECT 1 FROM public.user_profiles 
           WHERE id = auth.uid() AND role = 'admin'
@@ -201,6 +228,7 @@ CREATE POLICY "racks_farm_based_access" ON public.racks
 ALTER TABLE public.shelves ENABLE ROW LEVEL SECURITY;
 
 -- Shelf access based on rack/row/farm access
+DROP POLICY IF EXISTS "shelves_farm_based_access" ON public.shelves;
 CREATE POLICY "shelves_farm_based_access" ON public.shelves
   FOR ALL 
   USING (
@@ -210,7 +238,7 @@ CREATE POLICY "shelves_farm_based_access" ON public.shelves
       JOIN public.farms f ON r.farm_id = f.id
       WHERE ra.id = shelves.rack_id 
       AND (
-        f.manager_id = auth.uid() OR
+        f.user_id = auth.uid() OR
         EXISTS (
           SELECT 1 FROM public.user_profiles 
           WHERE id = auth.uid() AND role = 'admin'
@@ -227,6 +255,7 @@ CREATE POLICY "shelves_farm_based_access" ON public.shelves
 ALTER TABLE public.device_assignments ENABLE ROW LEVEL SECURITY;
 
 -- Device assignment access based on hierarchy
+DROP POLICY IF EXISTS "device_assignments_hierarchy_access" ON public.device_assignments;
 CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
   FOR ALL 
   USING (
@@ -236,7 +265,7 @@ CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
       EXISTS (
         SELECT 1 FROM public.farms 
         WHERE id = device_assignments.farm_id 
-        AND manager_id = auth.uid()
+        AND user_id = auth.uid()
       )
     ) OR
     (
@@ -245,7 +274,7 @@ CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
         SELECT 1 FROM public.rows r
         JOIN public.farms f ON r.farm_id = f.id
         WHERE r.id = device_assignments.row_id 
-        AND f.manager_id = auth.uid()
+        AND f.user_id = auth.uid()
       )
     ) OR
     (
@@ -255,7 +284,7 @@ CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
         JOIN public.rows r ON ra.row_id = r.id
         JOIN public.farms f ON r.farm_id = f.id
         WHERE ra.id = device_assignments.rack_id 
-        AND f.manager_id = auth.uid()
+        AND f.user_id = auth.uid()
       )
     ) OR
     (
@@ -266,7 +295,7 @@ CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
         JOIN public.rows r ON ra.row_id = r.id
         JOIN public.farms f ON r.farm_id = f.id
         WHERE s.id = device_assignments.shelf_id 
-        AND f.manager_id = auth.uid()
+        AND f.user_id = auth.uid()
       )
     ) OR
     -- Admin access
@@ -281,6 +310,7 @@ CREATE POLICY "device_assignments_hierarchy_access" ON public.device_assignments
 -- =====================================================
 
 -- Function to check user permissions for debugging
+DROP FUNCTION IF EXISTS public.check_user_permissions(text);
 CREATE OR REPLACE FUNCTION public.check_user_permissions(target_table_name text)
 RETURNS TABLE (
   user_id uuid,
@@ -316,6 +346,7 @@ GRANT EXECUTE ON FUNCTION public.check_user_permissions(text) TO authenticated;
 -- =====================================================
 
 -- View to monitor RLS policy usage
+DROP VIEW IF EXISTS public.security_audit_view;
 CREATE OR REPLACE VIEW public.security_audit_view AS
 SELECT 
   current_timestamp as audit_time,
@@ -333,6 +364,7 @@ GRANT SELECT ON public.security_audit_view TO authenticated;
 -- =====================================================
 
 -- Function to check if user can access a specific farm
+DROP FUNCTION IF EXISTS public.user_can_access_farm(uuid);
 CREATE OR REPLACE FUNCTION public.user_can_access_farm(farm_uuid uuid)
 RETURNS boolean
 SECURITY DEFINER
@@ -344,7 +376,7 @@ BEGIN
     LEFT JOIN public.user_profiles up ON up.id = auth.uid()
     WHERE f.id = farm_uuid
     AND (
-      f.manager_id = auth.uid() OR
+      f.user_id = auth.uid() OR
       up.role = 'admin'
     )
   );
@@ -355,6 +387,7 @@ $$ LANGUAGE plpgsql;
 GRANT EXECUTE ON FUNCTION public.user_can_access_farm(uuid) TO authenticated;
 
 -- Function to get user's accessible farms
+DROP FUNCTION IF EXISTS public.get_user_accessible_farms();
 CREATE OR REPLACE FUNCTION public.get_user_accessible_farms()
 RETURNS TABLE (
   farm_id uuid,
@@ -370,7 +403,7 @@ BEGIN
     f.id as farm_id,
     f.name as farm_name,
     CASE 
-      WHEN f.manager_id = auth.uid() THEN 'manager'
+      WHEN f.user_id = auth.uid() THEN 'manager'
       WHEN up.role = 'admin' THEN 'admin'
       ELSE 'none'
     END as access_type
@@ -378,7 +411,7 @@ BEGIN
   CROSS JOIN public.user_profiles up
   WHERE up.id = auth.uid()
   AND (
-    f.manager_id = auth.uid() OR
+    f.user_id = auth.uid() OR
     up.role = 'admin'
   );
 END;

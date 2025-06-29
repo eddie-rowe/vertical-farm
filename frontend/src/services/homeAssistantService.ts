@@ -67,6 +67,33 @@ export interface DeviceAssignment {
   shelf_name?: string;            // Name of the shelf (from JOIN)
 }
 
+export interface ImportedDevice {
+  id: number;                     // Internal device ID
+  entity_id: string;              // Home Assistant entity ID
+  name: string;                   // Device name
+  device_type: string;            // Device type (light, switch, sensor, etc.)
+  state?: string;                 // Current device state
+  attributes: Record<string, any>; // Device attributes
+  is_assigned: boolean;           // Whether device is assigned to a farm location
+  last_seen: string;              // When device was last seen
+  created_at: string;             // When device was imported
+  updated_at: string;             // When device info was last updated
+}
+
+export interface ImportDevicesRequest {
+  entity_ids: string[];           // List of entity IDs to import
+  update_existing?: boolean;      // Whether to update existing imported devices
+}
+
+export interface ImportDevicesResponse {
+  success: boolean;               // Whether the import was successful
+  imported_count: number;         // Number of devices imported
+  updated_count: number;          // Number of existing devices updated
+  skipped_count: number;          // Number of devices skipped
+  errors: string[];               // Any errors that occurred
+  imported_devices: ImportedDevice[]; // Details of imported devices
+}
+
 export interface HomeAssistantEntity {
   entity_id: string;
   state: string;
@@ -150,6 +177,11 @@ class HomeAssistantService {
         if (response.status === 404) {
           return null;
         }
+        if (response.status === 500) {
+          // Server error - don't sign out user, just return null
+          console.error('Home Assistant config service error:', response.statusText);
+          return null;
+        }
         await this.handleApiError(response, 'Get configuration');
       }
 
@@ -175,7 +207,8 @@ class HomeAssistantService {
       };
     } catch (error) {
       console.error('Failed to get HA configuration:', error);
-      throw error;
+      // Return null instead of throwing to prevent logout
+      return null;
     }
   }
 
@@ -357,6 +390,31 @@ class HomeAssistantService {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/status`, { headers });
 
+      // Handle specific status codes more gracefully for status endpoint
+      if (response.status === 404) {
+        // No configuration found - this is normal for new users
+        return {
+          connected: false,
+          version: undefined,
+          device_count: 0,
+          last_updated: undefined,
+          error: 'No Home Assistant configuration found'
+        };
+      }
+
+      if (response.status === 500) {
+        // Server error - don't sign out user, just return disconnected status
+        console.error('Home Assistant service error:', response.statusText);
+        return {
+          connected: false,
+          version: undefined,
+          device_count: 0,
+          last_updated: undefined,
+          error: 'Home Assistant service unavailable'
+        };
+      }
+
+      // Only call handleApiError for other errors (like 401)
       await this.handleApiError(response, 'Get status');
       const result = await response.json();
       
@@ -369,7 +427,14 @@ class HomeAssistantService {
       };
     } catch (error) {
       console.error('Failed to get HA status:', error);
-      throw error;
+      // Return a safe default instead of throwing
+      return {
+        connected: false,
+        version: undefined,
+        device_count: 0,
+        last_updated: undefined,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 
@@ -530,6 +595,89 @@ class HomeAssistantService {
       toast.success('Device assignment removed successfully');
     } catch (error) {
       console.error('Failed to remove device assignment:', error);
+      throw error;
+    }
+  }
+
+  // Device Import Methods
+  async importDevices(request: ImportDevicesRequest): Promise<ImportDevicesResponse> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/devices/import`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(request),
+      });
+
+      await this.handleApiError(response, 'Import devices');
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(`Successfully imported ${result.imported_count} device(s)`);
+      } else if (result.errors?.length > 0) {
+        toast.error(`Import completed with errors: ${result.errors.join(', ')}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Failed to import devices:', error);
+      toast.error('Failed to import devices');
+      throw error;
+    }
+  }
+
+  async getImportedDevices(deviceType?: string, assigned?: boolean): Promise<ImportedDevice[]> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const params = new URLSearchParams();
+      if (deviceType) params.append('device_type', deviceType);
+      if (assigned !== undefined) params.append('assigned', assigned.toString());
+      
+      const url = `${this.baseUrl}/devices/imported${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await fetch(url, { headers });
+
+      await this.handleApiError(response, 'Get imported devices');
+      const data = await response.json();
+      return data.devices || [];
+    } catch (error) {
+      console.error('Failed to get imported devices:', error);
+      throw error;
+    }
+  }
+
+  async updateImportedDevice(entityId: string, updates: { name?: string; device_type?: string }): Promise<ImportedDevice> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/devices/imported/${entityId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(updates),
+      });
+
+      await this.handleApiError(response, 'Update imported device');
+      const result = await response.json();
+      toast.success('Device updated successfully');
+      return result;
+    } catch (error) {
+      console.error('Failed to update imported device:', error);
+      toast.error('Failed to update device');
+      throw error;
+    }
+  }
+
+  async removeImportedDevice(entityId: string): Promise<void> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/devices/imported/${entityId}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      await this.handleApiError(response, 'Remove imported device');
+      toast.success('Device removed from library');
+    } catch (error) {
+      console.error('Failed to remove imported device:', error);
+      toast.error('Failed to remove device');
       throw error;
     }
   }

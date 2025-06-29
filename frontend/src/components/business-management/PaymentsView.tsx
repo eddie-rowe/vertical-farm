@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,79 +14,41 @@ import {
   Clock, 
   RefreshCw,
   Download,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
-
-// Mock payment data
-const payments = [
-  {
-    id: "PAY-001",
-    invoiceId: "INV-001",
-    orderId: "ORD-001",
-    customer: "Fresh Market Co.",
-    amount: 485.00,
-    method: "Credit Card",
-    status: "Completed",
-    date: "2024-01-15",
-    squarePaymentId: "sq-payment-123",
-    processingFee: 14.55,
-    netAmount: 470.45,
-    cardType: "Visa",
-    lastFour: "4242"
-  },
-  {
-    id: "PAY-002",
-    invoiceId: "INV-002",
-    orderId: "ORD-002",
-    customer: "Garden Bistro",
-    amount: 234.00,
-    method: "ACH Transfer",
-    status: "Pending",
-    date: "2024-01-14",
-    squarePaymentId: "sq-payment-456",
-    processingFee: 1.00,
-    netAmount: 233.00,
-    expectedDate: "2024-01-17"
-  },
-  {
-    id: "PAY-003",
-    invoiceId: "INV-003",
-    orderId: "ORD-003",
-    customer: "Green Thumb CSA",
-    amount: 180.00,
-    method: "Credit Card",
-    status: "Completed",
-    date: "2024-01-12",
-    squarePaymentId: "sq-payment-789",
-    processingFee: 5.40,
-    netAmount: 174.60,
-    cardType: "Mastercard",
-    lastFour: "8888"
-  },
-  {
-    id: "PAY-004",
-    invoiceId: "INV-004",
-    orderId: "ORD-004",
-    customer: "Urban Eats Store",
-    amount: 92.00,
-    method: "Credit Card",
-    status: "Failed",
-    date: "2024-01-16",
-    squarePaymentId: "sq-payment-012",
-    failureReason: "Card declined",
-    retryAttempts: 2
-  }
-];
+import { businessManagementService, BusinessPayment } from "@/services/businessManagementService";
 
 export default function PaymentsView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
+  const [payments, setPayments] = useState<BusinessPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedPayments = await businessManagementService.getPayments(100);
+      setPayments(fetchedPayments);
+    } catch (err) {
+      console.error('Failed to fetch payments:', err);
+      setError('Failed to load payments from Square. Please check your Square integration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
 
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.invoiceId.toLowerCase().includes(searchTerm.toLowerCase());
+                         (payment.invoiceId || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || payment.status.toLowerCase() === statusFilter;
     const matchesMethod = methodFilter === "all" || payment.method.toLowerCase() === methodFilter;
     
@@ -140,17 +102,22 @@ export default function PaymentsView() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Payment Management</h2>
-          <p className="text-gray-600 dark:text-gray-400">Track payments and financial transactions via Square</p>
+          <p className="text-gray-600 dark:text-gray-400">Track payments and financial transactions via Square ({payments.length} payments loaded)</p>
         </div>
         <div className="flex gap-2">
-                      <Button variant="outline" className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Sync Square
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export Report
-            </Button>
+          <Button 
+            variant="outline" 
+            onClick={fetchPayments}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
         </div>
       </div>
 
@@ -298,9 +265,45 @@ export default function PaymentsView() {
         </CardContent>
       </Card>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+              <AlertTriangle className="h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600 dark:text-gray-400">Loading payments from Square...</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Payments List */}
-      <div className="space-y-4">
-        {filteredPayments.map((payment) => (
+      {!loading && (
+        <div className="space-y-4">
+          {filteredPayments.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <DollarSign className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Payments Found</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {payments.length === 0 
+                    ? "No payments available in your Square account." 
+                    : "No payments match your current filters."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredPayments.map((payment) => (
           <Card key={payment.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex justify-between items-start">
@@ -405,19 +408,9 @@ export default function PaymentsView() {
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {filteredPayments.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No payments found</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Try adjusting your search terms or filters.
-            </p>
-          </CardContent>
-        </Card>
+            ))
+          )}
+        </div>
       )}
     </div>
   );

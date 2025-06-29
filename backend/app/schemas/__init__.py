@@ -9,6 +9,14 @@ from .shelf import ShelfBase, ShelfCreate, ShelfUpdate, ShelfInDBBase, ShelfResp
 from .fan import FanBase, FanCreate, FanUpdate, FanInDBBase, FanResponse
 from .sensor_device import SensorDeviceBase, SensorDeviceCreate, SensorDeviceUpdate, SensorDeviceInDBBase, SensorDeviceResponse
 
+from .square import (
+    SquareWebhookCreate, SquareWebhookUpdate, SquareWebhookResponse,
+    SquareWebhookPayload, SquareWebhookEventCreate, SquareWebhookEventResponse,
+    CacheInvalidationRequest, CacheInvalidationResponse,
+    WebhookRegistrationRequest, WebhookRegistrationResponse,
+    WebhookHealthResponse, WebhookStatus, WebhookEventStatus, SquareWebhookEventType
+)
+
 
 __all__ = [
     "FarmBase",
@@ -55,4 +63,18 @@ __all__ = [
     "SensorDeviceUpdate",
     "SensorDeviceInDBBase",
     "SensorDeviceResponse",
+    "SquareWebhookCreate",
+    "SquareWebhookUpdate", 
+    "SquareWebhookResponse",
+    "SquareWebhookPayload", 
+    "SquareWebhookEventCreate", 
+    "SquareWebhookEventResponse",
+    "CacheInvalidationRequest", 
+    "CacheInvalidationResponse",
+    "WebhookRegistrationRequest", 
+    "WebhookRegistrationResponse",
+    "WebhookHealthResponse", 
+    "WebhookStatus", 
+    "WebhookEventStatus", 
+    "SquareWebhookEventType",
 ] 

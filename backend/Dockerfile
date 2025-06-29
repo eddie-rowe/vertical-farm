@@ -4,12 +4,15 @@ WORKDIR /app
 
 ENV PYTHONPATH=/app
 
-# Ensure pip is upgraded and no cache is used for requirements installation
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and copy project files
+RUN pip install --no-cache-dir --upgrade pip
 
+# Copy pyproject.toml and source code
+COPY pyproject.toml ./
 COPY ./app ./app
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -e .[all]
 
 EXPOSE 8000
 

@@ -1,0 +1,58 @@
+# Multi-stage Dockerfile for both development and production
+
+# Base stage with common dependencies
+FROM python:3.13-slim as base
+
+WORKDIR /app
+
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy pyproject.toml
+COPY pyproject.toml ./
+
+# Create minimal app structure
+RUN mkdir -p app && touch app/__init__.py
+
+#################################
+# Development stage
+#################################
+FROM base as development
+
+# Install with development dependencies
+RUN pip install --no-cache-dir -e ".[dev,test,monitoring]"
+
+# Copy source code
+COPY ./app ./app
+
+# Development uses root user for convenience
+EXPOSE 8000
+CMD ["ddtrace-run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+#################################
+# Production stage
+#################################
+FROM base as production
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -e .[all]
+
+# Copy source code
+COPY ./app ./app
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+CMD ["ddtrace-run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 
