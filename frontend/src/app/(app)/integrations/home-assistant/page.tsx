@@ -123,13 +123,23 @@ export default function HomeAssistantPage() {
     };
   }, [showFilterMenu]);
 
+  // Watch for tab changes and reload data when imported tab is selected
+  useEffect(() => {
+    console.log('Active tab changed:', activeTab);
+    if (activeTab === 'imported' && connectionState === 'connected') {
+      console.log('Loading data for imported tab...');
+      loadDeviceData();
+    }
+  }, [activeTab, connectionState]);
+
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading initial data...');
 
       // Load configuration
       const configData = await homeAssistantService.getConfig();
-      console.log('Home Assistant config data:', configData);
+      console.log('⚙️ Home Assistant config data:', configData);
       
       if (configData && configData.url) {
         // We have a configuration, set it and check connection status
@@ -137,33 +147,41 @@ export default function HomeAssistantPage() {
         
         // Check connection status
         const statusData = await homeAssistantService.getStatus();
-        console.log('Home Assistant status data:', statusData);
+        console.log('🔌 Home Assistant status data:', statusData);
         setStatus(statusData);
         setConnectionState(statusData.connected ? 'connected' : 'error');
+        console.log('🔥 Connection state set to:', statusData.connected ? 'connected' : 'error');
 
         if (statusData.connected) {
           // Load device data for connected state
+          console.log('📡 Loading device data because connected...');
           await loadDeviceData();
+        } else {
+          console.log('❌ Not loading device data - not connected');
         }
       } else {
         // No configuration found, show setup wizard
-        console.log('No Home Assistant configuration found, showing setup wizard');
+        console.log('⚠️ No Home Assistant configuration found, showing setup wizard');
         setConnectionState('not-configured');
       }
     } catch (err) {
-      console.error('Error loading initial data:', err);
+      console.error('❌ Error loading initial data:', err);
       setConnectionState('error');
     } finally {
       setLoading(false);
+      console.log('✅ Initial data loading complete');
     }
   };
 
   const loadDeviceData = async () => {
     try {
+      console.log('Loading device data...');
       const [assignmentsData, importedDevicesData] = await Promise.all([
         homeAssistantService.getAssignments(),
         homeAssistantService.getImportedDevices()
       ]);
+      console.log('Assignments data:', assignmentsData);
+      console.log('Imported devices data:', importedDevicesData);
       setAssignments(assignmentsData);
       setImportedDevices(importedDevicesData);
     } catch (err) {

@@ -35,6 +35,7 @@ import {
   FaFileInvoiceDollar
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import { PageHeader } from '@/components/ui/PageHeader';
 
 // Strategic Operations Data
 const strategicData = {
@@ -507,21 +508,17 @@ const ExecutiveSummary = ({
     <div className="space-y-8">
       {/* Hero Metrics */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Strategic Command Center
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Executive overview of your vertical farming operations
-            </p>
-          </div>
+        <PageHeader
+          title="Strategic Command Center"
+          description="Executive overview of your vertical farming operations"
+          size="lg"
+        >
           <div className="text-right">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Last updated: {new Date().toLocaleTimeString()}
             </p>
           </div>
-        </div>
+        </PageHeader>
         <HeroMetrics />
       </div>
 
@@ -765,14 +762,12 @@ const NavigationHeader = ({
             <span>Back to Overview</span>
           </Button>
         )}
-        <div>
-          <h1 className="text-3xl font-bold text-green-900 dark:text-green-100">
-            {viewTitles[view]}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {currentTime.toLocaleDateString()} • {currentTime.toLocaleTimeString()}
-          </p>
-        </div>
+        <PageHeader
+          title={viewTitles[view]}
+          description={`${currentTime.toLocaleDateString()} • ${currentTime.toLocaleTimeString()}`}
+          size="lg"
+          className="border-none shadow-none bg-transparent p-0"
+        />
       </div>
       <div className="flex gap-2">
         <Badge variant="outline" className="text-green-600 dark:text-green-400">

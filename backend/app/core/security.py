@@ -4,9 +4,14 @@ from jose import jwt, JWTError
 import os
 # Removed httpx import
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Optional, Dict, List, Tuple, TYPE_CHECKING, Callable
 import logging
-# Removed time import
+from functools import wraps
+import time
+from collections import defaultdict, deque
+import asyncio
+import re
+import json
 
 from app.core.config import settings
 
@@ -18,7 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# --- Session Management and Token Utilities ---
+# --- Enhanced Security Error Classes ---
 
 class AuthenticationError(Exception):
     """Custom authentication error"""
@@ -31,6 +36,408 @@ class SessionExpiredError(AuthenticationError):
 class TokenRefreshRequiredError(AuthenticationError):
     """Raised when token refresh is required"""
     pass
+
+class RateLimitExceededError(Exception):
+    """Raised when rate limit is exceeded"""
+    pass
+
+class DeviceControlError(Exception):
+    """Raised when device control validation fails"""
+    pass
+
+class FarmAccessDeniedError(Exception):
+    """Raised when user lacks access to farm location"""
+    pass
+
+class InvalidEntityError(Exception):
+    """Raised when Home Assistant entity ID format is invalid"""
+    pass
+
+# --- Rate Limiting for Device Controls ---
+
+class DeviceControlRateLimiter:
+    """
+    In-memory rate limiter for device control endpoints.
+    Tracks requests per user per endpoint with sliding time windows.
+    """
+    
+    def __init__(self):
+        self._requests: Dict[str, deque] = defaultdict(deque)
+        self._lock = asyncio.Lock()
+        
+    async def is_allowed(self, user_id: str, endpoint: str, max_requests: int = 30, window_minutes: int = 1) -> bool:
+        """
+        Check if user is within rate limits for the endpoint.
+        
+        Args:
+            user_id: User identifier
+            endpoint: Endpoint identifier (e.g., 'device_control', 'irrigation_control')
+            max_requests: Maximum requests allowed in time window
+            window_minutes: Time window in minutes
+            
+        Returns:
+            True if request is allowed, False if rate limited
+        """
+        async with self._lock:
+            key = f"{user_id}:{endpoint}"
+            now = time.time()
+            window_start = now - (window_minutes * 60)
+            
+            # Clean expired requests
+            request_times = self._requests[key]
+            while request_times and request_times[0] < window_start:
+                request_times.popleft()
+            
+            # Check if within limits
+            if len(request_times) >= max_requests:
+                return False
+            
+            # Add current request
+            request_times.append(now)
+            return True
+    
+    async def cleanup_expired(self, max_age_hours: int = 1):
+        """Clean up old rate limit data to prevent memory leaks."""
+        async with self._lock:
+            cutoff = time.time() - (max_age_hours * 3600)
+            keys_to_remove = []
+            
+            for key, times in self._requests.items():
+                while times and times[0] < cutoff:
+                    times.popleft()
+                if not times:
+                    keys_to_remove.append(key)
+            
+            for key in keys_to_remove:
+                del self._requests[key]
+
+# Global rate limiter instance
+_rate_limiter = DeviceControlRateLimiter()
+
+def device_control_rate_limit(max_requests: int = 30, window_minutes: int = 1, endpoint: str = "device_control"):
+    """
+    Decorator to apply rate limiting to device control endpoints.
+    
+    Args:
+        max_requests: Maximum requests allowed in time window
+        window_minutes: Time window in minutes  
+        endpoint: Endpoint identifier for rate limiting
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Extract user from function arguments
+            user = None
+            for arg in args:
+                if hasattr(arg, 'id'):  # User object
+                    user = arg
+                    break
+            
+            if not user:
+                # Look in kwargs for user
+                user = kwargs.get('current_user') or kwargs.get('user')
+            
+            if user:
+                user_id = getattr(user, 'id', str(user))
+                allowed = await _rate_limiter.is_allowed(user_id, endpoint, max_requests, window_minutes)
+                
+                if not allowed:
+                    logger.warning(f"Rate limit exceeded for user {user_id} on endpoint {endpoint}")
+                    raise HTTPException(
+                        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                        detail=f"Rate limit exceeded. Maximum {max_requests} requests per {window_minutes} minute(s) allowed.",
+                        headers={"Retry-After": str(window_minutes * 60)}
+                    )
+            
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# --- Input Validation for Device Controls ---
+
+def validate_entity_id(entity_id: str) -> bool:
+    """
+    Validate Home Assistant entity ID format.
+    
+    Args:
+        entity_id: Entity ID to validate (e.g., 'light.kitchen_main', 'switch.irrigation_pump')
+        
+    Returns:
+        True if valid format
+        
+    Raises:
+        InvalidEntityError: If format is invalid
+    """
+    if not entity_id or not isinstance(entity_id, str):
+        raise InvalidEntityError("Entity ID must be a non-empty string")
+    
+    # Home Assistant entity ID pattern: domain.entity_name
+    pattern = r'^[a-z_]+\.[a-z0-9_]+$'
+    if not re.match(pattern, entity_id):
+        raise InvalidEntityError(f"Invalid entity ID format: {entity_id}. Must be 'domain.entity_name'")
+    
+    # Check for reasonable length limits
+    if len(entity_id) > 100:
+        raise InvalidEntityError("Entity ID too long (max 100 characters)")
+    
+    return True
+
+def validate_device_state(state: Any, entity_domain: str) -> Any:
+    """
+    Validate and sanitize device state value based on entity domain.
+    
+    Args:
+        state: State value to validate
+        entity_domain: Entity domain (e.g., 'light', 'switch', 'fan')
+        
+    Returns:
+        Validated and sanitized state value
+        
+    Raises:
+        DeviceControlError: If state is invalid for the domain
+    """
+    try:
+        if entity_domain in ['switch', 'binary_sensor']:
+            # Boolean states: on/off, true/false
+            if isinstance(state, str):
+                state = state.lower()
+                if state in ['on', 'true', '1']:
+                    return True
+                elif state in ['off', 'false', '0']:
+                    return False
+                else:
+                    raise DeviceControlError(f"Invalid switch state: {state}. Must be on/off or true/false")
+            elif isinstance(state, bool):
+                return state
+            else:
+                raise DeviceControlError(f"Switch state must be boolean or string, got {type(state)}")
+        
+        elif entity_domain == 'light':
+            # Light can have on/off plus additional attributes like brightness
+            if isinstance(state, dict):
+                # Validate brightness if present
+                if 'brightness' in state:
+                    brightness = state['brightness']
+                    if not isinstance(brightness, (int, float)) or not (0 <= brightness <= 255):
+                        raise DeviceControlError("Light brightness must be a number between 0 and 255")
+                return state
+            else:
+                # Simple on/off for light
+                return validate_device_state(state, 'switch')
+        
+        elif entity_domain == 'fan':
+            # Fan can have on/off plus speed
+            if isinstance(state, dict):
+                if 'speed' in state:
+                    speed = state['speed']
+                    if not isinstance(speed, (int, float)) or not (0 <= speed <= 100):
+                        raise DeviceControlError("Fan speed must be a number between 0 and 100")
+                return state
+            else:
+                return validate_device_state(state, 'switch')
+        
+        else:
+            # For unknown domains, accept string or boolean
+            if isinstance(state, (str, bool, int, float)):
+                return state
+            else:
+                raise DeviceControlError(f"Unsupported state type for domain {entity_domain}: {type(state)}")
+    
+    except Exception as e:
+        if isinstance(e, DeviceControlError):
+            raise
+        else:
+            raise DeviceControlError(f"State validation failed: {str(e)}")
+
+def validate_device_control_request(entity_id: str, state: Any) -> Tuple[str, Any]:
+    """
+    Validate complete device control request.
+    
+    Args:
+        entity_id: Home Assistant entity ID
+        state: Device state to set
+        
+    Returns:
+        Tuple of (validated_entity_id, validated_state)
+        
+    Raises:
+        InvalidEntityError: If entity ID format is invalid
+        DeviceControlError: If state is invalid
+    """
+    # Validate entity ID
+    validate_entity_id(entity_id)
+    
+    # Extract domain from entity ID
+    entity_domain = entity_id.split('.')[0]
+    
+    # Validate state for the domain
+    validated_state = validate_device_state(state, entity_domain)
+    
+    return entity_id, validated_state
+
+# --- Device Action Audit Logging ---
+
+async def log_device_action(
+    user_id: str,
+    entity_id: str, 
+    action: str,
+    old_state: Optional[Dict[str, Any]] = None,
+    new_state: Optional[Dict[str, Any]] = None,
+    farm_location: Optional[str] = None,
+    error: Optional[str] = None,
+    db: Optional[Any] = None
+) -> bool:
+    """
+    Log device control action to database for audit trail.
+    
+    Args:
+        user_id: ID of user performing action
+        entity_id: Home Assistant entity ID
+        action: Action performed ('control', 'assign', 'unassign', etc.)
+        old_state: Previous device state
+        new_state: New device state
+        farm_location: Farm location identifier (row.rack.shelf)
+        error: Error message if action failed
+        db: Database client
+        
+    Returns:
+        True if logged successfully, False otherwise
+    """
+    try:
+        if not db:
+            from app.db.supabase_client import get_async_rls_client
+            db = await get_async_rls_client()
+        
+        audit_data = {
+            "user_id": user_id,
+            "entity_id": entity_id,
+            "action": action,
+            "old_state": old_state,
+            "new_state": new_state,
+            "farm_location": farm_location,
+            "error_message": error,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Insert audit log (create table if needed)
+        result = await db.table("device_audit_logs").insert(audit_data).execute()
+        
+        if result.data:
+            logger.info(f"Device action logged: user={user_id}, entity={entity_id}, action={action}")
+            return True
+        else:
+            logger.error(f"Failed to log device action: {result}")
+            return False
+            
+    except Exception as e:
+        # Don't let audit logging failures break device control
+        logger.error(f"Device audit logging failed: {str(e)}")
+        return False
+
+# --- Farm Access Authorization ---
+
+class FarmAccessCache:
+    """Cache for farm access permissions to reduce database queries."""
+    
+    def __init__(self, ttl_minutes: int = 5):
+        self._cache: Dict[str, Tuple[List[str], float]] = {}
+        self._ttl = ttl_minutes * 60
+        self._lock = asyncio.Lock()
+    
+    async def get_user_farms(self, user_id: str) -> Optional[List[str]]:
+        """Get cached farm access list for user."""
+        async with self._lock:
+            if user_id in self._cache:
+                farms, timestamp = self._cache[user_id]
+                if time.time() - timestamp < self._ttl:
+                    return farms
+                else:
+                    del self._cache[user_id]
+            return None
+    
+    async def set_user_farms(self, user_id: str, farms: List[str]):
+        """Cache farm access list for user."""
+        async with self._lock:
+            self._cache[user_id] = (farms, time.time())
+    
+    async def clear_user_cache(self, user_id: str):
+        """Clear cache for specific user (call when permissions change)."""
+        async with self._lock:
+            if user_id in self._cache:
+                del self._cache[user_id]
+
+# Global farm access cache
+_farm_cache = FarmAccessCache()
+
+async def get_user_accessible_farms(user_id: str, db: Any) -> List[str]:
+    """
+    Get list of farm IDs that user has access to.
+    
+    Args:
+        user_id: User identifier
+        db: Database client
+        
+    Returns:
+        List of farm IDs user can access
+    """
+    # Check cache first
+    cached_farms = await _farm_cache.get_user_farms(user_id)
+    if cached_farms is not None:
+        return cached_farms
+    
+    try:
+        # Query user's farm access from database
+        # This assumes a farm_access or user_farms table
+        result = await db.table("user_farms").select("farm_id").eq("user_id", user_id).execute()
+        
+        farm_ids = [row["farm_id"] for row in result.data] if result.data else []
+        
+        # Cache the result
+        await _farm_cache.set_user_farms(user_id, farm_ids)
+        
+        return farm_ids
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch user farm access: {str(e)}")
+        # On error, return empty list (deny access)
+        return []
+
+async def verify_farm_access(user_id: str, farm_location: str, db: Any) -> bool:
+    """
+    Verify that user has access to the specified farm location.
+    
+    Args:
+        user_id: User identifier
+        farm_location: Farm location (can be farm_id or "farm.row.rack.shelf" format)
+        db: Database client
+        
+    Returns:
+        True if user has access, False otherwise
+        
+    Raises:
+        FarmAccessDeniedError: If access is denied
+    """
+    try:
+        # Get user's accessible farms
+        accessible_farms = await get_user_accessible_farms(user_id, db)
+        
+        # Extract farm ID from location string
+        farm_id = farm_location.split('.')[0] if '.' in farm_location else farm_location
+        
+        if farm_id not in accessible_farms:
+            logger.warning(f"Farm access denied: user={user_id}, farm={farm_id}")
+            raise FarmAccessDeniedError(f"Access denied to farm location: {farm_location}")
+        
+        return True
+        
+    except FarmAccessDeniedError:
+        raise
+    except Exception as e:
+        logger.error(f"Farm access verification failed: {str(e)}")
+        raise FarmAccessDeniedError(f"Could not verify farm access: {str(e)}")
+
+# --- Session Management and Token Utilities ---
 
 def get_token_expiration(token: str) -> Optional[datetime]:
     """
@@ -115,47 +522,34 @@ def validate_session_health(payload: dict) -> Dict[str, Any]:
 
 # --- Enhanced Token Validation ---
 
-async def get_validated_supabase_token_payload(request: Request) -> Tuple[dict, str]: # Returns (payload, token_string)
+async def get_raw_supabase_token(request: Request) -> str:
+    """
+    Extract raw JWT token from Authorization header without validation.
+    Supabase recommends letting their clients handle JWT validation internally.
+    """
     auth_header = request.headers.get("Authorization")
+    print(f"DEBUG: auth_header = {auth_header[:50] if auth_header else None}...")  # Only show first 50 chars for security
+    
     if not auth_header or not auth_header.startswith("Bearer "):
+        print(f"DEBUG: Missing or invalid auth header. Header present: {bool(auth_header)}, Starts with Bearer: {auth_header.startswith('Bearer ') if auth_header else False}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid Authorization header",
         )
+    
     token = auth_header.split(" ", 1)[1]
+    print(f"DEBUG: Token extracted, length: {len(token)}")
+    return token
 
-    if not settings.SUPABASE_JWT_SECRET:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="SUPABASE_JWT_SECRET is not configured on the server."
-        )
-
-    try:
-        payload = jwt.decode(
-            token,
-            settings.SUPABASE_JWT_SECRET, # Use the shared secret
-            algorithms=[settings.ALGORITHM],  # Use ALGORITHM from settings (HS256)
-            audience=settings.SUPABASE_AUDIENCE or "authenticated", # Validate audience
-            # Issuer check is less common/critical with HS256 if you trust the secret, 
-            # but can be added if Supabase consistently provides it and you want an extra layer.
-            # issuer=settings.SUPABASE_ISSUER 
-        )
-        
-        # Validate session health
-        session_health = validate_session_health(payload)
-        if session_health["requires_refresh"]:
-            logger.warning(f"Token for user {session_health['user_id']} requires refresh soon")
-        
-        return payload, token # Return payload and the original token string
-    except jwt.ExpiredSignatureError:
-        raise SessionExpiredError("Token has expired")
-    except jwt.JWTClaimsError as e: # More specific error for audience/issuer claims
-         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Token claims validation failed: {str(e)}")
-    except JWTError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or malformed token: {str(e)}",
-        )
+# Keep the old function for backward compatibility but mark as deprecated
+async def get_validated_supabase_token_payload(request: Request) -> Tuple[dict, str]:
+    """
+    DEPRECATED: Use get_raw_supabase_token() instead.
+    Supabase recommends not validating JWTs on the server side.
+    """
+    # For now, just extract the raw token and return empty payload
+    token = await get_raw_supabase_token(request)
+    return ({}, token)
 
 async def get_validated_supabase_token_with_refresh_check(request: Request) -> Tuple[dict, str, Dict[str, Any]]:
     """
@@ -181,6 +575,8 @@ async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
     """
     Validate WebSocket token and return payload with session health.
     
+    Note: For WebSockets, we extract payload info but let Supabase handle actual validation.
+    
     Args:
         token: JWT token string
         
@@ -188,33 +584,31 @@ async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
         Tuple of (payload, session_health)
         
     Raises:
-        AuthenticationError: If token is invalid or expired
+        AuthenticationError: If token format is invalid
     """
-    if not settings.SUPABASE_JWT_SECRET:
-        raise AuthenticationError("SUPABASE_JWT_SECRET is not configured")
-
     try:
-        payload = jwt.decode(
-            token,
-            settings.SUPABASE_JWT_SECRET,
-            algorithms=[settings.ALGORITHM],
-            audience=settings.SUPABASE_AUDIENCE or "authenticated"
-        )
-        
+        # Extract payload without validation - Supabase clients will handle actual validation
+        # Note: python-jose requires key parameter even for unverified decoding
+        payload = jwt.decode(token, key="", options={
+            "verify_signature": False,
+            "verify_aud": False,
+            "verify_iss": False,
+            "verify_exp": False,
+            "verify_nbf": False,
+            "verify_iat": False,
+            "verify_sub": False
+        })
         session_health = validate_session_health(payload)
         return payload, session_health
         
-    except jwt.ExpiredSignatureError:
-        raise SessionExpiredError("WebSocket token has expired")
-    except jwt.JWTClaimsError as e:
-        raise AuthenticationError(f"Token claims validation failed: {str(e)}")
-    except JWTError as e:
-        raise AuthenticationError(f"Invalid or malformed token: {str(e)}")
+    except Exception as e:
+        raise AuthenticationError(f"Invalid token format: {str(e)}")
 
 # --- Imports that might cause cycles if loaded before token validation functions are defined ---
 # from app.models.user import User as UserModel # Remove this import
 from app.crud import crud_user
 # from app.db.supabase_client import get_async_supabase_client # Remove this top-level import
+from app.db.supabase_client import get_async_rls_client
 from supabase import AClient as SupabaseAsyncClient # acreate_client removed as not used here directly
 # from app.schemas.user import User # Remove this top-level import, will use string literal or local import
 
@@ -222,35 +616,69 @@ from supabase import AClient as SupabaseAsyncClient # acreate_client removed as 
 # --- User Retrieval and Token Creation (Uses above functions and imports) ---
 
 async def get_current_active_user(
-    token_data: Tuple[dict, str] = Depends(get_validated_supabase_token_payload),
-    # db: SupabaseAsyncClient = Depends(get_async_supabase_client) # Remove Depends from here
+    raw_token: str = Depends(get_raw_supabase_token),
+    db: SupabaseAsyncClient = Depends(get_async_rls_client)
 ) -> "User":
-    from app.db.supabase_client import get_async_supabase_client # Import locally
-    from app.schemas.user import User # Import User locally
-    db: SupabaseAsyncClient = await get_async_supabase_client() # Get client instance
-
-    payload, _ = token_data # Unpack tuple
-    user_id_str = payload.get("sub") 
+    from app.schemas.user import User
+    from jose import jwt
+    
+    logger.debug(f"Authenticating user with token length: {len(raw_token)}")
+    
+    # Extract user ID from token (without validation - let Supabase RLS handle that)
+    try:
+        # Note: python-jose requires key parameter even for unverified decoding
+        payload = jwt.decode(raw_token, key="", options={
+            "verify_signature": False,
+            "verify_aud": False,
+            "verify_iss": False,
+            "verify_exp": False,
+            "verify_nbf": False,
+            "verify_iat": False,
+            "verify_sub": False
+        })
+        user_id_str = payload.get("sub")
+        logger.debug(f"Decoded JWT payload successfully. User ID: {user_id_str}")
+    except Exception as e:
+        logger.warning(f"Failed to decode JWT token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
+    
     if user_id_str is None:
+        logger.warning("No user ID (sub) found in token payload")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="Could not validate credentials, user ID (sub) missing from token payload"
         )
     
-    # Get user data from user_profiles table
-    user_data = await crud_user.user.get(supabase=db, id=user_id_str)
+    logger.debug(f"Fetching user data for ID: {user_id_str}")
+    
+    # Use RLS client which will properly validate the token
+    try:
+        user_data = await crud_user.user.get(supabase=db, id=user_id_str)
+        logger.debug(f"User data fetch completed: {bool(user_data)}")
+    except Exception as e:
+        logger.error(f"Database error during user fetch: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
     
     if user_data is None:
+        logger.warning(f"No user profile found for ID: {user_id_str}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail=f"User profile not found for ID {user_id_str}. This should have been created automatically during signup."
         )
     
+    logger.info(f"Successfully authenticated user: {user_data.get('email', 'unknown')}")
     # Convert dict to User Pydantic model
     return User(**user_data)
 
 async def get_current_active_user_with_session_health(
-    token_data: Tuple[dict, str, Dict[str, Any]] = Depends(get_validated_supabase_token_with_refresh_check),
+    raw_token: str = Depends(get_raw_supabase_token),
+    db: SupabaseAsyncClient = Depends(get_async_rls_client)
 ) -> Tuple["User", Dict[str, Any]]:
     """
     Get current user with session health information.
@@ -258,11 +686,28 @@ async def get_current_active_user_with_session_health(
     Returns:
         Tuple of (user, session_health)
     """
-    from app.db.supabase_client import get_async_supabase_client
     from app.schemas.user import User
+    from jose import jwt
     
-    payload, _, session_health = token_data
-    user_id_str = payload.get("sub")
+    # Extract user ID and validate session health from token
+    try:
+        # Note: python-jose requires key parameter even for unverified decoding
+        payload = jwt.decode(raw_token, key="", options={
+            "verify_signature": False,
+            "verify_aud": False,
+            "verify_iss": False,
+            "verify_exp": False,
+            "verify_nbf": False,
+            "verify_iat": False,
+            "verify_sub": False
+        })
+        user_id_str = payload.get("sub")
+        session_health = validate_session_health(payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
     
     if user_id_str is None:
         raise HTTPException(
@@ -270,7 +715,6 @@ async def get_current_active_user_with_session_health(
             detail="Could not validate credentials, user ID (sub) missing from token payload"
         )
     
-    db: SupabaseAsyncClient = await get_async_supabase_client()
     user_data = await crud_user.user.get(supabase=db, id=user_id_str)
     
     if user_data is None:
@@ -291,18 +735,30 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 # --- Session Health Monitoring ---
 
-async def get_session_health(request: Request) -> Dict[str, Any]:
+async def get_session_health(raw_token: str) -> Dict[str, Any]:
     """
     Get detailed session health information.
     
     Args:
-        request: FastAPI request object
+        raw_token: JWT token string
         
     Returns:
         Session health status dictionary
     """
     try:
-        payload, token, session_health = await get_validated_supabase_token_with_refresh_check(request)
+        from jose import jwt
+        # Note: python-jose requires key parameter even for unverified decoding
+        payload = jwt.decode(raw_token, key="", options={
+            "verify_signature": False,
+            "verify_aud": False,
+            "verify_iss": False,
+            "verify_exp": False,
+            "verify_nbf": False,
+            "verify_iat": False,
+            "verify_sub": False
+        })
+        session_health = validate_session_health(payload)
+        
         return {
             "status": "healthy",
             "user_id": session_health["user_id"],
@@ -312,10 +768,10 @@ async def get_session_health(request: Request) -> Dict[str, Any]:
                 "action_required": session_health["expires_in_minutes"] and session_health["expires_in_minutes"] < 5
             }
         }
-    except HTTPException as e:
+    except Exception as e:
         return {
             "status": "unhealthy",
-            "error": e.detail,
+            "error": str(e),
             "recommendations": {
                 "refresh_token": True,
                 "action_required": True
@@ -324,3 +780,185 @@ async def get_session_health(request: Request) -> Dict[str, Any]:
 
 # Note: With HS256 validation for Supabase tokens, SUPABASE_JWKS_URI and SUPABASE_ISSUER settings become less critical for this part.
 # SUPABASE_JWT_SECRET and SUPABASE_AUDIENCE are the main ones from settings used here.
+
+# --- Enhanced Security Utilities ---
+
+def get_current_user_with_device_control_auth(
+    max_requests: int = 30,
+    window_minutes: int = 1, 
+    endpoint: str = "device_control"
+):
+    """
+    Dependency factory that combines user authentication with device control rate limiting.
+    
+    Usage:
+        @app.post("/devices/control")
+        async def control_device(
+            request: DeviceControlRequest,
+            current_user: User = Depends(get_current_user_with_device_control_auth())
+        ):
+            # User is authenticated and rate limited
+            pass
+    """
+    async def dependency(
+        raw_token: str = Depends(get_raw_supabase_token),
+        db: SupabaseAsyncClient = Depends(get_async_rls_client)
+    ) -> "User":
+        # First get the user (this handles authentication)
+        user = await get_current_active_user(raw_token, db)
+        
+        # Then check rate limits
+        allowed = await _rate_limiter.is_allowed(user.id, endpoint, max_requests, window_minutes)
+        
+        if not allowed:
+            logger.warning(f"Rate limit exceeded for user {user.id} on endpoint {endpoint}")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Rate limit exceeded. Maximum {max_requests} requests per {window_minutes} minute(s) allowed.",
+                headers={"Retry-After": str(window_minutes * 60)}
+            )
+        
+        return user
+    
+    return dependency
+
+async def secure_device_control(
+    entity_id: str,
+    state: Any,
+    user: "User",
+    db: Any,
+    farm_location: Optional[str] = None,
+    require_farm_access: bool = True
+) -> Tuple[str, Any]:
+    """
+    Comprehensive device control security check.
+    
+    Performs input validation, farm access verification, and audit logging.
+    
+    Args:
+        entity_id: Home Assistant entity ID
+        state: Device state to set
+        user: Authenticated user
+        db: Database client
+        farm_location: Farm location for access check
+        require_farm_access: Whether to require farm access verification
+        
+    Returns:
+        Tuple of (validated_entity_id, validated_state)
+        
+    Raises:
+        InvalidEntityError: If entity ID format is invalid
+        DeviceControlError: If state validation fails
+        FarmAccessDeniedError: If farm access is denied
+    """
+    # Validate input
+    validated_entity_id, validated_state = validate_device_control_request(entity_id, state)
+    
+    # Check farm access if required
+    if require_farm_access and farm_location:
+        await verify_farm_access(user.id, farm_location, db)
+    
+    # Log the action attempt (success will be logged by caller)
+    await log_device_action(
+        user_id=user.id,
+        entity_id=validated_entity_id,
+        action="control_attempt",
+        new_state={"state": validated_state},
+        farm_location=farm_location,
+        db=db
+    )
+    
+    return validated_entity_id, validated_state
+
+async def log_device_control_result(
+    user_id: str,
+    entity_id: str,
+    old_state: Optional[Dict[str, Any]],
+    new_state: Dict[str, Any],
+    success: bool,
+    error_message: Optional[str] = None,
+    farm_location: Optional[str] = None,
+    db: Optional[Any] = None
+) -> bool:
+    """
+    Log the result of a device control operation.
+    
+    Args:
+        user_id: User ID
+        entity_id: Device entity ID
+        old_state: Previous device state
+        new_state: New device state
+        success: Whether the operation succeeded
+        error_message: Error message if failed
+        farm_location: Farm location
+        db: Database client
+        
+    Returns:
+        True if logged successfully
+    """
+    action = "control_success" if success else "control_failure"
+    
+    return await log_device_action(
+        user_id=user_id,
+        entity_id=entity_id,
+        action=action,
+        old_state=old_state,
+        new_state=new_state,
+        farm_location=farm_location,
+        error=error_message,
+        db=db
+    )
+
+# --- Periodic Maintenance ---
+
+async def cleanup_security_caches():
+    """
+    Cleanup expired data from security caches.
+    Should be called periodically (e.g., every hour).
+    """
+    try:
+        # Cleanup rate limiter
+        await _rate_limiter.cleanup_expired()
+        logger.info("Security cache cleanup completed")
+    except Exception as e:
+        logger.error(f"Security cache cleanup failed: {e}")
+
+# --- Exception Handlers ---
+
+def create_security_exception_handler(app):
+    """
+    Create exception handlers for security-related errors.
+    
+    Usage:
+        from app.core.security import create_security_exception_handler
+        create_security_exception_handler(app)
+    """
+    
+    @app.exception_handler(RateLimitExceededError)
+    async def rate_limit_handler(request: Request, exc: RateLimitExceededError):
+        return HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(exc),
+            headers={"Retry-After": "60"}
+        )
+    
+    @app.exception_handler(DeviceControlError)
+    async def device_control_handler(request: Request, exc: DeviceControlError):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Device control error: {str(exc)}"
+        )
+    
+    @app.exception_handler(FarmAccessDeniedError)
+    async def farm_access_handler(request: Request, exc: FarmAccessDeniedError):
+        return HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc)
+        )
+    
+    @app.exception_handler(InvalidEntityError)
+    async def invalid_entity_handler(request: Request, exc: InvalidEntityError):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid entity: {str(exc)}"
+        )

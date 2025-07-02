@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GrowRecipeCard } from '@/components/grow-recipes/GrowRecipeCard';
+import { GrowRecipeCard } from '@/components/features/agriculture';
 import { GrowRecipe } from '@/types/grow-recipes';
 
 // Mock the utilities to avoid import issues

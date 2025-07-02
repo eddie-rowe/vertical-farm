@@ -2,13 +2,23 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Home } from 'lucide-react';
-import CreateFarmModal from '@/components/CreateFarmModal';
-import UnifiedFarmView from '@/components/farms/UnifiedFarmView';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Home, Activity, Zap } from 'lucide-react';
+import { CreateFarmModal, LayerSwitcher } from '@/components/features/agriculture';
+import { UnifiedFarmView } from '@/components/features/agriculture';
 import { FarmPageData, UUID, Farm, Row, Rack, Shelf } from "@/types/farm-layout";
 import { getFarms, getFarmById, Farm as SupabaseFarm } from '@/services/farmService';
 import { getRowsByFarm, getRacksByRow, getShelvesByRack } from '@/services/supabaseService';
 import toast from 'react-hot-toast';
+
+// Layer system imports
+import { LayerProvider } from '@/contexts/LayerContext'
+import { ToastProvider } from '@/components/ui/ToastNotification';
+import { Phase2Demo } from '@/components/shared';
+
+import { DeviceAssignment } from '@/types/device-assignment'
+import deviceAssignmentService from '@/services/deviceAssignmentService'
 
 export default function FarmsPage() {
   const { user } = useAuth();
@@ -118,12 +128,46 @@ export default function FarmsPage() {
                 const dbShelves = await getShelvesByRack(dbRack.id);
                 console.log(`Loaded shelves for rack ${dbRack.id}:`, dbShelves.length);
 
+                // Load devices for each shelf
+                const shelvesWithDevices = await Promise.all(
+                  dbShelves.map(async (shelf) => {
+                    try {
+                      const deviceAssignments = await deviceAssignmentService.getAssignedDevices({
+                        type: 'shelf',
+                        id: shelf.id,
+                        name: shelf.name || `Shelf ${shelf.id}`
+                      });
+                      
+                      // Convert device assignments to SensorDevice format
+                      const devices = deviceAssignments.map((assignment: DeviceAssignment) => ({
+                        id: assignment.id,
+                        name: assignment.friendly_name || assignment.entity_id,
+                        sensor_type: assignment.entity_type as any, // This might need more specific mapping
+                        parent_type: 'shelf' as const,
+                        parent_id: shelf.id,
+                        created_at: assignment.created_at,
+                        updated_at: assignment.updated_at
+                      }));
+
+                      console.log(`Loaded ${devices.length} devices for shelf ${shelf.id} (${shelf.name})`);
+                      
+                      return {
+                        ...shelf,
+                        devices
+                      };
+                    } catch (error) {
+                      console.error(`Error loading devices for shelf ${shelf.id}:`, error);
+                      return {
+                        ...shelf,
+                        devices: []
+                      };
+                    }
+                  })
+                );
+
                 return {
                   ...dbRack,
-                  shelves: dbShelves.map(shelf => ({
-                    ...shelf,
-                    devices: [] // TODO: Load devices when needed
-                  }))
+                  shelves: shelvesWithDevices
                 };
               })
             );
@@ -150,7 +194,11 @@ export default function FarmsPage() {
           racks: transformedData.farm.rows?.reduce((total, row) => total + (row.racks?.length || 0), 0) || 0,
           shelves: transformedData.farm.rows?.reduce((total, row) => 
             total + (row.racks?.reduce((rackTotal, rack) => 
-              rackTotal + (rack.shelves?.length || 0), 0) || 0), 0) || 0
+              rackTotal + (rack.shelves?.length || 0), 0) || 0), 0) || 0,
+          devices: transformedData.farm.rows?.reduce((total, row) => 
+            total + (row.racks?.reduce((rackTotal, rack) => 
+              rackTotal + (rack.shelves?.reduce((shelfTotal, shelf) => 
+                shelfTotal + (shelf.devices?.length || 0), 0) || 0), 0) || 0), 0) || 0
         });
 
         setFarmPageData(transformedData);
@@ -196,12 +244,45 @@ export default function FarmsPage() {
           const racksWithShelves = await Promise.all(
             dbRacks.map(async (dbRack) => {
               const dbShelves = await getShelvesByRack(dbRack.id);
+              
+              // Load devices for each shelf
+              const shelvesWithDevices = await Promise.all(
+                dbShelves.map(async (shelf) => {
+                  try {
+                    const deviceAssignments = await deviceAssignmentService.getAssignedDevices({
+                      type: 'shelf',
+                      id: shelf.id,
+                      name: shelf.name || `Shelf ${shelf.id}`
+                    });
+                    
+                    // Convert device assignments to SensorDevice format
+                    const devices = deviceAssignments.map((assignment: DeviceAssignment) => ({
+                      id: assignment.id,
+                      name: assignment.friendly_name || assignment.entity_id,
+                      sensor_type: assignment.entity_type as any,
+                      parent_type: 'shelf' as const,
+                      parent_id: shelf.id,
+                      created_at: assignment.created_at,
+                      updated_at: assignment.updated_at
+                    }));
+                    
+                    return {
+                      ...shelf,
+                      devices
+                    };
+                  } catch (error) {
+                    console.error(`Error loading devices for shelf ${shelf.id}:`, error);
+                    return {
+                      ...shelf,
+                      devices: []
+                    };
+                  }
+                })
+              );
+
               return {
                 ...dbRack,
-                shelves: dbShelves.map(shelf => ({
-                  ...shelf,
-                  devices: []
-                }))
+                shelves: shelvesWithDevices
               };
             })
           );
@@ -235,92 +316,120 @@ export default function FarmsPage() {
   }
 
   return (
-    <div className="flex-1 h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Enhanced Top Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <Home className="h-6 w-6 text-green-600 dark:text-green-400" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Farm Management
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Configure, monitor, and control your vertical farming operation
-                </p>
+    <ToastProvider>
+      <LayerProvider defaultActiveLayers={[]} exclusiveMode={true}>
+        <div className="flex-1 h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        {/* Enhanced Top Bar */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-6 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
+                <Home className="h-7 w-7 text-green-600 dark:text-green-400" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Farm Management
+                  </h1>
+                  <p className="text-base text-gray-500 dark:text-gray-400">
+                    Configure, monitor, and control your vertical farming operation
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Farm Selector */}
-            {isLoadingFarmsList ? (
-              <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
-            ) : farmsListError ? (
-              <span className="text-sm text-red-500">{farmsListError}</span>
-            ) : availableFarms.length > 0 && selectedFarmIdForDetails ? (
-              <Select onValueChange={(value) => setSelectedFarmIdForDetails(value as UUID)} value={selectedFarmIdForDetails || undefined}>
-                <SelectTrigger className="w-[280px]">
-                  <SelectValue placeholder="Select a farm" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableFarms.map(farm => (
-                    <SelectItem key={farm.id} value={farm.id}>
-                      {farm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
-              </div>
-            )}
             
-            <div className="flex items-center space-x-2">
-              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+            <div className="flex items-center space-x-5">
+              {/* Farm Selector */}
+              {isLoadingFarmsList ? (
+                <span className="text-sm text-gray-500 dark:text-gray-400">Loading farms...</span>
+              ) : farmsListError ? (
+                <span className="text-sm text-red-500">{farmsListError}</span>
+              ) : availableFarms.length > 0 && selectedFarmIdForDetails ? (
+                <Select onValueChange={(value) => setSelectedFarmIdForDetails(value as UUID)} value={selectedFarmIdForDetails || undefined}>
+                  <SelectTrigger className="w-[280px]">
+                    <SelectValue placeholder="Select a farm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableFarms.map(farm => (
+                      <SelectItem key={farm.id} value={farm.id}>
+                        {farm.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">No farms available.</span>
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Phase 2 Demo
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Phase 2: Interactive Farm Elements Demo</DialogTitle>
+                    </DialogHeader>
+                    <Phase2Demo />
+                  </DialogContent>
+                </Dialog>
+                <CreateFarmModal onFarmCreated={handleFarmCreated} />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      {availableFarms.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-xl font-semibold mb-4">Welcome to Farm Management</h2>
-              <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
-              <CreateFarmModal onFarmCreated={handleFarmCreated} />
+        {/* Layer Switcher */}
+        {availableFarms.length > 0 && !isLoading && !error && (
+          <LayerSwitcher
+            orientation="horizontal"
+            size="md"
+            showLabels={true}
+            position="top-right"
+          />
+        )}
+
+        {/* Main Content */}
+        {availableFarms.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+              <div className="max-w-md mx-auto">
+                <h2 className="text-xl font-semibold mb-4">Welcome to Farm Management</h2>
+                <p className="mb-6">Get started by creating your first farm to begin managing your vertical farming operation.</p>
+                <CreateFarmModal onFarmCreated={handleFarmCreated} />
+              </div>
             </div>
           </div>
-        </div>
-      ) : isLoading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
-        </div>
-      ) : error ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center py-10 text-red-600 dark:text-red-400">
-            <p>Error loading farm data: {error}</p>
-            <p>Please ensure the backend is running and the farm ID is correct.</p>
+        ) : isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center py-10 text-gray-600 dark:text-gray-400">Loading farm data...</div>
           </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center py-10 text-red-600 dark:text-red-400">
+              <p>Error loading farm data: {error}</p>
+              <p>Please ensure the backend is running and the farm ID is correct.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col">
+            <UnifiedFarmView
+              farmData={farmPageData}
+              selectedRow={selectedRow}
+              selectedRack={selectedRack}
+              selectedShelf={selectedShelf}
+              onRowSelect={handleRowSelect}
+              onRackSelect={handleRackSelect}
+              onShelfSelect={handleShelfSelect}
+              onDataRefresh={handleDataRefresh}
+            />
+          </div>
+        )}
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          <UnifiedFarmView
-            farmData={farmPageData}
-            selectedRow={selectedRow}
-            selectedRack={selectedRack}
-            selectedShelf={selectedShelf}
-            onRowSelect={handleRowSelect}
-            onRackSelect={handleRackSelect}
-            onShelfSelect={handleShelfSelect}
-            onDataRefresh={handleDataRefresh}
-          />
-        </div>
-      )}
-    </div>
+      </LayerProvider>
+    </ToastProvider>
   );
 }

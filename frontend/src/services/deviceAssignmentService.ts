@@ -183,50 +183,19 @@ class DeviceAssignmentService {
         integration_id: integration?.id
       };
 
-      // Set the appropriate target field
+      // Set only the target field (database constraint requires exactly one level)
       switch (target.type) {
         case 'farm':
           assignmentData.farm_id = target.id;
           break;
         case 'row':
           assignmentData.row_id = target.id;
-          // Also get farm_id from the row
-          const { data: rowData } = await supabase
-            .from('rows')
-            .select('farm_id')
-            .eq('id', target.id)
-            .single();
-          if (rowData) assignmentData.farm_id = rowData.farm_id;
           break;
         case 'rack':
           assignmentData.rack_id = target.id;
-          // Get farm_id through row
-          const { data: rackData } = await supabase
-            .from('racks')
-            .select('row_id, rows(farm_id)')
-            .eq('id', target.id)
-            .single();
-          if (rackData) {
-            assignmentData.row_id = rackData.row_id;
-            assignmentData.farm_id = (rackData as any).rows?.farm_id;
-          }
           break;
         case 'shelf':
           assignmentData.shelf_id = target.id;
-          // Get farm_id through rack -> row
-          const { data: shelfData } = await supabase
-            .from('shelves')
-            .select('rack_id, racks(row_id, rows(farm_id))')
-            .eq('id', target.id)
-            .single();
-          if (shelfData) {
-            assignmentData.rack_id = shelfData.rack_id;
-            const racks = (shelfData as any).racks;
-            if (racks) {
-              assignmentData.row_id = racks.row_id;
-              assignmentData.farm_id = racks.rows?.farm_id;
-            }
-          }
           break;
       }
 

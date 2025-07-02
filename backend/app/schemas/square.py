@@ -1,7 +1,7 @@
 """
 Pydantic schemas for Square integration webhook functionality.
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -42,14 +42,16 @@ class SquareWebhookCreate(BaseModel):
     webhook_url: str = Field(..., description="URL where Square will send webhooks")
     event_types: List[str] = Field(default=[], description="List of event types to subscribe to")
 
-    @validator('webhook_url')
+    @field_validator('webhook_url')
+    @classmethod
     def validate_webhook_url(cls, v):
         """Validate webhook URL format."""
         if not v.startswith(('http://', 'https://')):
             raise ValueError('Webhook URL must start with http:// or https://')
         return v
 
-    @validator('event_types')
+    @field_validator('event_types')
+    @classmethod
     def validate_event_types(cls, v):
         """Validate event types are supported."""
         valid_types = [e.value for e in SquareWebhookEventType]
@@ -65,7 +67,8 @@ class SquareWebhookUpdate(BaseModel):
     event_types: Optional[List[str]] = Field(None, description="List of event types to subscribe to")
     status: Optional[WebhookStatus] = Field(None, description="Webhook status")
 
-    @validator('webhook_url')
+    @field_validator('webhook_url')
+    @classmethod
     def validate_webhook_url(cls, v):
         """Validate webhook URL format."""
         if v and not v.startswith(('http://', 'https://')):
@@ -135,7 +138,8 @@ class CacheInvalidationRequest(BaseModel):
     cache_types: List[str] = Field(..., description="Types of cache to invalidate")
     reason: Optional[str] = Field(None, description="Reason for invalidation")
 
-    @validator('cache_types')
+    @field_validator('cache_types')
+    @classmethod
     def validate_cache_types(cls, v):
         """Validate cache types."""
         valid_types = ['locations', 'products', 'customers', 'orders', 'payments', 'all']

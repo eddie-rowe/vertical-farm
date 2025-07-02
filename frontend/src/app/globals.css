@@ -47,6 +47,41 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Farm-specific Design Tokens */
+  --spacing-plant: 0.75rem;
+  --spacing-row: 1.5rem;
+  --spacing-rack: 2rem;
+  --spacing-shelf: 1rem;
+  --spacing-sensor: 0.5rem;
+  
+  --size-plant-icon: 1.5rem;
+  --size-sensor-icon: 1.25rem;
+  --size-control-btn: 2.5rem;
+  --size-status-indicator: 0.5rem;
+  
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+  --duration-pulse: 2s;
+  
+  --ease-farm: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-gentle: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  --font-size-plant-label: 0.75rem;
+  --font-size-sensor-value: 1.125rem;
+  --font-size-farm-title: 1.5rem;
+  --font-size-control-label: 0.875rem;
+  
+  --line-height-tight: 1.2;
+  --line-height-farm: 1.25;
+  --line-height-sensor: 1.1;
+  
+  --z-index-farm-overlay: 10;
+  --z-index-sensor-popup: 20;
+  --z-index-control-panel: 30;
+  --z-index-modal: 40;
 }
 
 /*
@@ -140,71 +175,252 @@
   }
 }
 
-@layer utilities {
-  .gradient-farm {
-    background: linear-gradient(135deg, #c3dafe 0%, #e0e7ff 100%);
-  }
-  .gradient-row {
-    background: linear-gradient(135deg, #bbf7d0 0%, #d1fae5 100%);
-  }
-  .gradient-rack {
-    background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
-  }
-  .gradient-shelf {
-    background: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 100%);
-  }
-  .dark .gradient-farm {
+/* 
+  Phase 1: Enhanced Utility System - Converting to @utility directive (Tailwind v4)
+  ---break---
+*/
+
+/* Farm Hierarchy Gradients */
+@utility gradient-farm {
+  background: linear-gradient(135deg, #c3dafe 0%, #e0e7ff 100%);
+  
+  .dark & {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   }
-  .dark .gradient-row {
+}
+
+@utility gradient-row {
+  background: linear-gradient(135deg, #bbf7d0 0%, #d1fae5 100%);
+  
+  .dark & {
     background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
   }
-  .dark .gradient-rack {
+}
+
+@utility gradient-rack {
+  background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
+  
+  .dark & {
     background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
   }
-  .dark .gradient-shelf {
+}
+
+@utility gradient-shelf {
+  background: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 100%);
+  
+  .dark & {
     background: linear-gradient(135deg, #6d28d9 0%, #a21caf 100%);
   }
-  .glass {
-    background: rgba(255,255,255,0.7);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-radius: 1rem;
-    border: 1px solid rgba(255,255,255,0.18);
-  }
-  .dark .glass {
+}
+
+/* Glass Morphism Effect */
+@utility glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.18);
+  
+  .dark & {
     background: rgba(30,41,59,0.7);
     border: 1px solid rgba(51,65,85,0.18);
   }
-  .card-shadow {
-    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+}
+
+/* Enhanced Shadow System */
+@utility card-shadow {
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+}
+
+@utility sensor-shadow {
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06), 0 1px 4px 0 rgba(0,0,0,0.04);
+}
+
+@utility control-shadow {
+  box-shadow: 0 6px 32px 0 rgba(0,0,0,0.12), 0 2px 8px 0 rgba(0,0,0,0.08);
+}
+
+/* Animation Utilities */
+@utility animate-pop {
+  animation: pop-in var(--duration-normal) var(--ease-farm);
+}
+
+@utility animate-pulse-slow {
+  animation: pulse-glow var(--duration-pulse) ease-in-out infinite;
+}
+
+@utility animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.95) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 16px rgba(34, 197, 94, 0.6); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Typography Utilities */
+@utility text-plant-label {
+  font-size: var(--font-size-plant-label);
+  font-weight: 500;
+  line-height: var(--line-height-farm);
+  letter-spacing: 0.025em;
+  color: var(--color-muted-foreground);
+}
+
+@utility text-sensor-value {
+  font-size: var(--font-size-sensor-value);
+  font-weight: 600;
+  line-height: var(--line-height-sensor);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-foreground);
+}
+
+@utility text-farm-title {
+  font-size: var(--font-size-farm-title);
+  font-weight: 700;
+  line-height: var(--line-height-tight);
+  color: var(--color-foreground);
+}
+
+@utility text-control-label {
+  font-size: var(--font-size-control-label);
+  font-weight: 500;
+  line-height: var(--line-height-farm);
+  color: var(--color-muted-foreground);
+}
+
+/* Component Utilities */
+@utility farm-control-btn {
+  @apply glass card-shadow;
+  padding: var(--spacing-sensor);
+  border-radius: var(--radius-md);
+  width: var(--size-control-btn);
+  height: var(--size-control-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-farm);
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: var(--control-shadow);
   }
-  .animate-pop {
-    animation: pop-in 0.25s cubic-bezier(0.4,0,0.2,1);
+  
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
-  @keyframes pop-in {
-    0% { transform: scale(0.95) translateY(20px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@utility plant-card {
+  @apply glass card-shadow;
+  padding: var(--spacing-plant);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal) var(--ease-gentle);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--control-shadow);
   }
-  .btn-animated {
-    transition: transform 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s;
+}
+
+@utility sensor-panel {
+  @apply glass sensor-shadow;
+  padding: var(--spacing-sensor);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sensor);
+  min-width: 120px;
+}
+
+@utility farm-grid {
+  display: grid;
+  gap: var(--spacing-row);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@utility rack-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-shelf);
+  padding: var(--spacing-rack);
+}
+
+/* State Pattern Utilities */
+@utility state-active {
+  @apply ring-2;
+  ring-color: rgb(34 197 94);
+  background-color: rgb(34 197 94 / 0.05);
+  
+  .dark & {
+    background-color: rgb(34 197 94 / 0.1);
   }
-  .btn-animated:hover {
+}
+
+@utility state-maintenance {
+  @apply ring-2;
+  ring-color: rgb(245 158 11);
+  background-color: rgb(245 158 11 / 0.05);
+  
+  .dark & {
+    background-color: rgb(245 158 11 / 0.1);
+  }
+}
+
+@utility state-offline {
+  @apply ring-2;
+  ring-color: rgb(239 68 68);
+  background-color: rgb(239 68 68 / 0.05);
+  opacity: 0.7;
+  
+  .dark & {
+    background-color: rgb(239 68 68 / 0.1);
+  }
+}
+
+@utility state-growing {
+  @apply animate-pulse-slow state-active;
+}
+
+/* Enhanced Interactive Patterns */
+@utility btn-animated {
+  transition: transform var(--duration-fast) var(--ease-farm), 
+              box-shadow var(--duration-fast) var(--ease-farm);
+  
+  &:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 4px 16px 0 rgba(59,130,246,0.15);
   }
-  .footer-link {
-    @apply hover:underline hover:text-green-700 dark:hover:text-green-300 focus:underline focus:outline-none transition;
-  }
-  .nav-link {
-    @apply hover:underline focus:underline focus:outline-none transition;
-  }
-  .btn-animated:focus-visible {
-    outline: 2px solid #2563eb;
+  
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
-  a:focus-visible, button:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-  }
+}
+
+@utility footer-link {
+  @apply hover:underline hover:text-green-700 dark:hover:text-green-300 
+         focus:underline focus:outline-none transition;
+}
+
+@utility nav-link {
+  @apply hover:underline focus:underline focus:outline-none transition;
+}
+
+/* Global Focus Styles */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
 }

@@ -414,7 +414,19 @@ class HomeAssistantService {
         };
       }
 
-      // Only call handleApiError for other errors (like 401)
+      if (response.status === 401) {
+        // For status checks, don't auto-logout on 401 - just return disconnected status
+        console.log('Home Assistant status check failed - user not authenticated for this integration');
+        return {
+          connected: false,
+          version: undefined,
+          device_count: 0,
+          last_updated: undefined,
+          error: 'Authentication required for Home Assistant integration'
+        };
+      }
+
+      // Only call handleApiError for other errors (not 401)
       await this.handleApiError(response, 'Get status');
       const result = await response.json();
       
@@ -603,6 +615,8 @@ class HomeAssistantService {
   async importDevices(request: ImportDevicesRequest): Promise<ImportDevicesResponse> {
     try {
       const headers = await this.getAuthHeaders();
+      console.log('🚀 Importing devices request:', request);
+      
       const response = await fetch(`${this.baseUrl}/devices/import`, {
         method: 'POST',
         headers,
@@ -611,6 +625,7 @@ class HomeAssistantService {
 
       await this.handleApiError(response, 'Import devices');
       const result = await response.json();
+      console.log('✅ Import devices response:', result);
       
       if (result.success) {
         toast.success(`Successfully imported ${result.imported_count} device(s)`);
@@ -620,7 +635,7 @@ class HomeAssistantService {
       
       return result;
     } catch (error) {
-      console.error('Failed to import devices:', error);
+      console.error('❌ Failed to import devices:', error);
       toast.error('Failed to import devices');
       throw error;
     }
@@ -634,13 +649,18 @@ class HomeAssistantService {
       if (assigned !== undefined) params.append('assigned', assigned.toString());
       
       const url = `${this.baseUrl}/devices/imported${params.toString() ? '?' + params.toString() : ''}`;
+      console.log('🔍 Calling getImportedDevices URL:', url);
+      
       const response = await fetch(url, { headers });
 
       await this.handleApiError(response, 'Get imported devices');
       const data = await response.json();
+      console.log('📦 Raw getImportedDevices response:', data);
+      console.log('🎯 Returning devices:', data.devices || []);
+      
       return data.devices || [];
     } catch (error) {
-      console.error('Failed to get imported devices:', error);
+      console.error('❌ Error in getImportedDevices:', error);
       throw error;
     }
   }

@@ -6,9 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-import CurrentGrowsView from "@/components/grow-management/CurrentGrowsView";
-import NewGrowSetup from "@/components/grow-management/NewGrowSetup";
-import GrowParametersView from "@/components/grow-management/GrowParametersView";
+import { CurrentGrowsView, NewGrowSetup, GrowParametersView } from "@/components/features/agriculture";
 
 export default function GrowManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");

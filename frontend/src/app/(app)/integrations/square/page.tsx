@@ -38,7 +38,7 @@ import {
   SquareOrder,
   SquarePayment
 } from '@/services/squareService';
-import SquareSetupGuide from '@/components/integrations/SquareSetupGuide';
+import { SquareSetupGuide } from '@/components/features/automation';
 
 interface SyncStatus {
   entity: string;

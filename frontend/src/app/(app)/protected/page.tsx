@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button'; // Assuming shadcn/ui Button
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function ProtectedPage() {
   const [message, setMessage] = useState<string>('');
@@ -34,10 +35,10 @@ export default function ProtectedPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Protected Page</h1>
-      <p className="mb-4">
-        This page is protected by authentication. Only logged-in users should be able to see this.
-      </p>
+      <PageHeader
+        title="Protected Page"
+        description="This page is protected by authentication. Only logged-in users should be able to see this."
+      />
       <div className="mt-6">
         <Button onClick={callBackendHealth} disabled={isLoading}>
           {isLoading ? 'Checking Backend...' : 'Check Backend Health'}

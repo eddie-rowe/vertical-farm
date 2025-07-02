@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface InventoryItem {
   id: string;
@@ -323,13 +324,11 @@ export default function ProcurementPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Procurement</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage inventory, vendors, and supply chain operations
-          </p>
-        </div>
+      <PageHeader
+        title="Procurement"
+        description="Manage inventory, vendors, and supply chain operations"
+        size="lg"
+      >
         <div className="flex space-x-2">
           <Button variant="outline">
             <FaSearch className="mr-2" />
@@ -340,7 +339,7 @@ export default function ProcurementPage() {
             New Order
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList>

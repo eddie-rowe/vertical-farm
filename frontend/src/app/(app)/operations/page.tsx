@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers, FaArrowUp, FaArrowDown, FaChartLine, FaBoxes, FaTools } from '@/lib/icons';
-import DeliveryScheduleView from '@/components/operations/DeliveryScheduleView';
-import MaintenanceScheduleView from '@/components/operations/MaintenanceScheduleView';
+import { DeliveryScheduleView, MaintenanceScheduleView, ResourceUsageChart } from '@/components/features/business';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -319,13 +318,22 @@ export default function OperationsPage() {
                 <CardDescription>Historical cost analysis and projections</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  <div className="text-center">
-                    <FaChartLine className="text-4xl mx-auto mb-2" />
-                    <p>Cost trend chart visualization</p>
-                    <p className="text-sm">Integration with charting library</p>
-                  </div>
-                </div>
+                <ResourceUsageChart
+                  data={[
+                    { timestamp: '2024-01-01', waterUsage: 450, electricityUsage: 125, nutrientUsage: 85, co2Usage: 75, totalCost: 1247 },
+                    { timestamp: '2024-01-02', waterUsage: 420, electricityUsage: 138, nutrientUsage: 92, co2Usage: 82, totalCost: 1385 },
+                    { timestamp: '2024-01-03', waterUsage: 485, electricityUsage: 142, nutrientUsage: 88, co2Usage: 78, totalCost: 1425 },
+                    { timestamp: '2024-01-04', waterUsage: 465, electricityUsage: 135, nutrientUsage: 95, co2Usage: 85, totalCost: 1368 },
+                    { timestamp: '2024-01-05', waterUsage: 490, electricityUsage: 145, nutrientUsage: 90, co2Usage: 88, totalCost: 1456 },
+                    { timestamp: '2024-01-06', waterUsage: 475, electricityUsage: 150, nutrientUsage: 98, co2Usage: 92, totalCost: 1487 },
+                    { timestamp: '2024-01-07', waterUsage: 510, electricityUsage: 155, nutrientUsage: 102, co2Usage: 95, totalCost: 1523 }
+                  ]}
+                  title="Daily Operating Costs"
+                  height={250}
+                  chartType="area"
+                  showCosts={true}
+                  timeRange="7d"
+                />
               </CardContent>
             </Card>
           </div>

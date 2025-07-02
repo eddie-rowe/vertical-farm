@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function AccountPage() {
   const { user } = useAuth();
@@ -103,7 +104,10 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl mx-auto p-8">
-      <h1 className="text-4xl sm:text-5xl font-extrabold mb-8 text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4">Account</h1>
+      <PageHeader
+        title="Account"
+        description="Manage your profile, preferences, and account settings."
+      />
       <form onSubmit={handleProfileUpdate} className="mb-8 space-y-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">

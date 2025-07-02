@@ -1,6 +1,6 @@
 'use client'
 
-import { RealtimeDemo } from '../../../components/RealtimeDemo'
+import { RealtimeDemo } from '@/components/shared/demo'
 
 export default function RealtimeTestPage() {
   return (

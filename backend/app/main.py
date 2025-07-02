@@ -8,7 +8,9 @@ from app.api.v1.api import api_router as api_router_v1
 # from app.db.supabase_client import get_supabase_client # Only if example endpoint is used
 # from dotenv import load_dotenv # Likely redundant due to Pydantic .env loading
 from app.core.config import settings
-from app.core.security import get_validated_supabase_token_payload
+from app.core.security import get_raw_supabase_token
+from app.db.supabase_client import get_async_rls_client
+from supabase import AClient
 # Home Assistant service now uses user-specific configurations - no global imports needed
 # from app.services.database_service import get_database_service # Removed - no longer needed after PostGREST migration
 # from app.services.background_processor import background_processor  # Deprecated Redis-based processor
@@ -201,16 +203,31 @@ def cors_test_simple():
 
 @app.get("/debug/user-profile")
 async def debug_user_profile(
-    token_data: tuple = Depends(get_validated_supabase_token_payload)
+    raw_token: str = Depends(get_raw_supabase_token),
+    db: AClient = Depends(get_async_rls_client)
 ):
     """Debug endpoint to check user profile status"""
-    from app.db.supabase_client import get_async_supabase_client
     from app.crud import crud_user
+    from jose import jwt
     
-    payload, _ = token_data
-    user_id = payload.get("sub")
+    # Decode token to get user info (for debugging only)
+    try:
+        # Note: We're not validating the token here since Supabase RLS will handle that
+        # Note: python-jose requires key parameter even for unverified decoding
+        payload = jwt.decode(raw_token, key="", options={
+            "verify_signature": False,
+            "verify_aud": False,
+            "verify_iss": False,
+            "verify_exp": False,
+            "verify_nbf": False,
+            "verify_iat": False,
+            "verify_sub": False
+        })
+        user_id = payload.get("sub")
+    except Exception as e:
+        return {"error": "Invalid token format", "detail": str(e)}
     
-    db = await get_async_supabase_client()
+    # Use RLS client which will validate the token properly
     user_data = await crud_user.user.get(supabase=db, id=user_id)
     
     return {

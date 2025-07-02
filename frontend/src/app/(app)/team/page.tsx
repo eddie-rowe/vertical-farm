@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ScheduleView from "@/components/team-management/ScheduleView";
-import TaskAssignmentsView from "@/components/team-management/TaskAssignmentsView";
-import TimeTrackingView from "@/components/team-management/TimeTrackingView";
-import PayrollView from "@/components/team-management/PayrollView";
-import SkillsView from "@/components/team-management/SkillsView";
-import PerformanceView from "@/components/team-management/PerformanceView";
+import { 
+  ScheduleView, 
+  TaskAssignmentsView, 
+  TimeTrackingView, 
+  PayrollView, 
+  SkillsView, 
+  PerformanceView 
+} from "@/components/features/business";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("schedule");
