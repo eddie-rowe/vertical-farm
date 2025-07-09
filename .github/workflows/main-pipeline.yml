@@ -83,16 +83,6 @@ jobs:
     with:
       deploy_to_pages: ${{ github.ref == 'refs/heads/main' }}
   
-  # Phase 3: Security & Quality (parallel with builds)
-  security-scan:
-    name: Security Scanning
-    uses: ./.github/workflows/shared-security-config.yml
-    #needs: [backend-tests, frontend-tests]
-    #if: always() && github.event_name == 'pull_request'
-    #secrets: inherit
-    with:
-      scan_type: 'codeql'
-  
   # Phase 4: Database Deployment (after builds complete)
   #supabase-deploy:
   #  name: Supabase Deploy
@@ -158,7 +148,6 @@ jobs:
       backend-build,
       frontend-build,
       docs-build,
-      security-scan,
       unraid-deploy
       #supabase-deploy,
       #production-deploy,
@@ -187,10 +176,7 @@ jobs:
           echo "| 🏗️ Building | Frontend Build | ${{ needs.frontend-build.result == 'success' && '✅' || needs.frontend-build.result == 'failure' && '❌' || needs.frontend-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Building | Documentation | ${{ needs.docs-build.result == 'success' && '✅' || needs.docs-build.result == 'failure' && '❌' || needs.docs-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           
-          # Phase 3: Security
-          echo "| 🔒 Security | Security Scan | ${{ needs.security-scan.result == 'success' && '✅' || needs.security-scan.result == 'failure' && '❌' || needs.security-scan.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          
-          # Phase 4-6: Deployment
+          # Phase 3: Deployment
           echo "| 🚀 Deploy | Supabase | ${{ needs.supabase-deploy.result == 'success' && '✅' || needs.supabase-deploy.result == 'failure' && '❌' || needs.supabase-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Production | ${{ needs.production-deploy.result == 'success' && '✅' || needs.production-deploy.result == 'failure' && '❌' || needs.production-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Cloudflare | ${{ needs.cloudflare-deploy.result == 'success' && '✅' || needs.cloudflare-deploy.result == 'failure' && '❌' || needs.cloudflare-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY

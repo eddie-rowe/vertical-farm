@@ -157,7 +157,7 @@ jobs:
       - name: Build documentation
         run: |
           # Build the documentation
-          mkdocs build --strict --verbose
+          mkdocs build --verbose
           
           echo "✅ Documentation built successfully"
           

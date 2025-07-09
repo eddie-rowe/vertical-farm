@@ -75,8 +75,7 @@ nav:
       - Security Model: 06-security/model.md
     
     - Guides:
-      - Overview: 07-guides/README.md
-      - Index: 07-guides/index.md
+      - Overview: 07-guides/index.md
       - Caching Implementation Guide: 07-guides/CACHING_IMPLEMENTATION_GUIDE.md
       - Supabase Queues Setup: 07-guides/SUPABASE_QUEUES_SETUP.md
       - Home Assistant Setup: 07-guides/SETUP_HOME_ASSISTANT.md
@@ -135,6 +134,6 @@ nav:
     - Migration:
       - Overview: 09-migration/README.md
       - PostgREST Migration Guide: 09-migration/postgrest-migration-guide.md
-      - Semantic Token Migration: 08-reports/09-migration/SEMANTIC-TOKEN-MIGRATION.md
+      - Semantic Token Migration: 09-migration/SEMANTIC-TOKEN-MIGRATION.md
       - Check Home Assistant Table: 09-migration/check_home_assistant_table.sql
       - Check User Config: 09-migration/check_user_home_assistant_config.sql
