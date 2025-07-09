@@ -73,15 +73,26 @@ jobs:
       
       - name: Validate MkDocs configuration
         run: |
-          # Check if mkdocs.yml is valid
+          # Check if mkdocs.yml is valid using MkDocs' own config validation
           mkdocs --version
+          
+          # Use MkDocs to validate configuration instead of raw YAML parsing
           python -c "
-          import yaml
-          with open('mkdocs.yml', 'r') as f:
-              config = yaml.safe_load(f)
+          import mkdocs.config
+          import mkdocs.config.config_options
+          try:
+              config = mkdocs.config.load_config('mkdocs.yml')
               print('✅ MkDocs configuration is valid')
               print(f'Site name: {config.get(\"site_name\", \"Unknown\")}')
-              print(f'Theme: {config.get(\"theme\", {}).get(\"name\", \"Unknown\")}')
+              print(f'Theme: {config.get(\"theme\", {}).name if hasattr(config.get(\"theme\", {}), \"name\") else \"Unknown\"}')
+              
+              # Check for plugins
+              plugins = config.get('plugins', [])
+              if plugins:
+                  print(f'Plugins configured: {len(plugins)}')
+          except Exception as e:
+              print(f'❌ MkDocs configuration error: {e}')
+              exit(1)
           "
       
       - name: Check documentation structure
