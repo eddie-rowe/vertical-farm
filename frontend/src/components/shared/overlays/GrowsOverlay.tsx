@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { FarmPageData, Row, Rack, Shelf } from '@/types/farm-layout';
+import { FarmPageData, Row, Rack, Shelf } from '@/types/farm';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';

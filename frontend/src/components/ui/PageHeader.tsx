@@ -23,17 +23,17 @@ export function PageHeader({
   };
 
   return (
-    <div className={cn("bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6", className)}>
+    <div className={cn("bg-surface-elevated shadow rounded-lg p-6 mb-6", className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h1 className={cn(
-            "font-bold text-gray-900 dark:text-white mb-2",
+            "font-bold text-content mb-2",
             sizeClasses[size]
           )}>
             {title}
           </h1>
           {description && (
-            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+            <p className="text-content-secondary text-sm leading-relaxed">
               {description}
             </p>
           )}

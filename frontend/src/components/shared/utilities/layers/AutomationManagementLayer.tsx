@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Clock, Zap, Calendar, Settings, Play, Pause } from "lucide-react";
-import type { Farm } from "@/types/farm-layout";
+import type { Farm } from "@/types/farm";
 
 interface AutomationManagementLayerProps {
   farm?: Farm;

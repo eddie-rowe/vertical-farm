@@ -2,15 +2,14 @@
 
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { FarmControlButton } from '@/components/ui/farm-control-button'
+import { FarmInput } from '@/components/ui/farm-input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { 
   BookOpen, 
   Plus, 
@@ -210,19 +209,19 @@ export default function RecipesPage() {
   const cropTypes = [...new Set(recipes.map(r => r.cropType))]
 
   const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedRecipe(recipe)}>
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer card-shadow bg-farm-white" onClick={() => setSelectedRecipe(recipe)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Leaf className="w-5 h-5 text-green-600" />
+            <CardTitle className="text-control-label flex items-center gap-2">
+              <Leaf className="w-5 h-5 text-accent-primary" />
               {recipe.name}
             </CardTitle>
-            <CardDescription className="mt-1">{recipe.description}</CardDescription>
+            <CardDescription className="mt-1 text-control-secondary">{recipe.description}</CardDescription>
           </div>
           <div className="flex items-center gap-1 ml-3">
-            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            <span className="text-sm font-medium">{recipe.rating}</span>
+            <Star className="w-4 h-4 text-accent-primary fill-current" />
+            <span className="text-sensor-reading font-medium">{recipe.rating}</span>
           </div>
         </div>
       </CardHeader>
@@ -233,7 +232,9 @@ export default function RecipesPage() {
             {recipe.cropType} - {recipe.variety}
           </Badge>
           <Badge variant={recipe.difficulty === 'beginner' ? 'secondary' : 
-                         recipe.difficulty === 'intermediate' ? 'default' : 'destructive'}>
+                         recipe.difficulty === 'intermediate' ? 'default' : 'destructive'}
+                 className={recipe.difficulty === 'beginner' ? 'state-growing' : 
+                           recipe.difficulty === 'intermediate' ? 'state-active' : 'state-maintenance'}>
             {recipe.difficulty}
           </Badge>
           {recipe.isPublic && (
@@ -243,17 +244,17 @@ export default function RecipesPage() {
           )}
         </div>
         
-        <div className="grid grid-cols-3 gap-4 text-sm text-slate-600 dark:text-slate-400">
+        <div className="grid grid-cols-3 gap-4 text-sensor-reading text-control-secondary">
           <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+            <Clock className="w-4 h-4 text-accent-primary" />
             <span>{recipe.duration} days</span>
           </div>
           <div className="flex items-center gap-1">
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-4 h-4 text-accent-primary" />
             <span>{recipe.stages.length} stages</span>
           </div>
           <div className="flex items-center gap-1">
-            <FlaskConical className="w-4 h-4" />
+            <FlaskConical className="w-4 h-4 text-accent-primary" />
             <span>Used {recipe.usageCount}x</span>
           </div>
         </div>
@@ -265,28 +266,23 @@ export default function RecipesPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-              <BookOpen className="w-8 h-8 text-green-600" />
-              Recipe Management
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Create, manage, and share growing recipes for optimal crop yields
-            </p>
-          </div>
-          <Button className="gap-2">
+        <PageHeader 
+          title="Recipe Management"
+          description="Create, manage, and share growing recipes for optimal crop yields"
+          size="lg"
+        >
+          <FarmControlButton variant="primary" className="gap-2">
             <Plus className="w-4 h-4" />
             Create Recipe
-          </Button>
-        </div>
+          </FarmControlButton>
+        </PageHeader>
 
         {/* Search and Filters */}
-        <div className="flex flex-wrap gap-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+        <div className="flex flex-wrap gap-4 bg-accent-primary/5 dark:bg-accent-primary/10 p-4 rounded-lg card-shadow">
           <div className="flex-1 min-w-[300px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
+              <FarmInput
                 placeholder="Search recipes, crops, or descriptions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -347,16 +343,16 @@ export default function RecipesPage() {
       {filteredRecipes.length === 0 && (
         <div className="text-center py-16">
           <BookOpen className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">
+          <h3 className="text-sensor-value text-control-secondary mb-2">
             No recipes found
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">
+          <p className="text-control-secondary mb-6">
             Try adjusting your search or create a new recipe to get started
           </p>
-          <Button className="gap-2">
+          <FarmControlButton className="gap-2">
             <Plus className="w-4 h-4" />
             Create Your First Recipe
-          </Button>
+          </FarmControlButton>
         </div>
       )}
 
@@ -365,8 +361,8 @@ export default function RecipesPage() {
         <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Leaf className="w-5 h-5 text-green-600" />
+              <DialogTitle className="text-farm-title flex items-center gap-2">
+                <Leaf className="w-5 h-5 text-accent-primary" />
                 {selectedRecipe.name}
               </DialogTitle>
             </DialogHeader>
@@ -381,31 +377,31 @@ export default function RecipesPage() {
               
               <TabsContent value="overview" className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <Clock className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                    <div className="font-semibold">{selectedRecipe.duration} days</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Duration</div>
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                    <Clock className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
+                    <div className="text-sensor-value text-control-content">{selectedRecipe.duration} days</div>
+                    <div className="text-control-label">Duration</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-                    <div className="font-semibold">{selectedRecipe.rating}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Rating</div>
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-growing">
+                    <Star className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
+                    <div className="text-sensor-value text-control-content">{selectedRecipe.rating}</div>
+                    <div className="text-control-label">Rating</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <FlaskConical className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                    <div className="font-semibold">{selectedRecipe.usageCount}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Uses</div>
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                    <FlaskConical className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
+                    <div className="text-sensor-value text-control-content">{selectedRecipe.usageCount}</div>
+                    <div className="text-control-label">Uses</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <BookOpen className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                    <div className="font-semibold">{selectedRecipe.stages.length}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Stages</div>
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                    <BookOpen className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
+                    <div className="text-sensor-value text-control-content">{selectedRecipe.stages.length}</div>
+                    <div className="text-control-label">Stages</div>
                   </div>
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold mb-2">Description</h4>
-                  <p className="text-slate-600 dark:text-slate-400">{selectedRecipe.description}</p>
+                  <h4 className="text-control-label mb-2">Description</h4>
+                  <p className="text-control-secondary">{selectedRecipe.description}</p>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
@@ -517,18 +513,18 @@ export default function RecipesPage() {
                 </div>
                 
                 <div className="flex gap-2 pt-4">
-                  <Button variant="outline" className="gap-2">
+                  <FarmControlButton variant="default" className="gap-2">
                     <Copy className="w-4 h-4" />
                     Clone Recipe
-                  </Button>
-                  <Button variant="outline" className="gap-2">
+                  </FarmControlButton>
+                  <FarmControlButton variant="default" className="gap-2">
                     <Edit className="w-4 h-4" />
                     Edit Recipe
-                  </Button>
-                  <Button variant="destructive" className="gap-2">
+                  </FarmControlButton>
+                  <FarmControlButton variant="maintenance" className="gap-2">
                     <Trash2 className="w-4 h-4" />
                     Delete Recipe
-                  </Button>
+                  </FarmControlButton>
                 </div>
               </TabsContent>
             </Tabs>

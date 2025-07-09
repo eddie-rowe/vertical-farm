@@ -17,7 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Farm } from "@/types/farm-layout";
+import type { Farm } from "@/types/farm";
 
 interface MonitoringData {
   temperature: { value: number; unit: string; status: 'optimal' | 'warning' | 'critical' };

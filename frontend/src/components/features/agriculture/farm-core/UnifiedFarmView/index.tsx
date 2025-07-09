@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from 'react'
-import { FarmPageData, Row, Rack, Shelf } from '@/types/farm-layout'
+import { FarmPageData, Row, Rack, Shelf } from '@/types/farm/layout'
 import { Plus, Layers, Archive, Grid3X3, Save, Edit3 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -146,32 +146,51 @@ const UnifiedFarmView: React.FC<UnifiedFarmViewProps> = ({
     try {
       switch (action) {
         case 'add-row': {
-          const { createRow, generateUniqueRowName } = await import('@/services/rowService')
-          const uniqueName = await generateUniqueRowName(farmData.farm.id)
+          const rowService = (await import('@/services/domain/farm/RowService')).RowService.getInstance()
+          const nextPosition = await rowService.getNextPosition(farmData.farm.id)
           
-          await createRow({
+          // Generate unique name
+          const existingRows = await rowService.getRowsByFarm(farmData.farm.id)
+          const uniqueName = `Row ${existingRows.length + 1}`
+          
+          await rowService.create({
             farm_id: farmData.farm.id,
-            name: uniqueName
+            name: uniqueName,
+            position: nextPosition
           })
           toast.success('Row added successfully')
           break
         }
         case 'add-rack':
           if (selectedRow) {
-            const { createRack } = await import('@/services/rackService')
-            await createRack({
+            const rackService = (await import('@/services/domain/farm/RackService')).RackService.getInstance()
+            const nextPosition = await rackService.getNextPosition(selectedRow.id)
+            
+            // Generate unique name
+            const existingRacks = await rackService.getRacksByRow(selectedRow.id)
+            const uniqueName = `Rack ${existingRacks.length + 1}`
+            
+            await rackService.create({
               row_id: selectedRow.id,
-              name: `Rack ${(selectedRow.racks?.length || 0) + 1}`
+              name: uniqueName,
+              position: nextPosition
             })
             toast.success('Rack added successfully')
           }
           break
         case 'add-shelf':
           if (selectedRack) {
-            const { createShelf } = await import('@/services/shelfService')
-            await createShelf({
+            const shelfService = (await import('@/services/domain/farm/ShelfService')).ShelfService.getInstance()
+            const nextPosition = await shelfService.getNextPosition(selectedRack.id)
+            
+            // Generate unique name
+            const existingShelves = await shelfService.getShelvesByRack(selectedRack.id)
+            const uniqueName = `Shelf ${existingShelves.length + 1}`
+            
+            await shelfService.create({
               rack_id: selectedRack.id,
-              name: `Shelf ${(selectedRack.shelves?.length || 0) + 1}`
+              name: uniqueName,
+              position: nextPosition
             })
             toast.success('Shelf added successfully')
           }

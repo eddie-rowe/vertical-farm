@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from 'react'
-import { FarmPageData, Row, Rack, Shelf, SensorDevice } from '@/types/farm-layout'
+import { FarmPageData, Row, Rack, Shelf, SensorDevice } from '@/types/farm'
 import { Plus, Layers, Archive, Grid3X3, Lightbulb, Droplets, Wind } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

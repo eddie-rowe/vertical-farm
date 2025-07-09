@@ -20,6 +20,10 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        primary: "farm-control-btn bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 shadow-md hover:from-green-700 hover:to-emerald-700 focus-visible:ring-green-500/50 dark:from-green-500 dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600",
+        maintenance: "farm-control-btn bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md hover:from-amber-600 hover:to-orange-600 focus-visible:ring-amber-500/50 dark:from-amber-400 dark:to-orange-400",
+        offline: "farm-control-btn bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0 shadow-md hover:from-gray-500 hover:to-gray-600 focus-visible:ring-gray-500/50 dark:from-gray-500 dark:to-gray-600",
+        growing: "farm-control-btn bg-gradient-to-r from-emerald-400 to-green-500 text-white border-0 shadow-md hover:from-emerald-500 hover:to-green-600 focus-visible:ring-emerald-500/50 dark:from-emerald-300 dark:to-green-400",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -27,10 +31,16 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
       },
+      animation: {
+        none: "",
+        float: "animate-float",
+        pop: "animate-pop",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      animation: "none",
     },
   }
 )
@@ -49,6 +59,7 @@ function Button({
   className,
   variant,
   size,
+  animation,
   asChild = false,
   loading = false,
   loadingText,
@@ -125,7 +136,7 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(
-        buttonVariants({ variant, size }),
+        buttonVariants({ variant, size, animation }),
         loading && "pointer-events-none",
         className
       )}

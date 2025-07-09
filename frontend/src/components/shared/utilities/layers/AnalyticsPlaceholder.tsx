@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Bell
 } from "lucide-react";
-import type { Farm } from "@/types/farm-layout";
+import type { Farm } from "@/types/farm";
 
 interface AnalyticsPlaceholderProps {
   farm?: Farm;

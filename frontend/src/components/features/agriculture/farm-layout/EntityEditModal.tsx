@@ -144,13 +144,13 @@ export default function EntityEditModal<TFormValues extends FieldValues>({
                   {renderError("depth" as Path<TFormValues>)}
                 </div>
                 <div>
-                  <label htmlFor="plan_image_url" className="text-sm font-medium text-gray-700 dark:text-gray-200">Plan Image URL (Optional)</label>
+                  <label htmlFor="farm_image_url" className="text-sm font-medium text-gray-700 dark:text-gray-200">Farm Image URL (Optional)</label>
                   <input
-                    id="plan_image_url"
+                    id="farm_image_url"
                     className="mt-1 w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    {...register("plan_image_url" as Path<TFormValues>)}
+                    {...register("farm_image_url" as Path<TFormValues>)}
                   />
-                  {renderError("plan_image_url" as Path<TFormValues>)}
+                  {renderError("farm_image_url" as Path<TFormValues>)}
                 </div>
               </>
             )}

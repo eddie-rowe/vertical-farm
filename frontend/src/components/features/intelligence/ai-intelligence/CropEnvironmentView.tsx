@@ -62,10 +62,10 @@ export default function CropEnvironmentView() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-content">
             Crop Environment Monitoring
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-content-secondary">
             Real-time environmental conditions across your growing areas
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function CropEnvironmentView() {
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                  <h3 className="font-semibold text-lg text-content">
                     {data.location}
                   </h3>
                   <Badge className={getStatusColor(data.status)}>
@@ -108,10 +108,10 @@ export default function CropEnvironmentView() {
                 <div className="flex items-center gap-3">
                   <FaThermometerHalf className="text-red-500 text-xl" />
                   <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-content">
                       {data.temperature}°C
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-content-secondary">
                       Temperature
                     </div>
                   </div>
@@ -121,10 +121,10 @@ export default function CropEnvironmentView() {
                 <div className="flex items-center gap-3">
                   <FaTint className="text-blue-500 text-xl" />
                   <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-content">
                       {data.humidity}%
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-content-secondary">
                       Humidity
                     </div>
                   </div>
@@ -134,10 +134,10 @@ export default function CropEnvironmentView() {
                 <div className="flex items-center gap-3">
                   <FaWind className="text-green-500 text-xl" />
                   <div>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="text-lg font-semibold text-content">
                       {data.airflow}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-content-secondary">
                       Airflow
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export default function CropEnvironmentView() {
 
               {/* Chart placeholder */}
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-content-secondary">
                   <FaChartLine />
                   <span>View detailed trends</span>
                 </div>
@@ -165,10 +165,10 @@ export default function CropEnvironmentView() {
                 <FaThermometerHalf className="text-green-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-2xl font-bold text-content">
                   22.8°C
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-content-secondary">
                   Average Temperature
                 </div>
               </div>
@@ -183,10 +183,10 @@ export default function CropEnvironmentView() {
                 <FaTint className="text-blue-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-2xl font-bold text-content">
                   65%
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-content-secondary">
                   Average Humidity
                 </div>
               </div>
@@ -201,10 +201,10 @@ export default function CropEnvironmentView() {
                 <FaWind className="text-green-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-2xl font-bold text-content">
                   Normal
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-content-secondary">
                   Airflow Status
                 </div>
               </div>

@@ -3,11 +3,14 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 // import Header from "../components/Header"; // Removed
 // import Sidebar from "../components/Sidebar"; // Removed
-import { ThemeProvider } from "../context/ThemeContext";
-import { AuthProvider } from "../context/AuthContext"; // Re-added for global access
-import { RealtimeProvider } from "../context/RealtimeContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
+import { AuthProvider } from "../contexts/AuthContext"; // Re-added for global access
+import { RealtimeProvider } from "../contexts/RealtimeContext";
 import DatadogInit from "./datadog-init";
 import { Toaster } from "react-hot-toast";
+import InstallPrompt from "../components/InstallPrompt";
+import PWAStatus from "../components/PWAStatus";
+import NotificationManager from "../components/NotificationManager";
 
 // Optimized font loading with preload and display swap
 const geistSans = Geist({
@@ -95,7 +98,7 @@ export const metadata: Metadata = {
     ],
   },
   
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.json",
   
   // Additional meta tags
   category: "agriculture",
@@ -161,6 +164,25 @@ export default function RootLayout({
             })
           }}
         />
+        
+        {/* Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                      console.log('[SW] Registration successful:', registration.scope);
+                    })
+                    .catch(function(error) {
+                      console.log('[SW] Registration failed:', error);
+                    });
+                });
+              }
+            `
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -193,6 +215,9 @@ export default function RootLayout({
           <AuthProvider>
             <RealtimeProvider>
               {children}
+              <InstallPrompt />
+              <PWAStatus />
+              <NotificationManager />
             </RealtimeProvider>
           </AuthProvider>
         </ThemeProvider>

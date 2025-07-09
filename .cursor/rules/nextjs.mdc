@@ -1,57 +1,646 @@
----
-description: 
-globs: *.tsx,*.ts
-alwaysApply: false
----
----
-description: Next.js with TypeScript and Tailwind UI best practices
-globs: **/*.tsx, **/*.ts, src/**/*.ts, src/**/*.tsx
----
 
-# Next.js Best Practices
+# Next.js 15 Development Rules
 
-## Project Structure
-- Use the App Router directory structure
-- Place components in `app` directory for route-specific components
-- Place shared components in `components` directory
-- Place utilities and helpers in `lib` directory
-- Use lowercase with dashes for directories (e.g., `components/auth-wizard`)
+## Core Principles
 
-## Components
-- Use Server Components by default
-- Mark client components explicitly with 'use client'
-- Wrap client components in Suspense with fallback
-- Use dynamic loading for non-critical components
-- Implement proper error boundaries
-- Place static content and interfaces at file end
+### 1. App Router First (app/ directory)
+- **REQUIRED**: Use app directory structure for all new features
+- **File Conventions**: page.tsx, layout.tsx, route.ts, loading.tsx, error.tsx
+- **Nested Layouts**: Leverage layout hierarchy for shared UI
+- **Route Groups**: Use (group) syntax for organization without URL impact
 
-## Performance
-- Optimize images: Use WebP format, size data, lazy loading
-- Minimize use of 'useEffect' and 'setState'
-- Favor Server Components (RSC) where possible
-- Use dynamic loading for non-critical components
-- Implement proper caching strategies
+### 2. Service Layer Integration
+- **MANDATORY**: Use service layer for all data operations
+- **NO Direct API Calls**: Components use services, not fetch/axios directly
+- **Dynamic Imports**: `(await import('@/services/SomeService')).SomeService.getInstance()`
+- **Error Handling**: Services handle errors, components display results
 
-## Data Fetching
-- Use Server Components for data fetching when possible
-- Implement proper error handling for data fetching
-- Use appropriate caching strategies
-- Handle loading and error states appropriately
+## Next.js 15 New Features
 
-## Routing
-- Use the App Router conventions
-- Implement proper loading and error states for routes
-- Use dynamic routes appropriately
-- Handle parallel routes when needed
+### "use cache" Directive
+```typescript
+// Cache component or function output
+"use cache"
+export async function CachedComponent({ farmId }: { farmId: string }) {
+  const farmService = FarmService.getInstance()
+  const farm = await farmService.getFarm(farmId)
+  
+  return <FarmDetails farm={farm} />
+}
 
-## Forms and Validation
-- Use Zod for form validation
-- Implement proper server-side validation
-- Handle form errors appropriately
-- Show loading states during form submission
+// Cache function results
+"use cache"
+export async function getCachedFarmData(farmId: string) {
+  const service = FarmService.getInstance()
+  return await service.getFarm(farmId)
+}
+```
 
-## State Management
-- Minimize client-side state
-- Use React Context sparingly
-- Prefer server state when possible
-- Implement proper loading states 
+### Modern Caching APIs
+```typescript
+// cacheLife for custom cache profiles
+import { cacheLife } from 'next/cache'
+
+"use cache"
+export async function getBlogPosts() {
+  cacheLife('blog') // Uses config from next.config.js
+  const service = BlogService.getInstance()
+  return await service.getAllPosts()
+}
+
+// Cache invalidation
+import { revalidateTag, revalidatePath } from 'next/cache'
+
+export async function updateFarm(farmData: FarmUpdate) {
+  const service = FarmService.getInstance()
+  const result = await service.updateFarm(farmData)
+  
+  revalidateTag('farms')
+  revalidatePath('/dashboard')
+  return result
+}
+```
+
+### Server Actions with React 19
+```typescript
+// Server action with "use server"
+'use server'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+
+export async function createFarm(formData: FormData) {
+  const service = FarmService.getInstance()
+  
+  const farmData = {
+    name: formData.get('name') as string,
+    location: formData.get('location') as string
+  }
+  
+  try {
+    await service.createFarm(farmData)
+    revalidatePath('/farms')
+    redirect('/farms')
+  } catch (error) {
+    // Return error state for useActionState
+    return { error: 'Failed to create farm' }
+  }
+}
+
+// Client component using Server Action
+'use client'
+import { useActionState } from 'react'
+import { createFarm } from './actions'
+
+export function CreateFarmForm() {
+  const [state, formAction, pending] = useActionState(createFarm, null)
+  
+  return (
+    <form action={formAction}>
+      <input name="name" placeholder="Farm name" required />
+      <input name="location" placeholder="Location" required />
+      {state?.error && <p className="error">{state.error}</p>}
+      <button disabled={pending} type="submit">
+        {pending ? 'Creating...' : 'Create Farm'}
+      </button>
+    </form>
+  )
+}
+```
+
+## React 19 Integration
+
+### useActionState Hook
+```typescript
+'use client'
+import { useActionState } from 'react'
+import { updateDeviceSettings } from './actions'
+
+export function DeviceSettingsForm({ deviceId }: { deviceId: string }) {
+  const [state, formAction, pending] = useActionState(
+    updateDeviceSettings.bind(null, deviceId),
+    { message: '', errors: {} }
+  )
+  
+  return (
+    <form action={formAction}>
+      <label htmlFor="temperature">Temperature</label>
+      <input id="temperature" name="temperature" type="number" />
+      {state.errors?.temperature && (
+        <p className="error">{state.errors.temperature}</p>
+      )}
+      
+      <button disabled={pending} type="submit">
+        {pending ? 'Updating...' : 'Update Settings'}
+      </button>
+      
+      {state.message && (
+        <p className={state.message.includes('Error') ? 'error' : 'success'}>
+          {state.message}
+        </p>
+      )}
+    </form>
+  )
+}
+```
+
+### useOptimistic Hook
+```typescript
+'use client'
+import { useOptimistic } from 'react'
+import { toggleDeviceStatus } from './actions'
+
+type Device = {
+  id: string
+  name: string
+  status: 'online' | 'offline'
+}
+
+export function DeviceList({ devices }: { devices: Device[] }) {
+  const [optimisticDevices, updateOptimisticDevice] = useOptimistic<
+    Device[],
+    { id: string; status: 'online' | 'offline' }
+  >(devices, (state, { id, status }) =>
+    state.map((device) =>
+      device.id === id ? { ...device, status } : device
+    )
+  )
+  
+  const handleToggle = async (deviceId: string, currentStatus: Device['status']) => {
+    const newStatus = currentStatus === 'online' ? 'offline' : 'online'
+    updateOptimisticDevice({ id: deviceId, status: newStatus })
+    await toggleDeviceStatus(deviceId, newStatus)
+  }
+  
+  return (
+    <div>
+      {optimisticDevices.map((device) => (
+        <div key={device.id}>
+          <span>{device.name}</span>
+          <button onClick={() => handleToggle(device.id, device.status)}>
+            {device.status}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Form Component (Built-in)
+```typescript
+import { Form } from 'next/form'
+import { searchFarms } from './actions'
+
+export function FarmSearchForm() {
+  return (
+    <Form action={searchFarms}>
+      <input name="query" placeholder="Search farms..." />
+      <button type="submit">Search</button>
+    </Form>
+  )
+}
+```
+
+## Performance Optimization
+
+### Streaming with Suspense
+```typescript
+import { Suspense } from 'react'
+import { FarmList } from './FarmList'
+import { WeatherWidget } from './WeatherWidget'
+import { DeviceMonitor } from './DeviceMonitor'
+
+export default function Dashboard() {
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <Suspense fallback={<FarmListSkeleton />}>
+        <FarmList />
+      </Suspense>
+      
+      <Suspense fallback={<WeatherSkeleton />}>
+        <WeatherWidget />
+      </Suspense>
+      
+      <Suspense fallback={<DeviceSkeleton />}>
+        <DeviceMonitor />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+### Data Fetching Patterns
+```typescript
+// Server Component with service integration
+export default async function FarmPage({ params }: { params: { id: string } }) {
+  // Use service layer for data fetching
+  const farmService = FarmService.getInstance()
+  const [farm, devices, weatherData] = await Promise.all([
+    farmService.getFarm(params.id),
+    farmService.getFarmDevices(params.id),
+    farmService.getWeatherData(params.id)
+  ])
+  
+  return (
+    <div>
+      <FarmHeader farm={farm} />
+      <DeviceGrid devices={devices} />
+      <WeatherDisplay data={weatherData} />
+    </div>
+  )
+}
+
+// With error handling
+export default async function FarmPage({ params }: { params: { id: string } }) {
+  try {
+    const farmService = FarmService.getInstance()
+    const farm = await farmService.getFarm(params.id)
+    return <FarmDetails farm={farm} />
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound()
+    }
+    throw error // Re-throw for error boundary
+  }
+}
+```
+
+### unstable_cache for Memoization
+```typescript
+import { unstable_cache } from 'next/cache'
+
+// Cache expensive computations
+const getCachedFarmStatistics = unstable_cache(
+  async (farmId: string) => {
+    const service = FarmService.getInstance()
+    return await service.getFarmStatistics(farmId)
+  },
+  ['farm-statistics'],
+  {
+    revalidate: 3600, // 1 hour
+    tags: ['farm-stats']
+  }
+)
+
+export async function FarmStatistics({ farmId }: { farmId: string }) {
+  const stats = await getCachedFarmStatistics(farmId)
+  return <StatisticsDisplay stats={stats} />
+}
+```
+
+## Route Handling
+
+### API Routes (app/api)
+```typescript
+// app/api/farms/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export async function GET(request: NextRequest) {
+  try {
+    const farmService = FarmService.getInstance()
+    const farms = await farmService.getAllFarms()
+    
+    return NextResponse.json(farms)
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch farms' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const farmService = FarmService.getInstance()
+    const farmData = await request.json()
+    
+    const newFarm = await farmService.createFarm(farmData)
+    return NextResponse.json(newFarm, { status: 201 })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create farm' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+### Dynamic Routes with Service Integration
+```typescript
+// app/farms/[id]/page.tsx
+interface Props {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default async function FarmDetailPage({ params, searchParams }: Props) {
+  const farmService = FarmService.getInstance()
+  
+  // Use service layer for all data operations
+  const farm = await farmService.getFarm(params.id)
+  
+  if (!farm) {
+    notFound()
+  }
+  
+  return <FarmDetailView farm={farm} />
+}
+
+// Generate static params for static generation
+export async function generateStaticParams() {
+  const farmService = FarmService.getInstance()
+  const farms = await farmService.getAllFarms()
+  
+  return farms.map((farm) => ({
+    id: farm.id
+  }))
+}
+```
+
+## Error Handling
+
+### Error Boundaries
+```typescript
+// app/farms/error.tsx
+'use client'
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/Button'
+
+export default function Error({
+  error,
+  reset
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    // Log error to service
+    console.error('Farm page error:', error)
+  }, [error])
+  
+  return (
+    <div className="error-container">
+      <h2>Something went wrong!</h2>
+      <p>Failed to load farm data.</p>
+      <Button onClick={reset}>Try again</Button>
+    </div>
+  )
+}
+```
+
+### Global Error Handling
+```typescript
+// app/global-error.tsx
+'use client'
+
+export default function GlobalError({
+  error,
+  reset
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </body>
+    </html>
+  )
+}
+```
+
+## Loading States
+
+### Loading UI
+```typescript
+// app/farms/loading.tsx
+import { Skeleton } from '@/components/ui/Skeleton'
+
+export default function Loading() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-1/2" />
+      <div className="grid grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} className="h-32" />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## Metadata and SEO
+
+### Dynamic Metadata
+```typescript
+import type { Metadata } from 'next'
+
+interface Props {
+  params: { id: string }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const farmService = FarmService.getInstance()
+  const farm = await farmService.getFarm(params.id)
+  
+  return {
+    title: `${farm.name} - Vertical Farm Management`,
+    description: `Manage and monitor ${farm.name} located in ${farm.location}`,
+    openGraph: {
+      title: farm.name,
+      description: `Vertical farm in ${farm.location}`,
+      images: [farm.imageUrl]
+    }
+  }
+}
+```
+
+## Security Best Practices
+
+### Route Protection
+```typescript
+// app/dashboard/layout.tsx
+import { redirect } from 'next/navigation'
+import { AuthService } from '@/services/core/AuthService'
+
+export default async function DashboardLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const authService = AuthService.getInstance()
+  const user = await authService.getCurrentUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+  
+  return (
+    <div className="dashboard-layout">
+      <Sidebar user={user} />
+      <main>{children}</main>
+    </div>
+  )
+}
+```
+
+### Input Validation
+```typescript
+// Server action with validation
+'use server'
+import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
+
+const farmSchema = z.object({
+  name: z.string().min(1).max(100),
+  location: z.string().min(1).max(200),
+  size: z.number().positive()
+})
+
+export async function createFarm(formData: FormData) {
+  const rawData = {
+    name: formData.get('name'),
+    location: formData.get('location'),
+    size: Number(formData.get('size'))
+  }
+  
+  const validatedData = farmSchema.parse(rawData)
+  
+  const farmService = FarmService.getInstance()
+  await farmService.createFarm(validatedData)
+  
+  revalidatePath('/farms')
+}
+```
+
+## Configuration
+
+### next.config.js with Next.js 15 Features
+```typescript
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    // Enable React 19 features
+    reactCompiler: true,
+    
+    // Enable new caching features
+    dynamicIO: true,
+    cacheLife: {
+      // Custom cache profiles
+      farm: {
+        stale: 300,      // 5 minutes
+        revalidate: 60,  // 1 minute
+        expire: 3600     // 1 hour
+      },
+      device: {
+        stale: 30,       // 30 seconds
+        revalidate: 10,  // 10 seconds
+        expire: 300      // 5 minutes
+      }
+    },
+    
+    // HMR cache configuration
+    serverComponentsHmrCache: true
+  },
+  
+  // Image optimization
+  images: {
+    domains: ['your-cdn-domain.com'],
+    minimumCacheTTL: 60
+  },
+  
+  // Type-safe environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY
+  }
+}
+
+export default nextConfig
+```
+
+## Testing Patterns
+
+### Component Testing with Service Mocks
+```typescript
+import { render, screen } from '@testing-library/react'
+import { vi } from 'vitest'
+import { FarmList } from './FarmList'
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+// Mock the service
+vi.mock('@/services/domain/farm/FarmService')
+
+describe('FarmList', () => {
+  beforeEach(() => {
+    // Mock service methods
+    vi.mocked(FarmService.getInstance).mockReturnValue({
+      getAllFarms: vi.fn().mockResolvedValue([
+        { id: '1', name: 'Test Farm', location: 'Test Location' }
+      ])
+    } as any)
+  })
+  
+  it('renders farm list', async () => {
+    render(<FarmList />)
+    expect(await screen.findByText('Test Farm')).toBeInTheDocument()
+  })
+})
+```
+
+## Common Pitfalls to Avoid
+
+1. **Direct API Calls**: Never use fetch/axios directly in components
+2. **Missing Error Boundaries**: Always implement error.tsx files
+3. **Blocking Operations**: Use Suspense for long-running operations
+4. **Cache Misuse**: Don't cache user-specific data globally
+5. **Server/Client Confusion**: Mark client components with "use client"
+6. **Missing Metadata**: Always implement SEO metadata
+7. **Unsafe Redirects**: Validate redirect targets
+
+## Performance Monitoring
+
+### Web Vitals Tracking
+```typescript
+// app/layout.tsx
+import { WebVitalsReporter } from '@/components/WebVitalsReporter'
+
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <WebVitalsReporter />
+      </body>
+    </html>
+  )
+}
+
+// components/WebVitalsReporter.tsx
+'use client'
+import { useReportWebVitals } from 'next/web-vitals'
+
+export function WebVitalsReporter() {
+  useReportWebVitals((metric) => {
+    // Send to analytics service
+    console.log(metric)
+  })
+  
+  return null
+}
+```
+
+This configuration ensures modern Next.js 15 development with proper service layer integration, React 19 features, and optimal performance patterns. 
+## Authentication & Security
+- **Route protection** → Implement in layouts for route groups
+- **Service auth** → Handled automatically by AuthService
+- **Client directive** → Only use 'use client' when necessary for interactivity
+- **Middleware** → Use for global auth and redirects 

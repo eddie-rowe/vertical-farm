@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Home, Lightbulb, Fan, Droplets, PlugZap } from "lucide-react";
-import type { Farm } from "@/types/farm-layout";
+import type { Farm } from "@/types/farm";
 
 interface DeviceManagementLayerProps {
   farm?: Farm;

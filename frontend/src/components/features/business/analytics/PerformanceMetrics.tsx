@@ -243,10 +243,10 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-content">
             Performance Metrics
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-content-secondary">
             Key performance indicators and goal tracking
           </p>
         </div>
@@ -256,7 +256,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
           <select
             value={selectedTimeframe}
             onChange={(e) => setSelectedTimeframe(e.target.value as any)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-content focus:ring-2 focus:ring-emerald-500"
           >
             <option value="1h">Last Hour</option>
             <option value="24h">Last 24 Hours</option>
@@ -361,11 +361,11 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2">
               <FaFlag className="h-5 w-5 text-emerald-600" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-content">
                 Goal Progress
               </h3>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-content-secondary mt-1">
               Track progress toward strategic objectives
             </p>
           </div>
@@ -378,7 +378,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
+                    <h4 className="font-medium text-content">
                       {goal.title}
                     </h4>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getGoalStatusColor(goal.status)}`}>
@@ -386,7 +386,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 text-sm text-content-secondary">
                     <span>{goal.current} / {goal.target} {goal.unit}</span>
                     <span className="flex items-center gap-1">
                       <FaCalendarAlt className="h-3 w-3" />
@@ -416,7 +416,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({
                 </div>
 
                 <div className="ml-4">
-                  <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button className="p-2 text-content-secondary hover:text-content transition-colors">
                     <FaEye className="h-4 w-4" />
                   </button>
                 </div>

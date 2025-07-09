@@ -12,8 +12,8 @@
  * - Built-in filtering, pagination, and sorting
  */
 
-import { supabase } from '@/supabaseClient';
-import { UUID } from '@/types/farm-layout';
+import { supabase } from '@/lib/supabaseClient';
+import { UUID } from '@/types/common';
 
 // =====================================================
 // TYPES & INTERFACES
@@ -24,7 +24,7 @@ export interface Farm {
   name: string;
   location?: string | null;
   user_id?: UUID | null;
-  plan_image_url?: string | null;
+  farm_image_url?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -32,7 +32,7 @@ export interface Farm {
 export interface CreateFarmData {
   name: string;
   location?: string;
-  plan_image_url?: string;
+  farm_image_url?: string;
 }
 
 export interface FarmWithHierarchy extends Farm {

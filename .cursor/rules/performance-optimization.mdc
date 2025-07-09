@@ -1,0 +1,778 @@
+# Performance Optimization Rules
+
+## Core Principles
+
+### 1. Caching Strategy Hierarchy
+- **Data Cache**: Server-side data fetching with `fetch` and `unstable_cache`
+- **Full Route Cache**: Static and dynamic route optimization
+- **Router Cache**: Client-side navigation caching
+- **Request Memoization**: Prevent duplicate requests within render cycle
+
+### 2. Service-Layer Performance
+- **Lazy Loading**: Dynamic service imports for better code splitting
+- **Connection Pooling**: Efficient database connection management
+- **Batch Operations**: Combine multiple operations where possible
+- **Error Boundaries**: Prevent cascade failures affecting performance
+
+## Next.js 15 Caching Patterns
+
+### "use cache" Directive Usage
+```typescript
+// ✅ DO: Cache expensive computations
+"use cache"
+export async function getFarmAnalytics(farmId: string) {
+  const farmService = FarmService.getInstance()
+  
+  // This will be cached automatically
+  const [sensorData, deviceMetrics, weatherData] = await Promise.all([
+    farmService.getSensorAnalytics(farmId),
+    farmService.getDeviceMetrics(farmId),
+    farmService.getWeatherAnalytics(farmId)
+  ])
+  
+  return {
+    sensorData,
+    deviceMetrics,
+    weatherData,
+    computed: {
+      efficiency: calculateFarmEfficiency(sensorData, deviceMetrics),
+      predictions: generateGrowthPredictions(sensorData, weatherData)
+    }
+  }
+}
+
+// ✅ DO: Cache service layer operations
+"use cache"
+export async function getCachedFarmData(farmId: string) {
+  const service = FarmService.getInstance()
+  return await service.getFarmWithDevices(farmId)
+}
+
+// ❌ DON'T: Cache user-specific data
+"use cache"
+export async function getUserSpecificData(userId: string) {
+  // Don't cache personal/user-specific data globally
+}
+```
+
+### cacheLife Configuration
+```typescript
+// next.config.js
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      // Farm data caching - moderate update frequency
+      farm: {
+        stale: 300,      // 5 minutes stale time
+        revalidate: 60,  // Revalidate every minute
+        expire: 3600     // Expire after 1 hour
+      },
+      
+      // Device data - high update frequency
+      device: {
+        stale: 30,       // 30 seconds stale time
+        revalidate: 10,  // Revalidate every 10 seconds
+        expire: 300      // Expire after 5 minutes
+      },
+      
+      // Sensor data - very high update frequency
+      sensor: {
+        stale: 10,       // 10 seconds stale time
+        revalidate: 5,   // Revalidate every 5 seconds
+        expire: 60       // Expire after 1 minute
+      },
+      
+      // Static configuration data - low update frequency
+      config: {
+        stale: 3600,     // 1 hour stale time
+        revalidate: 1800, // Revalidate every 30 minutes
+        expire: 86400    // Expire after 24 hours
+      }
+    }
+  }
+}
+
+// Usage in components
+"use cache"
+export async function getFarmConfiguration(farmId: string) {
+  cacheLife('config') // Uses config profile from next.config.js
+  
+  const configService = ConfigurationService.getInstance()
+  return await configService.getFarmConfig(farmId)
+}
+```
+
+### unstable_cache for Service Layer
+```typescript
+// Service-level caching for expensive operations
+export class FarmAnalyticsService extends BaseService {
+  private static instance: FarmAnalyticsService
+  
+  static getInstance(): FarmAnalyticsService {
+    if (!FarmAnalyticsService.instance) {
+      FarmAnalyticsService.instance = new FarmAnalyticsService()
+    }
+    return FarmAnalyticsService.instance
+  }
+  
+  // Cache complex aggregations
+  getFarmEfficiencyReport = unstable_cache(
+    async (farmId: string, timeRange: TimeRange) => {
+      const supabase = await this.getSupabaseClient()
+      
+      // Complex aggregation query
+      const { data } = await supabase.rpc('calculate_farm_efficiency', {
+        p_farm_id: farmId,
+        p_start_date: timeRange.start,
+        p_end_date: timeRange.end
+      })
+      
+      return data
+    },
+    ['farm-efficiency'],
+    {
+      revalidate: 1800, // 30 minutes
+      tags: ['farm-analytics', 'efficiency-reports']
+    }
+  )
+  
+  // Cache device performance metrics
+  getDevicePerformanceMetrics = unstable_cache(
+    async (deviceIds: string[]) => {
+      const supabase = await this.getSupabaseClient()
+      
+      const metrics = await Promise.all(
+        deviceIds.map(async (deviceId) => {
+          const { data } = await supabase.rpc('get_device_performance', {
+            p_device_id: deviceId
+          })
+          return { deviceId, metrics: data }
+        })
+      )
+      
+      return metrics
+    },
+    ['device-performance'],
+    {
+      revalidate: 300, // 5 minutes
+      tags: ['device-analytics']
+    }
+  )
+}
+```
+
+### Smart Cache Invalidation
+```typescript
+// Service with intelligent cache invalidation
+export class CacheAwareFarmService extends BaseCRUDService<Farm> {
+  async updateFarm(farmId: string, updates: Partial<Farm>): Promise<Farm> {
+    const result = await super.update(farmId, updates)
+    
+    // Selective cache invalidation based on what changed
+    if (updates.configuration) {
+      revalidateTag('farm-config')
+    }
+    
+    if (updates.devices || updates.layout) {
+      revalidateTag('farm-structure')
+      revalidatePath(`/farms/${farmId}`)
+    }
+    
+    if (updates.sensors) {
+      revalidateTag('sensor-configuration')
+    }
+    
+    // Always invalidate farm-specific cache
+    revalidateTag(`farm-${farmId}`)
+    
+    return result
+  }
+  
+  async updateDeviceConfiguration(
+    farmId: string,
+    deviceId: string,
+    config: DeviceConfig
+  ): Promise<void> {
+    await this.deviceService.updateConfiguration(deviceId, config)
+    
+    // Targeted cache invalidation
+    revalidateTag(`device-${deviceId}`)
+    revalidateTag(`farm-${farmId}-devices`)
+    revalidatePath(`/farms/${farmId}/devices/${deviceId}`)
+  }
+}
+```
+
+## React 19 Performance Patterns
+
+### useOptimistic for Instant UI Updates
+```typescript
+'use client'
+import { useOptimistic } from 'react'
+import { updateDeviceStatus } from './actions'
+
+export function DeviceStatusGrid({ devices }: { devices: Device[] }) {
+  const [optimisticDevices, updateOptimisticDevice] = useOptimistic<
+    Device[],
+    { id: string; status: DeviceStatus; action: string }
+  >(devices, (state, { id, status, action }) => {
+    return state.map(device => 
+      device.id === id 
+        ? { 
+            ...device, 
+            status,
+            lastAction: action,
+            isUpdating: true 
+          }
+        : device
+    )
+  })
+  
+  const handleStatusChange = async (deviceId: string, newStatus: DeviceStatus) => {
+    // Immediate UI update
+    updateOptimisticDevice({ 
+      id: deviceId, 
+      status: newStatus, 
+      action: `Set to ${newStatus}` 
+    })
+    
+    try {
+      await updateDeviceStatus(deviceId, newStatus)
+      // Server action will trigger revalidation
+    } catch (error) {
+      // Error handling - optimistic update will be reverted by revalidation
+      toast.error('Failed to update device status')
+    }
+  }
+  
+  return (
+    <div className="device-grid">
+      {optimisticDevices.map(device => (
+        <DeviceCard
+          key={device.id}
+          device={device}
+          onStatusChange={handleStatusChange}
+          isOptimistic={device.isUpdating}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### Concurrent Features for Data Loading
+```typescript
+'use client'
+import { Suspense, use } from 'react'
+
+// Create promises for concurrent data loading
+const farmDataPromise = FarmService.getInstance().getFarm(farmId)
+const deviceDataPromise = DeviceService.getInstance().getFarmDevices(farmId)
+const sensorDataPromise = SensorService.getInstance().getLatestReadings(farmId)
+
+export function FarmDashboard({ farmId }: { farmId: string }) {
+  return (
+    <div className="farm-dashboard">
+      <Suspense fallback={<FarmHeaderSkeleton />}>
+        <FarmHeader farmDataPromise={farmDataPromise} />
+      </Suspense>
+      
+      <div className="grid grid-cols-2 gap-6">
+        <Suspense fallback={<DeviceGridSkeleton />}>
+          <DeviceGrid deviceDataPromise={deviceDataPromise} />
+        </Suspense>
+        
+        <Suspense fallback={<SensorChartSkeleton />}>
+          <SensorChart sensorDataPromise={sensorDataPromise} />
+        </Suspense>
+      </div>
+    </div>
+  )
+}
+
+// Components that use concurrent features
+function FarmHeader({ farmDataPromise }: { farmDataPromise: Promise<Farm> }) {
+  const farm = use(farmDataPromise) // Suspends until data is ready
+  return <h1>{farm.name}</h1>
+}
+
+function DeviceGrid({ deviceDataPromise }: { deviceDataPromise: Promise<Device[]> }) {
+  const devices = use(deviceDataPromise)
+  return (
+    <div className="device-grid">
+      {devices.map(device => <DeviceCard key={device.id} device={device} />)}
+    </div>
+  )
+}
+```
+
+## Bundle Optimization
+
+### Dynamic Service Imports
+```typescript
+// ✅ DO: Dynamic imports for heavy services
+export function FarmAnalyticsPage({ farmId }: { farmId: string }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      // Dynamic import for heavy analytics service
+      const { FarmAnalyticsService } = await import(
+        '@/services/domain/analytics/FarmAnalyticsService'
+      )
+      
+      const service = FarmAnalyticsService.getInstance()
+      const data = await service.getComprehensiveAnalytics(farmId)
+      
+      setAnalytics(data)
+      setLoading(false)
+    }
+    
+    loadAnalytics()
+  }, [farmId])
+  
+  if (loading) return <AnalyticsSkeleton />
+  
+  return <AnalyticsDisplay data={analytics} />
+}
+
+// ✅ DO: Code splitting for features
+const HomeAssistantIntegration = lazy(() => 
+  import('@/components/features/automation/HomeAssistantIntegration')
+)
+
+export function IntegrationSettings() {
+  const [showHA, setShowHA] = useState(false)
+  
+  return (
+    <div>
+      <button onClick={() => setShowHA(true)}>
+        Configure Home Assistant
+      </button>
+      
+      {showHA && (
+        <Suspense fallback={<IntegrationSkeleton />}>
+          <HomeAssistantIntegration />
+        </Suspense>
+      )}
+    </div>
+  )
+}
+```
+
+### Component Memoization Strategies
+```typescript
+'use client'
+import { memo, useMemo, useCallback } from 'react'
+
+// ✅ DO: Memoize expensive components
+export const SensorChart = memo(function SensorChart({ 
+  data, 
+  timeRange, 
+  sensorType 
+}: SensorChartProps) {
+  // Expensive computation
+  const chartData = useMemo(() => {
+    return processSensorDataForChart(data, timeRange, sensorType)
+  }, [data, timeRange, sensorType])
+  
+  const handleDataPointClick = useCallback((point: DataPoint) => {
+    // Handle click without recreating function
+    onDataPointSelect?.(point)
+  }, [onDataPointSelect])
+  
+  return (
+    <div className="sensor-chart">
+      <Chart data={chartData} onPointClick={handleDataPointClick} />
+    </div>
+  )
+})
+
+// ✅ DO: Memoize heavy computations
+export function FarmEfficiencyDisplay({ farmData }: { farmData: Farm }) {
+  const efficiencyMetrics = useMemo(() => {
+    // Heavy computation only when farmData changes
+    return calculateEfficiencyMetrics(farmData)
+  }, [farmData])
+  
+  return <EfficiencyChart metrics={efficiencyMetrics} />
+}
+```
+
+## Image and Asset Optimization
+
+### Next.js Image Optimization
+```typescript
+import Image from 'next/image'
+
+// ✅ DO: Optimize farm and device images
+export function FarmCard({ farm }: { farm: Farm }) {
+  return (
+    <div className="farm-card">
+      <div className="relative h-48 w-full">
+        <Image
+          src={farm.imageUrl}
+          alt={farm.name}
+          fill
+          className="object-cover rounded-lg"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={false} // Set to true for above-the-fold images
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+        />
+      </div>
+      <h3>{farm.name}</h3>
+    </div>
+  )
+}
+
+// ✅ DO: Lazy load device thumbnails
+export function DeviceGrid({ devices }: { devices: Device[] }) {
+  return (
+    <div className="device-grid">
+      {devices.map((device, index) => (
+        <div key={device.id} className="device-card">
+          <Image
+            src={device.thumbnailUrl}
+            alt={device.name}
+            width={200}
+            height={150}
+            loading={index < 6 ? 'eager' : 'lazy'} // Eager for first 6
+            className="device-thumbnail"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Static Asset Optimization
+```typescript
+// next.config.js
+const nextConfig: NextConfig = {
+  images: {
+    domains: ['farm-assets.example.com', 'device-images.example.com'],
+    minimumCacheTTL: 31536000, // 1 year for static farm images
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Compress static assets
+  compress: true,
+  
+  // Enable SWC minification
+  swcMinify: true,
+  
+  // Configure webpack for bundle optimization
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Split vendor chunks
+      config.optimization.splitChunks.cacheGroups = {
+        ...config.optimization.splitChunks.cacheGroups,
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+        supabase: {
+          test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+          name: 'supabase',
+          chunks: 'all',
+        }
+      }
+    }
+    
+    return config
+  }
+}
+```
+
+## Database and API Optimization
+
+### Connection Pooling in Services
+```typescript
+export class OptimizedBaseService extends BaseService {
+  private static connectionPool: Map<string, any> = new Map()
+  private static maxConnections = 10
+  
+  protected async getOptimizedSupabaseClient() {
+    const connectionKey = this.getConnectionKey()
+    
+    if (this.connectionPool.has(connectionKey)) {
+      return this.connectionPool.get(connectionKey)
+    }
+    
+    if (this.connectionPool.size >= this.maxConnections) {
+      // Remove oldest connection
+      const firstKey = this.connectionPool.keys().next().value
+      this.connectionPool.delete(firstKey)
+    }
+    
+    const client = await this.getSupabaseClient()
+    this.connectionPool.set(connectionKey, client)
+    
+    return client
+  }
+  
+  private getConnectionKey(): string {
+    return `${typeof window !== 'undefined' ? 'browser' : 'server'}-${Date.now()}`
+  }
+}
+```
+
+### Batch Operations for Performance
+```typescript
+export class BatchOptimizedService extends BaseService {
+  private pendingOperations: Map<string, any[]> = new Map()
+  private batchTimeout = 50 // ms
+  
+  async batchUpdateDevices(updates: Array<{ id: string; data: Partial<Device> }>) {
+    const batchKey = 'device-updates'
+    
+    if (!this.pendingOperations.has(batchKey)) {
+      this.pendingOperations.set(batchKey, [])
+      this.scheduleBatchExecution(batchKey)
+    }
+    
+    this.pendingOperations.get(batchKey)!.push(...updates)
+  }
+  
+  private scheduleBatchExecution(batchKey: string) {
+    setTimeout(async () => {
+      const operations = this.pendingOperations.get(batchKey) || []
+      this.pendingOperations.delete(batchKey)
+      
+      if (operations.length > 0) {
+        await this.executeBatchOperations(batchKey, operations)
+      }
+    }, this.batchTimeout)
+  }
+  
+  private async executeBatchOperations(type: string, operations: any[]) {
+    const supabase = await this.getSupabaseClient()
+    
+    switch (type) {
+      case 'device-updates':
+        // Batch update multiple devices
+        const { error } = await supabase.rpc('batch_update_devices', {
+          updates: operations
+        })
+        if (error) throw error
+        break
+        
+      // Add other batch operation types
+    }
+  }
+}
+```
+
+## Performance Monitoring
+
+### Web Vitals Integration
+```typescript
+// app/layout.tsx
+'use client'
+import { useReportWebVitals } from 'next/web-vitals'
+
+export function PerformanceMonitor() {
+  useReportWebVitals((metric) => {
+    // Send to analytics service
+    const analyticsService = AnalyticsService.getInstance()
+    analyticsService.trackWebVital(metric)
+    
+    // Log performance issues
+    if (metric.name === 'CLS' && metric.value > 0.1) {
+      console.warn('High Cumulative Layout Shift detected:', metric.value)
+    }
+    
+    if (metric.name === 'LCP' && metric.value > 2500) {
+      console.warn('Slow Largest Contentful Paint:', metric.value)
+    }
+    
+    if (metric.name === 'FID' && metric.value > 100) {
+      console.warn('High First Input Delay:', metric.value)
+    }
+  })
+  
+  return null
+}
+```
+
+### Performance API Integration
+```typescript
+export class PerformanceService extends BaseService {
+  private static instance: PerformanceService
+  
+  static getInstance(): PerformanceService {
+    if (!PerformanceService.instance) {
+      PerformanceService.instance = new PerformanceService()
+    }
+    return PerformanceService.instance
+  }
+  
+  measureServiceOperation<T>(
+    operationName: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const startTime = performance.now()
+    
+    return operation().finally(() => {
+      const duration = performance.now() - startTime
+      
+      // Log slow operations
+      if (duration > 1000) {
+        console.warn(`Slow operation detected: ${operationName} took ${duration}ms`)
+      }
+      
+      // Track performance metrics
+      this.trackServicePerformance(operationName, duration)
+    })
+  }
+  
+  private trackServicePerformance(operation: string, duration: number) {
+    // Send to monitoring service
+    const metrics = {
+      operation,
+      duration,
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    }
+    
+    // Queue for batch sending
+    this.queueMetric(metrics)
+  }
+}
+```
+
+### Memory Usage Monitoring
+```typescript
+export class MemoryMonitor {
+  private static checkInterval = 30000 // 30 seconds
+  
+  static startMonitoring() {
+    if (typeof window === 'undefined') return
+    
+    setInterval(() => {
+      if ('memory' in performance) {
+        const memory = (performance as any).memory
+        
+        const usage = {
+          used: memory.usedJSHeapSize,
+          total: memory.totalJSHeapSize,
+          limit: memory.jsHeapSizeLimit,
+          percentage: (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100
+        }
+        
+        // Warn if memory usage is high
+        if (usage.percentage > 80) {
+          console.warn('High memory usage detected:', usage)
+          
+          // Force garbage collection if available
+          if ('gc' in window) {
+            (window as any).gc()
+          }
+        }
+        
+        // Track memory usage
+        const performanceService = PerformanceService.getInstance()
+        performanceService.trackMemoryUsage(usage)
+      }
+    }, this.checkInterval)
+  }
+}
+```
+
+## Common Performance Anti-patterns
+
+### Avoid These Patterns
+```typescript
+// ❌ DON'T: Fetch in render without caching
+export function BadFarmList() {
+  const [farms, setFarms] = useState([])
+  
+  // This creates a new promise on every render
+  useEffect(() => {
+    FarmService.getInstance().getAllFarms().then(setFarms) // No caching
+  }, []) // Missing dependencies
+  
+  return farms.map(farm => <FarmCard key={farm.id} farm={farm} />)
+}
+
+// ❌ DON'T: Heavy computations in render
+export function BadAnalytics({ data }: { data: SensorReading[] }) {
+  // This computation runs on every render
+  const processedData = processHeavyAnalytics(data) // No memoization
+  
+  return <Chart data={processedData} />
+}
+
+// ❌ DON'T: Creating functions in render
+export function BadDeviceList({ devices }: { devices: Device[] }) {
+  return (
+    <div>
+      {devices.map(device => (
+        <DeviceCard
+          key={device.id}
+          device={device}
+          onClick={() => handleClick(device.id)} // New function every render
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### Correct Patterns
+```typescript
+// ✅ DO: Use cached data fetching
+export async function GoodFarmList() {
+  // This is cached by Next.js
+  const farms = await getFarmListCached()
+  
+  return (
+    <div>
+      {farms.map(farm => <FarmCard key={farm.id} farm={farm} />)}
+    </div>
+  )
+}
+
+// ✅ DO: Memoize heavy computations
+export function GoodAnalytics({ data }: { data: SensorReading[] }) {
+  const processedData = useMemo(() => 
+    processHeavyAnalytics(data), 
+    [data]
+  )
+  
+  return <Chart data={processedData} />
+}
+
+// ✅ DO: Memoize event handlers
+export function GoodDeviceList({ devices, onDeviceClick }: DeviceListProps) {
+  const handleClick = useCallback((deviceId: string) => {
+    onDeviceClick(deviceId)
+  }, [onDeviceClick])
+  
+  return (
+    <div>
+      {devices.map(device => (
+        <DeviceCard
+          key={device.id}
+          device={device}
+          onClick={handleClick}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+This performance optimization strategy ensures your vertical farming platform scales efficiently with optimal user experience.
+description:
+globs:
+alwaysApply: false
+---

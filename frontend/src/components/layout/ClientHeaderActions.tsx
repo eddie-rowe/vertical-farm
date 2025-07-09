@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import NotificationCenter from '../shared/system/notifications/NotificationCenter';
 import { MobileNavigation } from './MobileNavigation';
 import { Button } from '../ui/button';

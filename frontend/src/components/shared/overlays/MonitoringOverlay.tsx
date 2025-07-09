@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { FarmPageData, Row, Rack, Shelf } from '@/types/farm-layout';
+import { FarmPageData, Row, Rack, Shelf } from '@/types/farm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

@@ -2,89 +2,71 @@
 
 import React, { useState, useEffect } from 'react';
 import { CurrencyDollarIcon, ChartBarIcon, UsersIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
-import { EmptyStateWithIntegrations, IntegrationHint } from '@/components/features/automation';
-import { BUSINESS_INTEGRATIONS, INTEGRATION_MESSAGES, INTEGRATION_CONTEXTS } from '@/lib/integrations/constants';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { DataChart } from '@/components/features/business';
+import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FarmControlButton } from '@/components/ui/farm-control-button';
+import { 
+  Package, 
+  Receipt,
+  CreditCard,
+  AlertTriangle,
+  ExternalLink
+} from 'lucide-react';
+import Link from 'next/link';
 
-// Mock data to simulate existing business data
+// Import view components
+import { 
+  CustomersView, 
+  OrdersInvoicesView, 
+  PaymentsView, 
+  InventoryView,
+  TeamMembersView,
+  DisputesView,
+  RefundsView,
+  PayoutsView
+} from '@/components/features/business';
+
+// Import standardized components and hooks
+import { 
+  usePageData, 
+  createIntegrationStorageKey,
+  MetricsGrid,
+  createMetric,
+  MetricFormatters
+} from '@/components/shared';
+
+// Import empty state component
+import { EmptyStateWithIntegrations } from '@/components/features/automation';
+
+// Import Square service
+import { squareService, SquareConfig } from '@/services/squareService';
+
+// Business data interface
 interface BusinessData {
   revenue: number;
   customers: number;
   orders: number;
   hasData: boolean;
 }
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  Users, 
-  DollarSign, 
-  Package, 
-  TrendingUp, 
-  Receipt, 
-  RotateCcw,
-  AlertTriangle,
-  UserCheck,
-  Banknote,
-  Search,
-  Eye,
-  Calendar,
-  CheckCircle,
-  Clock,
-  XCircle
-} from 'lucide-react';
 
-// Import view components
-import { CustomersView, OrdersInvoicesView, PaymentsView, InventoryView } from '@/components/features/business';
-// import TeamMembersView from '@/components/business-management/TeamMembersView';
-// import DisputesView from '@/components/business-management/DisputesView';
-// import RefundsView from '@/components/business-management/RefundsView';
-// import PayoutsView from '@/components/business-management/PayoutsView';
+// Mock data for connected state
+const mockBusinessData: BusinessData = {
+  revenue: 12450,
+  customers: 89,
+  orders: 156,
+  hasData: true
+};
 
-// Create placeholder components for the new tabs
-const TeamMembersView = () => (
-  <div className="space-y-6">
-    <div className="text-center py-8">
-      <UserCheck className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Team Members view with Square data loading...</p>
-    </div>
-  </div>
-);
-
-const DisputesView = () => (
-  <div className="space-y-6">
-    <div className="text-center py-8">
-      <AlertTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Disputes view with Square data loading...</p>
-    </div>
-  </div>
-);
-
-const RefundsView = () => (
-  <div className="space-y-6">
-    <div className="text-center py-8">
-      <RotateCcw className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Refunds view with Square data loading...</p>
-    </div>
-  </div>
-);
-
-const PayoutsView = () => (
-  <div className="space-y-6">
-    <div className="text-center py-8">
-      <Banknote className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Payouts view with Square data loading...</p>
-    </div>
-  </div>
-);
-
+// Placeholder components for features not yet implemented
 const SubscriptionsView = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
-      <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Subscriptions view coming soon...</p>
+      <Package className="mx-auto h-12 w-12 text-control-label mb-4" />
+      <p className="text-control-label">Subscriptions view coming soon...</p>
     </div>
   </div>
 );
@@ -92,210 +74,315 @@ const SubscriptionsView = () => (
 const InvoicesView = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
-      <Receipt className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <p className="text-gray-500">Invoices view coming soon...</p>
+      <Receipt className="mx-auto h-12 w-12 text-control-label mb-4" />
+      <p className="text-control-label">Invoices view coming soon...</p>
     </div>
   </div>
 );
 
 const BusinessPage: React.FC = () => {
-  const [businessData, setBusinessData] = useState<BusinessData>({
-    revenue: 0,
-    customers: 0,
-    orders: 0,
-    hasData: false
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  // Square configuration state
+  const [squareConfig, setSquareConfig] = useState<SquareConfig | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [configError, setConfigError] = useState<string | null>(null);
 
+  // Use standardized hooks for business data
+  const { data: businessData, isLoading, hasData } = usePageData<BusinessData>({
+    storageKey: createIntegrationStorageKey('business'),
+    mockData: mockBusinessData,
+    hasDataCheck: (data) => data.hasData
+  });
+
+  // Load Square configuration on mount
   useEffect(() => {
-    // Simulate loading business data
-    const loadBusinessData = async () => {
-      setIsLoading(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user has connected business integrations
-      const hasConnectedIntegrations = localStorage.getItem('business-integrations-connected');
-      
-      if (hasConnectedIntegrations) {
-        setBusinessData({
-          revenue: 12450,
-          customers: 89,
-          orders: 156,
-          hasData: true
-        });
-      } else {
-        setBusinessData({
-          revenue: 0,
-          customers: 0,
-          orders: 0,
-          hasData: false
-        });
+    const loadSquareConfig = async () => {
+      try {
+        setConfigLoading(true);
+        setConfigError(null);
+        const activeConfig = await squareService.getActiveConfig();
+        setSquareConfig(activeConfig);
+        
+        if (activeConfig) {
+          // Test the connection to make sure it's working
+          const status = await squareService.getStatus(activeConfig.id!);
+          if (!status.connected) {
+            setConfigError('Square integration is configured but not connected. Please check your configuration.');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading Square configuration:', error);
+        setConfigError('Failed to load Square configuration');
+      } finally {
+        setConfigLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
-    loadBusinessData();
+    loadSquareConfig();
   }, []);
 
-  const handleConnectIntegration = (integrationName: string) => {
-    console.log(`Connecting to ${integrationName}...`);
-    // This would typically redirect to integration setup
-    window.location.href = `/integrations/${integrationName.toLowerCase().replace(/\s+/g, '-')}`;
-  };
+  // Create metrics data
+  const metrics = [
+    createMetric(
+      'revenue',
+      CurrencyDollarIcon,
+      'Total Revenue',
+      businessData.revenue,
+      {
+        stateClass: 'state-growing',
+        iconColor: 'text-sensor-value gradient-icon',
+        valueFormatter: MetricFormatters.currency
+      }
+    ),
+    createMetric(
+      'customers',
+      UsersIcon,
+      'Customers',
+      businessData.customers,
+      {
+        stateClass: 'state-active',
+        iconColor: 'text-sensor-value gradient-icon'
+      }
+    ),
+    createMetric(
+      'orders',
+      ShoppingCartIcon,
+      'Orders',
+      businessData.orders,
+      {
+        stateClass: 'state-growing',
+        iconColor: 'text-sensor-value gradient-icon'
+      }
+    )
+  ];
 
-  const businessIntegrationsWithHandlers = BUSINESS_INTEGRATIONS.map(integration => ({
-    ...integration,
-    onConnect: () => handleConnectIntegration(integration.name)
-  }));
-
-  if (isLoading) {
+  // Show loading state while checking configuration
+  if (configLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  // Show empty state if no business data
-  if (!businessData.hasData) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="container mx-auto p-6 space-y-6">
+        <PageHeader 
           title="Business Management"
           description="Track sales, manage customers, and grow your vertical farming business."
         />
-
-        <EmptyStateWithIntegrations
-          pageType="business"
-          title="Track Your Farm Revenue"
-          description="Connect your payment processor to see revenue, trends, and customer data automatically synced to your dashboard."
-          integrations={businessIntegrationsWithHandlers}
-        />
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-farm-accent"></div>
+        </div>
       </div>
     );
   }
 
-  // Show dashboard with integration hints
+  // Show empty state when Square is not configured
+  if (!squareConfig) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <PageHeader 
+          title="Business Management"
+          description="Track sales, manage customers, and grow your vertical farming business."
+        />
+        
+        <EmptyStateWithIntegrations
+          pageType="business"
+          title="Connect Square to Get Started"
+          description="To access your business data, connect your Square account. This will sync your customers, orders, payments, and inventory automatically."
+          customIcon={CreditCard}
+          integrations={[
+            {
+              name: 'Square POS',
+              icon: 'square',
+              benefit: 'Sync customers, orders, and payments',
+              setupTime: '5 minutes',
+              status: 'available' as const,
+              difficulty: 'easy' as const,
+              onConnect: () => {
+                window.location.href = '/integrations/square';
+              }
+            },
+            {
+              name: 'Square Dashboard',
+              icon: 'chart',
+              benefit: 'View detailed analytics and reports',
+              setupTime: 'Instant',
+              status: 'available' as const,
+              difficulty: 'easy' as const,
+              onConnect: () => {
+                window.open('https://squareup.com/dashboard', '_blank');
+              }
+            },
+            {
+              name: 'Square Inventory',
+              icon: 'inventory',
+              benefit: 'Track product stock levels',
+              setupTime: 'Included',
+              status: 'available' as const,
+              difficulty: 'easy' as const,
+              onConnect: () => {
+                window.location.href = '/integrations/square';
+              }
+            }
+          ]}
+        />
+        
+        {/* Quick Setup Card */}
+        <Card className="bg-farm-white card-shadow state-active">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-farm-title mb-2">Ready to Connect Square?</h3>
+                <p className="text-control-content">Set up your Square integration in just a few steps to start tracking your business performance.</p>
+              </div>
+              <Link href="/integrations/square">
+                <FarmControlButton className="flex items-center gap-2">
+                  Setup Square Integration
+                  <ExternalLink className="w-4 h-4" />
+                </FarmControlButton>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if there's a configuration error
+  if (configError) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <PageHeader 
+          title="Business Management"
+          description="Track sales, manage customers, and grow your vertical farming business."
+        />
+        
+        <Alert className="bg-control-secondary/10 border-control-secondary">
+          <AlertTriangle className="h-4 w-4 text-control-secondary" />
+          <AlertDescription className="text-control-secondary">
+            {configError}
+            <Link href="/integrations/square" className="ml-2 underline font-medium">
+              Check Square Configuration
+            </Link>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Show full business management interface when Square is properly configured
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <PageHeader
+    <div className="container mx-auto p-6 space-y-6">
+      <PageHeader 
         title="Business Management"
         description="Track sales, manage customers, and grow your vertical farming business."
       />
 
-      {/* Integration Hint */}
-      <IntegrationHint
-        message={INTEGRATION_MESSAGES.business}
-        integrations={['Square', 'Stripe', 'QuickBooks', 'HubSpot']}
-        pageContext={INTEGRATION_CONTEXTS.business}
-        variant="info"
-      />
+      {/* Business Management Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+          <TabsTrigger value="refunds">Refunds</TabsTrigger>
+          <TabsTrigger value="disputes">Disputes</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
+        </TabsList>
 
-      {/* Business Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <CurrencyDollarIcon className="h-6 w-6 text-gray-400" />
+        <TabsContent value="overview" className="space-y-6">
+          {/* Configuration Status */}
+          <div className="bg-farm-white card-shadow rounded-lg p-4 state-growing">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-sensor-value" />
+                <div>
+                  <p className="text-sm font-medium text-farm-title">Square Integration</p>
+                  <p className="text-xs text-control-content">Connected • {squareConfig.environment}</p>
+                </div>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-                  <dd className="text-lg font-medium text-gray-900">${businessData.revenue.toLocaleString()}</dd>
-                </dl>
+              <Badge className="bg-sensor-bg text-sensor-value border-sensor-value">Active</Badge>
+            </div>
+          </div>
+
+          {/* Business Metrics */}
+          <MetricsGrid metrics={metrics} columns={3} />
+
+          {/* Revenue Chart */}
+          <div className="bg-farm-white card-shadow rounded-lg p-6 state-active">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-farm-title">Revenue Trends</h3>
+              <ChartBarIcon className="h-5 w-5 text-control-label gradient-icon" />
+            </div>
+            <DataChart
+              data={[
+                { date: '2024-01-01', revenue: 18000, orders: 45, avgOrderValue: 400 },
+                { date: '2024-01-02', revenue: 21750, orders: 52, avgOrderValue: 418 },
+                { date: '2024-01-03', revenue: 14700, orders: 38, avgOrderValue: 387 },
+                { date: '2024-01-04', revenue: 24750, orders: 61, avgOrderValue: 405 },
+                { date: '2024-01-05', revenue: 19800, orders: 49, avgOrderValue: 404 },
+                { date: '2024-01-06', revenue: 26700, orders: 68, avgOrderValue: 393 },
+                { date: '2024-01-07', revenue: 28350, orders: 72, avgOrderValue: 394 }
+              ]}
+              config={{
+                type: 'line',
+                title: 'Revenue & Sales Performance',
+                height: 280,
+                timeScale: false,
+                xAxisKey: 'date',
+                yAxisKeys: ['revenue', 'orders'],
+                colors: ['#10b981', '#3b82f6'],
+                formatters: {
+                  revenue: (value: number) => `$${value.toLocaleString()}`,
+                  orders: (value: number) => `${value} orders`
+                }
+              }}
+            />
+          </div>
+
+          {/* Recent Orders */}
+          <div className="bg-farm-white card-shadow rounded-lg p-6 state-active">
+            <h3 className="text-lg font-medium text-farm-title mb-4">Recent Orders</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
+                <span className="text-sm text-control-label">Mixed Greens Box - Sarah Johnson</span>
+                <span className="text-sm font-medium text-sensor-value">$24.99</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
+                <span className="text-sm text-control-label">Microgreens Variety Pack - Mike Chen</span>
+                <span className="text-sm font-medium text-sensor-value">$18.50</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
+                <span className="text-sm text-control-label">Fresh Herbs Bundle - Lisa Rodriguez</span>
+                <span className="text-sm font-medium text-sensor-value">$15.75</span>
               </div>
             </div>
           </div>
-        </div>
+        </TabsContent>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <UsersIcon className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Customers</dt>
-                  <dd className="text-lg font-medium text-gray-900">{businessData.customers}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TabsContent value="customers" className="space-y-6">
+          <CustomersView />
+        </TabsContent>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <ShoppingCartIcon className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Orders</dt>
-                  <dd className="text-lg font-medium text-gray-900">{businessData.orders}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="orders" className="space-y-6">
+          <OrdersInvoicesView />
+        </TabsContent>
 
-      {/* Revenue Chart */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Revenue Trends</h3>
-          <ChartBarIcon className="h-5 w-5 text-gray-400" />
-        </div>
-        <DataChart
-          data={[
-            { date: '2024-01-01', revenue: 18000, orders: 45, avgOrderValue: 400 },
-            { date: '2024-01-02', revenue: 21750, orders: 52, avgOrderValue: 418 },
-            { date: '2024-01-03', revenue: 14700, orders: 38, avgOrderValue: 387 },
-            { date: '2024-01-04', revenue: 24750, orders: 61, avgOrderValue: 405 },
-            { date: '2024-01-05', revenue: 19800, orders: 49, avgOrderValue: 404 },
-            { date: '2024-01-06', revenue: 26700, orders: 68, avgOrderValue: 393 },
-            { date: '2024-01-07', revenue: 28350, orders: 72, avgOrderValue: 394 }
-          ]}
-          config={{
-            type: 'line',
-            title: 'Revenue & Sales Performance',
-            height: 280,
-            timeScale: false,
-            xAxisKey: 'date',
-            yAxisKeys: ['revenue', 'orders'],
-            colors: ['#10b981', '#3b82f6'],
-            formatters: {
-              revenue: (value: number) => `$${value.toLocaleString()}`,
-              orders: (value: number) => `${value} orders`
-            }
-          }}
-        />
-      </div>
+        <TabsContent value="payments" className="space-y-6">
+          <PaymentsView />
+        </TabsContent>
 
-      {/* Recent Orders */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Orders</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-900">Mixed Greens Box - Sarah Johnson</span>
-            <span className="text-sm font-medium text-green-600">$24.99</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-900">Microgreens Variety Pack - Mike Chen</span>
-            <span className="text-sm font-medium text-green-600">$18.50</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-900">Fresh Herbs Bundle - Lisa Rodriguez</span>
-            <span className="text-sm font-medium text-green-600">$15.75</span>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="payouts" className="space-y-6">
+          <PayoutsView />
+        </TabsContent>
+
+        <TabsContent value="refunds" className="space-y-6">
+          <RefundsView />
+        </TabsContent>
+
+        <TabsContent value="disputes" className="space-y-6">
+          <DisputesView />
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <TeamMembersView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

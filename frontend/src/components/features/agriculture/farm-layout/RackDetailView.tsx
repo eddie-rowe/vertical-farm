@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Rack, Shelf, UUID } from '@/types/farm-layout'; // Removed SensorDevice
+import { Rack, Shelf, UUID } from '@/types/farm'; // Removed SensorDevice
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
@@ -102,6 +102,8 @@ export default function RackDetailView({
         id: uuidv4() as UUID,
         rack_id: internalRackData.id, // Ensure rack_id is correctly assigned
         devices: [], // Initialize with empty devices array
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
       updatedShelves = [...(internalRackData.shelves || []), newShelf];
       toast.success("Shelf added successfully!");

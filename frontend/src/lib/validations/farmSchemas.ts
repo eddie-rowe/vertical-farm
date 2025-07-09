@@ -4,7 +4,7 @@ export const FarmSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(3, "Farm name must be at least 3 characters long.").max(50, "Farm name must be at most 50 characters long."),
   location: z.string().min(3, "Location must be at least 3 characters long.").max(100, "Location must be at most 100 characters long.").optional(),
-  plan_image_url: z.preprocess(
+  farm_image_url: z.preprocess(
     (val) => (val === "" ? null : val),
     z.string().url("Must be a valid URL.").optional().nullable()
   ),

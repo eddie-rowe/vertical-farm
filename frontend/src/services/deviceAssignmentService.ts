@@ -1,5 +1,5 @@
 import { HADevice, DeviceAssignment, DeviceFilter, DeviceAssignmentRequest, AssignmentTarget } from '@/types/device-assignment';
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { getCurrentUser } from '@/services/supabaseService';
 
 class DeviceAssignmentService {

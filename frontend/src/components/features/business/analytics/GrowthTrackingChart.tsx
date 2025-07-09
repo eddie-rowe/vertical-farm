@@ -156,7 +156,7 @@ export const GrowthTrackingChart: React.FC<GrowthTrackingChartProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Current Metrics */}
           <div className="lg:col-span-2">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <h4 className="text-lg font-semibold text-content mb-3">
               Current Measurements
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -169,11 +169,11 @@ export const GrowthTrackingChart: React.FC<GrowthTrackingChartProps> = ({
                   <div key={metric} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-xl">{config.icon}</span>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-sm font-medium text-content-secondary">
                         {config.label}
                       </span>
                     </div>
-                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-xl font-bold text-content">
                       {latestValue !== undefined ? config.formatter(latestValue) : 'N/A'}
                     </div>
                     {growthRate !== null && (
@@ -190,18 +190,18 @@ export const GrowthTrackingChart: React.FC<GrowthTrackingChartProps> = ({
           {/* Growth Stage & Timeline */}
           <div className="space-y-4">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              <h4 className="text-lg font-semibold text-content mb-3">
                 Growth Stage
               </h4>
               <div className="space-y-2">
                 <div className={`text-xl font-bold ${currentStage.color}`}>
                   {currentStage.stage}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-content-secondary">
                   Day {data[data.length - 1]?.daysSinceSeeding || 0} of cycle
                 </div>
                 {expectedHarvestDay && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-content-secondary">
                     {expectedHarvestDay - (data[data.length - 1]?.daysSinceSeeding || 0)} days to harvest
                   </div>
                 )}
@@ -210,29 +210,29 @@ export const GrowthTrackingChart: React.FC<GrowthTrackingChartProps> = ({
             
             {/* Growth Timeline */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              <h4 className="text-sm font-semibold text-content-secondary mb-3">
                 Growth Timeline
               </h4>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span>Germination</span>
-                  <span className="text-gray-500">0-7 days</span>
+                  <span className="text-content-subtle">0-7 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Seedling</span>
-                  <span className="text-gray-500">8-14 days</span>
+                  <span className="text-content-subtle">8-14 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Vegetative</span>
-                  <span className="text-gray-500">15-21 days</span>
+                  <span className="text-content-subtle">15-21 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Pre-harvest</span>
-                  <span className="text-gray-500">22-28 days</span>
+                  <span className="text-content-subtle">22-28 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Harvest</span>
-                  <span className="text-gray-500">{expectedHarvestDay || 30}+ days</span>
+                  <span className="text-content-subtle">{expectedHarvestDay || 30}+ days</span>
                 </div>
               </div>
             </div>

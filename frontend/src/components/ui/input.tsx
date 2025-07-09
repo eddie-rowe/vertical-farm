@@ -1,8 +1,57 @@
 import * as React from "react"
-
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
-export interface InputProps extends React.ComponentProps<"input"> {
+const inputVariants = cva(
+  "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex w-full min-w-0 rounded-md border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+  {
+    variants: {
+      inputSize: {
+        sm: "farm-input h-8 px-3 py-1 text-sm file:h-6",
+        default: "farm-input h-9 px-3 py-1 file:h-7",
+        lg: "farm-input h-10 px-4 py-2 text-base file:h-8",
+      },
+      validationState: {
+        default: "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        success: "border-emerald-500 focus-visible:border-emerald-600 focus-visible:ring-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-400",
+        warning: "border-amber-500 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-400",
+        error: "border-red-500 focus-visible:border-red-600 focus-visible:ring-red-500/30 bg-red-50/50 dark:bg-red-950/20 dark:border-red-400",
+        info: "border-blue-500 focus-visible:border-blue-600 focus-visible:ring-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-400",
+      },
+    },
+    defaultVariants: {
+      inputSize: "default",
+      validationState: "default",
+    },
+  }
+)
+
+const labelVariants = cva(
+  "form-label text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+  {
+    variants: {
+      validationState: {
+        default: "text-foreground",
+        success: "text-emerald-700 dark:text-emerald-300",
+        warning: "text-amber-700 dark:text-amber-300",
+        error: "text-red-700 dark:text-red-300",
+        info: "text-blue-700 dark:text-blue-300",
+      },
+      required: {
+        true: "after:content-['*'] after:ml-0.5 after:text-red-500",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      validationState: "default",
+      required: false,
+    },
+  }
+)
+
+export interface InputProps 
+  extends React.ComponentProps<"input">,
+    VariantProps<typeof inputVariants> {
   error?: string;
   helperText?: string;
   label?: string;
@@ -21,6 +70,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     leftIcon, 
     rightIcon, 
     isLoading,
+    inputSize,
+    validationState,
     id,
     "aria-describedby": ariaDescribedBy,
     "aria-invalid": ariaInvalid,
@@ -39,6 +90,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       errorId,
     ].filter(Boolean).join(' ') || undefined;
 
+    // Determine validation state based on error
+    const currentValidationState = error ? "error" : validationState || "default";
+
     const inputElement = (
       <div className="relative">
         {leftIcon && (
@@ -53,13 +107,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           data-slot="input"
           className={cn(
-            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+            inputVariants({ inputSize, validationState: currentValidationState }),
             leftIcon && "pl-10",
             rightIcon && "pr-10",
             isLoading && "pr-10",
-            error && "border-destructive",
             className
           )}
           aria-describedby={describedBy}
@@ -110,11 +161,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className={cn(
-              "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-              error && "text-destructive",
-              required && "after:content-['*'] after:ml-0.5 after:text-destructive"
-            )}
+            className={labelVariants({ validationState: currentValidationState, required: !!required })}
           >
             {label}
           </label>
@@ -127,7 +174,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {helperText && !error && (
               <p
                 id={helperId}
-                className="text-xs text-muted-foreground"
+                className="form-help text-xs text-muted-foreground"
               >
                 {helperText}
               </p>
@@ -136,7 +183,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {error && (
               <p
                 id={errorId}
-                className="text-xs text-destructive"
+                className="form-error text-xs text-red-600 dark:text-red-400"
                 role="alert"
                 aria-live="polite"
               >
@@ -152,4 +199,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = "Input"
 
-export { Input }
+export { Input, inputVariants, labelVariants }

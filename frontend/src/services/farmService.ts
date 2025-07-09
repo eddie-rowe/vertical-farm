@@ -1,5 +1,5 @@
 'use client';
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 // Define the type for Farm data based on your schema
 // Adjust this based on your actual farms table structure in database-schema.md

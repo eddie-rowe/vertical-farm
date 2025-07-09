@@ -1,5 +1,5 @@
 'use client'; // Added 'use client' as it uses supabase.auth.getSession which is client-side
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 // NEXT_PUBLIC_API_URL should point to the base of the backend, e.g., http://localhost:8000
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -123,7 +123,7 @@ export const getFarmsList = () => request<FarmBasicListResponse>('/api/v1/farms/
 export interface CreateFarmData {
   name: string;
   location?: string;
-  plan_image_url?: string;
+  farm_image_url?: string;
   width?: number;
   depth?: number;
 }
@@ -134,7 +134,7 @@ export interface FarmResponse {
   name: string;
   user_id: UUID;
   location?: string | null;
-  plan_image_url?: string | null;
+  farm_image_url?: string | null;
   width?: number | null;
   depth?: number | null;
   rows?: any[]; // Will be empty array for new farms

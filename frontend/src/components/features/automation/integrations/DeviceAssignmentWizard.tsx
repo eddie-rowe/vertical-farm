@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { HADevice, DeviceAssignment, homeAssistantService } from '@/services/homeAssistantService';
+import { HADevice, DeviceAssignment } from '@/types/device-assignment';
+import deviceAssignmentService from '@/services/deviceAssignmentService';
 
 interface DeviceAssignmentWizardProps {
   device: HADevice;
@@ -113,17 +114,27 @@ export default function DeviceAssignmentWizard({
     setError(null);
 
     try {
-      const assignment: DeviceAssignment = {
+      // Determine the target level and create assignment target
+      let target;
+      if (assignmentData.shelf_id) {
+        target = { type: 'shelf' as const, id: assignmentData.shelf_id, name: `Shelf ${assignmentData.shelf_id}` };
+      } else if (assignmentData.rack_id) {
+        target = { type: 'rack' as const, id: assignmentData.rack_id, name: `Rack ${assignmentData.rack_id}` };
+      } else if (assignmentData.row_id) {
+        target = { type: 'row' as const, id: assignmentData.row_id, name: `Row ${assignmentData.row_id}` };
+      } else {
+        target = { type: 'farm' as const, id: assignmentData.farm_id, name: `Farm ${assignmentData.farm_id}` };
+      }
+
+      const deviceData = {
         entity_id: device.entity_id,
-        entity_type: device.domain || 'unknown', // Use domain from device as entity_type
         friendly_name: device.friendly_name || device.entity_id,
-        farm_id: assignmentData.farm_id || undefined,
-        row_id: assignmentData.row_id || undefined,
-        rack_id: assignmentData.rack_id || undefined,
-        shelf_id: assignmentData.shelf_id || undefined,
+        entity_type: device.domain || 'unknown',
+        device_class: device.device_class,
+        area: device.area
       };
 
-      await homeAssistantService.saveAssignment(assignment);
+      await deviceAssignmentService.assignDevice(deviceData, target);
       onAssigned();
       onClose();
       setCurrentStep(1); // Reset for next use

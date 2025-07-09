@@ -32,7 +32,7 @@ import {
   Sun,
   Wind
 } from 'lucide-react';
-import { FarmPageData, UUID } from "@/types/farm-layout";
+import { FarmPageData, UUID } from "@/types/farm";
 
 interface SelectedElement {
   type: 'farm' | 'row' | 'rack' | 'shelf' | 'device' | null;

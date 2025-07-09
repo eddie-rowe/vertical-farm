@@ -24,17 +24,17 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   const getStatusColor = () => {
     switch (status) {
       case 'connected':
-        return 'border-green-200 bg-green-50';
+        return 'border-farm-border bg-farm-muted state-growing';
       case 'coming-soon':
-        return 'border-gray-200 bg-gray-50 opacity-60';
+        return 'border-farm-border bg-farm-muted opacity-60 state-offline';
       default:
-        return 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md';
+        return 'border-farm-border bg-farm-white hover:border-farm-accent hover:shadow-md state-active';
     }
   };
 
   const getStatusIcon = () => {
     if (status === 'connected') {
-      return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+      return <CheckCircleIcon className="w-5 h-5 text-farm-accent" />;
     }
     return null;
   };
@@ -42,13 +42,13 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   const getDifficultyColor = () => {
     switch (difficulty) {
       case 'easy':
-        return 'text-green-600 bg-green-100';
+        return 'text-farm-accent bg-farm-accent/10';
       case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
+        return 'text-control-accent bg-control-accent/10';
       case 'advanced':
-        return 'text-red-600 bg-red-100';
+        return 'text-sensor-critical bg-sensor-critical/10';
       default:
-        return 'text-green-600 bg-green-100';
+        return 'text-farm-accent bg-farm-accent/10';
     }
   };
 
@@ -71,15 +71,15 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             className="object-contain rounded"
           />
         </div>
-        <h3 className="font-semibold text-gray-900">{name}</h3>
+        <h3 className="font-semibold text-farm-title">{name}</h3>
       </div>
 
       {/* Benefit description */}
-      <p className="text-sm text-gray-600 mb-4 leading-relaxed">{benefit}</p>
+      <p className="text-sm text-control-content mb-4 leading-relaxed">{benefit}</p>
 
       {/* Setup info and CTA */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-xs text-gray-500">
+        <div className="flex items-center space-x-2 text-xs text-control-label">
           <ClockIcon className="w-3 h-3" />
           <span>{setupTime} setup</span>
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor()}`}>
@@ -88,18 +88,18 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
         </div>
 
         {status === 'available' && (
-          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
+          <button className="text-sm text-farm-accent hover:text-control-accent font-medium flex items-center">
             Connect
             <ArrowTopRightOnSquareIcon className="w-3 h-3 ml-1" />
           </button>
         )}
 
         {status === 'connected' && (
-          <span className="text-sm text-green-600 font-medium">Connected</span>
+          <span className="text-sm text-farm-accent font-medium">Connected</span>
         )}
 
         {status === 'coming-soon' && (
-          <span className="text-sm text-gray-400 font-medium">Coming Soon</span>
+          <span className="text-sm text-control-label font-medium">Coming Soon</span>
         )}
       </div>
     </div>

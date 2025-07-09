@@ -22,7 +22,7 @@ interface LayerSwitcherProps {
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md' | 'lg';
   showLabels?: boolean;
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'inline';
 }
 
 export function LayerSwitcher({
@@ -76,10 +76,69 @@ export function LayerSwitcher({
     'top-right': 'top-4 right-4',
     'bottom-left': 'bottom-4 left-4',
     'bottom-right': 'bottom-4 right-4',
-    'center': 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
+    'center': 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2',
+    'inline': ''
   };
 
   const activeLayer = getActiveLayer();
+
+  const isInline = position === 'inline';
+
+  if (isInline) {
+    return (
+      <div className={cn(
+        "flex gap-1",
+        orientation === 'vertical' ? 'flex-col' : 'flex-row',
+        className
+      )}>
+        {/* Layer Toggle Buttons */}
+        {(Object.keys(layers) as LayerType[]).map((layer) => {
+          const isActive = layers[layer].isActive;
+          const alertCount = layers[layer].alertCount;
+          const hasAlerts = alertCount > 0;
+
+          return (
+            <div key={layer} className="relative">
+              <Button
+                variant={isActive ? 'default' : 'ghost'}
+                size={getButtonSize()}
+                onClick={() => toggleLayer(layer)}
+                className={cn(
+                  "transition-all duration-200 relative",
+                  isActive 
+                    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm" 
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800",
+                  hasAlerts && !isActive && "border-amber-300 dark:border-amber-600",
+                  "px-2 h-8"
+                )}
+                title={`${getLayerLabel(layer)} - ${getLayerDescription(layer)}`}
+              >
+                                 <div className="flex items-center gap-1">
+                   {getLayerIcon(layer)}
+                   {showLabels && <span className="text-xs">{getLayerLabel(layer)}</span>}
+                 </div>
+               </Button>
+
+               {/* Alert Badge */}
+               {hasAlerts && (
+                 <Badge 
+                   variant="outline"
+                   className={cn(
+                     "absolute -top-1 -right-1 h-3 w-3 p-0 flex items-center justify-center text-xs transition-all",
+                     alertCount >= 5 
+                       ? "bg-red-500 border-red-500 text-white animate-pulse" 
+                       : "bg-amber-500 border-amber-500 text-white"
+                   )}
+                 >
+                   <AlertTriangle className="w-2 h-2" />
+                 </Badge>
+               )}
+             </div>
+            );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className={cn(

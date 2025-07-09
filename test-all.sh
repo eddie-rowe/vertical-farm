@@ -64,13 +64,12 @@ run_backend_tests() {
     # Install dependencies
     echo "Installing Python dependencies..."
     pip install -q --upgrade pip
-    pip install -q -r requirements.txt
+    pip install -q -e .[test,dev]
     
     # Flake8 has been removed from the project - focusing on black and mypy
     
     # Run type checking
     echo "Running mypy type checking..."
-    pip install -q mypy
     mypy app/ --ignore-missing-imports || echo "Type checking completed with warnings"
     
     # Run tests

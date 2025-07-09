@@ -49,17 +49,17 @@ const EmptyStateWithIntegrations: React.FC<EmptyStateWithIntegrationsProps> = ({
   const PageIcon = getPageIcon();
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 min-h-[400px]">
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-farm-white rounded-lg border-2 border-dashed border-farm-border min-h-[400px] state-active">
       {/* Icon */}
-      <PageIcon className="w-16 h-16 text-gray-400 mb-6" />
+      <PageIcon className="w-16 h-16 text-control-label mb-6 gradient-icon" />
       
       {/* Title and Description */}
-      <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
-      <p className="text-gray-600 mb-8 max-w-md leading-relaxed">{description}</p>
+      <h3 className="text-xl font-semibold text-farm-title mb-3">{title}</h3>
+      <p className="text-control-content mb-8 max-w-md leading-relaxed">{description}</p>
       
       {/* Integration Cards Grid */}
       <div className="w-full max-w-4xl">
-        <h4 className="text-sm font-medium text-gray-700 mb-4 text-left">
+        <h4 className="text-sm font-medium text-control-label mb-4 text-left">
           Recommended Integrations:
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,7 +80,7 @@ const EmptyStateWithIntegrations: React.FC<EmptyStateWithIntegrationsProps> = ({
 
       {/* Call to Action */}
       <div className="mt-8">
-        <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+        <button className="inline-flex items-center px-4 py-2 bg-farm-accent text-farm-white text-sm font-medium rounded-md hover:bg-control-accent transition-colors">
           Browse All Integrations
           <ChartBarIcon className="w-4 h-4 ml-2" />
         </button>

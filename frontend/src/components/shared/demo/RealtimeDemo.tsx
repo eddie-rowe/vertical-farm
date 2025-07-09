@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useRealtime } from '@/context/RealtimeContext'
+import { useRealtime } from '@/contexts/RealtimeContext'
 import { useRealtimeTable } from '@/hooks/useRealtimeTable'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

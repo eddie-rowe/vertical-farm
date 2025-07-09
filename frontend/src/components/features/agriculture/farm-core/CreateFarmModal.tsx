@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogTrigger 
 } from "@/components/ui/dialog";
-import { createFarm, CreateFarmData, Farm } from "@/services/supabaseService";
+import { createFarm, CreateFarmData } from "@/services/supabaseService";
+import { Farm } from "@/types/farm";
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
 
@@ -25,7 +26,7 @@ interface CreateFarmModalProps {
 interface FormErrors {
   name?: string;
   location?: string;
-  plan_image_url?: string;
+  farm_image_url?: string;
 }
 
 export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmModalProps) {
@@ -34,7 +35,7 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
   const [formData, setFormData] = useState<CreateFarmData>({
     name: '',
     location: '',
-    plan_image_url: '',
+    farm_image_url: '',
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -61,10 +62,10 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
     }
 
     // URL validation (optional, but if provided must be valid URL)
-    if (formData.plan_image_url && formData.plan_image_url.trim()) {
+    if (formData.farm_image_url && formData.farm_image_url.trim()) {
       const urlPattern = /^https?:\/\/[\w\d.-]+\.[a-z]{2,}(?:\/[^\s]*)?$/;
-      if (!urlPattern.test(formData.plan_image_url.trim())) {
-        newErrors.plan_image_url = 'Please enter a valid URL';
+      if (!urlPattern.test(formData.farm_image_url.trim())) {
+        newErrors.farm_image_url = 'Please enter a valid URL';
       }
     }
 
@@ -90,8 +91,8 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
         cleanedData.location = formData.location.trim();
       }
 
-      if (formData.plan_image_url && formData.plan_image_url.trim()) {
-        cleanedData.plan_image_url = formData.plan_image_url.trim();
+      if (formData.farm_image_url && formData.farm_image_url.trim()) {
+        cleanedData.farm_image_url = formData.farm_image_url.trim();
       }
 
       const newFarm = await createFarm(cleanedData);
@@ -101,13 +102,13 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
       setFormData({
         name: '',
         location: '',
-        plan_image_url: '',
+        farm_image_url: '',
       });
       setErrors({});
       setIsOpen(false);
       
-      // Notify parent component
-      onFarmCreated(newFarm);
+      // Notify parent component (cast to match interface expectations)
+      onFarmCreated(newFarm as Farm);
     } catch (error: any) {
       console.error('Failed to create farm:', error);
       toast.error(error.message || 'Failed to create farm');
@@ -175,15 +176,15 @@ export default function CreateFarmModal({ onFarmCreated, trigger }: CreateFarmMo
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="plan_image_url">Plan Image URL</Label>
+            <Label htmlFor="farm_image_url">Farm Image URL</Label>
             <Input
-              id="plan_image_url"
-              value={formData.plan_image_url || ''}
-              onChange={(e) => handleInputChange('plan_image_url', e.target.value)}
+              id="farm_image_url"
+              value={formData.farm_image_url || ''}
+              onChange={(e) => handleInputChange('farm_image_url', e.target.value)}
               placeholder="https://example.com/farm-plan.jpg"
-              className={errors.plan_image_url ? 'border-red-500' : ''}
+              className={errors.farm_image_url ? 'border-red-500' : ''}
             />
-            {errors.plan_image_url && <p className="text-sm text-red-500">{errors.plan_image_url}</p>}
+            {errors.farm_image_url && <p className="text-sm text-red-500">{errors.farm_image_url}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

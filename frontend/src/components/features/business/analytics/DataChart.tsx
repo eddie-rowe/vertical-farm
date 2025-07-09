@@ -183,16 +183,6 @@ export const DataChart: React.FC<DataChartProps> = ({
           ticks: {
             color: themeColors.text,
           },
-          ...(timeScale && {
-            time: {
-              displayFormats: {
-                hour: 'MMM d, HH:mm',
-                day: 'MMM d',
-                week: 'MMM d',
-                month: 'MMM yyyy',
-              },
-            },
-          }),
         },
         y: {
           type: 'linear',

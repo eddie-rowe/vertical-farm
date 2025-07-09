@@ -62,6 +62,7 @@ const transformRow = (supabaseRow: SupabaseRow): FrontendRow => ({
   name: supabaseRow.name,
   farm_id: supabaseRow.farm_id,
   orientation: 'horizontal' as const,
+  area_type: 'grow_area' as const, // Default to grow_area for backward compatibility
   racks: supabaseRow.racks?.map(transformRack) || [],
   created_at: supabaseRow.created_at,
   updated_at: supabaseRow.updated_at
@@ -75,7 +76,7 @@ const transformFarm = (supabaseFarm: SupabaseFarm): FrontendFarm => ({
   name: supabaseFarm.name,
   user_id: supabaseFarm.user_id || supabaseFarm.id,
   location: supabaseFarm.location,
-  plan_image_url: supabaseFarm.plan_image_url,
+  farm_image_url: supabaseFarm.farm_image_url,
   created_at: supabaseFarm.created_at,
   updated_at: supabaseFarm.updated_at
 });

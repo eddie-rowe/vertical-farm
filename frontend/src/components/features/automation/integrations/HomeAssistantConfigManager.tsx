@@ -9,8 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, Settings, TestTube, Check, AlertCircle, Shield } from 'lucide-react';
-import { homeAssistantService } from '@/services/homeAssistantService';
-import { supabase } from '@/supabaseClient';
+import { HomeAssistantWebSocketService } from '@/services/domain/integrations/HomeAssistantWebSocketService';
+import { supabase } from '@/lib/supabaseClient';
 
 interface HAUserConfig {
   id: string;
@@ -121,29 +121,81 @@ const HomeAssistantConfigManager: React.FC = () => {
     setError(null);
 
     try {
-      const response = await homeAssistantService.testConnection(
-        config.url,
-        '', // Access token is stored securely on backend
-        config.cloudflare_enabled ? {
-          cloudflare_client_id: '',
-          cloudflare_client_secret: ''
-        } : undefined
-      );
+      // Get the access token from the backend for this configuration
+      const response = await fetch(`/api/v1/home-assistant/config/${config.id}/token`, {
+        headers: await getAuthHeaders(),
+      });
 
-      if (response.connected) {
-        setSuccess(`Connection test successful! Found ${response.device_count || 0} devices.`);
+      if (!response.ok) {
+        throw new Error('Failed to retrieve access token');
+      }
+
+      const tokenData = await response.json();
+      
+      // Create a new service instance for testing
+      const testService = HomeAssistantWebSocketService.getInstance();
+      
+      // Configure the service with the test configuration
+      await testService.initialize({
+        url: config.url,
+        token: tokenData.access_token,
+        ssl: config.url.startsWith('https://'),
+        port: config.url.includes(':') ? parseInt(config.url.split(':')[2]) : 8123
+      });
+
+      // Wait a moment for connection to establish
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Test the connection by checking if it's connected and authenticated
+      const isConnected = testService.isConnected();
+      const isAuthenticated = testService.isWebSocketAuthenticated();
+
+      if (isConnected && isAuthenticated) {
+        // Try to get states to verify the connection works
+        const states = await testService.getStates();
+        const deviceCount = states.length;
+        
+        setSuccess(`Connection test successful! Found ${deviceCount} entities.`);
+        
+        // Update the config with successful test result
+        await fetch(`/api/v1/home-assistant/config/${config.id}`, {
+          method: 'PATCH',
+          headers: await getAuthHeaders(),
+          body: JSON.stringify({
+            test_result: 'success',
+            last_tested: new Date().toISOString(),
+            last_successful_connection: new Date().toISOString()
+          }),
+        });
       } else {
-        setError(`Connection test failed: ${response.error || 'Unknown error'}`);
+        throw new Error('Connection established but authentication failed');
       }
     } catch (err) {
       setError(`Connection test failed: ${err}`);
       console.error('Connection test error:', err);
+      
+      // Update the config with failed test result
+      try {
+        await fetch(`/api/v1/home-assistant/config/${config.id}`, {
+          method: 'PATCH',
+          headers: await getAuthHeaders(),
+          body: JSON.stringify({
+            test_result: 'failed',
+            last_tested: new Date().toISOString()
+          }),
+        });
+      } catch (updateErr) {
+        console.error('Failed to update test result:', updateErr);
+      }
     } finally {
       setTestingConfigs(prev => {
         const newSet = new Set(prev);
         newSet.delete(config.id);
         return newSet;
       });
+      
+      // Reload configs to show updated test results
+      loadConfigs();
     }
   };
 

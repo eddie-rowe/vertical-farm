@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-import { HADevice, homeAssistantService } from '@/services/homeAssistantService';
+import { HADevice } from '@/types/device-assignment';
+import { HomeAssistantWebSocketService } from '@/services/domain/integrations/HomeAssistantWebSocketService';
 
 interface DeviceControlPanelProps {
   device: HADevice;
@@ -24,17 +25,31 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
 
   useEffect(() => {
     // Set up WebSocket subscription for real-time updates
-    const cleanup = homeAssistantService.createDeviceSubscription(device.entity_id, (updatedDevice) => {
-      if (onUpdate) {
+    const haService = HomeAssistantWebSocketService.getInstance();
+    
+    const subscriptionId = haService.subscribeToStateChanges((update) => {
+      if (update.entity_id === device.entity_id && onUpdate) {
+        // Convert the state update back to HADevice format
+        const updatedDevice: HADevice = {
+          ...device,
+          state: update.state,
+          attributes: update.attributes || {},
+          last_changed: update.last_changed,
+          last_updated: update.last_updated
+        };
+        
         onUpdate(updatedDevice);
-      }
-      // Update brightness if it's a light
-      if (updatedDevice.attributes?.brightness) {
-        setBrightness(Math.round((updatedDevice.attributes.brightness / 255) * 100));
+        
+        // Update brightness if it's a light
+        if (update.attributes?.brightness) {
+          setBrightness(Math.round((update.attributes.brightness / 255) * 100));
+        }
       }
     });
 
-    return cleanup;
+    return () => {
+      haService.unsubscribe(subscriptionId);
+    };
   }, [device.entity_id, onUpdate]);
 
   const getDeviceIcon = (deviceType: string, isOn: boolean) => {
@@ -51,15 +66,13 @@ export default function DeviceControlPanel({ device, onUpdate, compact = false }
   const handleToggle = async () => {
     setIsControlling(true);
     try {
+      const haService = HomeAssistantWebSocketService.getInstance();
       const action = device.state === 'on' ? 'turn_off' : 'turn_on';
-      if (device.domain === 'light') {
-        await homeAssistantService.controlLight(device.entity_id, action);
-      } else {
-        await homeAssistantService.controlDevice({
-          entity_id: device.entity_id,
-          action
-        });
-      }
+      
+      // Call the appropriate service based on device type
+      await haService.callService(device.domain, action, {
+        entity_id: device.entity_id
+      });
     } catch (error) {
       console.error('Error controlling device:', error);
     } finally {

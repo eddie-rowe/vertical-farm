@@ -12,8 +12,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Search, Lightbulb, Zap, Wind, Settings, Trash2, Thermometer, Camera, Droplets, Power, Filter, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { supabase } from '@/supabaseClient'
-import { Row, Rack, Shelf } from '@/types/farm-layout'
+import { supabase } from '@/lib/supabaseClient'
+import { Row, Rack, Shelf } from '@/types/farm/layout'
 import { HADevice, DeviceAssignment, DeviceFilter, AssignmentTarget } from '@/types/device-assignment'
 import deviceAssignmentService from '@/services/deviceAssignmentService'
 import homeAssistantService from '@/services/homeAssistantService'
@@ -264,20 +264,20 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
     try {
       switch (elementType) {
         case 'row': {
-          const { deleteRow } = await import('@/services/rowService')
-          await deleteRow(element.id)
+          const rowService = (await import('@/services/domain/farm/RowService')).RowService.getInstance()
+          await rowService.delete(element.id)
           toast.success('Row deleted successfully')
           break
         }
         case 'rack': {
-          const { deleteRack } = await import('@/services/rackService')
-          await deleteRack(element.id)
+          const rackService = (await import('@/services/domain/farm/RackService')).RackService.getInstance()
+          await rackService.delete(element.id)
           toast.success('Rack deleted successfully')
           break
         }
         case 'shelf': {
-          const { deleteShelf } = await import('@/services/shelfService')
-          await deleteShelf(element.id)
+          const shelfService = (await import('@/services/domain/farm/ShelfService')).ShelfService.getInstance()
+          await shelfService.delete(element.id)
           toast.success('Shelf deleted successfully')
           break
         }

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { DeviceOverlayProps, DeviceData, DeviceAction } from '@/types/device-layer';
-import { useDevice } from '@/context/DeviceContext';
+import { useDevice } from '@/contexts/DeviceContext';
 import { cn } from '@/lib/utils';
 import { 
   LightBulbIcon, 

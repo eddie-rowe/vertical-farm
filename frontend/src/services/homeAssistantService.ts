@@ -1,37 +1,14 @@
 'use client';
 
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
+import { HADevice, HAConfig } from '@/types/integrations/homeassistant';
 
 // Home Assistant API service for frontend
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/home-assistant`;
 
-export interface HADevice {
-  entity_id: string;
-  friendly_name?: string;
-  state: string;
-  attributes: Record<string, any>;
-  last_changed?: string;
-  last_updated?: string;
-  domain: string;
-  device_class?: string;
-  unit_of_measurement?: string;
-  area?: string;
-}
-
-export interface HAConfig {
-  url: string;
-  token: string;
-  enabled: boolean;
-  cloudflare_client_id?: string;
-  cloudflare_client_secret?: string;
-  is_default?: boolean;
-  name?: string;
-  local_url?: string;
-  id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+// Re-export the consolidated types for backward compatibility
+export type { HADevice, HAConfig } from '@/types/integrations/homeassistant';
 
 export interface HAConnectionStatus {
   connected: boolean;

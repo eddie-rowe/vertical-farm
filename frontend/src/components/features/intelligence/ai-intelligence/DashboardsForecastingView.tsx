@@ -101,10 +101,10 @@ export default function DashboardsForecastingView() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-content">
             AI Forecasting Dashboard
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-content-secondary">
             Predictive analytics and intelligent insights for your farming operations
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function DashboardsForecastingView() {
           <Card key={forecast.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
-                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                <CardTitle className="text-lg font-semibold text-content">
                   {forecast.metric}
                 </CardTitle>
                 <div className="text-2xl">{getTrendIcon(forecast.trend)}</div>
@@ -141,13 +141,13 @@ export default function DashboardsForecastingView() {
               {/* Current vs Predicted */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Current</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-sm text-content-secondary">Current</span>
+                  <span className="font-medium text-content">
                     {forecast.currentValue} {forecast.unit}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Predicted</span>
+                  <span className="text-sm text-content-secondary">Predicted</span>
                   <span className="font-bold text-blue-600">
                     {forecast.predictedValue} {forecast.unit}
                   </span>
@@ -156,7 +156,7 @@ export default function DashboardsForecastingView() {
 
               {/* Confidence */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Confidence</span>
+                <span className="text-sm text-content-secondary">Confidence</span>
                 <span className={`font-medium ${getConfidenceColor(forecast.confidence)}`}>
                   {forecast.confidence}%
                 </span>
@@ -164,12 +164,12 @@ export default function DashboardsForecastingView() {
 
               {/* Factors */}
               <div>
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <h4 className="text-sm font-medium text-content mb-2">
                   Key Factors
                 </h4>
                 <div className="space-y-1">
                   {forecast.factors.map((factor, index) => (
-                    <div key={index} className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    <div key={index} className="text-xs text-content-secondary flex items-center gap-1">
                       <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
                       {factor}
                     </div>
@@ -196,7 +196,7 @@ export default function DashboardsForecastingView() {
       {/* AI Insights */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold text-content">
             AI-Generated Insights
           </h3>
           <button className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800">
@@ -211,7 +211,7 @@ export default function DashboardsForecastingView() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h4 className="font-semibold text-lg text-gray-900 dark:text-white">
+                    <h4 className="font-semibold text-lg text-content">
                       {insight.title}
                     </h4>
                     <Badge className={getPriorityColor(insight.priority)}>
@@ -223,17 +223,17 @@ export default function DashboardsForecastingView() {
                   </span>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-content-secondary mb-4">
                   {insight.description}
                 </p>
 
                 <div>
-                  <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <h5 className="text-sm font-medium text-content mb-2">
                     Recommendations
                   </h5>
                   <ul className="space-y-1">
                     {insight.recommendations.map((rec, index) => (
-                      <li key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                      <li key={index} className="text-sm text-content-secondary flex items-center gap-2">
                         <FaArrowRight className="text-xs text-blue-500" />
                         {rec}
                       </li>
@@ -249,7 +249,7 @@ export default function DashboardsForecastingView() {
       {/* Performance Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+          <CardTitle className="text-xl font-semibold text-content">
             Forecasting Performance
           </CardTitle>
         </CardHeader>
@@ -257,15 +257,15 @@ export default function DashboardsForecastingView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">94.2%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Average Accuracy</div>
+              <div className="text-sm text-content-secondary">Accuracy</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">87.5%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Prediction Confidence</div>
+              <div className="text-3xl font-bold text-blue-600">127</div>
+              <div className="text-sm text-content-secondary">Predictions Made</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">156</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Insights Generated</div>
+              <div className="text-3xl font-bold text-green-600">89.7%</div>
+              <div className="text-sm text-content-secondary">Confidence</div>
             </div>
           </div>
         </CardContent>

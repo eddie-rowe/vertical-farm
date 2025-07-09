@@ -293,41 +293,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Farm Analytics
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Real-time insights and performance metrics
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Time Range Selector */}
-          <select
-            value={selectedTimeRange}
-            onChange={(e) => setSelectedTimeRange(e.target.value as any)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
-          >
-            {timeRangeOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Actions */}
-          <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-            <FaCog className="h-4 w-4" />
-          </button>
-          <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-            <FaDownload className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
       {/* KPI Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiMetrics.map((metric) => (
@@ -342,10 +307,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               {getTrendDisplay(metric.trend, metric.trendValue)}
             </div>
             <div className="space-y-1">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-2xl font-bold text-content">
                 {metric.value}{metric.unit}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-content-secondary">
                 {metric.title}
               </p>
             </div>
@@ -366,7 +331,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             >
               {/* Widget Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-content">
                   {widget.title}
                 </h3>
                 <div className="flex items-center gap-2">
@@ -374,14 +339,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <button
                       onClick={() => refreshWidget(widget.id)}
                       disabled={refreshing === widget.id}
-                      className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+                      className="p-1 text-content-secondary hover:text-content transition-colors disabled:opacity-50"
                     >
                       <FaRedo className={`h-4 w-4 ${refreshing === widget.id ? 'animate-spin' : ''}`} />
                     </button>
                   )}
                   <button
                     onClick={() => onWidgetClick?.(widget.id)}
-                    className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    className="p-1 text-content-secondary hover:text-content transition-colors"
                   >
                     <FaExpand className="h-4 w-4" />
                   </button>
@@ -399,7 +364,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     showGrid: true,
                     showLegend: widget.type !== 'pie',
                     animated: true,
-                    timeScale: widget.id === 'environmental-trends',
+                    timeScale: false,
                     tension: 0.3,
                     fill: widget.type === 'area',
                     pointRadius: widget.type === 'line' ? 2 : 0,
@@ -426,10 +391,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* Insights & Recommendations */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-content">
             AI Insights & Recommendations
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-content-secondary mt-1">
             Automated analysis and optimization suggestions
           </p>
         </div>
@@ -443,7 +408,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium capitalize text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-medium capitalize text-content-secondary">
                       {insight.type}
                     </span>
                     <span className={`px-2 py-0.5 text-xs rounded-full ${
@@ -454,13 +419,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       {insight.priority}
                     </span>
                   </div>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  <h4 className="font-medium text-content mb-1">
                     {insight.title}
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-content-secondary">
                     {insight.description}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                  <p className="text-xs text-content-subtle mt-2">
                     {new Date(insight.timestamp).toLocaleString()}
                   </p>
                 </div>

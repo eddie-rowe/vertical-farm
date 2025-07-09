@@ -80,7 +80,7 @@ export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
     showGrid: true,
     showLegend: true,
     animated: true,
-    timeScale: true,
+    timeScale: false,
     tension: 0.3,
     pointRadius: 2,
     borderWidth: 2,
@@ -95,9 +95,14 @@ export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
     ),
   };
 
-  // Transform data for Chart.js format
+  // Transform data for Chart.js format with readable timestamps
   const chartData: ChartData[] = data.map(item => ({
-    timestamp: new Date(item.timestamp),
+    timestamp: new Date(item.timestamp).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
     ...Object.fromEntries(
       metricsToShow.map(metric => [metric, item[metric]])
     ),

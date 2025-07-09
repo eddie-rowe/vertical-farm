@@ -5,7 +5,7 @@
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { UUID } from '@/types/farm-layout';
 
 // =====================================================

@@ -1,48 +1,45 @@
 'use client';
 
-import { useEffect } from 'react';
+import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  Title,
+} from 'chart.js';
 
-const ChartRegistration = () => {
-  useEffect(() => {
-    // Dynamic import and registration of Chart.js components
-    const registerChartJS = async () => {
-      const { 
-        Chart, 
-        CategoryScale, 
-        LinearScale, 
-        TimeScale,
-        BarElement, 
-        PointElement, 
-        LineElement, 
-        ArcElement,
-        Filler,
-        Title,
-        Tooltip, 
-        Legend 
-      } = await import('chart.js');
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  Title
+);
 
-      // Import time scale adapter for time-based charts
-      const { _adapters } = await import('chart.js/auto');
-      
-      Chart.register(
-        CategoryScale,
-        LinearScale,
-        TimeScale,
-        BarElement,
-        PointElement,
-        LineElement,
-        ArcElement,
-        Filler,
-        Title,
-        Tooltip,
-        Legend
-      );
-    };
+// Configure better defaults for our charts
+ChartJS.defaults.font.family = 'Inter, system-ui, sans-serif';
+ChartJS.defaults.color = '#6b7280'; // gray-500 for better readability
 
-    registerChartJS();
-  }, []);
-
-  return null; // This component doesn't render anything
+// React component that handles Chart.js registration
+const ChartRegistration: React.FC = () => {
+  // This component doesn't render anything, it just ensures Chart.js is registered
+  return null;
 };
 
-export default ChartRegistration; 
+export default ChartRegistration;
+export { ChartJS }; 

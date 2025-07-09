@@ -8,7 +8,7 @@ from app.schemas.row import RowResponse # Added import
 class FarmBase(BaseModel):
     name: Optional[str] = Field(None, min_length=3, max_length=50)
     location: Optional[str] = Field(None, min_length=3, max_length=100)
-    plan_image_url: Optional[str] = Field(None, pattern=r"^https?://[\w\d.-]+\.[a-z]{2,}(?:/[^\s]*)?$") # Basic URL regex
+    farm_image_url: Optional[str] = Field(None, pattern=r"^https?://[\w\d.-]+\.[a-z]{2,}(?:/[^\s]*)?$") # Basic URL regex
     width: Optional[float] = Field(None, gt=0)
     depth: Optional[float] = Field(None, gt=0)
 
