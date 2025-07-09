@@ -76,8 +76,8 @@ jobs:
       push_to_registry: ${{ github.event_name != 'pull_request' }}
   
   docs-build:
-    name: Documentation Build
-    uses: ./.github/workflows/build-docs.yml
+    name: Documentation Site Build
+    uses: ./.github/workflows/build-docs-site.yml
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.changed_files, 'docs/')
     secrets: inherit
     with:

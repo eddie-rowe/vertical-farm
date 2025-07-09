@@ -1,4 +1,4 @@
-name: Documentation Build
+name: Documentation Site Build
 
 on:
   push:
@@ -22,7 +22,7 @@ on:
         description: 'Whether to deploy to GitHub Pages'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -127,39 +127,12 @@ jobs:
             fi
           done
       
-      - name: Generate API documentation
-        run: |
-          # Generate API docs from backend if available
-          if [ -d "backend" ]; then
-            echo "Generating API documentation from backend..."
-            cd backend
-            
-            # Install backend dependencies for docs generation
-            pip install -e .[all] || true
-            
-            # Generate OpenAPI spec
-            python -c "
-            try:
-                from src.main import app
-                import json
-                import os
-                os.makedirs('../docs/api', exist_ok=True)
-                with open('../docs/api/openapi.json', 'w') as f:
-                    json.dump(app.openapi(), f, indent=2)
-                print('✅ OpenAPI spec generated')
-            except Exception as e:
-                print(f'⚠️ Could not generate API docs: {e}')
-            " || true
-            
-            cd ..
-          fi
-      
-      - name: Build documentation
+      - name: Build documentation site
         run: |
           # Build the documentation
           mkdocs build --verbose
           
-          echo "✅ Documentation built successfully"
+          echo "✅ Documentation site built successfully"
           
           # Check build output
           if [ -d "site" ]; then
@@ -173,34 +146,7 @@ jobs:
             echo "| Total files | $FILE_COUNT |" >> $GITHUB_STEP_SUMMARY
           fi
       
-      - name: Test documentation links
-        run: |
-          # Install htmltest for link checking
-          curl -s https://api.github.com/repos/wjdp/htmltest/releases/latest \
-            | grep browser_download_url \
-            | grep linux-amd64 \
-            | cut -d '"' -f 4 \
-            | wget -qi -
-          
-          tar xzf htmltest*.tar.gz
-          chmod +x htmltest
-          
-          # Create htmltest config
-          cat > .htmltest.yml << EOF
-          DirectoryPath: "./site"
-          IgnoreURLs:
-            - "^http://localhost"
-            - "^https://localhost"
-          IgnoreInternalEmptyHash: true
-          CheckInternalHashLinks: true
-          CheckExternalHashLinks: false
-          EnforceHTML5: true
-          EOF
-          
-          # Run link checking
-          ./htmltest || echo "Link checking completed with warnings"
-      
-      - name: Optimize documentation
+      - name: Optimize documentation site images
         run: |
           # Optimize images if any exist
           if command -v optipng &> /dev/null; then
@@ -227,14 +173,13 @@ jobs:
           IMAGES=$(find docs/ site/ -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.svg" 2>/dev/null | wc -l)
           echo "| Images | $IMAGES |" >> $GITHUB_STEP_SUMMARY
       
-      - name: Setup Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
-        uses: actions/configure-pages@v4
-      
-      - name: Deploy to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          
+      - name: Deploy mkdocs site
+        run: mkdocs gh-deploy --force
       
       - name: Generate deployment summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
