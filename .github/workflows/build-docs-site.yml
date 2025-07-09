@@ -177,7 +177,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          
+
       - name: Deploy mkdocs site
         run: mkdocs gh-deploy --force
       
@@ -193,32 +193,6 @@ jobs:
           
           echo ""
           echo "📚 **Documentation is now available at:** ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
-      
-      - name: Comment PR with preview
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## 📚 Documentation Preview
-              
-              The documentation has been built successfully for this PR.
-              
-              ### What's included:
-              - ✅ All markdown files processed
-              - ✅ Links validated 
-              - ✅ API documentation generated
-              - ✅ Images optimized
-              
-              ### Download Preview:
-              You can download the built documentation from the workflow artifacts.
-              
-              ### Metrics:
-              Check the workflow summary for detailed documentation metrics and build statistics.`
-            })
       
       - name: Notify on failure
         if: failure()
