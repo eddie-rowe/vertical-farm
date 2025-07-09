@@ -62,26 +62,26 @@ jobs:
     uses: ./.github/workflows/build-backend.yml
    # needs: [backend-tests]
    # if: always() && (needs.backend-tests.result == 'success' || inputs.skip_tests == true)
-   # secrets: inherit
-    with:
-      push_to_registry: ${{ github.event_name != 'pull_request' }}
+    secrets: inherit
+    #with:
+    #  push_to_registry: ${{ github.event_name != 'pull_request' }}
   
   frontend-build:
     name: Frontend Build
     uses: ./.github/workflows/build-frontend.yml
    # needs: [frontend-tests]
    # if: always() && (needs.frontend-tests.result == 'success' || inputs.skip_tests == true)
-   # secrets: inherit
-    with:
-      push_to_registry: ${{ github.event_name != 'pull_request' }}
+    secrets: inherit
+    #with:
+    #  push_to_registry: ${{ github.event_name != 'pull_request' }}
   
   docs-build:
     name: Documentation Site Build
     uses: ./.github/workflows/build-docs-site.yml
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.changed_files, 'docs/')
+    #if: github.event_name != 'pull_request' || contains(github.event.pull_request.changed_files, 'docs/')
     secrets: inherit
-    with:
-      deploy_to_pages: ${{ github.ref == 'refs/heads/main' }}
+    #with:
+    #  deploy_to_pages: ${{ github.ref == 'refs/heads/main' }}
   
   # Phase 4: Database Deployment (after builds complete)
   #supabase-deploy:
