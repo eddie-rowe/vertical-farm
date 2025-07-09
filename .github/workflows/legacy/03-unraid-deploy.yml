@@ -1,4 +1,4 @@
-name: Deploy on unRAID
+name: Unraid Deploy
 on:
   workflow_run:
     workflows: ["Build & push images"]

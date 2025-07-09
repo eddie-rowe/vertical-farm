@@ -1,0 +1,180 @@
+name: Deploy on unRAID
+
+on:
+  workflow_run:
+    workflows: ["Backend Build", "Frontend Build"]
+    types:
+      - completed
+    branches: [ main ]
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'production'
+        description: 'Environment to deploy to'
+      backend_image:
+        required: false
+        type: string
+        description: 'Backend image to deploy'
+      frontend_image:
+        required: false
+        type: string
+        description: 'Frontend image to deploy'
+    secrets:
+      GHCR_TOKEN:
+        required: true
+      SUPABASE_URL:
+        required: true
+      SUPABASE_ANON_KEY:
+        required: true
+      SUPABASE_SERVICE_KEY:
+        required: true
+      SUPABASE_JWT_SECRET:
+        required: true
+      DD_API_KEY:
+        required: true
+      DD_SITE:
+        required: true
+      DD_SERVICE:
+        required: true
+      NEXT_PUBLIC_SUPABASE_URL:
+        required: true
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        required: true
+      NEXT_PUBLIC_API_URL:
+        required: true
+      NEXT_PUBLIC_DD_RUM_APPLICATION_ID:
+        required: true
+      NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN:
+        required: true
+      NEXT_PUBLIC_DD_SITE:
+        required: true
+      NEXT_PUBLIC_DD_SERVICE:
+        required: true
+      SUPABASE_METRICS_URL:
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: self-hosted   # will hit your unRAID runner
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_call' }}
+    environment: ${{ inputs.environment || 'production' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # ----- DEPLOY LOCALLY ON UNRAID -----
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Pull & restart vertical-farm/backend container
+        env:
+          BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          DD_SERVICE: ${{ secrets.DD_SERVICE }}
+          DD_ENV: ${{ vars.DD_ENV }}
+          DD_VERSION: ${{ vars.DD_VERSION }}
+        run: |
+          IMAGE=${{ inputs.backend_image || format('ghcr.io/{0}/vertical-farm/backend:{1}', github.repository_owner, github.sha) }}
+          CONTAINER=backend
+          # pull new image
+          docker pull $IMAGE
+          # stop/remove old container if it exists
+          docker rm -f $CONTAINER 2>/dev/null || true
+          # launch with your desired flags
+          docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            -p 8000:8000 \
+            -e BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS} \
+            -e SUPABASE_URL=${SUPABASE_URL} \
+            -e SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY} \
+            -e SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY} \
+            -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
+            -e DD_SERVICE=${DD_SERVICE} \
+            -e DD_ENV=${DD_ENV} \
+            -e DD_VERSION=${DD_VERSION} \
+            -e DD_AGENT_HOST=dd-agent \
+            -l 'com.datadoghq.ad.logs=[{"source":"vertical-farm-backend","service":"vertical-farm-backend"}]' \
+            -v backend-logs:/app/backend/logs \
+            $IMAGE
+
+      - name: Pull & restart vertical-farm/frontend container
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_DD_RUM_APPLICATION_ID: ${{ secrets.NEXT_PUBLIC_DD_RUM_APPLICATION_ID }}
+          NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN: ${{ secrets.NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN }}
+          NEXT_PUBLIC_DD_SITE: ${{ secrets.NEXT_PUBLIC_DD_SITE }}
+          NEXT_PUBLIC_DD_SERVICE: ${{ secrets.NEXT_PUBLIC_DD_SERVICE }}
+          NEXT_PUBLIC_DD_ENV: ${{ vars.NEXT_PUBLIC_DD_ENV }}
+        run: |
+          IMAGE=${{ inputs.frontend_image || format('ghcr.io/{0}/vertical-farm/frontend:{1}', github.repository_owner, github.sha) }}
+          CONTAINER=frontend
+          # pull new image
+          docker pull $IMAGE
+          # stop/remove old container if it exists
+          docker rm -f $CONTAINER 2>/dev/null || true
+          # launch with your desired flags
+          docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            -p 3000:3000 \
+            -e NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL} \
+            -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY} \
+            -e NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+            -e NEXT_PUBLIC_DD_RUM_APPLICATION_ID=${NEXT_PUBLIC_DD_RUM_APPLICATION_ID} \
+            -e NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN=${NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN} \
+            -e NEXT_PUBLIC_DD_SITE=${NEXT_PUBLIC_DD_SITE} \
+            -e NEXT_PUBLIC_DD_SERVICE=${NEXT_PUBLIC_DD_SERVICE} \
+            -e NEXT_PUBLIC_DD_ENV=${NEXT_PUBLIC_DD_ENV} \
+            -l 'com.datadoghq.ad.logs=[{"source":"vertical-farm-frontend","service":"vertical-farm-frontend"}]' \
+            $IMAGE
+      - name: Pull & restart Datadog Agent container
+        env:
+          SUPABASE_METRICS_URL: ${{ secrets.SUPABASE_METRICS_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ secrets.DD_SITE }}
+          DD_SERVICE: ${{ secrets.DD_SERVICE }}
+          DD_ENV: ${{ vars.DD_ENV }}
+        run: |
+          IMAGE=datadog/agent:latest
+          CONTAINER=dd-agent
+          # pull new image
+          docker pull $IMAGE
+          # stop/remove old container if it exists
+          docker rm -f $CONTAINER 2>/dev/null || true
+          # launch with your desired flags
+          docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            -p 8126:8126 \
+            -e DD_API_KEY=${DD_API_KEY} \
+            -e DD_SITE=${DD_SITE} \
+            -e DD_SERVICE=${DD_SERVICE} \
+            -e DD_ENV=${DD_ENV} \
+            -e DD_LOGS_ENABLED=true \
+            -e DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true \
+            -e DD_APM_ENABLED=true \
+            -e DD_APM_NON_LOCAL_TRAFFIC=true \
+            -e DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true \
+            -e DD_HOSTNAME=vertical-farm-unraid-server \
+            -e DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED=true \
+            -e SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL} \
+            -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
+            -l 'com.datadoghq.ad.checks={"supabase":{"instances":[{"privileged_metrics_endpoint":"%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_SERVICE_KEY%%"}]}}' \
+            -v '/var/run/docker.sock:/var/run/docker.sock:ro' \
+            -v '/proc/:/host/proc/:ro' \
+            -v '/sys/fs/cgroup/:/host/sys/fs/cgroup:ro' \
+            -v 'backend-logs:/app/backend/logs' \
+            -v '/etc/passwd:/etc/passwd:ro' \
+            $IMAGE

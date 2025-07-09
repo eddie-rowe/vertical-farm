@@ -1,0 +1,303 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_call:
+    outputs:
+      success:
+        description: "Integration tests success status"
+        value: ${{ jobs.integration.outputs.success }}
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+env:
+  PYTHON_VERSION: '3.13'
+  NODE_VERSION: '20'
+
+jobs:
+  integration:
+    name: End-to-End Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    outputs:
+      success: ${{ steps.tests.outputs.success }}
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-integration-${{ hashFiles('backend/requirements.txt', 'backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-integration-
+            ${{ runner.os }}-python-
+      
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+            frontend/.next/cache
+          key: ${{ runner.os }}-node-integration-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-integration-
+            ${{ runner.os }}-node-
+      
+      - name: Install Python dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[all,test]
+      
+      - name: Install Node.js dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Set up test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: |
+          # Run database migrations for testing
+          cd backend
+          python -c "
+          import asyncio
+          from src.database import init_db
+          asyncio.run(init_db())
+          "
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: npm run build
+      
+      - name: Start backend server
+        working-directory: ./backend
+        env:
+          TESTING: true
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          SUPABASE_URL: http://localhost:8000
+          SUPABASE_ANON_KEY: test-anon-key
+          CORS_ORIGINS: "http://localhost:3000"
+        run: |
+          python -m uvicorn src.main:app \
+            --host 0.0.0.0 \
+            --port 8000 \
+            --log-level info &
+          
+          # Wait for backend to be ready
+          sleep 10
+          curl -f http://localhost:8000/health || exit 1
+      
+      - name: Start frontend server
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: |
+          npm start &
+          
+          # Wait for frontend to be ready
+          sleep 15
+          curl -f http://localhost:3000 || exit 1
+      
+      - name: Run integration tests
+        id: tests
+        env:
+          BACKEND_URL: http://localhost:8000
+          FRONTEND_URL: http://localhost:3000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: |
+          # Create integration test results directory
+          mkdir -p test-results/integration
+          
+          # Run API integration tests
+          cd backend
+          pytest tests/integration/ \
+            --integration \
+            --backend-url=$BACKEND_URL \
+            --frontend-url=$FRONTEND_URL \
+            --junit-xml=../test-results/integration/api-integration.xml \
+            -v || TEST_FAILED=1
+          
+          cd ../frontend
+          
+          # Install Playwright for E2E tests
+          npx playwright install --with-deps chromium
+          
+          # Run full-stack E2E tests
+          npx playwright test \
+            --config=playwright.integration.config.ts \
+            --reporter=junit \
+            --output-dir=../test-results/integration/e2e || TEST_FAILED=1
+          
+          # Run component integration tests
+          npm run test:integration \
+            --testResultsProcessor=jest-junit \
+            --outputFile=../test-results/integration/component-integration.xml || TEST_FAILED=1
+          
+          # Check if any tests failed
+          if [ "${TEST_FAILED:-0}" = "1" ]; then
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "success=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Test API endpoints
+        run: |
+          echo "## 🔗 API Endpoint Tests" >> $GITHUB_STEP_SUMMARY
+          
+          # Test health endpoint
+          if curl -s http://localhost:8000/health | jq -e '.status == "healthy"'; then
+            echo "✅ Health endpoint working" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Health endpoint failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Test API documentation
+          if curl -s http://localhost:8000/docs -o /dev/null; then
+            echo "✅ API documentation accessible" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ API documentation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Test basic farm endpoints
+          if curl -s http://localhost:8000/api/v1/farms -H "Content-Type: application/json"; then
+            echo "✅ Farms API working" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Farms API failed" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Test frontend pages
+        run: |
+          echo "## 🖥️ Frontend Page Tests" >> $GITHUB_STEP_SUMMARY
+          
+          # Test main pages
+          for page in "/" "/dashboard" "/farms" "/devices"; do
+            if curl -s http://localhost:3000$page -o /dev/null; then
+              echo "✅ Page $page accessible" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ Page $page failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+      
+      - name: Performance tests
+        run: |
+          echo "## ⚡ Performance Tests" >> $GITHUB_STEP_SUMMARY
+          
+          # Test API response times
+          BACKEND_TIME=$(curl -w "%{time_total}" -s -o /dev/null http://localhost:8000/api/v1/farms)
+          echo "Backend API response time: ${BACKEND_TIME}s" >> $GITHUB_STEP_SUMMARY
+          
+          # Test frontend load time
+          FRONTEND_TIME=$(curl -w "%{time_total}" -s -o /dev/null http://localhost:3000)
+          echo "Frontend load time: ${FRONTEND_TIME}s" >> $GITHUB_STEP_SUMMARY
+          
+          # Check performance thresholds
+          if (( $(echo "$BACKEND_TIME > 2.0" | bc -l) )); then
+            echo "⚠️ Backend response time too slow" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if (( $(echo "$FRONTEND_TIME > 3.0" | bc -l) )); then
+            echo "⚠️ Frontend load time too slow" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Collect logs
+        if: always()
+        run: |
+          # Collect application logs
+          mkdir -p logs
+          
+          # Get backend logs
+          ps aux | grep uvicorn > logs/backend-processes.log || true
+          
+          # Get frontend logs  
+          ps aux | grep node > logs/frontend-processes.log || true
+          
+          # Get system resource usage
+          free -h > logs/memory.log
+          df -h > logs/disk.log
+          top -bn1 > logs/cpu.log
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            test-results/
+            logs/
+            backend/test-results/
+            frontend/test-results/
+          retention-days: 30
+      
+      - name: Publish integration test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results/integration/*.xml
+          check_name: "Integration Tests"
+          comment_mode: create new
+          fail_on: "test failures"
+      
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## 🧪 Integration Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend API | ${{ steps.tests.outputs.success == 'true' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend UI | ${{ steps.tests.outputs.success == 'true' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Flow | ${{ steps.tests.outputs.success == 'true' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.tests.outputs.success }}" = "true" ]; then
+            echo "🎉 All integration tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "💥 Integration tests failed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi 

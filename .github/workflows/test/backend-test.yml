@@ -1,0 +1,220 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test/backend-test.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test/backend-test.yml'
+  workflow_call:
+    outputs:
+      coverage:
+        description: "Backend test coverage percentage"
+        value: ${{ jobs.test.outputs.coverage }}
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+env:
+  PYTHON_VERSION: '3.13'
+
+jobs:
+  test:
+    name: Backend Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+        test-group: ['unit', 'integration', 'api']
+    
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+            backend/.pytest_cache
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('backend/requirements.txt', 'backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-
+            ${{ runner.os }}-python-
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[all,test]
+          pip install pytest-cov pytest-xdist pytest-timeout
+      
+      - name: Run unit tests
+        if: matrix.test-group == 'unit'
+        working-directory: ./backend
+        env:
+          TESTING: true
+        run: |
+          pytest tests/unit/ \
+            --cov=src \
+            --cov-report=xml:coverage-unit.xml \
+            --cov-report=html:htmlcov-unit \
+            --junit-xml=test-results-unit.xml \
+            -n auto \
+            --timeout=60 \
+            -v
+      
+      - name: Run integration tests
+        if: matrix.test-group == 'integration'
+        working-directory: ./backend
+        env:
+          TESTING: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          pytest tests/integration/ \
+            --cov=src \
+            --cov-report=xml:coverage-integration.xml \
+            --cov-report=html:htmlcov-integration \
+            --junit-xml=test-results-integration.xml \
+            -n auto \
+            --timeout=120 \
+            -v
+      
+      - name: Run API tests
+        if: matrix.test-group == 'api'
+        working-directory: ./backend
+        env:
+          TESTING: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          API_BASE_URL: http://localhost:8000
+        run: |
+          # Start the API server in background
+          python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+          
+          pytest tests/api/ \
+            --cov=src \
+            --cov-report=xml:coverage-api.xml \
+            --cov-report=html:htmlcov-api \
+            --junit-xml=test-results-api.xml \
+            -n auto \
+            --timeout=90 \
+            -v
+      
+      - name: Generate coverage report
+        if: always()
+        working-directory: ./backend
+        run: |
+          if [ -f coverage-${{ matrix.test-group }}.xml ]; then
+            COVERAGE=$(python -c "
+            import xml.etree.ElementTree as ET
+            tree = ET.parse('coverage-${{ matrix.test-group }}.xml')
+            root = tree.getroot()
+            print(f\"{float(root.attrib['line-rate']) * 100:.1f}\")
+            ")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "### 📊 Coverage Report (${{ matrix.test-group }})" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          fi
+        id: coverage
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results-${{ matrix.python-version }}-${{ matrix.test-group }}
+          path: |
+            backend/test-results-*.xml
+            backend/coverage-*.xml
+            backend/htmlcov-*/
+          retention-days: 30
+      
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13' && matrix.test-group == 'unit'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage-unit.xml
+          directory: ./backend
+          flags: backend,unit
+          name: backend-unit-coverage
+          fail_ci_if_error: false
+      
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() && matrix.python-version == '3.13'
+        with:
+          files: backend/test-results-*.xml
+          check_name: "Backend Tests (${{ matrix.test-group }})"
+          comment_mode: create new
+          fail_on: "test failures"
+      
+      - name: Post test summary
+        if: always()
+        run: |
+          echo "## 🧪 Backend Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Group | Python | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ${{ matrix.test-group }} | ${{ matrix.python-version }} | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+  
+  security-scan:
+    name: Backend Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    permissions:
+      contents: read
+      security-events: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Bandit security scan
+        run: |
+          pip install bandit[toml]
+          bandit -r backend/src -f json -o bandit-report.json || true
+          bandit -r backend/src -f sarif -o bandit-report.sarif || true
+      
+      - name: Upload Bandit scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-report.sarif
+      
+      - name: Check for critical vulnerabilities
+        run: |
+          if [ -f bandit-report.json ]; then
+            HIGH_COUNT=$(jq '.metrics._totals.SEVERITY.HIGH' bandit-report.json)
+            MEDIUM_COUNT=$(jq '.metrics._totals.SEVERITY.MEDIUM' bandit-report.json)
+            echo "High severity issues: $HIGH_COUNT"
+            echo "Medium severity issues: $MEDIUM_COUNT"
+            
+            if [ "$HIGH_COUNT" -gt 0 ]; then
+              echo "❌ High severity security issues found!"
+              exit 1
+            fi
+          fi 

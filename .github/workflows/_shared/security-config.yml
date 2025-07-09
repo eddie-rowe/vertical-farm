@@ -1,0 +1,111 @@
+# Shared Security Configuration
+# This file contains reusable security scan configurations
+
+name: Security Scan Template
+
+on:
+  workflow_call:
+    inputs:
+      scan_type:
+        required: true
+        type: string
+        description: 'Type of security scan to run (codeql, container, secrets, dependencies)'
+      image_tag:
+        required: false
+        type: string
+        description: 'Docker image tag for container scanning'
+      dockerfile_path:
+        required: false
+        type: string
+        description: 'Path to Dockerfile for container scanning'
+        default: './Dockerfile'
+      languages:
+        required: false
+        type: string
+        description: 'Comma-separated list of languages for CodeQL scanning'
+        default: 'javascript,python'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scan_type: codeql
+            language: javascript
+          - scan_type: codeql  
+            language: python
+          - scan_type: container
+            language: none
+          - scan_type: secrets
+            language: none
+          - scan_type: dependencies
+            language: none
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for better analysis
+      
+      - name: CodeQL Analysis Init
+        if: inputs.scan_type == 'codeql' && matrix.language != 'none'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+      
+      - name: Autobuild
+        if: inputs.scan_type == 'codeql' && matrix.language != 'none'
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: Perform CodeQL Analysis
+        if: inputs.scan_type == 'codeql' && matrix.language != 'none'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+      
+      - name: Container Security Scan
+        if: inputs.scan_type == 'container' && matrix.language == 'none'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ inputs.image_tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+      
+      - name: Upload Trivy scan results
+        if: inputs.scan_type == 'container' && matrix.language == 'none'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Secret Scanning
+        if: inputs.scan_type == 'secrets' && matrix.language == 'none'
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+      
+      - name: Dependency Check
+        if: inputs.scan_type == 'dependencies' && matrix.language == 'none'
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'vertical-farm'
+          path: '.'
+          format: 'SARIF'
+          out: 'dependency-check-report'
+      
+      - name: Upload Dependency Check results
+        if: inputs.scan_type == 'dependencies' && matrix.language == 'none'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dependency-check-report.sarif 
