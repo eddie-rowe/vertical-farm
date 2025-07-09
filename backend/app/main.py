@@ -225,7 +225,9 @@ async def debug_user_profile(
         })
         user_id = payload.get("sub")
     except Exception as e:
-        return {"error": "Invalid token format", "detail": str(e)}
+        import logging
+        logging.error("Error decoding token", exc_info=e)
+        return {"error": "Invalid token format", "detail": "An internal error occurred"}
     
     # Use RLS client which will validate the token properly
     user_data = await crud_user.user.get(supabase=db, id=user_id)
