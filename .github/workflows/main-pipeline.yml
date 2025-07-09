@@ -57,7 +57,7 @@ jobs:
   # Phase 2: Parallel Building (after tests pass)
   backend-build:
     name: Backend Build
-    uses: ./.github/workflows/build/backend-build.yml
+    uses: ./.github/workflows/build-backend.yml
    # needs: [backend-tests]
    # if: always() && (needs.backend-tests.result == 'success' || inputs.skip_tests == true)
    # secrets: inherit
@@ -66,7 +66,7 @@ jobs:
   
   frontend-build:
     name: Frontend Build
-    uses: ./.github/workflows/build/frontend-build.yml
+    uses: ./.github/workflows/build-frontend.yml
    # needs: [frontend-tests]
    # if: always() && (needs.frontend-tests.result == 'success' || inputs.skip_tests == true)
    # secrets: inherit
@@ -75,7 +75,7 @@ jobs:
   
   docs-build:
     name: Documentation Build
-    uses: ./.github/workflows/build/docs-build.yml
+    uses: ./.github/workflows/build-docs.yml
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.changed_files, 'docs/')
     secrets: inherit
     with:
@@ -84,7 +84,7 @@ jobs:
   # Phase 3: Security & Quality (parallel with builds)
   security-scan:
     name: Security Scanning
-    uses: ./.github/workflows/_shared/security-config.yml
+    uses: ./.github/workflows/shared-security-config.yml
     #needs: [backend-tests, frontend-tests]
     #if: always() && github.event_name == 'pull_request'
     #secrets: inherit
@@ -106,7 +106,7 @@ jobs:
   # Phase 5: Unraid Deployment
   unraid-deploy:
     name: Unraid Deploy
-    uses: ./.github/workflows/deploy/unraid-deploy.yml
+    uses: ./.github/workflows/deploy-unraid.yml
     needs: [backend-build, frontend-build]
     if: |
       always() && 
