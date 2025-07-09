@@ -6,13 +6,13 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - '.github/workflows/build/docs-build.yml'
+      - '.github/workflows/build-docs.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - '.github/workflows/build/docs-build.yml'
+      - '.github/workflows/build-docs.yml'
   workflow_call:
     inputs:
       deploy_to_pages:

@@ -6,6 +6,13 @@ on:
     types:
       - completed
     branches: [ main ]
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'production'
+        description: 'Environment to deploy to'
   workflow_dispatch:
     inputs:
       environment:
