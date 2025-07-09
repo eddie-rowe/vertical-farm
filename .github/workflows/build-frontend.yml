@@ -84,7 +84,6 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
-
       - name: Generate build summary
         run: |
           echo "## 🎨 Frontend Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -95,7 +94,6 @@ jobs:
           echo "| Platforms | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
           echo "| Registry | ${{ env.REGISTRY }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Pushed | ${{ inputs.push_to_registry != false && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Signed | ${{ inputs.push_to_registry != false && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
           
           # Add vulnerability summary
           if [ -f trivy-results.sarif ]; then
