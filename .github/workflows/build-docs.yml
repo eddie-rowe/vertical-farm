@@ -231,24 +231,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
         uses: actions/configure-pages@v4
       
-      - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./site
-      
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false
         id: deployment
         uses: actions/deploy-pages@v4
-      
-      - name: Upload documentation artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation-site
-          path: ./site
-          retention-days: 30
       
       - name: Generate deployment summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.deploy_to_pages != false

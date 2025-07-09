@@ -87,7 +87,7 @@ jobs:
           DD_ENV: ${{ vars.DD_ENV }}
           DD_VERSION: ${{ vars.DD_VERSION }}
         run: |
-          IMAGE=${{ inputs.backend_image || format('ghcr.io/{0}/vertical-farm/backend:{1}', github.repository_owner, github.sha) }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/vertical-farm/backend:${{ github.sha }}
           CONTAINER=backend
           # pull new image
           docker pull $IMAGE
@@ -120,7 +120,7 @@ jobs:
           NEXT_PUBLIC_DD_SERVICE: ${{ secrets.NEXT_PUBLIC_DD_SERVICE }}
           NEXT_PUBLIC_DD_ENV: ${{ vars.NEXT_PUBLIC_DD_ENV }}
         run: |
-          IMAGE=${{ inputs.frontend_image || format('ghcr.io/{0}/vertical-farm/frontend:{1}', github.repository_owner, github.sha) }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/vertical-farm/frontend:${{ github.sha }}
           CONTAINER=frontend
           # pull new image
           docker pull $IMAGE
