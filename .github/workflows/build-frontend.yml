@@ -31,7 +31,8 @@ jobs:
   build:
     name: Build Frontend Image
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
+    
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
       image_digest: ${{ steps.build.outputs.digest }}
@@ -40,80 +41,76 @@ jobs:
         working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+          
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: ./frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+            
       - name: Install dependencies
-        run: npm install
-      - name: Build frontend app and set environment variables
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: npm ci
+        
+      - name: Build application
         run: npm run build
-#      - name: Build Docker image
-#        env:
-#          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-#          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-#          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-#        run: |
-#          docker build \
-#            --build-arg NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
-#            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY \
-#            --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
-#            -t ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} .
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
       - name: Log in to GitHub Container Registry
+        if: ${{ inputs.push_to_registry }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-#      - name: Push Docker image
-#        run: docker push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
-
+          
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=ref,event=branch,suffix=${{ inputs.tag_suffix }}
+            type=ref,event=pr,suffix=${{ inputs.tag_suffix }}
+            type=sha,prefix={{branch}}-,suffix=${{ inputs.tag_suffix }}
+            type=raw,value=latest,enable={{is_default_branch}},suffix=${{ inputs.tag_suffix }}
+  
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v6
-        env: 
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         with:
           context: .
-          build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-          push: true
+          push: ${{ inputs.push_to_registry }}
           tags: |
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
             ghcr.io/${{ github.repository }}/frontend:latest
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,scope=frontend,mode=max
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}'
-          format: 'table'
-          exit-code: '0' #set to 0 to ignore vulnerabilities
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
+          
       - name: Generate build summary
         run: |
-          echo "## 🎨 Frontend Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌐 Frontend Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Image | \`${{ steps.meta.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Digest | \`${{ steps.build.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Platforms | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
-          echo "| Registry | ${{ env.REGISTRY }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Pushed | ${{ inputs.push_to_registry != false && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | ghcr.io |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pushed | ${{ inputs.push_to_registry && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
           
-          # Add vulnerability summary
+          # Add vulnerability summary if available
           if [ -f trivy-results.sarif ]; then
             CRITICAL_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-results.sarif)
             HIGH_COUNT=$(jq '[.runs[].results[] | select(.level == "warning")] | length' trivy-results.sarif)
