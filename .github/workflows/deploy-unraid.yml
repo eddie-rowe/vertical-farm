@@ -16,39 +16,6 @@ on:
         required: false
         type: string
         description: 'Frontend image to deploy'
-    secrets:
-      GHCR_TOKEN:
-        required: true
-      SUPABASE_URL:
-        required: true
-      SUPABASE_ANON_KEY:
-        required: true
-      SUPABASE_SERVICE_KEY:
-        required: true
-      SUPABASE_JWT_SECRET:
-        required: true
-      DD_API_KEY:
-        required: true
-      DD_SITE:
-        required: true
-      DD_SERVICE:
-        required: true
-      NEXT_PUBLIC_SUPABASE_URL:
-        required: true
-      NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        required: true
-      NEXT_PUBLIC_API_URL:
-        required: true
-      NEXT_PUBLIC_DD_RUM_APPLICATION_ID:
-        required: true
-      NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN:
-        required: true
-      NEXT_PUBLIC_DD_SITE:
-        required: true
-      NEXT_PUBLIC_DD_SERVICE:
-        required: true
-      SUPABASE_METRICS_URL:
-        required: true
 
 permissions:
   contents: read
@@ -57,7 +24,7 @@ permissions:
 jobs:
   deploy:
     runs-on: self-hosted   # will hit your unRAID runner
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_call' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment: ${{ inputs.environment || 'production' }}
     timeout-minutes: 30
     steps:

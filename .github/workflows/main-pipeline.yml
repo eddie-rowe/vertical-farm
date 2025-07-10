@@ -100,13 +100,13 @@ jobs:
     name: Unraid Deploy
     uses: ./.github/workflows/deploy-unraid.yml
     needs: [backend-build, frontend-build]
-    if: always() && (needs.backend-build.result == 'success' || needs.frontend-build.result == 'success')
+    #if: always() && (needs.backend-build.result == 'success' || needs.frontend-build.result == 'success')
     #  github.ref == 'refs/heads/main' && 
     secrets: inherit
-    with:
-      environment: ${{ inputs.deploy_environment || 'production' }}
-      backend_image: ${{ needs.backend-build.outputs.image_tag }}
-      frontend_image: ${{ needs.frontend-build.outputs.image_tag }}
+    #with:
+      #environment: ${{ inputs.deploy_environment || 'production' }}
+      #backend_image: ${{ needs.backend-build.outputs.image_tag }}
+      #frontend_image: ${{ needs.frontend-build.outputs.image_tag }}
 
 
   # Phase 5-alternative: Production Deployment
@@ -175,6 +175,7 @@ jobs:
           echo "| 🏗️ Building | Documentation | ${{ needs.docs-build.result == 'success' && '✅' || needs.docs-build.result == 'failure' && '❌' || needs.docs-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           
           # Phase 3: Deployment
+          echo "| 🚀 Deploy | Unraid | ${{ needs.unraid-deploy.result == 'success' && '✅' || needs.unraid-deploy.result == 'failure' && '❌' || needs.unraid-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Supabase | ${{ needs.supabase-deploy.result == 'success' && '✅' || needs.supabase-deploy.result == 'failure' && '❌' || needs.supabase-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Production | ${{ needs.production-deploy.result == 'success' && '✅' || needs.production-deploy.result == 'failure' && '❌' || needs.production-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Cloudflare | ${{ needs.cloudflare-deploy.result == 'success' && '✅' || needs.cloudflare-deploy.result == 'failure' && '❌' || needs.cloudflare-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
@@ -197,6 +198,8 @@ jobs:
           fi
           
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            if [[ "${{ needs.unraid-deploy.result }}" == "success" ]]; then
+              DEPLOY_STATUS="✅ Unraid deployment successful"
             if [[ "${{ needs.cloudflare-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="✅ Full deployment successful"
             elif [[ "${{ needs.production-deploy.result }}" == "success" ]]; then
@@ -225,9 +228,9 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "## 🌟 Production Deployment" >> $GITHUB_STEP_SUMMARY
             echo "This build was deployed to production." >> $GITHUB_STEP_SUMMARY
-            echo "- **Frontend**: https://farm.yourdomain.com" >> $GITHUB_STEP_SUMMARY
-            echo "- **API**: https://api.farm.yourdomain.com" >> $GITHUB_STEP_SUMMARY
-            echo "- **Docs**: https://docs.farm.yourdomain.com" >> $GITHUB_STEP_SUMMARY
+            echo "- **Frontend**: https://vertical-farm.goodgoodgreens.org" >> $GITHUB_STEP_SUMMARY
+            echo "- **API**: https://vertical-farm-api.goodgoodgreens.org" >> $GITHUB_STEP_SUMMARY
+            echo "- **Docs**: https://docs.goodgoodgreens.org" >> $GITHUB_STEP_SUMMARY
           else
             echo "## 🔧 Development Build" >> $GITHUB_STEP_SUMMARY
             echo "This is a development branch build." >> $GITHUB_STEP_SUMMARY
