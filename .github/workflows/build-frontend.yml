@@ -89,7 +89,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./frontend
           push: ${{ inputs.push_to_registry }}
           tags: |
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}

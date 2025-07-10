@@ -86,7 +86,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./backend
           push: ${{ inputs.push_to_registry }}
           tags: |
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
