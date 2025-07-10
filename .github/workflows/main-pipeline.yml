@@ -100,10 +100,8 @@ jobs:
     name: Unraid Deploy
     uses: ./.github/workflows/deploy-unraid.yml
     needs: [backend-build, frontend-build]
-    if: |
-      always() && 
-      github.ref == 'refs/heads/main' && 
-      (needs.backend-build.result == 'success' || needs.frontend-build.result == 'success')
+    if: always() && (needs.backend-build.result == 'success' || needs.frontend-build.result == 'success')
+    #  github.ref == 'refs/heads/main' && 
     secrets: inherit
     with:
       environment: ${{ inputs.deploy_environment || 'production' }}

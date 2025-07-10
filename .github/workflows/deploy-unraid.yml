@@ -1,11 +1,6 @@
 name: Deploy on unRAID
 
 on:
-  workflow_run:
-    workflows: ["Backend Build", "Frontend Build"]
-    types:
-      - completed
-    branches: [ main ]
   workflow_call:
     inputs:
       environment:
