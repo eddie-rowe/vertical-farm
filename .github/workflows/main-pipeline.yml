@@ -200,7 +200,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             if [[ "${{ needs.unraid-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="✅ Unraid deployment successful"
-            if [[ "${{ needs.cloudflare-deploy.result }}" == "success" ]]; then
+            elif [[ "${{ needs.cloudflare-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="✅ Full deployment successful"
             elif [[ "${{ needs.production-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="⚠️ Partial deployment (Cloudflare failed)"
