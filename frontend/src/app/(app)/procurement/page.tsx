@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaBoxes, FaShoppingCart, FaBuilding, FaArrowUp, FaArrowDown, FaCheck, FaSearch, FaPlus, FaEdit } from '@/lib/icons';
+import { FaBoxes, FaShoppingCart, FaBuilding, FaArrowUp, FaArrowDown, FaCheck, FaSearch, FaPlus, FaEdit, FaDollarSign, FaCreditCard } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { FarmControlButton } from '@/components/ui/farm-control-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
+import { FarmInput } from '@/components/ui/farm-input';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface InventoryItem {
   id: string;
@@ -323,68 +324,77 @@ export default function ProcurementPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Procurement</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage inventory, vendors, and supply chain operations
-          </p>
-        </div>
+      <PageHeader
+        title="Procurement"
+        description="Manage inventory, vendors, and supply chain operations"
+      >
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <FarmControlButton variant="default">
             <FaSearch className="mr-2" />
             Price Scout
-          </Button>
-          <Button>
+          </FarmControlButton>
+          <FarmControlButton variant="primary">
             <FaPlus className="mr-2" />
             New Order
-          </Button>
+          </FarmControlButton>
         </div>
-      </div>
+      </PageHeader>
 
       <Tabs defaultValue="inventory" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors</TabsTrigger>
-          <TabsTrigger value="pricing">Price Intelligence</TabsTrigger>
-          <TabsTrigger value="orders">Purchase Orders</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="inventory" className="flex items-center gap-2">
+            <FaBoxes className="h-4 w-4" />
+            Inventory
+          </TabsTrigger>
+          <TabsTrigger value="vendors" className="flex items-center gap-2">
+            <FaBuilding className="h-4 w-4" />
+            Vendors
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="flex items-center gap-2">
+            <FaDollarSign className="h-4 w-4" />
+            Price Intelligence
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <FaCreditCard className="h-4 w-4" />
+            Purchase Orders
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-6">
           <div className="flex items-center space-x-4">
             <div className="relative flex-1 max-w-md">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
+              <FarmInput
                 placeholder="Search inventory..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button variant="outline">
+            <FarmControlButton variant="default">
               <FaBoxes className="mr-2" />
               Bulk Actions
-            </Button>
+            </FarmControlButton>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredInventory.map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow">
+              <Card key={item.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <Badge className={getStockStatusColor(item.status)}>
                       {item.status.replace('-', ' ')}
                     </Badge>
-                    <Button variant="ghost" size="sm">
+                    <FarmControlButton variant="default" size="sm">
                       <FaEdit className="text-gray-400" />
-                    </Button>
+                    </FarmControlButton>
                   </div>
                   <CardTitle className="text-sm font-medium">{item.name}</CardTitle>
                   <CardDescription className="text-xs">{item.category}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Stock:</span>
+                    <span className="text-sm text-control-label">Stock:</span>
                     <span className="font-semibold">
                       {item.currentStock} {item.unit}
                     </span>
@@ -400,25 +410,25 @@ export default function ProcurementPage() {
                       }}
                     ></div>
                   </div>
-                  <div className="flex justify-between items-center text-xs text-gray-500">
+                  <div className="flex justify-between items-center text-xs text-control-label opacity-70">
                     <span>Min: {item.minStock}</span>
                     <span>Max: {item.maxStock}</span>
                   </div>
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Value:</span>
+                      <span className="text-sm text-control-label">Value:</span>
                       <span className="font-semibold">${item.totalValue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">@ ${item.unitCost}/{item.unit}</span>
-                      <span className="text-gray-500">{item.supplier}</span>
+                      <span className="text-control-label opacity-70">@ ${item.unitCost}/{item.unit}</span>
+                      <span className="text-control-label opacity-70">{item.supplier}</span>
                     </div>
                   </div>
                   {item.status === 'low-stock' || item.status === 'out-of-stock' ? (
-                    <Button size="sm" className="w-full mt-2">
+                    <FarmControlButton size="sm" className="w-full mt-2" variant="primary">
                       <FaShoppingCart className="mr-2" />
                       Reorder
-                    </Button>
+                    </FarmControlButton>
                   ) : null}
                 </CardContent>
               </Card>
@@ -429,14 +439,14 @@ export default function ProcurementPage() {
         <TabsContent value="vendors" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {vendors.map((vendor) => (
-              <Card key={vendor.id} className="hover:shadow-lg transition-shadow">
+              <Card key={vendor.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <FaBuilding className="text-blue-600" />
                       <div>
-                        <CardTitle className="text-lg">{vendor.name}</CardTitle>
-                        <CardDescription>{vendor.category}</CardDescription>
+                        <CardTitle className="text-lg text-farm-title">{vendor.name}</CardTitle>
+                        <CardDescription className="text-control-label">{vendor.category}</CardDescription>
                       </div>
                     </div>
                     <Badge className={getVendorStatusColor(vendor.status)}>
@@ -447,29 +457,29 @@ export default function ProcurementPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
+                      <p className="text-sm text-control-label">Rating</p>
                       <div className="flex items-center space-x-1">
                         <span className="font-semibold">{vendor.rating}</span>
                         <span className="text-yellow-500">★</span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Orders</p>
+                      <p className="text-sm text-control-label">Orders</p>
                       <p className="font-semibold">{vendor.totalOrders}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Spent</p>
+                      <p className="text-sm text-control-label">Total Spent</p>
                       <p className="font-semibold">${vendor.totalSpent.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Avg Delivery</p>
+                      <p className="text-sm text-control-label">Avg Delivery</p>
                       <p className="font-semibold">{vendor.avgDeliveryDays} days</p>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Contact</p>
+                    <p className="text-xs text-control-label">Contact</p>
                     <p className="text-sm">{vendor.contact}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-control-label opacity-70 mt-1">
                       Last order: {new Date(vendor.lastOrder).toLocaleDateString()}
                     </p>
                   </div>
@@ -480,10 +490,10 @@ export default function ProcurementPage() {
         </TabsContent>
 
         <TabsContent value="pricing" className="space-y-6">
-          <Card>
+          <Card className="card-shadow">
             <CardHeader>
-              <CardTitle>Price Intelligence Dashboard</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-farm-title">Price Intelligence Dashboard</CardTitle>
+              <CardDescription className="text-control-label">
                 Market price analysis and procurement recommendations
               </CardDescription>
             </CardHeader>
@@ -492,36 +502,36 @@ export default function ProcurementPage() {
                 {priceIntelligence.map((item, index) => (
                   <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{item.item}</h4>
+                      <h4 className="font-semibold text-farm-title">{item.item}</h4>
                       <div className="flex items-center space-x-2">
                         {getTrendIcon(item.trend)}
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-control-label">
                           {item.sources} sources
                         </span>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Your Price</p>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <p className="text-sm text-control-label">Your Price</p>
+                        <p className="text-lg font-semibold">
                           ${item.currentPrice.toFixed(2)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Market Average</p>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <p className="text-sm text-control-label">Market Average</p>
+                        <p className="text-lg font-semibold">
                           ${item.marketAverage.toFixed(2)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Savings</p>
-                        <p className={`text-lg font-semibold ${item.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className="text-sm text-control-label">Savings</p>
+                        <p className={`text-lg font-semibold ${item.savings >= 0 ? 'state-growing' : 'state-offline'}`}>
                           {item.savings >= 0 ? '+' : ''}${item.savings.toFixed(2)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Recommendation</p>
-                        <p className="text-sm text-gray-900 dark:text-white">{item.recommendation}</p>
+                        <p className="text-sm text-control-label">Recommendation</p>
+                        <p className="text-sm">{item.recommendation}</p>
                       </div>
                     </div>
                   </div>
@@ -534,37 +544,37 @@ export default function ProcurementPage() {
         <TabsContent value="orders" className="space-y-6">
           <div className="space-y-4">
             {purchaseOrders.map((order) => (
-              <Card key={order.id} className="hover:shadow-lg transition-shadow">
+              <Card key={order.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white">{order.id}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{order.vendor}</p>
-                      </div>
+                                          <div className="flex items-center space-x-4">
+                        <div>
+                          <h4 className="font-semibold text-farm-title">{order.id}</h4>
+                          <p className="text-sm text-control-label">{order.vendor}</p>
+                        </div>
                       <Badge className={getOrderStatusColor(order.status)}>
                         {order.status}
                       </Badge>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold">
                         ${order.total.toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-control-label">
                         {order.items} items
                       </p>
                     </div>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Order Date</p>
-                      <p className="text-gray-900 dark:text-white">
+                      <p className="text-control-label">Order Date</p>
+                      <p>
                         {new Date(order.orderDate).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Expected Delivery</p>
-                      <p className="text-gray-900 dark:text-white">
+                      <p className="text-control-label">Expected Delivery</p>
+                      <p>
                         {new Date(order.expectedDelivery).toLocaleDateString()}
                       </p>
                     </div>

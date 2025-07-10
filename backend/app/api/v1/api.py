@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     square,  # Square payment integration
 )
 from app.api.v1 import sensors_cached  # Cached sensor data endpoints
+from app.api.v1 import grow_automation  # Layer Two: Grow automation endpoints
 
 api_router = APIRouter()
 
@@ -29,5 +30,8 @@ api_router.include_router(farm_automation.router, prefix="/farm-automation", tag
 
 # Square payment integration endpoints
 api_router.include_router(square.router, prefix="/square", tags=["Square Integration"])
+
+# Layer Two: Grow automation endpoints - Bridge grows with device controls
+api_router.include_router(grow_automation.router, prefix="/grow-automation", tags=["Grow Automation"])
 
 # Add other v1 routers here as needed

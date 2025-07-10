@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext'; // Corrected path
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,7 +64,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white/80 dark:bg-gray-700/80"
+                className="bg-surface-elevated/80"
               />
             </div>
             <div className="space-y-2">
@@ -76,7 +76,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-white/80 dark:bg-gray-700/80"
+                className="bg-surface-elevated/80"
               />
             </div>
             {error && <p className="text-sm text-red-600 dark:text-red-400 text-center">Error: {error}</p>}

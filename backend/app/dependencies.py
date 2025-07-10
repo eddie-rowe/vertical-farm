@@ -9,6 +9,8 @@ from app.crud import crud_user
 from app.models.user import User
 from app.schemas.token import TokenPayload
 from app.db.supabase_client import get_async_supabase_client # Changed
+from app.services.device_monitoring_service import DeviceMonitoringService
+from app.services.database_service import DatabaseService
 from supabase import AClient, acreate_client # Changed
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token") # Assuming a more standard token URL
@@ -65,4 +67,15 @@ async def get_current_active_superuser(
             status_code=403,
             detail="The user doesn't have enough privileges"
         )
-    return current_user 
+    return current_user
+
+# Service Dependencies
+async def get_database_service() -> DatabaseService:
+    """Get database service instance"""
+    return DatabaseService()
+
+async def get_device_monitoring_service(
+    db_service: DatabaseService = Depends(get_database_service)
+) -> DeviceMonitoringService:
+    """Get device monitoring service instance"""
+    return DeviceMonitoringService(db_service) 

@@ -50,3 +50,16 @@ Always provide links to the real files, not x.md.
 
 ## No Current Implementation
 Don't show or discuss the current implementation unless specifically requested.
+
+## Architecture Patterns (Project-Specific)
+- **Service layer first** → All data operations through services
+- **Singleton pattern** → Use getInstance() for all services
+- **Base class inheritance** → Extend appropriate base classes
+- **Domain organization** → Group related code by business domain
+- **Type safety** → Leverage TypeScript for runtime safety
+
+## Code Organization Standards
+- **Domain-driven structure** → Organize by business capability
+- **Separation of concerns** → Services, types, components in logical groups
+- **Consistent patterns** → Follow established service and component patterns
+- **Clean imports** → Use absolute paths and proper organization

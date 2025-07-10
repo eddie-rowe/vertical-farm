@@ -485,6 +485,18 @@ class SquareService {
       return null;
     }
   }
+
+  async setActiveConfig(configId: string): Promise<SquareConfig> {
+    try {
+      const response = await request<SquareConfig>(`${this.baseUrl}/configs/${configId}/activate`, {
+        method: 'PUT'
+      });
+      return response;
+    } catch (error) {
+      console.error('Error setting active Square config:', error);
+      throw error;
+    }
+  }
 }
 
 export const squareService = new SquareService(); 

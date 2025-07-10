@@ -1,0 +1,74 @@
+---
+description: Testing patterns for service architecture and component testing
+globs: **/*.test.ts, **/*.test.tsx, **/*.spec.ts
+alwaysApply: true
+---
+
+# Testing Patterns
+
+## **Service Testing**
+- **Test service classes directly** → Unit test business logic
+- **Mock base services** → Test service-specific implementations
+- **Test singleton behavior** → Ensure proper instance management
+  ```typescript
+  // ✅ DO: Service unit testing
+  describe('FarmService', () => {
+    let service: FarmService;
+    
+    beforeEach(() => {
+      service = FarmService.getInstance();
+    });
+    
+    it('should validate required fields', async () => {
+      await expect(service.create({})).rejects.toThrow('name is required');
+    });
+  });
+  ```
+
+## **Component Testing**
+- **Mock services** → Don't test actual database operations
+- **Test service integration** → Verify correct service calls
+- **Test error handling** → Ensure proper error display
+  ```typescript
+  // ✅ DO: Component testing with mocked services
+  const mockFarmService = {
+    getInstance: () => ({
+      getAll: jest.fn().mockResolvedValue([mockFarm]),
+      create: jest.fn().mockResolvedValue(mockFarm)
+    })
+  };
+
+  it('should display farms from service', async () => {
+    render(<FarmList />);
+    expect(await screen.findByText('Test Farm')).toBeInTheDocument();
+  });
+  ```
+
+## **Integration Testing**
+- **Test service layer integration** → Verify service interactions
+- **Test real-time subscriptions** → Mock WebSocket behavior
+- **Test authentication flow** → Verify AuthService integration
+  ```typescript
+  // ✅ DO: Integration testing
+  describe('Farm Management Integration', () => {
+    it('should create farm and update UI', async () => {
+      const farmService = FarmService.getInstance();
+      const result = await farmService.create({ name: 'Test Farm' });
+      
+      expect(result.name).toBe('Test Farm');
+      expect(result.id).toBeDefined();
+    });
+  });
+  ```
+
+## **Test Organization**
+- **Service tests** → `__tests__/services/`
+- **Component tests** → Co-located with components
+- **Integration tests** → `__tests__/integration/`
+- **Test utilities** → `__tests__/utils/`
+
+## **Mocking Strategies**
+- **Service singletons** → Mock getInstance() method
+- **Supabase client** → Mock at service layer, not component layer
+- **WebSocket services** → Mock subscription methods
+- **Error scenarios** → Test service error handling

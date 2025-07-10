@@ -1,5 +1,5 @@
 'use client';
-import { supabase } from '@/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import {
   Species,
   PaginatedGrowRecipes

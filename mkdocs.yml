@@ -36,6 +36,7 @@ nav:
       - Automation Architecture: 01-architecture/automation-architecture.md
       - Edge Computing: 01-architecture/edge-computing.md
       - Caching Strategy: 01-architecture/caching-strategy.md
+      - Layer Overlay System: 01-architecture/LAYER_OVERLAY_SYSTEM.md
       - Responsibilities: 01-architecture/responsibilities.md
     
     - Development:
@@ -44,6 +45,13 @@ nav:
       - CI/CD Workflow: 02-development/ci-cd-workflow.md
       - Release Notes: 02-development/release-notes.md
       - Improvement Recommendations: 02-development/improvement-recommendations.md
+      - Project Phases:
+        - Phase 2 README: 02-development/PHASE2_README.md
+        - Phase 3 README: 02-development/PHASE3_README.md
+      - Style Standardization:
+        - Phase 1: 02-development/STYLE-STANDARDIZATION-PHASE1.md
+        - Phase 2: 02-development/STYLE-STANDARDIZATION-PHASE2.md
+        - Integration Plan: 02-development/STYLE-INTEGRATION-PLAN.md
     
     - API Reference:
       - Overview: 03-api/README.md
@@ -54,25 +62,28 @@ nav:
       - Deployment Workflow: 04-deployment/workflow.md
       - Cloudflare Configuration: 04-deployment/cloudflare-config.md
       - Cloudflare Caching Guide: 04-deployment/cloudflare-caching-guide.md
+      - PWA Implementation: 04-deployment/PWA_IMPLEMENTATION.md
     
     - Testing:
       - Overview: 05-testing/README.md
       - Production Testing Strategy: 05-testing/production-testing-strategy.md
       - Security Testing: 05-testing/security-testing.md
+      - Additional Testing: 05-testing/TESTING.md
     
     - Security:
       - Overview: 06-security/README.md
       - Security Model: 06-security/model.md
     
     - Guides:
-      - Overview: 07-guides/README.md
-      - Index: 07-guides/index.md
+      - Overview: 07-guides/index.md
       - Caching Implementation Guide: 07-guides/CACHING_IMPLEMENTATION_GUIDE.md
       - Supabase Queues Setup: 07-guides/SUPABASE_QUEUES_SETUP.md
       - Home Assistant Setup: 07-guides/SETUP_HOME_ASSISTANT.md
+      - Dark Mode Guide: 07-guides/DARK-MODE-GUIDE.md
     
     - Reports:
       - Overview: 08-reports/README.md
+      - UI/UX Design Evaluation: 08-reports/ui-ux-design-evaluation.md
       - Project Phases:
         - Overview: 08-reports/01-project-phases/README.md
         - Changes Summary: 08-reports/01-project-phases/changes-summary.md
@@ -95,6 +106,7 @@ nav:
         - Supabase Optimization: 08-reports/02-performance/supabase-optimization-recommendations.md
       - Technical Reviews:
         - Edge Functions Caching: 08-reports/03-technical-reviews/edge-functions-caching-review.md
+        - Frontend Assessment Report: 08-reports/03-technical-reviews/frontend-assessment-report.md
         - Grow Parameters Code Review: 08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md
         - Grow Parameters Testing: 08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md
         - Security Frontend/Backend: 08-reports/03-technical-reviews/security-report-frontend-backend-2025.md
@@ -107,15 +119,21 @@ nav:
         - Cursor Workflow Research: 08-reports/04-analysis/cursor-workflow-research-2025-05-17.md
         - Cursor Workflow Techniques: 08-reports/04-analysis/cursor-workflow-techniques-2025.md
         - Inspiration UI/UX Analysis: 08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md
+        - Square Integration Summary: 08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md
         - UI/UX Analysis: 08-reports/04-analysis/ui-ux-analysis-2025-05-18.md
         - UI/UX Playwright Review: 08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md
         - Vertical Farm UI/UX Review: 08-reports/04-analysis/vertical_farm_ui_ux_review.md
         - Vertigro UI/UX Analysis: 08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md
+      - Migration Reports:
+        - Migration Consolidation Summary: 08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md
+        - Migration Testing Summary: 08-reports/05-migrations/migration-testing-summary.md
+        - Phase 2B Migration Consolidation: 08-reports/05-migrations/phase-2b-migration-consolidation-summary.md
       - Task Reports:
         - Task Complexity Report: 08-reports/07-task-reports/task-complexity-report.json
     
     - Migration:
       - Overview: 09-migration/README.md
       - PostgREST Migration Guide: 09-migration/postgrest-migration-guide.md
+      - Semantic Token Migration: 09-migration/SEMANTIC-TOKEN-MIGRATION.md
       - Check Home Assistant Table: 09-migration/check_home_assistant_table.sql
       - Check User Config: 09-migration/check_user_home_assistant_config.sql

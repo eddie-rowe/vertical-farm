@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaPlug, FaCheck, FaExclamationTriangle, FaCog, FaCreditCard, FaTable, FaCalendarAlt } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { FarmControlButton } from '@/components/ui/farm-control-button';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/PageHeader';
 import Link from 'next/link';
 import { homeAssistantService, HAConnectionStatus } from '@/services/homeAssistantService';
 import { squareService, SquareConnectionStatus } from '@/services/squareService';
@@ -32,7 +33,7 @@ export default function IntegrationsPage() {
     try {
       setLoading(true);
       
-      // Check Home Assistant status safely
+      // Check Home Assistant status using the proper backend API
       let haStatus: HAConnectionStatus = { connected: false };
       try {
         haStatus = await homeAssistantService.getStatus();
@@ -65,7 +66,7 @@ export default function IntegrationsPage() {
           id: 'home-assistant',
           name: 'Home Assistant',
           description: 'Connect to Home Assistant for device control and automation',
-          icon: <FaHome className="text-blue-600" />,
+          icon: <FaHome className="text-farm-accent gradient-icon" />,
           status: haStatus.connected ? 'connected' : 'disconnected',
           deviceCount: haStatus.device_count,
           configuredAt: haStatus.last_updated,
@@ -76,7 +77,7 @@ export default function IntegrationsPage() {
           id: 'mqtt',
           name: 'MQTT Broker',
           description: 'Direct IoT device communication via MQTT protocol',
-          icon: <FaPlug className="text-orange-600" />,
+          icon: <FaPlug className="text-control-secondary gradient-icon" />,
           status: 'disconnected',
           setupUrl: '/integrations/mqtt',
         },
@@ -84,7 +85,7 @@ export default function IntegrationsPage() {
           id: 'modbus',
           name: 'Modbus TCP/RTU',
           description: 'Industrial device communication via Modbus protocol',
-          icon: <FaCog className="text-gray-600" />,
+          icon: <FaCog className="text-control-label gradient-icon" />,
           status: 'disconnected',
           setupUrl: '/integrations/modbus',
         },
@@ -93,7 +94,7 @@ export default function IntegrationsPage() {
           id: 'square',
           name: 'Square',
           description: 'Connect Square for payment processing and sales tracking',
-          icon: <FaCreditCard className="text-green-600" />,
+          icon: <FaCreditCard className="text-sensor-value gradient-icon" />,
           status: squareStatus.connected ? 'connected' : 'disconnected',
           configuredAt: squareConfiguredAt,
           setupUrl: '/integrations/square',
@@ -102,7 +103,7 @@ export default function IntegrationsPage() {
           id: 'google-sheets',
           name: 'Google Sheets',
           description: 'Sync farm data and reports with Google Sheets',
-          icon: <FaTable className="text-green-600" />,
+          icon: <FaTable className="text-sensor-value gradient-icon" />,
           status: 'disconnected',
           setupUrl: '/integrations/google-sheets',
         },
@@ -110,7 +111,7 @@ export default function IntegrationsPage() {
           id: 'google-calendar',
           name: 'Google Calendar',
           description: 'Schedule farm tasks and maintenance in Google Calendar',
-          icon: <FaCalendarAlt className="text-blue-600" />,
+          icon: <FaCalendarAlt className="text-farm-accent gradient-icon" />,
           status: 'disconnected',
           setupUrl: '/integrations/google-calendar',
         },
@@ -127,22 +128,22 @@ export default function IntegrationsPage() {
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
       case 'connected':
-        return <FaCheck className="text-green-600" />;
+        return <FaCheck className="text-sensor-value gradient-icon" />;
       case 'error':
-        return <FaExclamationTriangle className="text-red-600" />;
+        return <FaExclamationTriangle className="text-control-secondary gradient-icon" />;
       default:
-        return <FaPlug className="text-gray-400" />;
+        return <FaPlug className="text-control-tertiary" />;
     }
   };
 
   const getStatusBadge = (status: Integration['status']) => {
     switch (status) {
       case 'connected':
-        return <Badge className="bg-green-100 text-green-800">Connected</Badge>;
+        return <Badge className="bg-sensor-bg text-sensor-value border-sensor-value">Connected</Badge>;
       case 'error':
-        return <Badge className="bg-red-100 text-red-800">Error</Badge>;
+        return <Badge className="bg-control-secondary/10 text-control-secondary border-control-secondary">Error</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Not Connected</Badge>;
+        return <Badge className="bg-farm-muted text-control-tertiary border-control-tertiary">Not Connected</Badge>;
     }
   };
 
@@ -150,7 +151,7 @@ export default function IntegrationsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-farm-accent"></div>
         </div>
       </div>
     );
@@ -158,24 +159,24 @@ export default function IntegrationsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Integrations</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Connect your vertical farm to external systems and devices
-          </p>
-        </div>
-      </div>
+      <PageHeader 
+        title="Integrations"
+        description="Connect your vertical farm to external systems and devices"
+        size="md"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {integrations.map((integration) => (
-          <Card key={integration.id} className="hover:shadow-lg transition-shadow">
+          <Card key={integration.id} className={`bg-farm-white card-shadow hover:card-shadow-lg transition-shadow ${
+            integration.status === 'connected' ? 'state-growing' : 
+            integration.status === 'error' ? 'state-maintenance' : 'state-offline'
+          }`}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">{integration.icon}</div>
                   <div>
-                    <CardTitle className="text-lg">{integration.name}</CardTitle>
+                    <CardTitle className="text-control-label text-lg">{integration.name}</CardTitle>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -183,16 +184,16 @@ export default function IntegrationsPage() {
                   {getStatusBadge(integration.status)}
                 </div>
               </div>
-              <CardDescription className="mt-2">
+              <CardDescription className="mt-2 text-control-secondary">
                 {integration.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {integration.status === 'connected' && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-control-secondary">
                     {integration.deviceCount && (
-                      <p>{integration.deviceCount} devices connected</p>
+                      <p className="text-sensor-value font-medium">{integration.deviceCount} devices connected</p>
                     )}
                     {integration.configuredAt && (
                       <p>Last updated: {new Date(integration.configuredAt).toLocaleDateString()}</p>
@@ -201,11 +202,14 @@ export default function IntegrationsPage() {
                 )}
                 
                 <div className="pt-2">
-                  <Button asChild className="w-full">
-                    <Link href={integration.setupUrl}>
+                  <Link href={integration.setupUrl} className="block">
+                    <FarmControlButton 
+                      variant={integration.status === 'connected' ? 'growing' : 'primary'}
+                      className="w-full"
+                    >
                       {integration.status === 'connected' ? 'Manage' : 'Setup'}
-                    </Link>
-                  </Button>
+                    </FarmControlButton>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -213,12 +217,12 @@ export default function IntegrationsPage() {
         ))}
       </div>
 
-      <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+      <div className="mt-8 p-6 bg-farm-muted rounded-lg state-active">
         <div className="flex items-start space-x-3">
-          <FaPlug className="text-blue-600 mt-1" />
+          <FaPlug className="text-farm-accent gradient-icon mt-1" />
           <div>
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100">More Integrations Coming Soon</h3>
-            <p className="text-blue-700 dark:text-blue-300 mt-1">
+            <h3 className="font-semibold text-farm-title">More Integrations Coming Soon</h3>
+            <p className="text-control-secondary mt-1">
               We&apos;re working on additional integrations including Zigbee, Z-Wave, and direct sensor protocols. 
               Have a specific integration request? Let us know!
             </p>

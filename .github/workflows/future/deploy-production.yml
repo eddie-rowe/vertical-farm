@@ -1,0 +1,511 @@
+name: Production Deploy
+
+on:
+  workflow_run:
+    #workflows: ["Supabase Deploy"]
+    types:
+      - completed
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+      skip_health_check:
+        description: 'Skip health checks after deployment'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
+env:
+  REGISTRY: ghcr.io
+  DEPLOYMENT_TIMEOUT: 300
+  HEALTH_CHECK_RETRIES: 30
+
+jobs:
+  prepare:
+    name: Prepare Production Deployment
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    
+    outputs:
+      backend_image: ${{ steps.images.outputs.backend_image }}
+      frontend_image: ${{ steps.images.outputs.frontend_image }}
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-deployment-info"
+          merge-multiple: true
+      
+      - name: Extract image information
+        id: images
+        run: |
+          # Extract image tags from deployment artifacts
+          if [ -f backend-image.json ]; then
+            BACKEND_IMAGE=$(jq -r '.image' backend-image.json)
+            echo "backend_image=$BACKEND_IMAGE" >> $GITHUB_OUTPUT
+            echo "✅ Backend image: $BACKEND_IMAGE"
+          else
+            echo "❌ Backend deployment info not found"
+            exit 1
+          fi
+          
+          if [ -f frontend-image.json ]; then
+            FRONTEND_IMAGE=$(jq -r '.image' frontend-image.json)
+            echo "frontend_image=$FRONTEND_IMAGE" >> $GITHUB_OUTPUT
+            echo "✅ Frontend image: $FRONTEND_IMAGE"
+          else
+            echo "❌ Frontend deployment info not found"
+            exit 1
+          fi
+      
+      - name: Check deployment necessity
+        id: check
+        run: |
+          # Check if we should deploy
+          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "🚀 Force deployment requested"
+          else
+            # Check if images have changed since last deployment
+            LAST_BACKEND=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/deployments" \
+              | jq -r '.[0].payload.backend_image // "none"')
+            
+            if [ "${{ steps.images.outputs.backend_image }}" != "$LAST_BACKEND" ]; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "✅ New images detected for deployment"
+            else
+              echo "should_deploy=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ No new images to deploy"
+            fi
+          fi
+      
+      - name: Create GitHub deployment
+        id: deployment
+        if: steps.check.outputs.should_deploy == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              description: 'Deploy to unRAID production server',
+              auto_merge: false,
+              required_contexts: [],
+              payload: {
+                backend_image: '${{ steps.images.outputs.backend_image }}',
+                frontend_image: '${{ steps.images.outputs.frontend_image }}',
+                commit_sha: '${{ github.sha }}'
+              }
+            });
+            
+            return deployment.data.id;
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  deploy:
+    name: Deploy to Production
+    runs-on: self-hosted
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true'
+    environment: production
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set deployment status to in_progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ needs.prepare.outputs.deployment_id }}',
+              state: 'in_progress',
+              description: 'Starting deployment to production'
+            });
+      
+      - name: Authenticate with Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+      
+      - name: Pre-deployment checks
+        run: |
+          echo "## 🔍 Pre-deployment Checks" >> $GITHUB_STEP_SUMMARY
+          
+          # Check Docker daemon
+          if docker info >/dev/null 2>&1; then
+            echo "✅ Docker daemon running" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Docker daemon not available" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          # Check available disk space
+          AVAILABLE_SPACE=$(df -h /var/lib/docker | awk 'NR==2{print $4}' | sed 's/G//')
+          if [ "${AVAILABLE_SPACE%.*}" -gt 10 ]; then
+            echo "✅ Sufficient disk space: ${AVAILABLE_SPACE}G" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Low disk space: ${AVAILABLE_SPACE}G" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check memory
+          AVAILABLE_MEM=$(free -m | awk 'NR==2{printf "%.0f", $7}')
+          if [ "$AVAILABLE_MEM" -gt 1024 ]; then
+            echo "✅ Sufficient memory: ${AVAILABLE_MEM}MB" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Low memory: ${AVAILABLE_MEM}MB" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Pull new images
+        run: |
+          echo "Pulling backend image: ${{ needs.prepare.outputs.backend_image }}"
+          docker pull ${{ needs.prepare.outputs.backend_image }}
+          
+          echo "Pulling frontend image: ${{ needs.prepare.outputs.frontend_image }}"
+          docker pull ${{ needs.prepare.outputs.frontend_image }}
+          
+          echo "✅ Images pulled successfully"
+      
+      - name: Create deployment backup
+        run: |
+          # Create backup of current deployment state
+          mkdir -p /tmp/deployment-backup
+          
+          # Backup current container configurations
+          if docker ps -q --filter "name=vertical-farm-backend" | grep -q .; then
+            docker inspect vertical-farm-backend > /tmp/deployment-backup/backend-config.json
+          fi
+          
+          if docker ps -q --filter "name=vertical-farm-frontend" | grep -q .; then
+            docker inspect vertical-farm-frontend > /tmp/deployment-backup/frontend-config.json
+          fi
+          
+          # Backup environment variables (without sensitive data)
+          env | grep -E '^(NODE_ENV|PYTHON_ENV|PORT)=' > /tmp/deployment-backup/environment.backup || true
+          
+          echo "✅ Deployment state backed up"
+      
+      - name: Deploy backend service
+        run: |
+          echo "## 🚀 Backend Deployment" >> $GITHUB_STEP_SUMMARY
+          
+          # Stop existing backend container gracefully
+          if docker ps -q --filter "name=vertical-farm-backend" | grep -q .; then
+            echo "Stopping existing backend container..."
+            docker stop vertical-farm-backend --time=30 || true
+            docker rm vertical-farm-backend || true
+          fi
+          
+          # Start new backend container
+          docker run -d \
+            --name vertical-farm-backend \
+            --restart unless-stopped \
+            --network vertical-farm-network \
+            --health-cmd="curl -f http://localhost:8000/health || exit 1" \
+            --health-interval=30s \
+            --health-timeout=10s \
+            --health-retries=3 \
+            --health-start-period=60s \
+            -e ENVIRONMENT=production \
+            -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            -e SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            -e SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            -e CORS_ORIGINS="https://farm.yourdomain.com" \
+            -v /mnt/user/appdata/vertical-farm/logs:/app/logs \
+            -v /mnt/user/appdata/vertical-farm/data:/app/data \
+            -p 8000:8000 \
+            --label traefik.enable=true \
+            --label traefik.http.routers.vertical-farm-api.rule="Host(\`api.farm.yourdomain.com\`)" \
+            --label traefik.http.routers.vertical-farm-api.tls=true \
+            --label traefik.http.routers.vertical-farm-api.tls.certresolver=letsencrypt \
+            ${{ needs.prepare.outputs.backend_image }}
+          
+          echo "✅ Backend container started" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Deploy frontend service
+        run: |
+          echo "## 🎨 Frontend Deployment" >> $GITHUB_STEP_SUMMARY
+          
+          # Stop existing frontend container gracefully
+          if docker ps -q --filter "name=vertical-farm-frontend" | grep -q .; then
+            echo "Stopping existing frontend container..."
+            docker stop vertical-farm-frontend --time=30 || true
+            docker rm vertical-farm-frontend || true
+          fi
+          
+          # Start new frontend container
+          docker run -d \
+            --name vertical-farm-frontend \
+            --restart unless-stopped \
+            --network vertical-farm-network \
+            --health-cmd="curl -f http://localhost:3000 || exit 1" \
+            --health-interval=30s \
+            --health-timeout=10s \
+            --health-retries=3 \
+            --health-start-period=90s \
+            -e NODE_ENV=production \
+            -e NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
+            -e NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -e NEXT_PUBLIC_API_URL="https://api.farm.yourdomain.com" \
+            -v /mnt/user/appdata/vertical-farm/uploads:/app/uploads \
+            -p 3000:3000 \
+            --label traefik.enable=true \
+            --label traefik.http.routers.vertical-farm-web.rule="Host(\`farm.yourdomain.com\`)" \
+            --label traefik.http.routers.vertical-farm-web.tls=true \
+            --label traefik.http.routers.vertical-farm-web.tls.certresolver=letsencrypt \
+            ${{ needs.prepare.outputs.frontend_image }}
+          
+          echo "✅ Frontend container started" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Wait for services to be healthy
+        if: inputs.skip_health_check != true
+        run: |
+          echo "## 🏥 Health Checks" >> $GITHUB_STEP_SUMMARY
+          
+          # Wait for backend health
+          echo "Waiting for backend to be healthy..."
+          for i in $(seq 1 ${{ env.HEALTH_CHECK_RETRIES }}); do
+            if docker exec vertical-farm-backend curl -f http://localhost:8000/health; then
+              echo "✅ Backend is healthy" >> $GITHUB_STEP_SUMMARY
+              break
+            fi
+            
+            if [ $i -eq ${{ env.HEALTH_CHECK_RETRIES }} ]; then
+              echo "❌ Backend health check failed" >> $GITHUB_STEP_SUMMARY
+              docker logs vertical-farm-backend --tail 50
+              exit 1
+            fi
+            
+            echo "Health check attempt $i/${{ env.HEALTH_CHECK_RETRIES }} failed, retrying in 10s..."
+            sleep 10
+          done
+          
+          # Wait for frontend health
+          echo "Waiting for frontend to be healthy..."
+          for i in $(seq 1 ${{ env.HEALTH_CHECK_RETRIES }}); do
+            if docker exec vertical-farm-frontend curl -f http://localhost:3000; then
+              echo "✅ Frontend is healthy" >> $GITHUB_STEP_SUMMARY
+              break
+            fi
+            
+            if [ $i -eq ${{ env.HEALTH_CHECK_RETRIES }} ]; then
+              echo "❌ Frontend health check failed" >> $GITHUB_STEP_SUMMARY
+              docker logs vertical-farm-frontend --tail 50
+              exit 1
+            fi
+            
+            echo "Health check attempt $i/${{ env.HEALTH_CHECK_RETRIES }} failed, retrying in 10s..."
+            sleep 10
+          done
+      
+      - name: Test deployment endpoints
+        run: |
+          echo "## 🧪 Endpoint Testing" >> $GITHUB_STEP_SUMMARY
+          
+          # Test backend API
+          if curl -f http://localhost:8000/health; then
+            echo "✅ Backend API responding" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Backend API not responding" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          # Test frontend
+          if curl -f http://localhost:3000; then
+            echo "✅ Frontend responding" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Frontend not responding" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          # Test API endpoints
+          API_RESPONSE=$(curl -s http://localhost:8000/api/v1/health | jq -r '.status' || echo "error")
+          if [ "$API_RESPONSE" = "healthy" ]; then
+            echo "✅ API health endpoint working" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ API health endpoint failed" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Update deployment status to success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ needs.prepare.outputs.deployment_id }}',
+              state: 'success',
+              description: 'Successfully deployed to production',
+              environment_url: 'https://farm.yourdomain.com'
+            });
+      
+      - name: Cleanup old images
+        if: success()
+        run: |
+          echo "Cleaning up old images..."
+          
+          # Remove old images (keep last 3 versions)
+          docker images ${{ env.REGISTRY }}/${{ github.repository }}/backend --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | \
+            tail -n +2 | sort -k2 -r | tail -n +4 | awk '{print $1}' | \
+            xargs -r docker rmi || true
+          
+          docker images ${{ env.REGISTRY }}/${{ github.repository }}/frontend --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | \
+            tail -n +2 | sort -k2 -r | tail -n +4 | awk '{print $1}' | \
+            xargs -r docker rmi || true
+          
+          # Remove dangling images
+          docker image prune -f
+          
+          echo "✅ Image cleanup completed"
+      
+      - name: Generate deployment summary
+        if: success()
+        run: |
+          echo "## 🎉 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status | Image |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ✅ Running | ${{ needs.prepare.outputs.backend_image }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ✅ Running | ${{ needs.prepare.outputs.frontend_image }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Access URLs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend**: https://farm.yourdomain.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **API**: https://api.farm.yourdomain.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Docs**: https://api.farm.yourdomain.com/docs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Deployment completed at: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+  
+  rollback:
+    name: Rollback on Failure
+    runs-on: self-hosted
+    if: failure() && needs.deploy.conclusion == 'failure'
+    needs: [prepare, deploy]
+    
+    steps:
+      - name: Update deployment status to failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ needs.prepare.outputs.deployment_id }}',
+              state: 'failure',
+              description: 'Deployment failed, attempting rollback'
+            });
+      
+      - name: Attempt automatic rollback
+        run: |
+          echo "## 🔄 Attempting Rollback" >> $GITHUB_STEP_SUMMARY
+          
+          # Stop failed containers
+          docker stop vertical-farm-backend vertical-farm-frontend || true
+          docker rm vertical-farm-backend vertical-farm-frontend || true
+          
+          # Restore from backup if available
+          if [ -f /tmp/deployment-backup/backend-config.json ]; then
+            echo "Restoring backend from backup..."
+            BACKUP_IMAGE=$(jq -r '.[0].Config.Image' /tmp/deployment-backup/backend-config.json)
+            
+            if [ "$BACKUP_IMAGE" != "null" ] && [ -n "$BACKUP_IMAGE" ]; then
+              docker run -d \
+                --name vertical-farm-backend \
+                --restart unless-stopped \
+                --network vertical-farm-network \
+                -p 8000:8000 \
+                $BACKUP_IMAGE || true
+            fi
+          fi
+          
+          if [ -f /tmp/deployment-backup/frontend-config.json ]; then
+            echo "Restoring frontend from backup..."
+            BACKUP_IMAGE=$(jq -r '.[0].Config.Image' /tmp/deployment-backup/frontend-config.json)
+            
+            if [ "$BACKUP_IMAGE" != "null" ] && [ -n "$BACKUP_IMAGE" ]; then
+              docker run -d \
+                --name vertical-farm-frontend \
+                --restart unless-stopped \
+                --network vertical-farm-network \
+                -p 3000:3000 \
+                $BACKUP_IMAGE || true
+            fi
+          fi
+          
+          echo "⚠️ Automatic rollback attempted. Manual verification required." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Create rollback issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Production Deployment Failed - Rollback Required`,
+              body: `## Production Deployment Failure
+              
+              The production deployment has failed and requires manual intervention.
+              
+              ### Failure Details:
+              - **Commit**: ${{ github.sha }}
+              - **Backend Image**: ${{ needs.prepare.outputs.backend_image }}
+              - **Frontend Image**: ${{ needs.prepare.outputs.frontend_image }}
+              - **Failed At**: ${new Date().toISOString()}
+              
+              ### Rollback Status:
+              Automatic rollback has been attempted. Please verify:
+              
+              1. **Backend Service**: Check if http://localhost:8000/health responds
+              2. **Frontend Service**: Check if http://localhost:3000 responds
+              3. **External Access**: Verify https://farm.yourdomain.com is accessible
+              
+              ### Manual Steps if Needed:
+              1. SSH to the unRAID server
+              2. Check container status: \`docker ps -a\`
+              3. Review container logs: \`docker logs vertical-farm-backend\`
+              4. Manually restore services if automatic rollback failed
+              
+              ### Next Actions:
+              - [ ] Verify service health
+              - [ ] Investigate failure cause
+              - [ ] Plan corrective deployment
+              - [ ] Update this issue with resolution
+              
+              **Priority**: Critical - Production service affected`,
+              labels: ['bug', 'production', 'critical']
+            });
+            
+            console.log(`Created rollback issue: ${issue.data.html_url}`);
+      
+      - name: Notify failure
+        run: |
+          echo "## 🚨 Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Production deployment has failed. Automatic rollback attempted." >> $GITHUB_STEP_SUMMARY
+          echo "A GitHub issue has been created for manual resolution." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Immediate Actions Required:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the created GitHub issue for details" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify service health manually" >> $GITHUB_STEP_SUMMARY
+          echo "3. Review deployment logs for error cause" >> $GITHUB_STEP_SUMMARY 

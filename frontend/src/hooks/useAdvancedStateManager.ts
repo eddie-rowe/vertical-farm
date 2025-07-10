@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { FarmPageData } from '@/types/farm-layout';
-import { FeedbackMessage } from '@/components/farms/ActionFeedback';
+import { FeedbackMessage } from '@/components/features/agriculture/farm-core/ActionFeedback';
 
 export interface StateAction {
   type: string;

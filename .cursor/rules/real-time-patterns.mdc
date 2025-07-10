@@ -1,0 +1,655 @@
+# Real-time Patterns for Vertical Farming
+
+## Core Principles
+
+### 1. Service-Mediated Real-time
+- **MANDATORY**: All real-time operations through service layer
+- **NO Direct WebSocket**: Components use services, not raw WebSocket connections
+- **Centralized Management**: BaseRealtimeService handles connection lifecycle
+- **Error Recovery**: Automatic reconnection and error handling
+
+### 2. Domain-Driven Real-time Architecture
+- **Farm Monitoring**: Real-time sensor data, device status
+- **Device Control**: Instant command/response patterns
+- **User Notifications**: Live updates for critical events
+- **Data Synchronization**: Multi-user collaboration features
+
+## Supabase Realtime Integration
+
+### BaseRealtimeService Pattern
+```typescript
+export abstract class BaseRealtimeService extends BaseService {
+  protected subscriptions: Map<string, RealtimeChannel> = new Map()
+  protected reconnectAttempts = 0
+  protected maxReconnectAttempts = 5
+  
+  constructor() {
+    super()
+    this.setupReconnectionLogic()
+  }
+  
+  protected async createSubscription(
+    channelName: string,
+    config: ChannelConfig
+  ): Promise<RealtimeChannel> {
+    const supabase = await this.getSupabaseClient()
+    
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', config.postgresConfig, config.callback)
+      .on('presence', { event: 'sync' }, config.presenceCallback)
+      .on('broadcast', { event: 'device_command' }, config.broadcastCallback)
+      .subscribe((status) => {
+        this.handleSubscriptionStatus(channelName, status)
+      })
+    
+    this.subscriptions.set(channelName, channel)
+    return channel
+  }
+  
+  protected async cleanup(): Promise<void> {
+    for (const [name, channel] of this.subscriptions) {
+      await channel.unsubscribe()
+      this.subscriptions.delete(name)
+    }
+  }
+  
+  private handleSubscriptionStatus(channelName: string, status: string) {
+    switch (status) {
+      case 'SUBSCRIBED':
+        console.log(`✅ ${channelName} connected`)
+        this.reconnectAttempts = 0
+        break
+      case 'CHANNEL_ERROR':
+        console.error(`❌ ${channelName} error`)
+        this.handleReconnection(channelName)
+        break
+      case 'TIMED_OUT':
+        console.warn(`⏰ ${channelName} timed out`)
+        this.handleReconnection(channelName)
+        break
+    }
+  }
+}
+```
+
+### Farm Monitoring Service
+```typescript
+export class FarmMonitoringService extends BaseRealtimeService {
+  private static instance: FarmMonitoringService
+  
+  static getInstance(): FarmMonitoringService {
+    if (!FarmMonitoringService.instance) {
+      FarmMonitoringService.instance = new FarmMonitoringService()
+    }
+    return FarmMonitoringService.instance
+  }
+  
+  // Subscribe to sensor data updates
+  async subscribeSensorData(
+    farmId: string,
+    callback: (sensorData: SensorReading) => void
+  ): Promise<() => void> {
+    const channelName = `farm-${farmId}-sensors`
+    
+    await this.createSubscription(channelName, {
+      postgresConfig: {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'sensor_readings',
+        filter: `farm_id=eq.${farmId}`
+      },
+      callback: (payload) => {
+        const sensorReading = payload.new as SensorReading
+        callback(sensorReading)
+      }
+    })
+    
+    return () => this.unsubscribe(channelName)
+  }
+  
+  // Subscribe to device status changes
+  async subscribeDeviceStatus(
+    farmId: string,
+    callback: (device: Device) => void
+  ): Promise<() => void> {
+    const channelName = `farm-${farmId}-devices`
+    
+    await this.createSubscription(channelName, {
+      postgresConfig: {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'devices',
+        filter: `farm_id=eq.${farmId}`
+      },
+      callback: (payload) => {
+        const device = payload.new as Device
+        callback(device)
+      }
+    })
+    
+    return () => this.unsubscribe(channelName)
+  }
+  
+  // Real-time alerts for critical events
+  async subscribeAlerts(
+    farmId: string,
+    callback: (alert: FarmAlert) => void
+  ): Promise<() => void> {
+    const channelName = `farm-${farmId}-alerts`
+    
+    await this.createSubscription(channelName, {
+      postgresConfig: {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'alerts',
+        filter: `farm_id=eq.${farmId} AND severity=in.(critical,high)`
+      },
+      callback: (payload) => {
+        const alert = payload.new as FarmAlert
+        callback(alert)
+        this.handleCriticalAlert(alert)
+      }
+    })
+    
+    return () => this.unsubscribe(channelName)
+  }
+  
+  private async handleCriticalAlert(alert: FarmAlert) {
+    // Trigger immediate notifications
+    const notificationService = NotificationService.getInstance()
+    await notificationService.sendCriticalAlert(alert)
+  }
+}
+```
+
+### Device Control Service (Real-time Commands)
+```typescript
+export class DeviceControlService extends BaseRealtimeService {
+  private static instance: DeviceControlService
+  private pendingCommands: Map<string, PendingCommand> = new Map()
+  
+  static getInstance(): DeviceControlService {
+    if (!DeviceControlService.instance) {
+      DeviceControlService.instance = new DeviceControlService()
+    }
+    return DeviceControlService.instance
+  }
+  
+  // Send command to device with real-time feedback
+  async sendDeviceCommand(
+    deviceId: string,
+    command: DeviceCommand,
+    timeout = 5000
+  ): Promise<CommandResult> {
+    const commandId = this.generateCommandId()
+    const channelName = `device-${deviceId}-commands`
+    
+    // Set up response listener
+    const responsePromise = this.waitForCommandResponse(commandId, timeout)
+    
+    // Send command via broadcast
+    const supabase = await this.getSupabaseClient()
+    const channel = supabase.channel(channelName)
+    
+    await channel.send({
+      type: 'broadcast',
+      event: 'device_command',
+      payload: {
+        commandId,
+        deviceId,
+        command,
+        timestamp: new Date().toISOString()
+      }
+    })
+    
+    // Track pending command
+    this.pendingCommands.set(commandId, {
+      deviceId,
+      command,
+      timestamp: Date.now()
+    })
+    
+    try {
+      const result = await responsePromise
+      return result
+    } finally {
+      this.pendingCommands.delete(commandId)
+      await channel.unsubscribe()
+    }
+  }
+  
+  private async waitForCommandResponse(
+    commandId: string,
+    timeout: number
+  ): Promise<CommandResult> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Command ${commandId} timed out`))
+      }, timeout)
+      
+      // Listen for response
+      this.createSubscription(`command-${commandId}-response`, {
+        broadcastCallback: (payload) => {
+          if (payload.commandId === commandId) {
+            clearTimeout(timeoutId)
+            resolve(payload.result)
+          }
+        }
+      })
+    })
+  }
+}
+```
+
+## Component Integration Patterns
+
+### Real-time Farm Dashboard
+```typescript
+'use client'
+import { useEffect, useState } from 'react'
+import { FarmMonitoringService } from '@/services/domain/farm/FarmMonitoringService'
+
+export function FarmDashboard({ farmId }: { farmId: string }) {
+  const [sensorData, setSensorData] = useState<SensorReading[]>([])
+  const [devices, setDevices] = useState<Device[]>([])
+  const [alerts, setAlerts] = useState<FarmAlert[]>([])
+  
+  useEffect(() => {
+    const monitoringService = FarmMonitoringService.getInstance()
+    const unsubscribeFunctions: Array<() => void> = []
+    
+    // Subscribe to real-time sensor data
+    monitoringService.subscribeSensorData(farmId, (reading) => {
+      setSensorData(prev => [reading, ...prev.slice(0, 49)]) // Keep last 50
+    }).then(unsubscribe => unsubscribeFunctions.push(unsubscribe))
+    
+    // Subscribe to device status updates
+    monitoringService.subscribeDeviceStatus(farmId, (device) => {
+      setDevices(prev => prev.map(d => 
+        d.id === device.id ? device : d
+      ))
+    }).then(unsubscribe => unsubscribeFunctions.push(unsubscribe))
+    
+    // Subscribe to critical alerts
+    monitoringService.subscribeAlerts(farmId, (alert) => {
+      setAlerts(prev => [alert, ...prev])
+      // Show toast notification
+      toast.error(`Critical Alert: ${alert.message}`)
+    }).then(unsubscribe => unsubscribeFunctions.push(unsubscribe))
+    
+    return () => {
+      unsubscribeFunctions.forEach(unsubscribe => unsubscribe())
+    }
+  }, [farmId])
+  
+  return (
+    <div className="farm-dashboard">
+      <SensorDataChart data={sensorData} />
+      <DeviceStatusGrid devices={devices} />
+      <AlertsList alerts={alerts} />
+    </div>
+  )
+}
+```
+
+### Real-time Device Control Panel
+```typescript
+'use client'
+import { useState } from 'react'
+import { DeviceControlService } from '@/services/domain/farm/DeviceControlService'
+import { useOptimistic } from 'react'
+
+export function DeviceControlPanel({ device }: { device: Device }) {
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [optimisticStatus, updateOptimisticStatus] = useOptimistic(
+    device.status,
+    (_, newStatus: DeviceStatus) => newStatus
+  )
+  
+  const handleDeviceCommand = async (command: DeviceCommand) => {
+    setIsExecuting(true)
+    
+    // Optimistic update
+    const expectedStatus = getExpectedStatus(command)
+    updateOptimisticStatus(expectedStatus)
+    
+    try {
+      const controlService = DeviceControlService.getInstance()
+      const result = await controlService.sendDeviceCommand(
+        device.id,
+        command,
+        10000 // 10 second timeout
+      )
+      
+      if (!result.success) {
+        // Revert optimistic update on failure
+        updateOptimisticStatus(device.status)
+        toast.error(`Command failed: ${result.error}`)
+      }
+    } catch (error) {
+      updateOptimisticStatus(device.status)
+      toast.error('Device command timeout')
+    } finally {
+      setIsExecuting(false)
+    }
+  }
+  
+  return (
+    <div className="device-control-panel">
+      <DeviceStatusIndicator status={optimisticStatus} />
+      <div className="control-buttons">
+        <button
+          disabled={isExecuting}
+          onClick={() => handleDeviceCommand({ type: 'TOGGLE_POWER' })}
+        >
+          {isExecuting ? 'Executing...' : 'Toggle Power'}
+        </button>
+        <button
+          disabled={isExecuting}
+          onClick={() => handleDeviceCommand({ type: 'RESET' })}
+        >
+          Reset Device
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+## Home Assistant Integration Patterns
+
+### WebSocket Service for Home Assistant
+```typescript
+export class HomeAssistantWebSocketService extends BaseRealtimeService {
+  private static instance: HomeAssistantWebSocketService
+  private socket: WebSocket | null = null
+  private messageQueue: HAMessage[] = []
+  private isAuthenticated = false
+  
+  static getInstance(): HomeAssistantWebSocketService {
+    if (!HomeAssistantWebSocketService.instance) {
+      HomeAssistantWebSocketService.instance = new HomeAssistantWebSocketService()
+    }
+    return HomeAssistantWebSocketService.instance
+  }
+  
+  async connect(haUrl: string, accessToken: string): Promise<void> {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      return
+    }
+    
+    return new Promise((resolve, reject) => {
+      this.socket = new WebSocket(`${haUrl}/api/websocket`)
+      
+      this.socket.onopen = () => {
+        console.log('🏠 Home Assistant WebSocket connected')
+      }
+      
+      this.socket.onmessage = (event) => {
+        const message = JSON.parse(event.data)
+        this.handleMessage(message, accessToken, resolve, reject)
+      }
+      
+      this.socket.onclose = () => {
+        console.log('🏠 Home Assistant WebSocket disconnected')
+        this.isAuthenticated = false
+        this.scheduleReconnect(haUrl, accessToken)
+      }
+      
+      this.socket.onerror = (error) => {
+        console.error('🏠 Home Assistant WebSocket error:', error)
+        reject(error)
+      }
+    })
+  }
+  
+  async subscribeEntityUpdates(
+    entityIds: string[],
+    callback: (entityData: HAEntityState) => void
+  ): Promise<() => void> {
+    const subscriptionId = await this.sendMessage({
+      type: 'subscribe_events',
+      event_type: 'state_changed',
+      entity_ids: entityIds
+    })
+    
+    this.addMessageHandler(subscriptionId, (message) => {
+      if (message.event?.data?.entity_id && 
+          entityIds.includes(message.event.data.entity_id)) {
+        callback(message.event.data.new_state)
+      }
+    })
+    
+    return () => this.unsubscribeMessage(subscriptionId)
+  }
+  
+  async callService(
+    domain: string,
+    service: string,
+    serviceData: Record<string, any>
+  ): Promise<void> {
+    await this.sendMessage({
+      type: 'call_service',
+      domain,
+      service,
+      service_data: serviceData
+    })
+  }
+}
+```
+
+## Performance Optimization
+
+### Connection Pooling and Management
+```typescript
+export class ConnectionManager {
+  private static instance: ConnectionManager
+  private connectionPool: Map<string, RealtimeChannel> = new Map()
+  private activeConnections = 0
+  private maxConnections = 10
+  
+  static getInstance(): ConnectionManager {
+    if (!ConnectionManager.instance) {
+      ConnectionManager.instance = new ConnectionManager()
+    }
+    return ConnectionManager.instance
+  }
+  
+  async getOrCreateConnection(
+    key: string,
+    factory: () => Promise<RealtimeChannel>
+  ): Promise<RealtimeChannel> {
+    if (this.connectionPool.has(key)) {
+      return this.connectionPool.get(key)!
+    }
+    
+    if (this.activeConnections >= this.maxConnections) {
+      // Close least recently used connection
+      this.closeLRUConnection()
+    }
+    
+    const connection = await factory()
+    this.connectionPool.set(key, connection)
+    this.activeConnections++
+    
+    return connection
+  }
+}
+```
+
+### Message Throttling and Batching
+```typescript
+export class MessageProcessor {
+  private messageBuffer: Map<string, any[]> = new Map()
+  private flushInterval = 100 // ms
+  
+  addMessage(channel: string, message: any) {
+    if (!this.messageBuffer.has(channel)) {
+      this.messageBuffer.set(channel, [])
+      this.scheduleFlush(channel)
+    }
+    
+    this.messageBuffer.get(channel)!.push(message)
+  }
+  
+  private scheduleFlush(channel: string) {
+    setTimeout(() => {
+      const messages = this.messageBuffer.get(channel) || []
+      if (messages.length > 0) {
+        this.flushMessages(channel, messages)
+        this.messageBuffer.delete(channel)
+      }
+    }, this.flushInterval)
+  }
+  
+  private flushMessages(channel: string, messages: any[]) {
+    // Batch process messages for better performance
+    const grouped = this.groupMessagesByType(messages)
+    
+    for (const [type, msgs] of grouped) {
+      this.processMessageBatch(type, msgs)
+    }
+  }
+}
+```
+
+## Error Handling and Recovery
+
+### Automatic Reconnection Strategy
+```typescript
+export abstract class ResilientRealtimeService extends BaseRealtimeService {
+  protected reconnectDelay = 1000
+  protected maxReconnectDelay = 30000
+  protected backoffMultiplier = 1.5
+  
+  protected async handleReconnection(channelName: string) {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      this.handleMaxReconnectAttemptsReached(channelName)
+      return
+    }
+    
+    this.reconnectAttempts++
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(this.backoffMultiplier, this.reconnectAttempts),
+      this.maxReconnectDelay
+    )
+    
+    console.log(`🔄 Reconnecting ${channelName} in ${delay}ms (attempt ${this.reconnectAttempts})`)
+    
+    setTimeout(async () => {
+      try {
+        await this.reconnectChannel(channelName)
+      } catch (error) {
+        console.error(`❌ Reconnection failed for ${channelName}:`, error)
+        this.handleReconnection(channelName)
+      }
+    }, delay)
+  }
+  
+  protected async handleMaxReconnectAttemptsReached(channelName: string) {
+    console.error(`💥 Max reconnection attempts reached for ${channelName}`)
+    
+    // Notify user of connection issues
+    const notificationService = NotificationService.getInstance()
+    await notificationService.showConnectionError(channelName)
+    
+    // Fall back to polling mode
+    this.fallbackToPolling(channelName)
+  }
+}
+```
+
+## Testing Patterns
+
+### Real-time Service Testing
+```typescript
+describe('FarmMonitoringService', () => {
+  let mockSupabase: any
+  let monitoringService: FarmMonitoringService
+  
+  beforeEach(() => {
+    mockSupabase = {
+      channel: vi.fn().mockReturnValue({
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockResolvedValue(undefined)
+      })
+    }
+    
+    vi.mocked(import('@/utils/supabase/client')).mockResolvedValue({
+      createClient: () => mockSupabase
+    })
+    
+    monitoringService = FarmMonitoringService.getInstance()
+  })
+  
+  it('should subscribe to sensor data updates', async () => {
+    const callback = vi.fn()
+    
+    await monitoringService.subscribeSensorData('farm-1', callback)
+    
+    expect(mockSupabase.channel).toHaveBeenCalledWith('farm-farm-1-sensors')
+    expect(mockSupabase.channel().on).toHaveBeenCalledWith(
+      'postgres_changes',
+      expect.objectContaining({
+        table: 'sensor_readings',
+        filter: 'farm_id=eq.farm-1'
+      }),
+      expect.any(Function)
+    )
+  })
+})
+```
+
+## Security Considerations
+
+### Real-time Data Security
+```typescript
+export class SecureRealtimeService extends BaseRealtimeService {
+  protected async validateUserAccess(
+    userId: string,
+    resource: string,
+    action: string
+  ): Promise<boolean> {
+    const authService = AuthService.getInstance()
+    return await authService.checkPermission(userId, resource, action)
+  }
+  
+  protected sanitizeRealtimeData(data: any): any {
+    // Remove sensitive fields before broadcasting
+    const { password, privateKey, internalData, ...sanitized } = data
+    return sanitized
+  }
+  
+  protected async createSecureSubscription(
+    channelName: string,
+    config: ChannelConfig,
+    userId: string
+  ): Promise<RealtimeChannel> {
+    // Validate user has access to this channel
+    const hasAccess = await this.validateUserAccess(
+      userId,
+      channelName,
+      'subscribe'
+    )
+    
+    if (!hasAccess) {
+      throw new UnauthorizedError(`Access denied to channel: ${channelName}`)
+    }
+    
+    return this.createSubscription(channelName, {
+      ...config,
+      callback: (payload) => {
+        const sanitizedPayload = this.sanitizeRealtimeData(payload)
+        config.callback(sanitizedPayload)
+      }
+    })
+  }
+}
+```
+
+This real-time architecture ensures efficient, secure, and scalable real-time features for your vertical farming platform.
+description:
+globs:
+alwaysApply: false
+---

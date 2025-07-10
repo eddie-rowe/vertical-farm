@@ -20,7 +20,8 @@ import {
   FaBrain, 
   FaPlug, 
   FaUser, 
-  FaQuestionCircle 
+  FaQuestionCircle,
+  FaCog
 } from 'react-icons/fa';
 
 const navigationItems = [
@@ -28,6 +29,7 @@ const navigationItems = [
   { href: '/farms', label: 'Farm Management', icon: FaBuilding },
   { href: '/grow-management', label: 'Grow Management', icon: FaSeedling },
   { href: '/operations', label: 'Operations', icon: FaCogs },
+  { href: '/devices', label: 'Device Management', icon: FaCog },
   { href: '/analytics', label: 'Analytics', icon: FaChartBar },
   { href: '/business', label: 'Business Management', icon: FaBriefcase },
   { href: '/procurement', label: 'Procurement', icon: FaShoppingCart },

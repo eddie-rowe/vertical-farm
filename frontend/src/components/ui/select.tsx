@@ -2,9 +2,34 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
+import { cva, type VariantProps } from "class-variance-authority"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/lib/icons"
 
 import { cn } from "@/lib/utils"
+
+const selectTriggerVariants = cva(
+  "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      size: {
+        sm: "h-8 px-3 py-1",
+        default: "h-9 px-3 py-2", 
+        lg: "h-10 px-4 py-2",
+      },
+      validationState: {
+        default: "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        success: "border-emerald-500 focus-visible:border-emerald-600 focus-visible:ring-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-400",
+        warning: "border-amber-500 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-400",
+        error: "border-red-500 focus-visible:border-red-600 focus-visible:ring-red-500/30 bg-red-50/50 dark:bg-red-950/20 dark:border-red-400",
+        info: "border-blue-500 focus-visible:border-blue-600 focus-visible:ring-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-400",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      validationState: "default",
+    },
+  }
+)
 
 function Select({
   ...props
@@ -27,17 +52,17 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  validationState = "default",
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default"
-}) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & 
+  VariantProps<typeof selectTriggerVariants>) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        selectTriggerVariants({ size, validationState }),
         className
       )}
       {...props}
@@ -182,4 +207,5 @@ export {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
+  selectTriggerVariants,
 }

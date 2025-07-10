@@ -82,7 +82,7 @@ class CRUDFarm:
         try:
             farm_data = obj_in.model_dump()
             # Remove fields that don't exist in the database schema
-            farm_data.pop("plan_image_url", None)  # This field doesn't exist in DB yet
+            farm_data.pop("farm_image_url", None)  # This field doesn't exist in DB yet
             farm_data["manager_id"] = str(owner_id) # Use manager_id to match the database schema
             
             response = await supabase.table(self.table_name).insert(farm_data).execute()
@@ -100,7 +100,7 @@ class CRUDFarm:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             # Remove fields that don't exist in the database schema
-            update_data.pop("plan_image_url", None)  # This field doesn't exist in DB yet
+            update_data.pop("farm_image_url", None)  # This field doesn't exist in DB yet
             if not update_data:
                 # If there's nothing to update, fetch and return the current object
                 return await self.get(supabase, id)

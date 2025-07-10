@@ -1,11 +1,13 @@
 'use client';
 import { useState, useRef } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { FarmSelect } from '@/components/ui/farm-select';
+import { FarmInput } from '@/components/ui/farm-input';
+import { FarmCheckbox } from '@/components/ui/farm-checkbox';
+import { FarmControlButton } from '@/components/ui/farm-control-button';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function AccountPage() {
   const { user } = useAuth();
@@ -23,7 +25,7 @@ export default function AccountPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   if (!user) {
-    return <div className="flex items-center justify-center min-h-screen">Loading user data...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-control-label">Loading user data...</div>;
   }
 
   // Profile update handler
@@ -103,10 +105,13 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl mx-auto p-8">
-      <h1 className="text-4xl sm:text-5xl font-extrabold mb-8 text-green-900 dark:text-green-100 drop-shadow-lg border-b-2 border-green-200 dark:border-green-800 pb-4">Account</h1>
+      <PageHeader
+        title="Account"
+        description="Manage your profile, preferences, and account settings."
+      />
       <form onSubmit={handleProfileUpdate} className="mb-8 space-y-4">
         <div className="flex items-center gap-4 mb-4">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 card-shadow">
             {avatarUrl ? (
               <Image src={avatarUrl} alt={name || 'User Avatar'} fill className="object-cover" />
             ) : (
@@ -114,13 +119,15 @@ export default function AccountPage() {
             )}
           </div>
           <div>
-            <button
+            <FarmControlButton
               type="button"
-              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm"
+              variant="default"
+              size="sm"
+              animation="float"
               onClick={() => fileInputRef.current?.click()}
             >
               Change Avatar
-            </button>
+            </FarmControlButton>
             <input
               type="file"
               accept="image/*"
@@ -130,84 +137,124 @@ export default function AccountPage() {
             />
           </div>
         </div>
-        <div>
-          <label className="block mb-1 font-medium">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            placeholder="Your name"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            required
-          />
-        </div>
-        <button type="submit" disabled={updating} className="w-full py-2 rounded bg-primary text-white font-semibold hover:bg-primary/90 transition disabled:opacity-60">Update Profile</button>
+        
+        <FarmInput
+          label="Name"
+          inputSize="default"
+          validation="default"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name"
+          helpText="Your display name for the farming platform"
+        />
+        
+        <FarmInput
+          label="Email"
+          inputSize="default"
+          validation={email !== user?.email ? "info" : "default"}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          helpText={email !== user?.email ? "Email change will require verification" : "Your account email address"}
+          required
+        />
+        
+        <FarmControlButton 
+          type="submit" 
+          disabled={updating}
+          variant="primary"
+          animation="pop"
+          className="w-full"
+        >
+          {updating ? "Updating..." : "Update Profile"}
+        </FarmControlButton>
       </form>
+      
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
+      
       <form onSubmit={handlePasswordChange} className="mb-8 space-y-4">
-        <h2 className="text-2xl font-bold mb-2">Change Password</h2>
-        <div>
-          <Label htmlFor="newPassword">New Password</Label>
-          <input
-            type="password"
-            id="newPassword"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            placeholder="Enter new password"
-            required
-          />
-        </div>
-        <button type="submit" disabled={updating} className="w-full py-2 rounded bg-primary text-white font-semibold hover:bg-primary/90 transition disabled:opacity-60">Change Password</button>
+        <h2 className="text-farm-title mb-2">Change Password</h2>
+        
+        <FarmInput
+          label="New Password"
+          inputSize="default"
+          validation={password.length > 0 && password.length < 12 ? "error" : "default"}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter new password"
+          helpText="Password must be at least 12 characters"
+          errorText={password.length > 0 && password.length < 12 ? "Password too short" : undefined}
+          required
+        />
+        
+        <FarmControlButton 
+          type="submit" 
+          disabled={updating || password.length < 12}
+          variant="primary"
+          animation="pop"
+          className="w-full"
+        >
+          {updating ? "Updating..." : "Change Password"}
+        </FarmControlButton>
       </form>
+      
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
+      
       <div className="mb-8 space-y-4">
-        <h2 className="text-2xl font-bold mb-2">Preferences</h2>
-        <div className="space-y-1">
-          <Label htmlFor="theme">Theme</Label>
-          <Select value={theme} onValueChange={handleThemeChange}>
-            <SelectTrigger id="theme" className="w-[180px]">
-              <SelectValue placeholder="Select theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <h2 className="text-farm-title mb-2">Preferences</h2>
+        
+        <FarmSelect
+          label="Theme"
+          inputSize="default"
+          validation="default"
+          options={[
+            { value: "light", label: "Light" },
+            { value: "dark", label: "Dark" }
+          ]}
+          value={theme}
+          onChange={(e) => handleThemeChange(e.target.value)}
+          helpText="Choose your preferred interface theme"
+          className="w-[180px]"
+        />
+        
         <div className="flex items-center space-x-2 pt-2">
-          <Checkbox 
-            id="notifications" 
-            checked={notificationsEnabled} 
-            onCheckedChange={(checkedState) => handleNotificationToggle(Boolean(checkedState))} 
+          <FarmCheckbox
+            checked={notificationsEnabled}
+            onCheckedChange={(checked) => handleNotificationToggle(Boolean(checked))}
+            id="notifications"
           />
-          <Label htmlFor="notifications" className="font-medium">
+          <label htmlFor="notifications" className="form-label">
             Enable email notifications
-          </Label>
+          </label>
         </div>
       </div>
+      
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
+      
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2 text-red-600">Danger Zone</h2>
-        <button
+        <h2 className="text-farm-title mb-2 state-offline">Danger Zone</h2>
+        <FarmControlButton
           onClick={handleDeleteAccount}
           disabled={deleting}
-          className="w-full py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60"
+          variant="offline"
+          animation="none"
+          className="w-full"
         >
           {deleting ? "Deleting..." : "Delete Account"}
-        </button>
+        </FarmControlButton>
       </div>
-      {error && <div className="text-red-600 dark:text-red-400 mt-4 text-lg font-semibold" role="alert">{error}</div>}
-      {message && <div className="text-green-600 dark:text-green-400 mt-4 text-lg font-semibold" role="status">{message}</div>}
+      
+      {error && (
+        <div className="form-error mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20" role="alert">
+          {error}
+        </div>
+      )}
+      {message && (
+        <div className="text-control-label state-growing mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20" role="status">
+          {message}
+        </div>
+      )}
     </div>
   );
 }

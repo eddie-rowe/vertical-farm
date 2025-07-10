@@ -59,7 +59,9 @@ export {
   FaCreditCard,
   FaTable,
   FaMapMarkedAlt,
-  FaMapMarkerAlt
+  FaMapMarkerAlt,
+  FaBullseye,
+  FaExpand
 } from 'react-icons/fa';
 
 // Team & Skills Icons

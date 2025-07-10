@@ -3,143 +3,192 @@
 import React, { useState } from 'react'
 import { Card } from "@/components/ui/card"
 import { FaBrain, FaLeaf, FaBuilding, FaExclamationTriangle, FaChartLine, FaMapMarkedAlt } from '@/lib/icons'
-import CropEnvironmentView from '@/components/ai-intelligence/CropEnvironmentView'
-import OperationalBusinessView from '@/components/ai-intelligence/OperationalBusinessView'
-import RiskIncidentView from '@/components/ai-intelligence/RiskIncidentView'
-import DashboardsForecastingView from '@/components/ai-intelligence/DashboardsForecastingView'
-import HeatmapsView from '@/components/ai-intelligence/HeatmapsView'
+import { 
+  CropEnvironmentView, 
+  OperationalBusinessView, 
+  RiskIncidentView, 
+  DashboardsForecastingView, 
+  HeatmapsView 
+} from '@/components/features/intelligence';
+import { BeakerIcon, ChartBarIcon, EyeIcon, BoltIcon } from '@heroicons/react/24/outline'
+import { EmptyStateWithIntegrations, IntegrationHint } from '@/components/features/automation';
+import { AI_INTEGRATIONS, INTEGRATION_MESSAGES, INTEGRATION_CONTEXTS } from '@/lib/integrations/constants'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { FarmControlButton } from '@/components/ui/farm-control-button'
+import { usePageData } from '@/components/shared/hooks/usePageData';
+import { MetricsGrid } from '@/components/shared/metrics';
 
 const tabs = [
   {
     id: 'crop-environment',
     label: 'Crop & Environment Intelligence',
-    icon: <FaLeaf className="text-green-600" />,
+    icon: <FaLeaf className="text-sensor-value gradient-icon" />,
     component: CropEnvironmentView
   },
   {
     id: 'operational-business',
     label: 'Operational & Business Intelligence',
-    icon: <FaBuilding className="text-blue-600" />,
+    icon: <FaBuilding className="text-control-label gradient-icon" />,
     component: OperationalBusinessView
   },
   {
     id: 'risk-incident',
     label: 'Risk & Incident Detection',
-    icon: <FaExclamationTriangle className="text-red-600" />,
+    icon: <FaExclamationTriangle className="text-control-secondary gradient-icon" />,
     component: RiskIncidentView
   },
   {
     id: 'dashboards-forecasting',
     label: 'Dashboards & Forecasting',
-    icon: <FaChartLine className="text-purple-600" />,
+    icon: <FaChartLine className="text-farm-accent gradient-icon" />,
     component: DashboardsForecastingView
   },
   {
     id: 'heatmaps',
     label: 'Operations Heatmaps',
-    icon: <FaMapMarkedAlt className="text-orange-600" />,
+    icon: <FaMapMarkedAlt className="text-control-secondary gradient-icon" />,
     component: HeatmapsView
   }
 ]
 
-export default function AIPage() {
+// Mock data to simulate existing AI data
+interface AIData {
+  analysisRuns: number;
+  predictions: number;
+  insights: number;
+  hasData: boolean;
+}
+
+const AIPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('crop-environment')
+
+  // Use our standardized data loading hook
+  const { data: aiData, isLoading } = usePageData<AIData>({
+    storageKey: 'ai-integrations-connected',
+    mockData: {
+      analysisRuns: 24,
+      predictions: 12,
+      insights: 6,
+      hasData: true
+    }
+  });
 
   const activeTabData = tabs.find(tab => tab.id === activeTab)
   const ActiveComponent = activeTabData?.component
 
+  const handleConnectIntegration = (integrationName: string) => {
+    console.log(`Connecting to ${integrationName}...`);
+    // This would typically redirect to integration setup
+    window.location.href = `/integrations/${integrationName.toLowerCase().replace(/\s+/g, '-')}`;
+  };
+
+  const aiIntegrationsWithHandlers = AI_INTEGRATIONS.map(integration => ({
+    ...integration,
+    onConnect: () => handleConnectIntegration(integration.name)
+  }));
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-accent"></div>
+      </div>
+    );
+  }
+
+  // Show empty state if no AI data
+  if (!aiData?.hasData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="AI Insights & Analytics"
+          description="Leverage artificial intelligence for crop analysis, yield predictions, and growth optimization."
+        />
+
+        <EmptyStateWithIntegrations
+          pageType="ai"
+          title="Unlock AI-Powered Farming"
+          description="Connect AI platforms to enable intelligent crop analysis, predictive insights, and automated recommendations for optimal growth."
+          integrations={aiIntegrationsWithHandlers}
+        />
+      </div>
+    );
+  }
+
+  // Show dashboard with integration hints
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <FaBrain className="text-3xl text-purple-600" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            AI Intelligence Center
-          </h1>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="AI Insights & Analytics"
+        description="Leverage artificial intelligence for crop analysis, yield predictions, and growth optimization."
+      />
+
+      {/* Integration Hint */}
+      <IntegrationHint
+        message={INTEGRATION_MESSAGES.ai}
+        integrations={['OpenAI', 'Anthropic Claude', 'Google AI', 'Perplexity AI']}
+        pageContext={INTEGRATION_CONTEXTS.ai}
+        variant="info"
+      />
+
+      {/* Standardized AI Metrics using MetricsGrid */}
+      <MetricsGrid 
+        columns={3}
+        metrics={[
+          {
+            id: 'analysis-runs',
+            label: 'Analysis Runs',
+            value: aiData?.analysisRuns?.toString() || "0",
+            icon: BeakerIcon,
+            stateClass: 'state-active',
+            iconColor: 'h-6 w-6 text-control-label gradient-icon'
+          },
+          {
+            id: 'predictions',
+            label: 'Predictions Generated',
+            value: aiData?.predictions?.toString() || "0", 
+            icon: ChartBarIcon,
+            stateClass: 'state-active',
+            iconColor: 'h-6 w-6 text-control-label gradient-icon'
+          },
+          {
+            id: 'insights',
+            label: 'Active Insights',
+            value: aiData?.insights?.toString() || "0",
+            icon: EyeIcon,
+            stateClass: 'state-active',
+            iconColor: 'h-6 w-6 text-control-label gradient-icon'
+          }
+        ]}
+      />
+
+      {/* Intelligence Modules Navigation */}
+      <div className="bg-farm-white card-shadow rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tabs.map((tab) => (
+            <FarmControlButton
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              variant={activeTab === tab.id ? 'primary' : 'default'}
+              className="flex flex-col items-center gap-3 p-6 h-auto"
+            >
+              <div className="text-2xl">{tab.icon}</div>
+              <span className="text-control-label text-center leading-tight">
+                {tab.label}
+              </span>
+            </FarmControlButton>
+          ))}
         </div>
-        <p className="text-gray-600 dark:text-gray-400">
-          Advanced AI-powered insights and analytics for optimal vertical farm operations
-        </p>
       </div>
 
-      {/* AI Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <FaLeaf className="text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">94%</p>
-              <p className="text-sm text-gray-600">Crop Health Score</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FaBuilding className="text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">87%</p>
-              <p className="text-sm text-gray-600">Operational Efficiency</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <FaExclamationTriangle className="text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">2</p>
-              <p className="text-sm text-gray-600">Active Alerts</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <FaChartLine className="text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">+12%</p>
-              <p className="text-sm text-gray-600">Predicted Growth</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Tab Navigation */}
-      <Card className="mb-6">
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-green-500 text-green-600 dark:text-green-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </nav>
+      {/* Active Intelligence Module Content */}
+      <Card className="bg-farm-white card-shadow">
+        <div className="p-6">
+          {ActiveComponent && <ActiveComponent />}
         </div>
       </Card>
-
-      {/* Tab Content */}
-      <div className="min-h-[600px]">
-        {ActiveComponent && <ActiveComponent />}
-      </div>
     </div>
   )
-} 
+}
+
+export default AIPage 

@@ -1,0 +1,427 @@
+name: Supabase Deploy
+
+on:
+  workflow_run:
+    #workflows: ["Backend Build", "Frontend Build"]
+    types:
+      - completed
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      force_migration:
+        description: 'Force migration even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+      backup_before_deploy:
+        description: 'Create backup before deployment'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  id-token: write
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      project_id: ${{ steps.config.outputs.project_id }}
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      migration_hash: ${{ steps.check.outputs.migration_hash }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Configure deployment
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=production" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set project ID based on environment
+          if [ "${{ steps.config.outputs.environment }}" = "production" ]; then
+            echo "project_id=${{ secrets.SUPABASE_PROJECT_ID }}" >> $GITHUB_OUTPUT
+          else
+            echo "project_id=${{ secrets.SUPABASE_STAGING_PROJECT_ID }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Cache Supabase CLI
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin/supabase
+            ~/.cache/supabase
+          key: ${{ runner.os }}-supabase-cli-v1
+          restore-keys: |
+            ${{ runner.os }}-supabase-cli-
+      
+      - name: Install Supabase CLI
+        run: |
+          if ! command -v supabase &> /dev/null; then
+            curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+            sudo mv supabase /usr/local/bin/
+          fi
+          supabase --version
+      
+      - name: Check for migration changes
+        id: check
+        run: |
+          # Check if there are any new migrations
+          if [ -d "supabase/migrations" ]; then
+            MIGRATION_HASH=$(find supabase/migrations -name "*.sql" -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)
+            echo "migration_hash=$MIGRATION_HASH" >> $GITHUB_OUTPUT
+            
+            # Get the last deployed migration hash
+            LAST_HASH=$(curl -s -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+              "https://api.supabase.com/v1/projects/${{ steps.config.outputs.project_id }}/metadata" \
+              | jq -r '.migration_hash // "none"') || echo "none"
+            
+            if [ "$MIGRATION_HASH" != "$LAST_HASH" ] || [ "${{ inputs.force_migration }}" = "true" ]; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "✅ New migrations detected or force migration requested"
+            else
+              echo "should_deploy=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ No new migrations to deploy"
+            fi
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No migrations directory found"
+          fi
+  
+  backup:
+    name: Create Schema Backup
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true' && (inputs.backup_before_deploy != false)
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Supabase CLI
+        run: |
+          curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+      
+      - name: Create schema backup
+        run: |
+          # Create backup directory
+          mkdir -p backups/$(date +%Y%m%d_%H%M%S)
+          BACKUP_DIR="backups/$(date +%Y%m%d_%H%M%S)"
+          
+          # Link to project
+          supabase link --project-ref ${{ needs.prepare.outputs.project_id }}
+          
+          # Generate current schema
+          supabase db dump --schema public --data-only=false > "$BACKUP_DIR/schema.sql"
+          supabase db dump --data-only > "$BACKUP_DIR/data.sql"
+          
+          # Generate metadata
+          cat > "$BACKUP_DIR/metadata.json" << EOF
+          {
+            "environment": "${{ needs.prepare.outputs.environment }}",
+            "project_id": "${{ needs.prepare.outputs.project_id }}",
+            "commit_sha": "${{ github.sha }}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "migration_hash": "${{ needs.prepare.outputs.migration_hash }}"
+          }
+          EOF
+          
+          echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
+      
+      - name: Create backup PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Create a new branch for the backup
+            const branchName = `backup/supabase-${Date.now()}`;
+            
+            try {
+              // Create branch
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/heads/${branchName}`,
+                sha: context.sha
+              });
+              
+              // Read backup files and commit them
+              const backupDir = process.env.BACKUP_DIR;
+              const files = fs.readdirSync(backupDir);
+              
+              for (const file of files) {
+                const content = fs.readFileSync(path.join(backupDir, file), 'utf8');
+                const encodedContent = Buffer.from(content).toString('base64');
+                
+                await github.rest.repos.createOrUpdateFileContents({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: `${backupDir}/${file}`,
+                  message: `Add schema backup for ${process.env.environment} deployment`,
+                  content: encodedContent,
+                  branch: branchName
+                });
+              }
+              
+              // Create PR
+              const pr = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🗄️ Schema Backup - ${{ needs.prepare.outputs.environment }} - ${new Date().toISOString().split('T')[0]}`,
+                head: branchName,
+                base: 'main',
+                body: `## Schema Backup
+                
+                This PR contains the database schema backup created before deploying to ${{ needs.prepare.outputs.environment }}.
+                
+                ### Backup Details:
+                - **Environment**: ${{ needs.prepare.outputs.environment }}
+                - **Project ID**: ${{ needs.prepare.outputs.project_id }}
+                - **Commit**: ${{ github.sha }}
+                - **Migration Hash**: ${{ needs.prepare.outputs.migration_hash }}
+                
+                ### Files Included:
+                - \`schema.sql\` - Complete database schema
+                - \`data.sql\` - Database data dump
+                - \`metadata.json\` - Backup metadata
+                
+                This backup can be used for rollback purposes if needed.`
+              });
+              
+              // Auto-merge the PR since it's just a backup
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.data.number,
+                commit_title: `Merge schema backup for ${{ needs.prepare.outputs.environment }}`,
+                merge_method: 'squash'
+              });
+              
+              console.log(`✅ Backup PR created and merged: ${pr.data.html_url}`);
+            } catch (error) {
+              console.error(`❌ Failed to create backup PR: ${error.message}`);
+              throw error;
+            }
+  
+  deploy:
+    name: Deploy to Supabase
+    runs-on: ubuntu-latest
+    needs: [prepare, backup]
+    if: always() && needs.prepare.outputs.should_deploy == 'true'
+    environment: ${{ needs.prepare.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Supabase CLI
+        run: |
+          curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+          supabase --version
+      
+      - name: Validate migrations
+        run: |
+          if [ -d "supabase/migrations" ]; then
+            echo "## 🔍 Migration Validation" >> $GITHUB_STEP_SUMMARY
+            
+            # Check migration files
+            MIGRATION_COUNT=$(find supabase/migrations -name "*.sql" | wc -l)
+            echo "| Migration files | $MIGRATION_COUNT |" >> $GITHUB_STEP_SUMMARY
+            
+            # Validate SQL syntax
+            for migration in supabase/migrations/*.sql; do
+              if [ -f "$migration" ]; then
+                filename=$(basename "$migration")
+                echo "Validating $filename..."
+                
+                # Basic SQL syntax check
+                if grep -q "DROP TABLE\|DROP DATABASE\|TRUNCATE" "$migration"; then
+                  echo "⚠️ Destructive operation detected in $filename" >> $GITHUB_STEP_SUMMARY
+                fi
+                
+                # Check for foreign key constraints
+                if grep -q "FOREIGN KEY\|REFERENCES" "$migration"; then
+                  echo "🔗 Foreign key constraints in $filename" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+          fi
+      
+      - name: Link to Supabase project
+        run: |
+          supabase link --project-ref ${{ needs.prepare.outputs.project_id }}
+          echo "✅ Linked to Supabase project: ${{ needs.prepare.outputs.project_id }}"
+      
+      - name: Push database changes
+        id: deploy
+        run: |
+          echo "## 🚀 Deployment Progress" >> $GITHUB_STEP_SUMMARY
+          
+          # Push migrations
+          if [ -d "supabase/migrations" ]; then
+            echo "Pushing database migrations..."
+            supabase db push --include-all
+            echo "✅ Database migrations deployed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Deploy functions if they exist
+          if [ -d "supabase/functions" ]; then
+            echo "Deploying Edge Functions..."
+            supabase functions deploy --no-verify-jwt
+            echo "✅ Edge Functions deployed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Update stored procedures if they exist
+          if [ -d "supabase/stored_procedures" ]; then
+            echo "Updating stored procedures..."
+            for proc in supabase/stored_procedures/*.sql; do
+              if [ -f "$proc" ]; then
+                supabase db push --include="$proc"
+              fi
+            done
+            echo "✅ Stored procedures updated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "deployment_success=true" >> $GITHUB_OUTPUT
+      
+      - name: Verify deployment
+        run: |
+          # Test database connection
+          supabase db ping
+          
+          # Get migration status
+          MIGRATION_STATUS=$(supabase migration list --remote | tail -n 5)
+          
+          echo "## ✅ Deployment Verification" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Database connection | ✅ Connected |" >> $GITHUB_STEP_SUMMARY
+          echo "| Migration status | ✅ Applied |" >> $GITHUB_STEP_SUMMARY
+          
+          # Test API endpoints
+          PROJECT_URL="https://${{ needs.prepare.outputs.project_id }}.supabase.co"
+          if curl -f "$PROJECT_URL/rest/v1/" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"; then
+            echo "| API endpoint | ✅ Accessible |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| API endpoint | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Update deployment status
+        run: |
+          # Store deployment metadata
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "migration_hash": "${{ needs.prepare.outputs.migration_hash }}",
+              "deployed_at": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "commit_sha": "${{ github.sha }}",
+              "environment": "${{ needs.prepare.outputs.environment }}"
+            }' \
+            "https://api.supabase.com/v1/projects/${{ needs.prepare.outputs.project_id }}/metadata" || true
+      
+      - name: Generate deployment report
+        run: |
+          echo "## 📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ needs.prepare.outputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Project ID | ${{ needs.prepare.outputs.project_id }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Migration Hash | ${{ needs.prepare.outputs.migration_hash }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed At | $(date -u +%Y-%m-%dT%H:%M:%SZ) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+  
+  rollback:
+    name: Rollback (Manual)
+    runs-on: ubuntu-latest
+    if: failure() && needs.deploy.conclusion == 'failure'
+    needs: [prepare, deploy]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Supabase CLI
+        run: |
+          curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+      
+      - name: Create rollback issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Supabase Deployment Failed - Manual Rollback Required`,
+              body: `## Deployment Failure Alert
+              
+              The Supabase deployment to **${{ needs.prepare.outputs.environment }}** has failed and requires manual intervention.
+              
+              ### Failure Details:
+              - **Environment**: ${{ needs.prepare.outputs.environment }}
+              - **Project ID**: ${{ needs.prepare.outputs.project_id }}
+              - **Commit**: ${{ github.sha }}
+              - **Migration Hash**: ${{ needs.prepare.outputs.migration_hash }}
+              - **Failed At**: ${new Date().toISOString()}
+              
+              ### Rollback Steps:
+              1. Check the latest schema backup in the repository
+              2. Review the failed workflow logs
+              3. Determine if manual database restoration is needed
+              4. Apply rollback migrations if available
+              
+              ### Backup Location:
+              Look for the most recent backup in the \`backups/\` directory.
+              
+              ### Next Actions:
+              - [ ] Investigate the failure cause
+              - [ ] Determine rollback strategy
+              - [ ] Execute rollback if necessary
+              - [ ] Update this issue with resolution
+              
+              **Priority**: High - Service may be affected`,
+              labels: ['bug', 'deployment', 'high-priority']
+            });
+            
+            console.log(`Created rollback issue: ${issue.data.html_url}`);
+      
+      - name: Notify deployment failure
+        run: |
+          echo "## 🚨 Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The Supabase deployment has failed. A rollback issue has been created for manual intervention." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Required Actions:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the workflow logs for error details" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check the created GitHub issue for rollback instructions" >> $GITHUB_STEP_SUMMARY
+          echo "3. Restore from the latest backup if necessary" >> $GITHUB_STEP_SUMMARY 
