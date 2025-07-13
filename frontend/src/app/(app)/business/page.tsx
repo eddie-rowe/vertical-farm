@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataChart } from '@/components/features/business';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FarmControlButton } from '@/components/ui/farm-control-button';
@@ -44,6 +45,10 @@ import { EmptyStateWithIntegrations } from '@/components/features/automation';
 
 // Import Square service
 import { squareService, SquareConfig } from '@/services/squareService';
+
+// Import loading components
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
 
 // Business data interface
 interface BusinessData {
@@ -163,9 +168,7 @@ const BusinessPage: React.FC = () => {
           title="Business Management"
           description="Track sales, manage customers, and grow your vertical farming business."
         />
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-farm-accent"></div>
-        </div>
+        <LoadingCard message="Loading Square configuration..." />
       </div>
     );
   }
@@ -336,19 +339,31 @@ const BusinessPage: React.FC = () => {
           </div>
 
           {/* Recent Orders */}
-          <div className="bg-farm-white card-shadow rounded-lg p-6 state-active">
-            <h3 className="text-lg font-medium text-farm-title mb-4">Recent Orders</h3>
+          <div className="bg-farm-white card-shadow rounded-lg p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-lg font-medium text-farm-title">Recent Orders</h3>
+              <StatusBadge status="success" size="sm">Active</StatusBadge>
+            </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
-                <span className="text-sm text-control-label">Mixed Greens Box - Sarah Johnson</span>
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-control-label">Mixed Greens Box - Sarah Johnson</span>
+                  <StatusBadge status="processing" size="sm">Processing</StatusBadge>
+                </div>
                 <span className="text-sm font-medium text-sensor-value">$24.99</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
-                <span className="text-sm text-control-label">Microgreens Variety Pack - Mike Chen</span>
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-control-label">Microgreens Variety Pack - Mike Chen</span>
+                  <StatusBadge status="processing" size="sm">Processing</StatusBadge>
+                </div>
                 <span className="text-sm font-medium text-sensor-value">$18.50</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg state-growing">
-                <span className="text-sm text-control-label">Fresh Herbs Bundle - Lisa Rodriguez</span>
+              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-control-label">Fresh Herbs Bundle - Lisa Rodriguez</span>
+                  <StatusBadge status="processing" size="sm">Processing</StatusBadge>
+                </div>
                 <span className="text-sm font-medium text-sensor-value">$15.75</span>
               </div>
             </div>

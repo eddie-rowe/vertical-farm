@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,11 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter'
+import { useFarmSearch, useFarmFilters } from '@/hooks'
+
 import { 
   BookOpen, 
   Plus, 
@@ -214,25 +219,95 @@ const SAMPLE_RECIPES: Recipe[] = [
 
 export const RecipeManagementPage: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>(SAMPLE_RECIPES)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterCrop, setFilterCrop] = useState<string>('all')
-  const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<string>('name')
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<Recipe>({
+    searchFields: ['name', 'description', 'cropType'],
+    caseSensitive: false
+  });
 
-  // Filter and sort recipes
-  const filteredRecipes = recipes
-    .filter(recipe => {
-      const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          recipe.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          recipe.cropType.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCrop = filterCrop === 'all' || recipe.cropType === filterCrop
-      const matchesDifficulty = filterDifficulty === 'all' || recipe.difficulty === filterDifficulty
-      
-      return matchesSearch && matchesCrop && matchesDifficulty
-    })
-    .sort((a, b) => {
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<Recipe>();
+
+  // Keep sorting separate from search/filter
+  const [sortBy, setSortBy] = useState<string>('name')
+
+  // ✅ NEW: Dynamic crop types for filter options
+  const cropTypes = useMemo(() => 
+    [...new Set(recipes.map(r => r.cropType))], 
+    [recipes]
+  );
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'cropType',
+      label: 'Crop Type',
+      placeholder: 'Filter by crop type',
+      options: [
+        { value: 'all', label: 'All Crops' },
+        ...cropTypes.map(crop => ({
+          value: crop,
+          label: crop.charAt(0).toUpperCase() + crop.slice(1)
+        }))
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      placeholder: 'Filter by difficulty',
+      options: [
+        { value: 'all', label: 'All Levels' },
+        { value: 'beginner', label: 'Beginner' },
+        { value: 'intermediate', label: 'Intermediate' },
+        { value: 'advanced', label: 'Advanced' }
+      ],
+      defaultValue: 'all'
+    }
+  ], [cropTypes]);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  // ✅ NEW: Handle filter chip removal
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Apply combined filtering and sorting
+  const filteredRecipes = useMemo(() => {
+    let result = recipes;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    // Apply sorting (kept separate from search/filter)
+    result = result.sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name)
@@ -247,9 +322,10 @@ export const RecipeManagementPage: React.FC = () => {
         default:
           return 0
       }
-    })
-
-  const cropTypes = [...new Set(recipes.map(r => r.cropType))]
+    });
+    
+    return result;
+  }, [recipes, searchFilterItems, filterFilterItems, sortBy]);
 
   const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedRecipe(recipe)}>
@@ -323,59 +399,50 @@ export const RecipeManagementPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-wrap gap-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-          <div className="flex-1 min-w-[300px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Search recipes, crops, or descriptions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        {/* ✅ NEW: Standardized Search and Filter Component */}
+        <Card>
+          <CardContent className="pt-4">
+            <FarmSearchAndFilter
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchContext="recipes, crops, or descriptions"
+              searchPlaceholder="Search recipes by name, crop type, or description..."
+              filters={filterDefinitions}
+              activeFilters={getActiveFilterChips(filterDefinitions)}
+              onFilterChange={handleFilterChange}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={clearAllFilters}
+              orientation="horizontal"
+              showFilterChips={true}
+            />
+            
+            {/* Keep sorting separate */}
+            <div className="flex items-center justify-between mt-4">
+              {/* Results summary */}
+              {(hasSearch || hasActiveFilters) && (
+                <p className="text-sm text-gray-600">
+                  Showing {filteredRecipes.length} of {recipes.length} recipes
+                </p>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Sort by:</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                    <SelectItem value="usage">Usage Count</SelectItem>
+                    <SelectItem value="duration">Duration</SelectItem>
+                    <SelectItem value="created">Date Created</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          
-          <Select value={filterCrop} onValueChange={setFilterCrop}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Crop Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Crops</SelectItem>
-              {cropTypes.map(crop => (
-                <SelectItem key={crop} value={crop} className="capitalize">
-                  {crop}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Sort By" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="rating">Rating</SelectItem>
-              <SelectItem value="usage">Usage Count</SelectItem>
-              <SelectItem value="duration">Duration</SelectItem>
-              <SelectItem value="created">Date Created</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recipe Grid */}
@@ -393,8 +460,16 @@ export const RecipeManagementPage: React.FC = () => {
             No recipes found
           </h3>
           <p className="text-slate-500 dark:text-slate-400 mb-6">
-            Try adjusting your search or create a new recipe to get started
+            {hasSearch || hasActiveFilters 
+              ? "Try adjusting your search or filters to find more recipes"
+              : "Try adjusting your search or create a new recipe to get started"
+            }
           </p>
+          {(hasSearch || hasActiveFilters) ? (
+            <Button onClick={() => { clearSearch(); clearAllFilters(); }} variant="outline" className="gap-2 mr-2">
+              Clear all filters
+            </Button>
+          ) : null}
           <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
             Create Your First Recipe

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
-  Search, 
+  Search,
   Filter, 
   Download, 
   Eye, 
@@ -21,14 +21,16 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { HADevice, ImportedDevice } from '@/services/homeAssistantService';
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 interface DeviceManagementTabProps {
   devices: HADevice[];
@@ -49,13 +51,31 @@ export const DeviceManagementTab: React.FC<DeviceManagementTabProps> = ({
   onBulkImportDevices,
   onControlDevice
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>('all');
-  const [stateFilter, setStateFilter] = useState<string>('all');
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<HADevice>({
+    searchFields: ['friendly_name', 'entity_id'],
+    caseSensitive: false
+  });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<HADevice>();
+
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set());
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [showOnlyUnimported, setShowOnlyUnimported] = useState(false);
 
   // Get unique device types for filter
   const deviceTypes = useMemo(() => {
@@ -63,24 +83,79 @@ export const DeviceManagementTab: React.FC<DeviceManagementTabProps> = ({
     return Array.from(types).sort();
   }, [devices]);
 
-  // Filter devices based on search and filters
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'device_class',
+      label: 'Device Type',
+      placeholder: 'Filter by type',
+      options: [
+        { value: 'all', label: 'All Types' },
+        ...deviceTypes.map(type => ({
+          value: type,
+          label: type.charAt(0).toUpperCase() + type.slice(1)
+        }))
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'state',
+      label: 'State',
+      placeholder: 'Filter by state',
+      options: [
+        { value: 'all', label: 'All States' },
+        { value: 'on', label: 'On' },
+        { value: 'off', label: 'Off' },
+        { value: 'unavailable', label: 'Unavailable' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'import_status',
+      label: 'Import Status',
+      placeholder: 'Filter by import status',
+      options: [
+        { value: 'all', label: 'All Devices' },
+        { value: 'imported', label: 'Imported Only' },
+        { value: 'unimported', label: 'Unimported Only' }
+      ],
+      defaultValue: 'all'
+    }
+  ], [deviceTypes]);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Custom filter function for import status
+  const customFilterFn = useCallback((device: HADevice) => {
+    const importStatusFilter = filters.find(f => f.id === 'import_status')?.value;
+    if (importStatusFilter) {
+      const isImported = importedDevices.some(imported => imported.entity_id === device.entity_id);
+      if (importStatusFilter === 'imported' && !isImported) return false;
+      if (importStatusFilter === 'unimported' && isImported) return false;
+    }
+    return true;
+  }, [filters, importedDevices]);
+
+  // ✅ NEW: Apply search and filters using standardized system
   const filteredDevices = useMemo(() => {
-    return devices.filter(device => {
-      const matchesSearch = !searchTerm || 
-        device.friendly_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.entity_id.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesType = deviceTypeFilter === 'all' || 
-        (device.device_class || 'other') === deviceTypeFilter;
-      
-      const matchesState = stateFilter === 'all' || device.state === stateFilter;
-      
-      const matchesImportFilter = !showOnlyUnimported || 
-        !importedDevices.some(imported => imported.entity_id === device.entity_id);
-      
-      return matchesSearch && matchesType && matchesState && matchesImportFilter;
-    });
-  }, [devices, searchTerm, deviceTypeFilter, stateFilter, showOnlyUnimported, importedDevices]);
+    let result = devices;
+    result = searchFilterItems(result);
+    result = filterFilterItems(result);
+    // Apply custom import status filter
+    result = result.filter(customFilterFn);
+    return result;
+  }, [devices, searchFilterItems, filterFilterItems, customFilterFn]);
 
   const handleDiscoverDevices = async () => {
     setIsDiscovering(true);
@@ -206,72 +281,46 @@ export const DeviceManagementTab: React.FC<DeviceManagementTabProps> = ({
       {/* Filters and Search */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="space-y-2">
-              <Label htmlFor="search">Search Devices</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  id="search"
-                  placeholder="Search by name or entity ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            {/* ✅ NEW: Standardized Search and Filter Component */}
+            <div className="space-y-4">
+              <FarmSearchAndFilter
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchContext="Home Assistant devices"
+                searchPlaceholder="Search by name or entity ID..."
+                filters={filterDefinitions}
+                activeFilters={getActiveFilterChips(filterDefinitions)}
+                onFilterChange={handleFilterChange}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAllFilters={clearAllFilters}
+                orientation="horizontal"
+                showFilterChips={true}
+              />
+
+              {/* ✅ NEW: Results Summary */}
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <span>
+                  Showing {filteredDevices.length} of {devices.length} device{devices.length !== 1 ? 's' : ''}
+                  {hasSearch && ` matching "${searchTerm}"`}
+                  {hasActiveFilters && ` with active filters`}
+                </span>
+                
+                {(hasSearch || hasActiveFilters) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      clearSearch();
+                      clearAllFilters();
+                    }}
+                    className="text-orange-600 hover:text-orange-700"
+                  >
+                    Clear all
+                  </Button>
+                )}
               </div>
             </div>
-
-            {/* Device Type Filter */}
-            <div className="space-y-2">
-              <Label>Device Type</Label>
-              <Select value={deviceTypeFilter} onValueChange={setDeviceTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {deviceTypes.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* State Filter */}
-            <div className="space-y-2">
-              <Label>State</Label>
-              <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All states" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All States</SelectItem>
-                  <SelectItem value="on">On</SelectItem>
-                  <SelectItem value="off">Off</SelectItem>
-                  <SelectItem value="unavailable">Unavailable</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Import Filter */}
-            <div className="space-y-2">
-              <Label>Filter</Label>
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox
-                  id="unimported"
-                  checked={showOnlyUnimported}
-                  onCheckedChange={(checked) => setShowOnlyUnimported(checked === true)}
-                />
-                <Label htmlFor="unimported" className="text-sm">
-                  Show only unimported
-                </Label>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+          </CardContent>
       </Card>
 
       {/* Device Tabs */}

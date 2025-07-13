@@ -1,4 +1,11 @@
-// Automation Domain - Device management and integrations
-export * from './integrations';
+// Automation Domain - Device automation and IoT integrations
+// Comprehensive automation system for device control and management
+
+// Device overlay and visualization
+export * from './device-layer';
+
+// Home Assistant automation
 export * from './home-assistant';
-export * from './device-layer'; 
+
+// Device integration utilities
+export * from './integrations'; 

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export interface DataTableColumn<T> {
   key: keyof T;
@@ -99,7 +100,7 @@ export default function DataTable<T extends { id: string | number }>({ data, col
       {selectedRows.size > 0 && (
         <div className="p-4 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-4 items-center">
           <span>{selectedRows.size} selected</span>
-          <button className="btn-animated bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded" onClick={() => setSelectedRows(new Set())}>Clear</button>
+                          <Button variant="destructive" size="sm" onClick={() => setSelectedRows(new Set())}>Clear</Button>
           {/* Add more bulk actions here */}
         </div>
       )}

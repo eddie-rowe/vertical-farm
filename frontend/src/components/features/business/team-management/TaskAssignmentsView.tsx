@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Plus, 
   User, 
   Clock, 
@@ -17,6 +15,9 @@ import {
   Edit,
   Eye
 } from "lucide-react";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 // Mock data for task assignments
 const taskData = {
@@ -95,10 +96,75 @@ const taskData = {
   ]
 };
 
+type TaskAssignment = typeof taskData.assignments[0];
+
 export default function TaskAssignmentsView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<TaskAssignment>({
+    searchFields: ['taskName', 'assignedTo', 'location', 'description'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<TaskAssignment>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'priority',
+      label: 'Priority',
+      placeholder: 'Filter by priority...',
+      options: [
+        { value: 'high', label: 'High' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'low', label: 'Low' }
+      ]
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'scheduled', label: 'Scheduled' },
+        { value: 'in-progress', label: 'In Progress' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'overdue', label: 'Overdue' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredAssignments = useMemo(() => {
+    let result = taskData.assignments;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -123,18 +189,10 @@ export default function TaskAssignmentsView() {
     switch (status) {
       case "completed": return <CheckCircle className="h-4 w-4" />;
       case "overdue": return <AlertCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "in-progress": return <Clock className="h-4 w-4" />;
+      default: return <Calendar className="h-4 w-4" />;
     }
   };
-
-  const filteredTasks = taskData.assignments.filter(task => {
-    const matchesSearch = task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
-    return matchesSearch && matchesPriority && matchesStatus;
-  });
 
   return (
     <div className="space-y-6">
@@ -204,105 +262,123 @@ export default function TaskAssignmentsView() {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search tasks, employees, or locations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-3 py-2 border rounded-md bg-background"
-        >
-          <option value="all">All Priorities</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border rounded-md bg-background"
-        >
-          <option value="all">All Status</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="overdue">Overdue</option>
-        </select>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search tasks, employees, or locations..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <span>
+          Showing {filteredAssignments.length} of {taskData.assignments.length} tasks
+        </span>
+        {(hasSearch || hasActiveFilters) && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              clearSearch();
+              clearAllFilters();
+            }}
+          >
+            Clear all filters
+          </Button>
+        )}
       </div>
 
       {/* Tasks Grid */}
-      <div className="grid gap-4">
-        {filteredTasks.map((task) => (
-          <Card key={task.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-semibold text-lg">{task.taskName}</h4>
-                    <Badge className={getPriorityColor(task.priority)}>
-                      {task.priority}
-                    </Badge>
-                    <Badge className={`${getStatusColor(task.status)} flex items-center gap-1`}>
-                      {getStatusIcon(task.status)}
-                      {task.status.replace('-', ' ')}
-                    </Badge>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{task.description}</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span>{task.assignedTo}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>{task.actualHours}h / {task.estimatedHours}h</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{task.location}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <p className="text-sm font-medium mb-1">Required Skills:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {task.skills.map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+      <div className="space-y-4">
+        {filteredAssignments.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                No Tasks Found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {taskData.assignments.length === 0 
+                  ? "No task assignments available." 
+                  : "No tasks match your current search and filters."}
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredAssignments.map((task) => (
+            <Card key={task.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-lg font-semibold">{task.taskName}</h3>
+                      <Badge className={getPriorityColor(task.priority)}>
+                        {task.priority.toUpperCase()}
+                      </Badge>
+                      <Badge className={getStatusColor(task.status)}>
+                        {getStatusIcon(task.status)}
+                        <span className="ml-1">{task.status.replace('-', ' ')}</span>
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Assigned To</p>
+                        <p className="font-medium">{task.assignedTo}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Due Date</p>
+                        <p className="font-medium">{new Date(task.dueDate).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Location</p>
+                        <p className="font-medium">{task.location}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Progress</p>
+                        <p className="font-medium">
+                          {task.actualHours}h / {task.estimatedHours}h
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
+                      <p className="text-sm">{task.description}</p>
+                      
+                      {task.skills && task.skills.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Required Skills</p>
+                          <div className="flex gap-1 flex-wrap">
+                            {task.skills.map((skill, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 ml-4">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

@@ -5,10 +5,13 @@ import { FaHome, FaPlug, FaCheck, FaExclamationTriangle, FaCog, FaCreditCard, Fa
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FarmControlButton } from '@/components/ui/farm-control-button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import Link from 'next/link';
 import { homeAssistantService, HAConnectionStatus } from '@/services/homeAssistantService';
 import { squareService, SquareConnectionStatus } from '@/services/squareService';
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonIntegrationsPage } from '@/components/ui/skeleton-extended';
 
 interface Integration {
   id: string;
@@ -136,25 +139,19 @@ export default function IntegrationsPage() {
     }
   };
 
-  const getStatusBadge = (status: Integration['status']) => {
+  const getStatusType = (status: Integration['status']): 'online' | 'offline' | 'warning' | 'error' => {
     switch (status) {
       case 'connected':
-        return <Badge className="bg-sensor-bg text-sensor-value border-sensor-value">Connected</Badge>;
+        return 'online';
       case 'error':
-        return <Badge className="bg-control-secondary/10 text-control-secondary border-control-secondary">Error</Badge>;
+        return 'error';
       default:
-        return <Badge className="bg-farm-muted text-control-tertiary border-control-tertiary">Not Connected</Badge>;
+        return 'offline';
     }
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-farm-accent"></div>
-        </div>
-      </div>
-    );
+    return <SkeletonIntegrationsPage />;
   }
 
   return (
@@ -181,7 +178,10 @@ export default function IntegrationsPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(integration.status)}
-                  {getStatusBadge(integration.status)}
+                  <StatusBadge status={getStatusType(integration.status)}>
+                    {integration.status === 'connected' ? 'Connected' : 
+                     integration.status === 'error' ? 'Error' : 'Not Connected'}
+                  </StatusBadge>
                 </div>
               </div>
               <CardDescription className="mt-2 text-control-secondary">

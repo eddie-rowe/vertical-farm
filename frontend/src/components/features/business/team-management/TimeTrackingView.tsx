@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Plus, 
   User, 
   Clock, 
@@ -18,6 +16,14 @@ import {
   BarChart3,
   Download
 } from "lucide-react";
+
+// ✅ NEW: Import standardized search and filter components
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+
+// ❌ OLD: Manual search and filter imports
+// import { Input } from "@/components/ui/input";
+// import { Search } from "lucide-react";
 
 // Mock data for time tracking
 const timeData = {
@@ -119,8 +125,64 @@ const timeData = {
 };
 
 export default function TimeTrackingView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<typeof timeData.employees[0]>({
+    searchFields: ['name', 'role', 'currentTask'],
+    caseSensitive: false
+  });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<typeof timeData.employees[0]>();
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'working', label: 'Working' },
+        { value: 'break', label: 'On Break' },
+        { value: 'completed', label: 'Completed' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Combined filtering using both search and filters
+  const filteredEmployees = useMemo(() => {
+    let result = timeData.employees;
+    result = searchFilterItems(result);
+    result = filterFilterItems(result);
+    return result;
+  }, [timeData.employees, searchFilterItems, filterFilterItems]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,14 +211,6 @@ export default function TimeTrackingView() {
       default: return <Clock className="h-4 w-4" />;
     }
   };
-
-  const filteredEmployees = timeData.employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.currentTask.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || employee.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <div className="space-y-6">
@@ -231,29 +285,39 @@ export default function TimeTrackingView() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search employees, roles, or tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border rounded-md bg-background"
-        >
-          <option value="all">All Status</option>
-          <option value="working">Working</option>
-          <option value="break">On Break</option>
-          <option value="completed">Completed</option>
-        </select>
-      </div>
+      {/* ✅ NEW: Use FarmSearchAndFilter component */}
+      {/* ✅ NEW: Standardized Search and Filter Component */}
+      <Card>
+        <CardContent className="pt-4">
+          <FarmSearchAndFilter
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchContext="employees, roles, or tasks"
+            searchPlaceholder="Search employees, roles, or tasks..."
+            filters={filterDefinitions}
+            activeFilters={getActiveFilterChips(filterDefinitions)}
+            onFilterChange={handleFilterChange}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAllFilters={clearAllFilters}
+            orientation="horizontal"
+            showFilterChips={true}
+          />
+          
+          {/* Results summary */}
+          {(hasSearch || hasActiveFilters) && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-gray-600">
+                Showing {filteredEmployees.length} of {timeData.employees.length} employees
+              </p>
+              {(hasSearch || hasActiveFilters) && (
+                <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                  Clear all filters
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Employee Time Cards */}
       <div className="grid gap-4">

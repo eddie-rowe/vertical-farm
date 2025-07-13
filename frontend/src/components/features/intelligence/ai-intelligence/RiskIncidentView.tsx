@@ -1,11 +1,14 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { FaExclamationTriangle, FaClock, FaEye, FaBolt, FaLeaf, FaThermometerHalf, FaTint, FaShieldAlt, FaRobot, FaSearch, FaFilter, FaMapMarkerAlt, FaTools } from 'react-icons/fa'
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter'
+import { useFarmSearch, useFarmFilters } from '@/hooks'
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter'
 
 interface RiskAlert {
   id: string
@@ -201,9 +204,78 @@ const mockSystemHealth: SystemHealth[] = [
 ]
 
 export default function RiskIncidentView() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<RiskAlert>({
+    searchFields: ['title', 'description', 'location'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<RiskAlert>();
+
+  // Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'active', label: 'Active' },
+        { value: 'investigating', label: 'Investigating' },
+        { value: 'resolved', label: 'Resolved' },
+        { value: 'dismissed', label: 'Dismissed' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'category',
+      label: 'Category',
+      placeholder: 'Filter by category',
+      options: [
+        { value: 'all', label: 'All Categories' },
+        { value: 'environmental', label: 'Environmental' },
+        { value: 'equipment', label: 'Equipment' },
+        { value: 'crop', label: 'Crop' },
+        { value: 'security', label: 'Security' },
+        { value: 'operational', label: 'Operational' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'type',
+      label: 'Severity',
+      placeholder: 'Filter by severity',
+      options: [
+        { value: 'all', label: 'All Severities' },
+        { value: 'critical', label: 'Critical' },
+        { value: 'high', label: 'High' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'low', label: 'Low' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
 
   const getAlertColor = (type: string) => {
     switch (type) {
@@ -244,13 +316,18 @@ export default function RiskIncidentView() {
     }
   }
 
-  const filteredAlerts = mockRiskAlerts.filter(alert => {
-    const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         alert.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = selectedStatus === 'all' || alert.status === selectedStatus
-    const matchesCategory = selectedCategory === 'all' || alert.category === selectedCategory
-    return matchesSearch && matchesStatus && matchesCategory
-  })
+  // Apply combined filtering
+  const filteredAlerts = useMemo(() => {
+    let result = mockRiskAlerts;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [searchFilterItems, filterFilterItems]);
 
   return (
     <div className="space-y-6">
@@ -356,50 +433,38 @@ export default function RiskIncidentView() {
             <FaExclamationTriangle className="text-orange-600" />
             Active Risk Alerts
           </h3>
-          
-          <div className="flex gap-2">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search alerts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-              />
-            </div>
-            <Button variant="outline" size="sm">
-              <FaFilter className="mr-1" />
-              Filter
-            </Button>
-          </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex gap-2 mb-4">
-          <div className="flex gap-1">
-            {['all', 'active', 'investigating', 'resolved'].map((status) => (
-              <Button
-                key={status}
-                variant={selectedStatus === status ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedStatus(status)}
+        {/* Standardized Search and Filter Component */}
+        <div className="mb-6">
+          <FarmSearchAndFilter
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchContext="alerts by title, description, or location"
+            searchPlaceholder="Search alerts by title, description, or location..."
+            filters={filterDefinitions}
+            activeFilters={getActiveFilterChips(filterDefinitions)}
+            onFilterChange={handleFilterChange}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAllFilters={clearAllFilters}
+            orientation="horizontal"
+            showFilterChips={true}
+          />
+          
+          {/* Results summary */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Showing {filteredAlerts.length} of {mockRiskAlerts.length} alerts
+            </p>
+            {(hasSearch || hasActiveFilters) && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => { clearSearch(); clearAllFilters(); }}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                Clear all filters
               </Button>
-            ))}
-          </div>
-          <div className="border-l mx-2"></div>
-          <div className="flex gap-1">
-            {['all', 'environmental', 'equipment', 'crop', 'security'].map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </Button>
-            ))}
+            )}
           </div>
         </div>
 

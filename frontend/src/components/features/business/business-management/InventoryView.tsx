@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, 
   Package,
   AlertTriangle,
   TrendingUp,
@@ -19,12 +17,82 @@ import {
   Loader2
 } from "lucide-react";
 import { businessManagementService, BusinessInventoryItem } from '@/services/businessManagementService';
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 export default function InventoryView() {
   const [inventory, setInventory] = useState<BusinessInventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessInventoryItem>({
+    searchFields: ['name', 'sku', 'category'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessInventoryItem>();
+
+  // Filter definitions (prepared for future use)
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'category',
+      label: 'Category',
+      placeholder: 'Filter by category...',
+      options: [
+        // These could be populated dynamically from inventory categories
+        { value: 'produce', label: 'Produce' },
+        { value: 'herbs', label: 'Herbs' },
+        { value: 'seeds', label: 'Seeds' },
+        { value: 'equipment', label: 'Equipment' }
+      ]
+    },
+    {
+      id: 'stock_status',
+      label: 'Stock Status',
+      placeholder: 'Filter by stock status...',
+      options: [
+        { value: 'in_stock', label: 'In Stock' },
+        { value: 'low_stock', label: 'Low Stock' },
+        { value: 'out_of_stock', label: 'Out of Stock' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredInventory = useMemo(() => {
+    let result = inventory;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [inventory, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchInventory = async () => {
     try {
@@ -43,12 +111,6 @@ export default function InventoryView() {
   useEffect(() => {
     fetchInventory();
   }, []);
-
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const totalItems = inventory.length;
   const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
@@ -177,16 +239,38 @@ export default function InventoryView() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          placeholder="Search inventory by name, SKU, or category..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search inventory by name, SKU, or category..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredInventory.length} of {inventory.length} items
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Inventory List */}
       {loading && inventory.length > 0 ? (
@@ -198,61 +282,68 @@ export default function InventoryView() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredInventory.map((item) => (
-          <Card key={item.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{item.name}</CardTitle>
-              <div className="flex items-center justify-between">
-                <Badge variant={item.status === 'Active' ? 'default' : 'destructive'}>
-                  {item.status}
-                </Badge>
-                <span className="text-sm text-gray-500">SKU: {item.sku}</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Category:</span>
-                  <span className="text-sm font-medium">{item.category}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Quantity:</span>
-                  <span className={`text-sm font-medium ${
-                    item.quantity === 0 ? 'text-red-600' : 
-                    item.quantity < 10 ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    {item.quantity} {item.unit}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Price:</span>
-                  <span className="text-sm font-medium">
-                    ${(item.price / 100).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Location:</span>
-                  <span className="text-sm font-medium">{item.location}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Last Updated:</span>
-                  <span className="text-sm text-gray-500">{item.lastUpdated}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-            ))}
-          </div>
-        )}
+          {filteredInventory.length === 0 ? (
+            <div className="col-span-full">
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                    No Inventory Items Found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {inventory.length === 0 
+                      ? "No inventory items available in your Square catalog." 
+                      : "No items match your current search and filters."}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            filteredInventory.map((item) => (
+              <Card key={item.sku} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">SKU: {item.sku}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Category: {item.category}</p>
+                    </div>
+                    <Badge 
+                      variant={item.quantity === 0 ? "destructive" : item.quantity < 10 ? "secondary" : "default"}
+                    >
+                      {item.quantity === 0 ? "Out of Stock" : item.quantity < 10 ? "Low Stock" : "In Stock"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Quantity:</span>
+                      <span className="font-semibold">{item.quantity}</span>
+                    </div>
+                    {item.price && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Price:</span>
+                        <span className="font-semibold">${item.price.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
 
-        {filteredInventory.length === 0 && !loading && (
-          <div className="text-center py-8">
-            <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500">
-              {searchTerm ? 'No inventory items match your search.' : 'No inventory data available.'}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  } 
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+} 

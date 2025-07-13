@@ -37,6 +37,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_TOKEN }}
 
+      - name: Create shared Docker network
+        run: |
+          # Create network if it doesn't exist
+          docker network create vertical-farm-network 2>/dev/null || true
+
       - name: Pull & restart vertical-farm/backend container
         env:
           BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
@@ -56,6 +61,7 @@ jobs:
           docker rm -f $CONTAINER 2>/dev/null || true
           # launch with your desired flags
           docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            --network vertical-farm-network \
             -p 8000:8000 \
             -e BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS} \
             -e SUPABASE_URL=${SUPABASE_URL} \
@@ -89,6 +95,7 @@ jobs:
           docker rm -f $CONTAINER 2>/dev/null || true
           # launch with your desired flags
           docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            --network vertical-farm-network \
             -p 3000:3000 \
             -e NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL} \
             -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY} \
@@ -100,11 +107,14 @@ jobs:
             -e NEXT_PUBLIC_DD_ENV=${NEXT_PUBLIC_DD_ENV} \
             -l 'com.datadoghq.ad.logs=[{"source":"vertical-farm-frontend","service":"vertical-farm-frontend"}]' \
             $IMAGE
+
       - name: Pull & restart Datadog Agent container
         env:
           SUPABASE_METRICS_URL: ${{ secrets.SUPABASE_METRICS_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          POSTGRES_DATADOG_USERNAME: ${{ secrets.POSTGRES_DATADOG_USERNAME }}
+          POSTGRES_DATADOG_PASSWORD: ${{ secrets.POSTGRES_DATADOG_PASSWORD }}
+          POSTGRES_DATADOG_DBNAME: ${{ secrets.POSTGRES_DATADOG_DBNAME }}
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_SITE: ${{ secrets.DD_SITE }}
           DD_SERVICE: ${{ secrets.DD_SERVICE }}
@@ -118,6 +128,7 @@ jobs:
           docker rm -f $CONTAINER 2>/dev/null || true
           # launch with your desired flags
           docker run -d --name $CONTAINER --hostname $CONTAINER --restart unless-stopped \
+            --network vertical-farm-network \
             -p 8126:8126 \
             -e DD_API_KEY=${DD_API_KEY} \
             -e DD_SITE=${DD_SITE} \
@@ -131,7 +142,10 @@ jobs:
             -e DD_HOSTNAME=vertical-farm-unraid-server \
             -e DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED=true \
             -e SUPABASE_METRICS_URL=${SUPABASE_METRICS_URL} \
-            -e SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET} \
+            -e SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY} \
+            -e POSTGRES_DATADOG_USERNAME=${POSTGRES_DATADOG_USERNAME} \
+            -e POSTGRES_DATADOG_PASSWORD=${POSTGRES_DATADOG_PASSWORD} \
+            -e POSTGRES_DATADOG_DBNAME=${POSTGRES_DATADOG_DBNAME} \
             -l 'com.datadoghq.ad.checks={"supabase":{"instances":[{"privileged_metrics_endpoint":"%%env_SUPABASE_METRICS_URL%%","username":"service_role","password":"%%env_SUPABASE_SERVICE_KEY%%"}]}}' \
             -v '/var/run/docker.sock:/var/run/docker.sock:ro' \
             -v '/proc/:/host/proc/:ro' \

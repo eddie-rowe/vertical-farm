@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   RotateCcw, 
   DollarSign,
   AlertCircle,
@@ -16,13 +14,70 @@ import {
   Eye
 } from "lucide-react";
 import { businessManagementService, BusinessRefund } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 export default function RefundsView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [refunds, setRefunds] = useState<BusinessRefund[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessRefund>({
+    searchFields: ['id', 'customer', 'reason'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessRefund>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Refund Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'completed', label: 'Completed' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'failed', label: 'Failed' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredRefunds = useMemo(() => {
+    let result = refunds;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [refunds, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchRefunds = async () => {
     try {
@@ -41,15 +96,6 @@ export default function RefundsView() {
   useEffect(() => {
     fetchRefunds();
   }, []);
-
-  const filteredRefunds = refunds.filter(refund => {
-    const matchesSearch = refund.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         refund.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         refund.reason.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || refund.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -143,30 +189,38 @@ export default function RefundsView() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search refunds..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search refunds by ID, customer, or reason..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredRefunds.length} of {refunds.length} refunds
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="completed">Completed</option>
-          <option value="pending">Pending</option>
-          <option value="failed">Failed</option>
-        </select>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -198,65 +252,56 @@ export default function RefundsView() {
             <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
               No Refunds Found
             </h3>
-            <p className="text-gray-500 dark:text-gray-500">
-              {searchTerm || statusFilter !== "all" 
-                ? "No refunds match your current filters."
-                : "No refunds have been processed yet."}
+            <p className="text-gray-600 dark:text-gray-400">
+              {refunds.length === 0 
+                ? "No refunds available in your Square account." 
+                : "No refunds match your current filters."}
             </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Refunds List */}
       {!loading && filteredRefunds.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {filteredRefunds.map((refund) => (
             <Card key={refund.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {refund.id}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">{refund.customer}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(refund.status)}>
-                      {getStatusIcon(refund.status)}
-                      <span className="ml-1">{refund.status}</span>
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      ${refund.amount.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Reason:</span>
-                    <span className="text-gray-900 dark:text-gray-100">{refund.reason}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                    <span className="text-gray-900 dark:text-gray-100">{refund.date}</span>
-                  </div>
-                  {refund.paymentId && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Payment ID:</span>
-                      <span className="text-gray-900 dark:text-gray-100 font-mono text-sm">
-                        {refund.paymentId}
-                      </span>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold">{refund.id}</h3>
+                      <Badge className={getStatusColor(refund.status)}>
+                        {getStatusIcon(refund.status)}
+                        <span className="ml-1">{refund.status}</span>
+                      </Badge>
                     </div>
-                  )}
-                </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Customer</p>
+                        <p className="font-medium">{refund.customer}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Reason</p>
+                        <p className="font-medium">{refund.reason}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Date</p>
+                        <p className="font-medium">{new Date(refund.date).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Amount</p>
+                        <p className="font-semibold text-lg text-red-600">${refund.amount.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    View Details
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

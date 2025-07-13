@@ -41,7 +41,7 @@ interface MonitoringOverlayProps {
   onClose: () => void;
 }
 
-export default function MonitoringOverlay({ farm, isOpen, onClose }: MonitoringOverlayProps) {
+export function MonitoringOverlay({ farm, isOpen, onClose }: MonitoringOverlayProps) {
   const [monitoringData, setMonitoringData] = useState<MonitoringData>({
     temperature: { value: 24.5, unit: '°C', status: 'optimal' },
     humidity: { value: 68, unit: '%', status: 'optimal' },

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   DollarSign, 
   CreditCard,
   CheckCircle, 
@@ -18,14 +16,82 @@ import {
   Loader2
 } from "lucide-react";
 import { businessManagementService, BusinessPayment } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { LoadingCard } from '@/components/ui/loading';
 
 export default function PaymentsView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [methodFilter, setMethodFilter] = useState("all");
   const [payments, setPayments] = useState<BusinessPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessPayment>({
+    searchFields: ['id', 'customer', 'invoiceId'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessPayment>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Payment Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'completed', label: 'Completed' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'failed', label: 'Failed' },
+        { value: 'refunded', label: 'Refunded' }
+      ]
+    },
+    {
+      id: 'method',
+      label: 'Payment Method',
+      placeholder: 'Filter by method...',
+      options: [
+        { value: 'credit card', label: 'Credit Card' },
+        { value: 'ach transfer', label: 'ACH Transfer' },
+        { value: 'cash', label: 'Cash' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredPayments = useMemo(() => {
+    let result = payments;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [payments, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchPayments = async () => {
     try {
@@ -44,16 +110,6 @@ export default function PaymentsView() {
   useEffect(() => {
     fetchPayments();
   }, []);
-
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (payment.invoiceId || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || payment.status.toLowerCase() === statusFilter;
-    const matchesMethod = methodFilter === "all" || payment.method.toLowerCase() === methodFilter;
-    
-    return matchesSearch && matchesStatus && matchesMethod;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -111,8 +167,8 @@ export default function PaymentsView() {
             disabled={loading}
             className="flex items-center gap-2"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {loading ? 'Loading...' : 'Refresh'}
+            <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
           <Button variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -163,7 +219,7 @@ export default function PaymentsView() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {Math.round((completedPayments / payments.length) * 100)}%
+                  {payments.length > 0 ? Math.round((completedPayments / payments.length) * 100) : 0}%
                 </p>
               </div>
             </div>
@@ -208,41 +264,38 @@ export default function PaymentsView() {
         </Card>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search by payment ID, customer, or invoice..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search by payment ID, customer, or invoice..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredPayments.length} of {payments.length} payments
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="completed">Completed</option>
-          <option value="pending">Pending</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
-        </select>
-        <select
-          value={methodFilter}
-          onChange={(e) => setMethodFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Methods</option>
-          <option value="credit card">Credit Card</option>
-          <option value="ach transfer">ACH Transfer</option>
-          <option value="cash">Cash</option>
-        </select>
-      </div>
+      )}
 
       {/* Square Integration Status */}
       <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
@@ -279,12 +332,7 @@ export default function PaymentsView() {
 
       {/* Loading State */}
       {loading && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 dark:text-gray-400">Loading payments from Square...</p>
-          </CardContent>
-        </Card>
+        <LoadingCard message="Loading payments from Square..." size="lg" />
       )}
 
       {/* Payments List */}
@@ -380,30 +428,6 @@ export default function PaymentsView() {
                       )}
                     </div>
                   </div>
-
-                  {/* Square Payment ID */}
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Square Payment ID: {payment.squarePaymentId}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-col gap-2 min-w-[100px]">
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                  {payment.status === "Failed" && (
-                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-300">
-                      Retry Payment
-                    </Button>
-                  )}
-                  {payment.status === "Completed" && (
-                    <Button variant="outline" size="sm">
-                      Refund
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardContent>

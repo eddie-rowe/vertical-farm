@@ -335,12 +335,10 @@
 }
 
 /* Component Utilities */
-@utility farm-control-btn {
+@utility farm-control-base {
   @apply glass card-shadow;
   padding: var(--spacing-sensor);
   border-radius: var(--radius-md);
-  width: var(--size-control-btn);
-  height: var(--size-control-btn);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -356,6 +354,15 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+}
+
+/* Legacy farm-control-btn for backward compatibility - will be deprecated */
+@utility farm-control-btn {
+  @apply farm-control-base;
+  width: var(--size-control-btn);
+  height: var(--size-control-btn);
+  min-width: var(--size-control-btn);
+  min-height: var(--size-control-btn);
 }
 
 @utility plant-card {

@@ -1,5 +1,14 @@
 // Business Domain - Business operations, analytics, and team management
-export * from './business-management';
+// Comprehensive business management system for commercial farming operations
+
+// Business analytics and intelligence
 export * from './analytics';
-export * from './team-management';
-export * from './operations'; 
+
+// Core business operations
+export * from './business-management';
+
+// Operational logistics
+export * from './operations';
+
+// Human resources and team management
+export * from './team-management'; 

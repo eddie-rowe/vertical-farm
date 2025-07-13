@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Calendar, ChevronLeft, ChevronRight, Check, Leaf, MapPin, Settings, Clock, Zap, Calendar as CalendarIcon, Target, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+
+// ✅ NEW: Import standardized search and filter components
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 interface Farm {
   id: string;
@@ -82,6 +86,126 @@ export default function NewGrowSetup() {
   const [growRecipes, setGrowRecipes] = useState<GrowRecipe[]>([]);
   
   const [isLoading, setIsLoading] = useState(false);
+
+  // ✅ NEW: Standardized search and filter hooks for recipe selection
+  const {
+    searchTerm: recipeSearchTerm,
+    setSearchTerm: setRecipeSearchTerm,
+    clearSearch: clearRecipeSearch,
+    filterItems: searchFilterRecipes,
+    hasSearch: hasRecipeSearch
+  } = useFarmSearch<GrowRecipe>({
+    searchFields: ['name'],
+    caseSensitive: false
+  });
+
+  const {
+    filters: recipeFilters,
+    setFilter: setRecipeFilter,
+    removeFilter: removeRecipeFilter,
+    clearAllFilters: clearAllRecipeFilters,
+    getActiveFilterChips: getActiveRecipeFilterChips,
+    filterItems: filterFilterRecipes,
+    hasActiveFilters: hasActiveRecipeFilters
+  } = useFarmFilters<GrowRecipe>();
+
+  // ✅ NEW: Filter definitions for recipe selection
+  const recipeFilterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      placeholder: 'Filter by difficulty',
+      options: [
+        { value: 'all', label: 'All Difficulties' },
+        { value: 'beginner', label: 'Beginner' },
+        { value: 'intermediate', label: 'Intermediate' },
+        { value: 'advanced', label: 'Advanced' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'species',
+      label: 'Species',
+      placeholder: 'Filter by species',
+      options: [
+        { value: 'all', label: 'All Species' },
+        { value: 'species-1', label: 'Lettuce' },
+        { value: 'species-2', label: 'Basil' },
+        { value: 'species-3', label: 'Spinach' },
+        { value: 'species-4', label: 'Cherry Tomatoes' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'duration',
+      label: 'Duration',
+      placeholder: 'Filter by grow time',
+      options: [
+        { value: 'all', label: 'All Durations' },
+        { value: 'short', label: 'Short (< 30 days)' },
+        { value: 'medium', label: 'Medium (30-50 days)' },
+        { value: 'long', label: 'Long (> 50 days)' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ✅ NEW: Handle filter changes
+  const handleRecipeFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeRecipeFilter(filterId);
+    } else {
+      setRecipeFilter(filterId, value);
+    }
+  }, [setRecipeFilter, removeRecipeFilter]);
+
+  // ✅ NEW: Handle filter chip removal
+  const handleRemoveRecipeFilter = useCallback((filterId: string) => {
+    removeRecipeFilter(filterId);
+  }, [removeRecipeFilter]);
+
+  // ✅ NEW: Custom filter function for complex logic
+  const customRecipeFilterFunction = useCallback((recipe: GrowRecipe, filterValues: any[]) => {
+    return filterValues.every(filter => {
+      if (!filter.value || filter.value === 'all') return true;
+      
+      switch (filter.id) {
+        case 'difficulty':
+          return recipe.difficulty === filter.value;
+        case 'species':
+          return recipe.species_id === filter.value;
+        case 'duration':
+          const totalDays = recipe.total_grow_days || 0;
+          if (filter.value === 'short') return totalDays < 30;
+          if (filter.value === 'medium') return totalDays >= 30 && totalDays <= 50;
+          if (filter.value === 'long') return totalDays > 50;
+          return true;
+        default:
+          return true;
+      }
+    });
+  }, []);
+
+  // ✅ NEW: Filtered and sorted recipes with standardized hooks
+  const filteredAndSortedRecipes = useMemo(() => {
+    let result = growRecipes;
+    
+    // Apply search filtering
+    result = searchFilterRecipes(result);
+    
+    // Apply custom filter logic
+    if (recipeFilters.length > 0) {
+      result = result.filter(recipe => customRecipeFilterFunction(recipe, recipeFilters));
+    }
+    
+    // Add species data for display
+    result = result.map(recipe => ({
+      ...recipe,
+      species: species.find(s => s.id === recipe.species_id)
+    }));
+    
+    return result;
+  }, [growRecipes, searchFilterRecipes, recipeFilters, customRecipeFilterFunction, species]);
 
   // Enhanced mock data
   useEffect(() => {
@@ -443,9 +567,77 @@ export default function NewGrowSetup() {
                 <h3 className="text-xl font-semibold mb-2">Choose Your Recipe</h3>
                 <p className="text-gray-600 dark:text-gray-400">Select what you want to grow and how you want to grow it</p>
               </div>
+
+              {/* ✅ NEW: Standardized Search and Filter Component */}
+              <Card>
+                <CardContent className="pt-4">
+                  <FarmSearchAndFilter
+                    searchValue={recipeSearchTerm}
+                    onSearchChange={setRecipeSearchTerm}
+                    searchContext="recipes"
+                    searchPlaceholder="Search recipes by name..."
+                    filters={recipeFilterDefinitions}
+                    activeFilters={getActiveRecipeFilterChips(recipeFilterDefinitions)}
+                    onFilterChange={handleRecipeFilterChange}
+                    onRemoveFilter={handleRemoveRecipeFilter}
+                    onClearAllFilters={clearAllRecipeFilters}
+                    orientation="horizontal"
+                    showFilterChips={true}
+                  />
+                  
+                  {/* Results summary */}
+                  {(hasRecipeSearch || hasActiveRecipeFilters) && (
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className="text-sm text-gray-600">
+                        Showing {filteredAndSortedRecipes.length} of {growRecipes.length} recipes
+                      </p>
+                      {(hasRecipeSearch || hasActiveRecipeFilters) && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => { 
+                            clearRecipeSearch(); 
+                            clearAllRecipeFilters(); 
+                          }}
+                        >
+                          Clear all filters
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {growRecipes.map(recipe => {
+              {/* Recipe Grid */}
+              {filteredAndSortedRecipes.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12">
+                    <div className="text-center">
+                      <Leaf className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No recipes found</h3>
+                      <p className="text-gray-500 mb-4">
+                        {hasRecipeSearch || hasActiveRecipeFilters 
+                          ? "Try adjusting your search or filters to find recipes."
+                          : "No recipes are available at the moment."
+                        }
+                      </p>
+                      {(hasRecipeSearch || hasActiveRecipeFilters) && (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => { 
+                            clearRecipeSearch(); 
+                            clearAllRecipeFilters(); 
+                          }}
+                        >
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredAndSortedRecipes.map(recipe => {
                   const recipeSpecies = species.find(s => s.id === recipe.species_id);
                   return (
                     <button
@@ -495,8 +687,9 @@ export default function NewGrowSetup() {
                       </div>
                     </button>
                   );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
           )}
 

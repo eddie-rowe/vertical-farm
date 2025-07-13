@@ -6,8 +6,7 @@ const STATIC_CACHE_URLS = [
   '/',
   '/offline',
   '/manifest.json',
-  '/favicon-32x32.png',
-  '/apple-touch-icon.png',
+  '/favicon.ico',  // This file exists
 ];
 
 // Install event - cache essential files
@@ -18,6 +17,9 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Caching essential files');
       return cache.addAll(STATIC_CACHE_URLS);
+    }).catch((error) => {
+      console.error('[SW] Cache installation failed:', error);
+      // Don't let this prevent the service worker from installing
     })
   );
   
@@ -42,35 +44,53 @@ self.addEventListener('activate', (event) => {
     })
   );
   
-  // Take control of all pages immediately
-  self.clients.claim();
+  // Claim control of all clients
+  return self.clients.claim();
 });
 
-// Fetch event - implement caching strategies
+// Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
   // Skip non-GET requests
-  if (request.method !== 'GET') return;
-
-  // Skip chrome-extension and other non-http(s) requests
-  if (!request.url.startsWith('http')) return;
-
-  // Different strategies for different types of requests
-  if (url.pathname.startsWith('/api/')) {
-    // API requests - Network First with cache fallback
-    event.respondWith(networkFirstWithFallback(request));
-  } else if (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|webp|ico)$/)) {
-    // Static assets - Cache First
-    event.respondWith(cacheFirstWithNetworkFallback(request));
-  } else if (url.pathname === '/') {
-    // Homepage - Stale While Revalidate
-    event.respondWith(staleWhileRevalidate(request));
-  } else {
-    // Other pages - Network First with offline fallback
-    event.respondWith(networkFirstWithOfflineFallback(request));
-  }
+  if (event.request.method !== 'GET') return;
+  
+  // Skip external requests
+  if (!event.request.url.startsWith(self.location.origin)) return;
+  
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version if available
+        if (response) {
+          return response;
+        }
+        
+        // Fetch from network
+        return fetch(event.request)
+          .then((response) => {
+            // Don't cache if not a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            
+            // Clone response for caching
+            const responseToCache = response.clone();
+            
+            // Cache the response
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            
+            return response;
+          })
+          .catch(() => {
+            // Return offline page for navigation requests
+            if (event.request.mode === 'navigate') {
+              return caches.match(OFFLINE_URL);
+            }
+          });
+      })
+  );
 });
 
 // Push notification event

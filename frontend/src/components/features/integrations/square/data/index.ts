@@ -1,121 +1,179 @@
-import { 
-  Users, 
-  ShoppingCart, 
-  CreditCard, 
-  Package, 
-  Globe, 
-  RefreshCw, 
-  Database, 
-  AlertTriangle,
-  BarChart3, 
-  Settings, 
-  Shield 
-} from 'lucide-react';
-import { 
-  SyncStatus, 
-  ConnectionHealth, 
-  SyncSettings, 
-  DataTypeConfig, 
-  SquareIntegrationTab, 
-  DebugAction 
-} from '../types';
+// Square Integration Data - Data utilities and mock data for Square integration
 
-export const DEFAULT_SYNC_STATUSES: SyncStatus[] = [
+import { RefreshCw, Download, Upload, Bug, Trash2, TestTube, Users, ShoppingCart, CreditCard, Package } from 'lucide-react';
+
+// Debug actions for the Advanced Tab
+export const DEBUG_ACTIONS = [
+  {
+    id: 'test-connection',
+    label: 'Test Connection',
+    icon: RefreshCw,
+    action: () => {
+      console.log('Testing Square connection...');
+      // Add actual connection test logic here
+    }
+  },
+  {
+    id: 'export-logs',
+    label: 'Export Logs',
+    icon: Download,
+    action: () => {
+      console.log('Exporting Square integration logs...');
+      // Add log export logic here
+    }
+  },
+  {
+    id: 'sync-data',
+    label: 'Force Sync',
+    icon: Upload,
+    action: () => {
+      console.log('Forcing Square data sync...');
+      // Add force sync logic here
+    }
+  },
+  {
+    id: 'clear-cache',
+    label: 'Clear Cache',
+    icon: Trash2,
+    action: () => {
+      console.log('Clearing Square integration cache...');
+      // Add cache clearing logic here
+    }
+  },
+  {
+    id: 'run-diagnostics',
+    label: 'Run Diagnostics',
+    icon: Bug,
+    action: () => {
+      console.log('Running Square integration diagnostics...');
+      // Add diagnostics logic here
+    }
+  },
+  {
+    id: 'test-webhook',
+    label: 'Test Webhook',
+    icon: TestTube,
+    action: () => {
+      console.log('Testing Square webhook...');
+      // Add webhook test logic here
+    }
+  }
+];
+
+// Data type configurations for sync settings
+export const DATA_TYPE_CONFIGS = [
+  {
+    key: 'enableCustomers',
+    label: 'Customers',
+    icon: Users,
+    description: 'Sync customer information and profiles'
+  },
+  {
+    key: 'enableOrders',
+    label: 'Orders',
+    icon: ShoppingCart,
+    description: 'Sync order history and transaction data'
+  },
+  {
+    key: 'enablePayments',
+    label: 'Payments',
+    icon: CreditCard,
+    description: 'Sync payment transactions and methods'
+  },
+  {
+    key: 'enableInventory',
+    label: 'Inventory',
+    icon: Package,
+    description: 'Sync product inventory and stock levels'
+  }
+];
+
+// Sync interval options for the sync settings
+export const SYNC_INTERVAL_OPTIONS = [
+  {
+    value: '5min',
+    label: 'Every 5 minutes'
+  },
+  {
+    value: '15min',
+    label: 'Every 15 minutes'
+  },
+  {
+    value: '30min',
+    label: 'Every 30 minutes'
+  },
+  {
+    value: '1hour',
+    label: 'Every hour'
+  },
+  {
+    value: '4hours',
+    label: 'Every 4 hours'
+  },
+  {
+    value: '8hours',
+    label: 'Every 8 hours'
+  },
+  {
+    value: '24hours',
+    label: 'Once daily'
+  },
+  {
+    value: 'manual',
+    label: 'Manual only'
+  }
+];
+
+// Default sync statuses for initialization
+export const DEFAULT_SYNC_STATUSES = [
   {
     entity: 'Customers',
     icon: Users,
-    lastSync: '2 minutes ago',
-    status: 'success',
-    recordCount: 1247,
+    lastSync: 'Never',
+    status: 'pending' as const,
+    recordCount: 0
   },
   {
     entity: 'Orders',
     icon: ShoppingCart,
-    lastSync: '5 minutes ago',
-    status: 'success',
-    recordCount: 456,
+    lastSync: 'Never',
+    status: 'pending' as const,
+    recordCount: 0
   },
   {
     entity: 'Payments',
     icon: CreditCard,
-    lastSync: '3 minutes ago',
-    status: 'success',
-    recordCount: 342,
+    lastSync: 'Never',
+    status: 'pending' as const,
+    recordCount: 0
   },
   {
     entity: 'Inventory',
     icon: Package,
-    lastSync: '10 minutes ago',
-    status: 'success',
-    recordCount: 89,
+    lastSync: 'Never',
+    status: 'pending' as const,
+    recordCount: 0
   }
 ];
 
-export const DEFAULT_CONNECTION_HEALTH: ConnectionHealth = {
-  status: 'disconnected',
+// Default connection health for initialization
+export const DEFAULT_CONNECTION_HEALTH = {
+  status: 'disconnected' as const,
   lastCheck: 'Never',
   responseTime: 0,
   apiLimitUsed: 0,
   apiLimitTotal: 1000
 };
 
-export const DEFAULT_SYNC_SETTINGS: SyncSettings = {
-  autoSync: true,
-  syncInterval: '15',
+// Default sync settings for initialization
+export const DEFAULT_SYNC_SETTINGS = {
+  autoSync: false,
+  syncInterval: 'manual',
   syncOnlyBusinessHours: false,
   businessHoursStart: '09:00',
   businessHoursEnd: '17:00',
   enableCustomers: true,
   enableOrders: true,
   enablePayments: true,
-  enableInventory: true,
-};
-
-export const DATA_TYPE_CONFIGS: DataTypeConfig[] = [
-  { 
-    key: 'enableCustomers', 
-    label: 'Customer Data', 
-    icon: Users, 
-    description: 'Customer profiles and contact information' 
-  },
-  { 
-    key: 'enableOrders', 
-    label: 'Order Data', 
-    icon: ShoppingCart, 
-    description: 'Sales orders and transaction details' 
-  },
-  { 
-    key: 'enablePayments', 
-    label: 'Payment Data', 
-    icon: CreditCard, 
-    description: 'Payment transactions and methods' 
-  },
-  { 
-    key: 'enableInventory', 
-    label: 'Inventory Data', 
-    icon: Package, 
-    description: 'Product catalog and stock levels' 
-  }
-];
-
-export const INTEGRATION_TABS: SquareIntegrationTab[] = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'configuration', label: 'Configuration', icon: Settings },
-  { id: 'sync', label: 'Data Sync', icon: Database },
-  { id: 'advanced', label: 'Advanced', icon: Shield }
-];
-
-export const SYNC_INTERVAL_OPTIONS = [
-  { value: '5', label: 'Every 5 minutes' },
-  { value: '15', label: 'Every 15 minutes' },
-  { value: '30', label: 'Every 30 minutes' },
-  { value: '60', label: 'Every hour' },
-  { value: '240', label: 'Every 4 hours' }
-];
-
-export const DEBUG_ACTIONS: DebugAction[] = [
-  { id: 'test-endpoints', label: 'Test API Endpoints', icon: Globe, action: () => {} },
-  { id: 'clear-cache', label: 'Clear Cache', icon: RefreshCw, action: () => {} },
-  { id: 'view-logs', label: 'View Sync Logs', icon: Database, action: () => {} },
-  { id: 'error-reports', label: 'Error Reports', icon: AlertTriangle, action: () => {} }
-]; 
+  enableInventory: true
+}; 

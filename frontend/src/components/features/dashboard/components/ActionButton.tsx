@@ -10,7 +10,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 }) => {
   const getVariant = (urgency: 'low' | 'medium' | 'high') => {
     switch (urgency) {
-      case 'high': return 'default';
+      case 'high': return 'destructive';
       case 'medium': return 'outline';
       case 'low': return 'ghost';
       default: return 'outline';
@@ -26,11 +26,11 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     }
   };
 
-  const getUrgencyColor = (urgency: 'low' | 'medium' | 'high') => {
+  const getUrgencyAccent = (urgency: 'low' | 'medium' | 'high') => {
     switch (urgency) {
-      case 'high': return 'bg-red-500 text-white border-red-500';
-      case 'medium': return 'border-orange-500 text-orange-700 hover:bg-orange-50';
-      case 'low': return 'text-green-700 hover:bg-green-50';
+      case 'high': return 'border-l-red-500';
+      case 'medium': return 'border-l-orange-500';
+      case 'low': return 'border-l-green-500';
       default: return '';
     }
   };
@@ -39,7 +39,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     <Button
       variant={getVariant(urgency)}
       size="sm"
-      className={`w-full justify-between text-left p-3 h-auto ${getAnimation(urgency)} ${getUrgencyColor(urgency)}`}
+      className={`w-full justify-between text-left p-3 h-auto border-l-4 ${getAnimation(urgency)} ${getUrgencyAccent(urgency)}`}
       onClick={onClick}
     >
       <div className="flex flex-col items-start">

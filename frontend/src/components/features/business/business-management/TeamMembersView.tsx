@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   UserCheck, 
   Users,
   AlertCircle,
@@ -19,13 +17,70 @@ import {
   MapPin
 } from "lucide-react";
 import { businessManagementService, BusinessTeamMember } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 export default function TeamMembersView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [teamMembers, setTeamMembers] = useState<BusinessTeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessTeamMember>({
+    searchFields: ['name', 'email', 'role'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessTeamMember>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Member Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' },
+        { value: 'pending', label: 'Pending' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredMembers = useMemo(() => {
+    let result = teamMembers;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [teamMembers, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchTeamMembers = async () => {
     try {
@@ -45,15 +100,6 @@ export default function TeamMembersView() {
     fetchTeamMembers();
   }, []);
 
-  const filteredMembers = teamMembers.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || member.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "active": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
@@ -63,17 +109,16 @@ export default function TeamMembersView() {
     }
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleIcon = (role: string) => {
     switch (role.toLowerCase()) {
-      case "owner": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case "manager": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "employee": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+      case "owner": return <Crown className="h-4 w-4" />;
+      case "admin": return <UserCheck className="h-4 w-4" />;
+      default: return <Users className="h-4 w-4" />;
     }
   };
 
   const activeMembers = teamMembers.filter(m => m.status.toLowerCase() === "active").length;
-  const owners = teamMembers.filter(m => m.isOwner).length;
+  const owners = teamMembers.filter(m => m.role.toLowerCase() === "owner").length;
 
   return (
     <div className="space-y-6">
@@ -146,30 +191,38 @@ export default function TeamMembersView() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search team members..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search team members by name, email, or role..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredMembers.length} of {teamMembers.length} members
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="pending">Pending</option>
-        </select>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -201,81 +254,82 @@ export default function TeamMembersView() {
             <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
               No Team Members Found
             </h3>
-            <p className="text-gray-500 dark:text-gray-500">
-              {searchTerm || statusFilter !== "all" 
-                ? "No team members match your current filters."
-                : "No team members have been added yet."}
+            <p className="text-gray-600 dark:text-gray-400">
+              {teamMembers.length === 0 
+                ? "No team members available in your Square account." 
+                : "No members match your current search and filters."}
             </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Team Members List */}
       {!loading && filteredMembers.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {filteredMembers.map((member) => (
             <Card key={member.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        {member.name}
-                        {member.isOwner && <Crown className="h-4 w-4 text-purple-600" />}
-                      </h3>
-                      <Badge className={getRoleColor(member.role)}>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{member.name}</h3>
+                      <Badge className={getStatusColor(member.status)}>
+                        {member.status}
+                      </Badge>
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        {getRoleIcon(member.role)}
                         {member.role}
                       </Badge>
                     </div>
-                  </div>
-                  <Badge className={getStatusColor(member.status)}>
-                    {member.status}
-                  </Badge>
-                </div>
-
-                <div className="space-y-3">
-                  {member.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{member.email}</span>
-                    </div>
-                  )}
-                  {member.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{member.phone}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Joined:</span>
-                    <span className="text-gray-900 dark:text-gray-100">{member.joinedAt}</span>
-                  </div>
-                  {member.locations.length > 0 && (
-                    <div>
-                      <span className="text-gray-600 dark:text-gray-400 text-sm">Locations:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {member.locations.slice(0, 2).map((location, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {location}
-                          </Badge>
-                        ))}
-                        {member.locations.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{member.locations.length - 2} more
-                          </Badge>
-                        )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Email</p>
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-4 w-4 text-gray-400" />
+                          <p className="font-medium">{member.email || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Phone</p>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-4 w-4 text-gray-400" />
+                          <p className="font-medium">{member.phone || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Role</p>
+                        <p className="font-medium">{member.role}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Locations</p>
+                        <p className="font-medium">{member.locations.length} assigned</p>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    View Profile
-                  </Button>
+                    {/* Locations */}
+                    {member.locations && member.locations.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Assigned Locations</p>
+                        <div className="flex gap-1 flex-wrap">
+                          {member.locations.map((location, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {location}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

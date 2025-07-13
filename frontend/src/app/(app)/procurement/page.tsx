@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { FaBoxes, FaShoppingCart, FaBuilding, FaArrowUp, FaArrowDown, FaCheck, FaSearch, FaPlus, FaEdit, FaDollarSign, FaCreditCard } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { FarmControlButton } from '@/components/ui/farm-control-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FarmInput } from '@/components/ui/farm-input';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 interface InventoryItem {
   id: string;
@@ -63,11 +67,183 @@ export default function ProcurementPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [priceIntelligence, setPriceIntelligence] = useState<PriceIntelligence[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Standardized search and filter hooks for inventory
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<InventoryItem>();
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<InventoryItem>();
+
+  // Search hooks for vendors
+  const { 
+    searchTerm: vendorSearchTerm, 
+    setSearchTerm: setVendorSearchTerm, 
+    clearSearch: clearVendorSearch, 
+    hasSearch: hasVendorSearch, 
+    filterItems: searchFilterVendors 
+  } = useFarmSearch<Vendor>({
+    searchFields: ['name', 'category', 'contact'],
+    caseSensitive: false
+  });
+  
+  // Search hooks for orders
+  const { 
+    searchTerm: orderSearchTerm, 
+    setSearchTerm: setOrderSearchTerm, 
+    clearSearch: clearOrderSearch, 
+    hasSearch: hasOrderSearch, 
+    filterItems: searchFilterOrders 
+  } = useFarmSearch<PurchaseOrder>({
+    searchFields: ['id', 'vendor'],
+    caseSensitive: false
+  });
+  
+  // Filter hooks for vendors
+  const {
+    filters: vendorFilters,
+    setFilter: setVendorFilter,
+    removeFilter: removeVendorFilter,
+    clearAllFilters: clearVendorFilters,
+    getActiveFilterChips: getVendorFilterChips,
+    filterItems: filterVendors,
+    hasActiveFilters: hasVendorFilters
+  } = useFarmFilters<Vendor>();
+  
+  // Filter hooks for orders
+  const {
+    filters: orderFilters,
+    setFilter: setOrderFilter,
+    removeFilter: removeOrderFilter,
+    clearAllFilters: clearOrderFilters,
+    getActiveFilterChips: getOrderFilterChips,
+    filterItems: filterOrders,
+    hasActiveFilters: hasOrderFilters
+  } = useFarmFilters<PurchaseOrder>();
 
   useEffect(() => {
     loadProcurementData();
   }, []);
+
+  // Filter definitions for FarmSearchAndFilter
+  const inventoryFilterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'category',
+      label: 'Category',
+      placeholder: 'Filter by category',
+      options: [
+        { value: 'all', label: 'All Categories' },
+        { value: 'Seeds', label: 'Seeds' },
+        { value: 'Nutrients', label: 'Nutrients' },
+        { value: 'Growing Media', label: 'Growing Media' },
+        { value: 'pH Control', label: 'pH Control' },
+        { value: 'Packaging', label: 'Packaging' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'status',
+      label: 'Stock Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'in-stock', label: 'In Stock' },
+        { value: 'low-stock', label: 'Low Stock' },
+        { value: 'out-of-stock', label: 'Out of Stock' },
+        { value: 'overstock', label: 'Overstock' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  const vendorFilterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'category',
+      label: 'Category',
+      placeholder: 'Filter by category',
+      options: [
+        { value: 'all', label: 'All Categories' },
+        { value: 'Seeds & Plants', label: 'Seeds & Plants' },
+        { value: 'Nutrients & Solutions', label: 'Nutrients & Solutions' },
+        { value: 'Growing Media', label: 'Growing Media' },
+        { value: 'Packaging & Containers', label: 'Packaging & Containers' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'preferred', label: 'Preferred' },
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  const orderFilterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Order Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'ordered', label: 'Ordered' },
+        { value: 'shipped', label: 'Shipped' },
+        { value: 'delivered', label: 'Delivered' },
+        { value: 'cancelled', label: 'Cancelled' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // Handle filter changes for inventory
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Handle filter changes for vendors
+  const handleVendorFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeVendorFilter(filterId);
+    } else {
+      setVendorFilter(filterId, value);
+    }
+  }, [setVendorFilter, removeVendorFilter]);
+
+  const handleRemoveVendorFilter = useCallback((filterId: string) => {
+    removeVendorFilter(filterId);
+  }, [removeVendorFilter]);
+
+  // Handle filter changes for orders
+  const handleOrderFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeOrderFilter(filterId);
+    } else {
+      setOrderFilter(filterId, value);
+    }
+  }, [setOrderFilter, removeOrderFilter]);
+
+  const handleRemoveOrderFilter = useCallback((filterId: string) => {
+    removeOrderFilter(filterId);
+  }, [removeOrderFilter]);
 
   const loadProcurementData = async () => {
     try {
@@ -269,16 +445,37 @@ export default function ProcurementPage() {
     }
   };
 
-  const getStockStatusColor = (status: InventoryItem['status']) => {
+  const getStockStatusType = (status: InventoryItem['status']): 'success' | 'warning' | 'error' | 'info' => {
     switch (status) {
-      case 'in-stock': return 'bg-green-100 text-green-800';
-      case 'low-stock': return 'bg-yellow-100 text-yellow-800';
-      case 'out-of-stock': return 'bg-red-100 text-red-800';
-      case 'overstock': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'in-stock': return 'success';
+      case 'low-stock': return 'warning';
+      case 'out-of-stock': return 'error';
+      case 'overstock': return 'info';
+      default: return 'warning';
     }
   };
 
+  const getVendorStatusType = (status: Vendor['status']): 'success' | 'info' | 'offline' => {
+    switch (status) {
+      case 'preferred': return 'success';
+      case 'active': return 'info';
+      case 'inactive': return 'offline';
+      default: return 'offline';
+    }
+  };
+
+  const getOrderStatusType = (status: PurchaseOrder['status']): 'success' | 'info' | 'warning' | 'error' => {
+    switch (status) {
+      case 'delivered': return 'success';
+      case 'shipped': return 'info';
+      case 'ordered': return 'warning';
+      case 'pending': return 'warning';
+      case 'cancelled': return 'error';
+      default: return 'warning';
+    }
+  };
+
+  // Compatibility helpers for existing Badge usages
   const getVendorStatusColor = (status: Vendor['status']) => {
     switch (status) {
       case 'preferred': return 'bg-green-100 text-green-800';
@@ -307,10 +504,42 @@ export default function ProcurementPage() {
     }
   };
 
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Apply combined filtering
+  const filteredInventory = useMemo(() => {
+    let result = inventory;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [inventory, searchFilterItems, filterFilterItems]);
+
+  const filteredVendors = useMemo(() => {
+    let result = vendors;
+    
+    // Apply search filtering
+    result = searchFilterVendors(result);
+    
+    // Apply standard filters
+    result = filterVendors(result);
+    
+    return result;
+  }, [vendors, searchFilterVendors, filterVendors]);
+
+  const filteredOrders = useMemo(() => {
+    let result = purchaseOrders;
+    
+    // Apply search filtering
+    result = searchFilterOrders(result);
+    
+    // Apply standard filters
+    result = filterOrders(result);
+    
+    return result;
+  }, [purchaseOrders, searchFilterOrders, filterOrders]);
 
   if (loading) {
     return (
@@ -361,30 +590,55 @@ export default function ProcurementPage() {
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1 max-w-md">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <FarmInput
-                placeholder="Search inventory..."
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="pl-10"
+          {/* Standardized Search and Filter Component */}
+          <Card className="mb-6">
+            <CardContent className="pt-4">
+              <FarmSearchAndFilter
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchContext="inventory items, categories, suppliers"
+                searchPlaceholder="Search inventory items, categories, suppliers..."
+                filters={inventoryFilterDefinitions}
+                activeFilters={getActiveFilterChips(inventoryFilterDefinitions)}
+                onFilterChange={handleFilterChange}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAllFilters={clearAllFilters}
+                orientation="horizontal"
+                showFilterChips={true}
               />
-            </div>
-            <FarmControlButton variant="default">
-              <FaBoxes className="mr-2" />
-              Bulk Actions
-            </FarmControlButton>
-          </div>
+              
+              {/* Results summary and actions */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredInventory.length} of {inventory.length} inventory items
+                </p>
+                <div className="flex space-x-2">
+                  <FarmControlButton variant="default" size="sm">
+                    <FaBoxes className="mr-2" />
+                    Bulk Actions
+                  </FarmControlButton>
+                  {(hasSearch || hasActiveFilters) && (
+                    <FarmControlButton 
+                      size="sm" 
+                      variant="default" 
+                      onClick={() => { clearSearch(); clearAllFilters(); }}
+                    >
+                      Clear all filters
+                    </FarmControlButton>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredInventory.map((item) => (
               <Card key={item.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <Badge className={getStockStatusColor(item.status)}>
+                    <StatusBadge status={getStockStatusType(item.status)}>
                       {item.status.replace('-', ' ')}
-                    </Badge>
+                    </StatusBadge>
                     <FarmControlButton variant="default" size="sm">
                       <FaEdit className="text-gray-400" />
                     </FarmControlButton>
@@ -437,8 +691,49 @@ export default function ProcurementPage() {
         </TabsContent>
 
         <TabsContent value="vendors" className="space-y-6">
+          {/* Standardized Search and Filter Component for Vendors */}
+          <Card className="mb-6">
+            <CardContent className="pt-4">
+              <FarmSearchAndFilter
+                searchValue={vendorSearchTerm}
+                onSearchChange={setVendorSearchTerm}
+                searchContext="vendors by name, category, contact"
+                searchPlaceholder="Search vendors by name, category, contact..."
+                filters={vendorFilterDefinitions}
+                activeFilters={getVendorFilterChips(vendorFilterDefinitions)}
+                onFilterChange={handleVendorFilterChange}
+                onRemoveFilter={handleRemoveVendorFilter}
+                onClearAllFilters={clearVendorFilters}
+                orientation="horizontal"
+                showFilterChips={true}
+              />
+              
+              {/* Results summary and actions */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredVendors.length} of {vendors.length} vendors
+                </p>
+                <div className="flex space-x-2">
+                  <FarmControlButton variant="default" size="sm">
+                    <FaPlus className="mr-2" />
+                    Add Vendor
+                  </FarmControlButton>
+                  {(hasVendorSearch || hasVendorFilters) && (
+                    <FarmControlButton 
+                      size="sm" 
+                      variant="default" 
+                      onClick={() => { clearVendorSearch(); clearVendorFilters(); }}
+                    >
+                      Clear all filters
+                    </FarmControlButton>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {vendors.map((vendor) => (
+            {filteredVendors.map((vendor) => (
               <Card key={vendor.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -542,8 +837,49 @@ export default function ProcurementPage() {
         </TabsContent>
 
         <TabsContent value="orders" className="space-y-6">
+          {/* Standardized Search and Filter Component for Orders */}
+          <Card className="mb-6">
+            <CardContent className="pt-4">
+              <FarmSearchAndFilter
+                searchValue={orderSearchTerm}
+                onSearchChange={setOrderSearchTerm}
+                searchContext="orders by ID or vendor"
+                searchPlaceholder="Search orders by ID or vendor..."
+                filters={orderFilterDefinitions}
+                activeFilters={getOrderFilterChips(orderFilterDefinitions)}
+                onFilterChange={handleOrderFilterChange}
+                onRemoveFilter={handleRemoveOrderFilter}
+                onClearAllFilters={clearOrderFilters}
+                orientation="horizontal"
+                showFilterChips={true}
+              />
+              
+              {/* Results summary and actions */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredOrders.length} of {purchaseOrders.length} orders
+                </p>
+                <div className="flex space-x-2">
+                  <FarmControlButton variant="default" size="sm">
+                    <FaPlus className="mr-2" />
+                    Create Order
+                  </FarmControlButton>
+                  {(hasOrderSearch || hasOrderFilters) && (
+                    <FarmControlButton 
+                      size="sm" 
+                      variant="default" 
+                      onClick={() => { clearOrderSearch(); clearOrderFilters(); }}
+                    >
+                      Clear all filters
+                    </FarmControlButton>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="space-y-4">
-            {purchaseOrders.map((order) => (
+            {filteredOrders.map((order) => (
               <Card key={order.id} className="hover:shadow-lg transition-shadow card-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

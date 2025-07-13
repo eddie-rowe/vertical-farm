@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-
 import { Separator } from '@/components/ui/separator'
 import { Search, Lightbulb, Zap, Wind, Settings, Trash2, Thermometer, Camera, Droplets, Power, Filter, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { toast } from 'react-hot-toast'
@@ -17,6 +16,9 @@ import { Row, Rack, Shelf } from '@/types/farm/layout'
 import { HADevice, DeviceAssignment, DeviceFilter, AssignmentTarget } from '@/types/device-assignment'
 import deviceAssignmentService from '@/services/deviceAssignmentService'
 import homeAssistantService from '@/services/homeAssistantService'
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter'
+import { useFarmSearch, useFarmFilters } from '@/hooks'
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter'
 
 interface Device {
   id: string
@@ -78,14 +80,27 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
   onUpdate,
   onDelete
 }) => {
-  const [searchTerm, setSearchTerm] = useState('')
   const [availableDevices, setAvailableDevices] = useState<HADevice[]>([])
   const [assignedDevices, setAssignedDevices] = useState<DeviceAssignment[]>([])
   const [loading, setLoading] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [activeFilter, setActiveFilter] = useState<string>('all')
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>('')
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<HADevice>({
+    searchFields: ['friendly_name', 'entity_id'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<HADevice>();
 
   // Get contextual device types for this element
   const getContextualDeviceTypes = () => {
@@ -103,6 +118,33 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
     ]
   }
 
+  // Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'device_type',
+      label: 'Device Type',
+      placeholder: 'Filter by device type',
+      options: getDeviceTypeOptions().map(option => ({
+        value: option.value,
+        label: option.label
+      })),
+      defaultValue: 'all'
+    }
+  ], [elementType]);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
   // Create assignment target for current element
   const getAssignmentTarget = (): AssignmentTarget => {
     if (!element) throw new Error('No element selected')
@@ -119,15 +161,13 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
     
     setLoading(true)
     try {
-      // Prepare filter parameters for imported devices
-      const deviceType = deviceTypeFilter && deviceTypeFilter !== 'all' ? deviceTypeFilter : undefined
       const assigned = false // Only show unassigned devices
 
-      // Get imported devices only
-      const importedDevices = await homeAssistantService.getImportedDevices(deviceType, assigned)
+      // Get all imported devices and apply filtering client-side for better UX
+      const importedDevices = await homeAssistantService.getImportedDevices(undefined, assigned)
       
       // Transform ImportedDevice[] to HADevice[] to match component expectations
-      let transformedDevices = (importedDevices || []).map(device => ({
+      const transformedDevices = (importedDevices || []).map(device => ({
         entity_id: device.entity_id,
         friendly_name: device.name,
         state: device.state || '',
@@ -137,14 +177,6 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
         last_updated: device.updated_at,
       }))
       
-      // Apply search term filter if provided
-      if (searchTerm) {
-        transformedDevices = transformedDevices.filter(device => 
-          device.friendly_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          device.entity_id.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      }
-      
       setAvailableDevices(transformedDevices)
     } catch (error) {
       console.error('Error fetching devices:', error)
@@ -153,6 +185,19 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
       setLoading(false)
     }
   }
+
+  // Apply combined filtering to available devices
+  const filteredDevices = useMemo(() => {
+    let result = availableDevices;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [availableDevices, searchFilterItems, filterFilterItems]);
 
   // Fetch currently assigned devices
   const fetchAssignedDevices = async () => {
@@ -301,7 +346,7 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
       fetchAvailableDevices()
       fetchAssignedDevices()
     }
-  }, [isOpen, element, searchTerm, deviceTypeFilter])
+  }, [isOpen, element])
 
   if (!element) return null
 
@@ -416,35 +461,38 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
 
             <TabsContent value="devices" className="space-y-4 overflow-hidden">
               <div className="space-y-4 overflow-y-auto max-h-[65vh] p-4">
-                {/* Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search for devices..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                {/* Standardized Search and Filter Component */}
+                <FarmSearchAndFilter
+                  searchValue={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  searchContext="devices by name or entity ID"
+                  searchPlaceholder="Search for devices..."
+                  filters={filterDefinitions}
+                  activeFilters={getActiveFilterChips(filterDefinitions)}
+                  onFilterChange={handleFilterChange}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAllFilters={clearAllFilters}
+                  orientation="horizontal"
+                  showFilterChips={true}
+                />
 
-                {/* Device Type Filter Chips */}
-                <div className="flex flex-wrap gap-3">
-                  {deviceTypeOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      variant={deviceTypeFilter === option.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDeviceTypeFilter(option.value)}
-                      className="flex items-center gap-2"
-                    >
-                      <span>{option.icon}</span>
-                      <span>{option.label}</span>
-                      {option.value !== 'all' && contextualTypes.includes(option.value) && (
-                        <Badge variant="secondary" className="ml-1 text-xs">Recommended</Badge>
-                      )}
-                    </Button>
-                  ))}
-                </div>
+                {/* Results summary */}
+                {availableDevices.length > 0 && (
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                    <p className="text-sm text-gray-600">
+                      Showing {filteredDevices.length} of {availableDevices.length} devices
+                    </p>
+                    {(hasSearch || hasActiveFilters) && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => { clearSearch(); clearAllFilters(); }}
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                )}
 
                 <Separator />
 
@@ -509,8 +557,8 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
                           <p className="text-slate-500">Loading devices...</p>
                         </div>
                       </div>
-                    ) : availableDevices.length > 0 ? (
-                      availableDevices.map((device) => (
+                    ) : filteredDevices.length > 0 ? (
+                      filteredDevices.map((device) => (
                         <div
                           key={device.entity_id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

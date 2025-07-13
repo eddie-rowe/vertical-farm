@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Search, Download, Upload, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { Label } from '@/components/ui/label';
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 import { GrowRecipe, Species, GrowRecipeFilters } from '@/types/grow-recipes';
 import { getGrowRecipes, getSpecies, deleteGrowRecipe } from '@/services/growRecipeService';
@@ -25,12 +28,79 @@ export default function GrowParametersView() {
   const [recipes, setRecipes] = useState<GrowRecipe[]>([]);
   const [species, setSpecies] = useState<Species[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<GrowRecipeFilters>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<GrowRecipe | null>(null);
   const [deletingRecipe, setDeletingRecipe] = useState<GrowRecipe | null>(null);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<GrowRecipe>({
+    searchFields: ['name', 'recipe_source'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<GrowRecipe>();
+
+  // Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'species_id',
+      label: 'Species',
+      placeholder: 'Filter by species',
+      options: [
+        { value: 'all', label: 'All Species' },
+        ...species.map(s => ({
+          value: s.id,
+          label: s.name
+        }))
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty Level',
+      placeholder: 'Filter by difficulty',
+      options: [
+        { value: 'all', label: 'All Levels' },
+        { value: 'Easy', label: 'Easy' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Hard', label: 'Hard' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'pythium_risk',
+      label: 'Risk Level',
+      placeholder: 'Filter by risk',
+      options: [
+        { value: 'all', label: 'All Risks' },
+        { value: 'Low', label: 'Low' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'High', label: 'High' }
+      ],
+      defaultValue: 'all'
+    }
+  ], [species]);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
 
   const loadData = async () => {
     try {
@@ -51,15 +121,14 @@ export default function GrowParametersView() {
 
   const loadRecipes = useCallback(async () => {
     try {
-      // Extract filter values that match the function signature
-      const speciesFilter = filters.species_id === 'all' ? undefined : filters.species_id;
-      const recipesData = await getGrowRecipes(1, 50, speciesFilter, filters.difficulty);
+      // Get first 100 recipes and apply filtering client-side for better UX
+      const recipesData = await getGrowRecipes(1, 100);
       setRecipes(recipesData.recipes);
     } catch (error) {
       console.error('Error loading recipes:', error);
       toast.error('Failed to load recipes');
     }
-  }, [filters, searchTerm]);
+  }, []);
 
   // Load initial data
   useEffect(() => {
@@ -138,16 +207,24 @@ export default function GrowParametersView() {
     loadRecipes();
   };
 
-  // Filter recipes based on search term (client-side filtering for better UX)
-  const filteredRecipes = recipes.filter(recipe => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      recipe.name.toLowerCase().includes(searchLower) ||
-      recipe.species?.name.toLowerCase().includes(searchLower) ||
-      recipe.recipe_source?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Apply combined filtering using standardized hooks
+  const filteredRecipes = useMemo(() => {
+    let result = recipes;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    // Add species data for display
+    result = result.map(recipe => ({
+      ...recipe,
+      species: species.find(s => s.id === recipe.species_id)
+    }));
+    
+    return result;
+  }, [recipes, searchFilterItems, filterFilterItems, species]);
 
   if (loading) {
     return (
@@ -215,78 +292,20 @@ export default function GrowParametersView() {
       {recipes.length > 0 && (
         <Card>
           <CardContent className="pt-6">
-            <div className="space-y-4">
-              {/* Search Bar */}
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search recipes by name, species, or source..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setFiltersExpanded(!filtersExpanded)}
-                  className={filtersExpanded ? 'bg-muted' : ''}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-              </div>
-
-              {/* Expanded Filters */}
-              {filtersExpanded && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                  <div>
-                    <Label htmlFor="species-filter">Species</Label>
-                    <Select value={filters.species_id || ''} onValueChange={(value) => setFilters({ ...filters, species_id: value || undefined })}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All species" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Species</SelectItem>
-                        {species.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="difficulty-filter">Difficulty Level</Label>
-                    <Select value={filters.difficulty || ''} onValueChange={(value) => setFilters({ ...filters, difficulty: (value === '' ? undefined : value) as 'Easy' | 'Medium' | 'Hard' | undefined })}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All levels" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Levels</SelectItem>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="risk-filter">Risk Level</Label>
-                    <Select value={filters.pythium_risk || ''} onValueChange={(value) => setFilters({ ...filters, pythium_risk: (value === '' ? undefined : value) as 'Low' | 'Medium' | 'High' | undefined })}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All risks" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Risks</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Standardized Search and Filter Component */}
+            <FarmSearchAndFilter
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchContext="recipes by name, species, or source"
+              searchPlaceholder="Search recipes by name, species, or source..."
+              filters={filterDefinitions}
+              activeFilters={getActiveFilterChips(filterDefinitions)}
+              onFilterChange={handleFilterChange}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={clearAllFilters}
+              orientation="horizontal"
+              showFilterChips={true}
+            />
           </CardContent>
         </Card>
       )}
@@ -297,14 +316,13 @@ export default function GrowParametersView() {
           <p className="text-sm text-muted-foreground">
             {filteredRecipes.length} of {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} shown
           </p>
-          {(searchTerm || Object.keys(filters).some(key => filters[key as keyof GrowRecipeFilters])) && (
+          {(hasSearch || hasActiveFilters) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                setSearchTerm('');
-                setFilters({});
-                setFiltersExpanded(false);
+                clearSearch();
+                clearAllFilters();
               }}
             >
               Clear all filters
@@ -328,9 +346,8 @@ export default function GrowParametersView() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSearchTerm('');
-                  setFilters({});
-                  setFiltersExpanded(false);
+                  clearSearch();
+                  clearAllFilters();
                 }}
               >
                 Clear filters

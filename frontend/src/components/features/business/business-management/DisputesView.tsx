@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   AlertTriangle, 
   DollarSign,
   AlertCircle,
@@ -17,13 +15,71 @@ import {
   CreditCard
 } from "lucide-react";
 import { businessManagementService, BusinessDispute } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 export default function DisputesView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [disputes, setDisputes] = useState<BusinessDispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessDispute>({
+    searchFields: ['id', 'customer', 'reason'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessDispute>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Dispute Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'under_review', label: 'Under Review' },
+        { value: 'won', label: 'Won' },
+        { value: 'lost', label: 'Lost' },
+        { value: 'accepted', label: 'Accepted' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredDisputes = useMemo(() => {
+    let result = disputes;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [disputes, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchDisputes = async () => {
     try {
@@ -42,15 +98,6 @@ export default function DisputesView() {
   useEffect(() => {
     fetchDisputes();
   }, []);
-
-  const filteredDisputes = disputes.filter(dispute => {
-    const matchesSearch = dispute.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dispute.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dispute.reason.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || dispute.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -144,31 +191,38 @@ export default function DisputesView() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search disputes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search disputes by ID, customer, or reason..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredDisputes.length} of {disputes.length} disputes
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="under_review">Under Review</option>
-          <option value="won">Won</option>
-          <option value="lost">Lost</option>
-          <option value="accepted">Accepted</option>
-        </select>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -200,72 +254,56 @@ export default function DisputesView() {
             <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
               No Disputes Found
             </h3>
-            <p className="text-gray-500 dark:text-gray-500">
-              {searchTerm || statusFilter !== "all" 
-                ? "No disputes match your current filters."
-                : "No payment disputes have been filed yet."}
+            <p className="text-gray-600 dark:text-gray-400">
+              {disputes.length === 0 
+                ? "No disputes available in your Square account." 
+                : "No disputes match your current filters."}
             </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Disputes List */}
       {!loading && filteredDisputes.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {filteredDisputes.map((dispute) => (
             <Card key={dispute.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {dispute.id}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">{dispute.customer}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(dispute.status)}>
-                      {getStatusIcon(dispute.status)}
-                      <span className="ml-1">{dispute.status.replace('_', ' ')}</span>
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      ${dispute.amount.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Reason:</span>
-                    <span className="text-gray-900 dark:text-gray-100">{dispute.reason}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Created:</span>
-                    <span className="text-gray-900 dark:text-gray-100">{dispute.createdAt}</span>
-                  </div>
-                  {dispute.dueDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Due Date:</span>
-                      <span className="text-gray-900 dark:text-gray-100">{dispute.dueDate}</span>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold">{dispute.id}</h3>
+                      <Badge className={getStatusColor(dispute.status)}>
+                        {getStatusIcon(dispute.status)}
+                        <span className="ml-1">{dispute.status}</span>
+                      </Badge>
                     </div>
-                  )}
-                  {dispute.cardBrand && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Card Brand:</span>
-                      <div className="flex items-center gap-1">
-                        <CreditCard className="h-4 w-4" />
-                        <span className="text-gray-900 dark:text-gray-100">{dispute.cardBrand}</span>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Customer</p>
+                        <p className="font-medium">{dispute.customer}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Reason</p>
+                        <p className="font-medium">{dispute.reason}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Date</p>
+                        <p className="font-medium">{new Date(dispute.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Amount</p>
+                        <p className="font-semibold text-lg text-red-600">${dispute.amount.toLocaleString()}</p>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    View Details
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
