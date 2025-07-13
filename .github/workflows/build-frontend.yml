@@ -61,6 +61,10 @@ jobs:
         run: npm ci
         
       - name: Build application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: npm run build
 
       - name: Set up Docker Buildx
@@ -88,16 +92,24 @@ jobs:
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v6
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         with:
           context: ./frontend
           push: ${{ inputs.push_to_registry }}
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           tags: |
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
             ghcr.io/${{ github.repository }}/frontend:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           
       - name: Generate build summary
         run: |
@@ -106,7 +118,7 @@ jobs:
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Image | \`${{ steps.meta.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Digest | \`${{ steps.build.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Platforms | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Platforms | linux/amd64 |" >> $GITHUB_STEP_SUMMARY
           echo "| Registry | ghcr.io |" >> $GITHUB_STEP_SUMMARY
           echo "| Pushed | ${{ inputs.push_to_registry && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
           

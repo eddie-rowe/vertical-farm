@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
@@ -73,7 +74,18 @@ export default function HomeAssistantIntegration() {
     }
   };
 
-  const handleTestConnectionStatus = async () => {
+  const handleTestConnectionStatus = async (url: string, token: string) => {
+    setIsTesting(true);
+    try {
+      const result = await testConnection(url, token);
+      return result;
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handleTestConnectionButton = async () => {
+    if (!config?.url || !config?.token) return;
     setIsTesting(true);
     try {
       await refreshData();
@@ -119,6 +131,9 @@ export default function HomeAssistantIntegration() {
     await bulkImportDevices(entityIds);
   };
 
+
+
+  // Temporary helper for OverviewTab compatibility
   const getStatusColor = (connected: boolean) => {
     return connected 
       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -156,6 +171,10 @@ export default function HomeAssistantIntegration() {
     setTempConfig(newConfig);
   };
 
+  const handleSaveConfig = async (config: HAConfig) => {
+    await saveConfig(config);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -172,9 +191,9 @@ export default function HomeAssistantIntegration() {
           <div>
             <h1 className="text-farm-title text-control-content dark:text-control-content-dark">Home Assistant Integration</h1>
             <div className="flex items-center mt-2 space-x-4">
-              <Badge className={`${getStatusColor(status.connected)} border`}>
-                <span className="capitalize">{status.connected ? 'Connected' : 'Disconnected'}</span>
-              </Badge>
+              <StatusBadge status={status.connected ? 'connected' : 'offline'}>
+                {status.connected ? 'Connected' : 'Disconnected'}
+              </StatusBadge>
               {status.connected && (
                 <>
                   <span className="text-sm text-gray-500">
@@ -191,7 +210,7 @@ export default function HomeAssistantIntegration() {
           </div>
           <div className="flex items-center space-x-3">
             <FarmControlButton
-              onClick={handleTestConnectionStatus}
+              onClick={handleTestConnectionButton}
               variant="default"
               size="sm"
               disabled={isTesting}
@@ -278,11 +297,11 @@ export default function HomeAssistantIntegration() {
             <ConfigurationTab
               config={config}
               status={status}
+              isLoading={isLoading}
+              isTesting={isTesting}
+              onSaveConfig={handleSaveConfig}
               onTestConnection={handleTestConnectionStatus}
-              onResetConfiguration={() => {
-                // Handle reset configuration
-                console.log('Reset configuration requested');
-              }}
+              getStatusColor={getStatusColor}
             />
           ) : (
             <SetupWizard
@@ -303,28 +322,12 @@ export default function HomeAssistantIntegration() {
         <TabsContent value="devices" className="space-y-6">
           <DeviceManagementTab
             devices={devices}
-            assignments={assignments
-              .filter((a) => a.farm_id && a.row_id && a.rack_id && a.shelf_id)
-              .map((a) => ({
-                entity_id: a.entity_id,
-                farm_id: a.farm_id!,
-                row_id: a.row_id!,
-                rack_id: a.rack_id!,
-                shelf_id: a.shelf_id!,
-                friendly_name: a.friendly_name,
-                entity_type: a.entity_type,
-              }))}
             importedDevices={importedDevices}
-            loading={isLoading}
+            isLoading={isLoading}
             onDiscoverDevices={discoverDevices}
             onImportDevice={handleImportDevice}
-            onAssignDevice={(device: HADevice) => {
-              // Handle device assignment - you might want to open a modal or navigate
-              console.log('Assign device:', device);
-            }}
-            onBulkImport={handleBulkImportDevices}
-            onDeviceControl={controlDevice}
-            onBulkControl={bulkControlDevices}
+            onBulkImportDevices={handleBulkImportDevices}
+            onControlDevice={controlDevice}
           />
         </TabsContent>
 
@@ -334,16 +337,16 @@ export default function HomeAssistantIntegration() {
             assignments={assignments
               .filter((a) => a.farm_id && a.row_id && a.rack_id && a.shelf_id)
               .map((a) => ({
+                id: a.entity_id, // Use entity_id as the id
                 entity_id: a.entity_id,
                 farm_id: a.farm_id!,
                 row_id: a.row_id!,
                 rack_id: a.rack_id!,
                 shelf_id: a.shelf_id!,
                 friendly_name: a.friendly_name,
-                entity_type: a.entity_type,
+                entity_type: a.entity_type || 'unknown',
               }))}
-            onDiscoverDevices={discoverDevices}
-            onEditAssignment={handleUpdateAssignment}
+            onRefresh={refreshData}
           />
         </TabsContent>
       </Tabs>

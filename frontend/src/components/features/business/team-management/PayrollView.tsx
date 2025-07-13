@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Plus, 
   DollarSign, 
   User, 
@@ -18,6 +16,9 @@ import {
   Download,
   TrendingUp
 } from "lucide-react";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 // Mock data for payroll
 const payrollData = {
@@ -81,45 +82,94 @@ const payrollData = {
       name: "James Wilson",
       role: "Maintenance Tech",
       employeeId: "EMP004",
-      payRate: 26.75,
-      hoursWorked: 42.5,
-      overtimeHours: 2.5,
-      grossPay: 1237.81,
-      deductions: 267.23,
-      netPay: 970.58,
+      payRate: 26.00,
+      hoursWorked: 42.0,
+      overtimeHours: 2.0,
+      grossPay: 1144.00,
+      deductions: 256.34,
+      netPay: 887.66,
       payPeriod: "2024-01-01 to 2024-01-14",
-      status: "pending",
-      lastPaid: "2024-01-01",
-      benefits: ["Health Insurance", "401k", "PTO"]
+      status: "processed",
+      lastPaid: "2024-01-15",
+      benefits: ["Health Insurance", "401k"]
     },
     {
       id: "P005",
       name: "Alex Rodriguez",
-      role: "Data Analyst",
+      role: "Growth Technician",
       employeeId: "EMP005",
-      payRate: 32.00,
-      hoursWorked: 35.0,
+      payRate: 23.75,
+      hoursWorked: 36.0,
       overtimeHours: 0,
-      grossPay: 1120.00,
-      deductions: 258.40,
-      netPay: 861.60,
+      grossPay: 855.00,
+      deductions: 187.50,
+      netPay: 667.50,
       payPeriod: "2024-01-01 to 2024-01-14",
-      status: "processed",
-      lastPaid: "2024-01-15",
-      benefits: ["Health Insurance", "401k", "PTO", "Remote Work"]
+      status: "pending",
+      lastPaid: "2024-01-01",
+      benefits: ["Health Insurance"]
     }
-  ],
-  payrollSummary: {
-    thisMonth: 28750.00,
-    lastMonth: 27980.00,
-    ytd: 56730.00,
-    avgHoursPerEmployee: 39.2
-  }
+  ]
 };
 
+type PayrollEmployee = typeof payrollData.employees[0];
+
 export default function PayrollView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<PayrollEmployee>({
+    searchFields: ['name', 'role', 'employeeId'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<PayrollEmployee>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Payment Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'processed', label: 'Processed' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'failed', label: 'Failed' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredEmployees = useMemo(() => {
+    let result = payrollData.employees;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -138,14 +188,6 @@ export default function PayrollView() {
       default: return <Clock className="h-4 w-4" />;
     }
   };
-
-  const filteredEmployees = payrollData.employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || employee.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <div className="space-y-6">
@@ -178,7 +220,7 @@ export default function PayrollView() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <TrendingUp className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Avg Salary</p>
                 <p className="text-2xl font-bold">${payrollData.summary.avgSalary.toLocaleString()}</p>
@@ -190,9 +232,9 @@ export default function PayrollView() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <Clock className="h-5 w-5 text-yellow-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Pending Payments</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
                 <p className="text-2xl font-bold">{payrollData.summary.pendingPayments}</p>
               </div>
             </div>
@@ -200,38 +242,13 @@ export default function PayrollView() {
         </Card>
       </div>
 
-      {/* Payroll Overview */}
-      <Card>
-        <CardContent className="p-6">
-          <h4 className="font-semibold text-lg mb-4">Payroll Overview</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-600 dark:text-gray-400">This Month</p>
-              <p className="text-xl font-bold">${payrollData.payrollSummary.thisMonth.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 dark:text-gray-400">Last Month</p>
-              <p className="text-xl font-bold">${payrollData.payrollSummary.lastMonth.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 dark:text-gray-400">Year to Date</p>
-              <p className="text-xl font-bold">${payrollData.payrollSummary.ytd.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 dark:text-gray-400">Avg Hours/Employee</p>
-              <p className="text-xl font-bold">{payrollData.payrollSummary.avgHoursPerEmployee}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Actions Bar */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Employee Payroll</h3>
+        <h3 className="text-lg font-semibold">Payroll Management</h3>
         <div className="flex gap-2">
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export Payroll
+            Export Report
           </Button>
           <Button variant="outline">
             <CreditCard className="h-4 w-4 mr-2" />
@@ -244,110 +261,140 @@ export default function PayrollView() {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search employees..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border rounded-md bg-background"
-        >
-          <option value="all">All Status</option>
-          <option value="processed">Processed</option>
-          <option value="pending">Pending</option>
-          <option value="failed">Failed</option>
-        </select>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search employees by name, role, or employee ID..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <span>
+          Showing {filteredEmployees.length} of {payrollData.employees.length} employees
+        </span>
+        {(hasSearch || hasActiveFilters) && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              clearSearch();
+              clearAllFilters();
+            }}
+          >
+            Clear all filters
+          </Button>
+        )}
       </div>
 
-      {/* Employee Payroll Cards */}
-      <div className="grid gap-4">
-        {filteredEmployees.map((employee) => (
-          <Card key={employee.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-semibold text-lg">{employee.name}</h4>
-                    <Badge variant="outline">{employee.role}</Badge>
-                    <Badge className={`${getStatusColor(employee.status)} flex items-center gap-1`}>
-                      {getStatusIcon(employee.status)}
-                      {employee.status}
-                    </Badge>
-                    <Badge variant="secondary">{employee.employeeId}</Badge>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Pay Period: {employee.payPeriod}
-                  </p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Pay Rate</p>
-                      <p className="font-medium">${employee.payRate}/hr</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Hours Worked</p>
-                      <p className="font-medium">{employee.hoursWorked}h</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Overtime</p>
-                      <p className="font-medium">{employee.overtimeHours}h</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Gross Pay</p>
-                      <p className="font-medium">${employee.grossPay.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Deductions</p>
-                      <p className="font-medium">-${employee.deductions.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Net Pay</p>
-                      <p className="font-bold text-green-600">${employee.netPay.toLocaleString()}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <p className="text-sm font-medium mb-1">Benefits:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {employee.benefits.map((benefit, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {benefit}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                    Last Paid: {new Date(employee.lastPaid).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm">
-                    <Calendar className="h-4 w-4" />
-                  </Button>
-                  {employee.status === "pending" && (
-                    <Button variant="outline" size="sm">
-                      <CreditCard className="h-4 w-4 mr-1" />
-                      Process
-                    </Button>
-                  )}
-                </div>
-              </div>
+      {/* Payroll Grid */}
+      <div className="space-y-4">
+        {filteredEmployees.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                No Employees Found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {payrollData.employees.length === 0 
+                  ? "No employees in payroll system." 
+                  : "No employees match your current search and filters."}
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredEmployees.map((employee) => (
+            <Card key={employee.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-lg font-semibold">{employee.name}</h3>
+                      <Badge className={getStatusColor(employee.status)}>
+                        {getStatusIcon(employee.status)}
+                        <span className="ml-1">{employee.status}</span>
+                      </Badge>
+                      <Badge variant="outline">{employee.role}</Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Employee ID</p>
+                        <p className="font-medium">{employee.employeeId}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Pay Rate</p>
+                        <p className="font-medium">${employee.payRate}/hr</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Hours Worked</p>
+                        <p className="font-medium">
+                          {employee.hoursWorked}h
+                          {employee.overtimeHours > 0 && (
+                            <span className="text-orange-600"> (+{employee.overtimeHours}h OT)</span>
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Gross Pay</p>
+                        <p className="font-semibold text-lg text-green-600">${employee.grossPay.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Net Pay</p>
+                        <p className="font-semibold text-lg">${employee.netPay.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600 dark:text-gray-400">Pay Period</p>
+                          <p className="font-medium">{employee.payPeriod}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 dark:text-gray-400">Deductions</p>
+                          <p className="font-medium text-red-600">-${employee.deductions.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 dark:text-gray-400">Last Paid</p>
+                          <p className="font-medium">{new Date(employee.lastPaid).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      {employee.benefits && employee.benefits.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Benefits</p>
+                          <div className="flex gap-1 flex-wrap">
+                            {employee.benefits.map((benefit, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {benefit}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

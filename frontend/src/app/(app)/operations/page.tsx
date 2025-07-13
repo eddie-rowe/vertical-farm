@@ -5,11 +5,14 @@ import { FaTachometerAlt, FaDollarSign, FaClock, FaLeaf, FaBolt, FaTint, FaUsers
 import { DeliveryScheduleView, MaintenanceScheduleView, ResourceUsageChart } from '@/components/features/business';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { FarmControlButton } from '@/components/ui/farm-control-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { usePageData } from '@/components/shared/hooks/usePageData';
 import { MetricsGrid } from '@/components/shared/metrics';
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
 
 interface EfficiencyMetric {
   id: string;
@@ -175,6 +178,16 @@ export default function OperationsPage() {
   const costBreakdown = operationsData?.costBreakdown || [];
   const performanceData = operationsData?.performanceData || [];
 
+  const getStatusType = (status: EfficiencyMetric['status']): 'success' | 'warning' | 'error' => {
+    switch (status) {
+      case 'good': return 'success';
+      case 'warning': return 'warning';
+      case 'critical': return 'error';
+      default: return 'warning';
+    }
+  };
+
+  // Helper for MetricsGrid compatibility
   const getStatusColor = (status: EfficiencyMetric['status']) => {
     switch (status) {
       case 'good': return 'state-growing';
@@ -199,11 +212,7 @@ export default function OperationsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-accent"></div>
-      </div>
-    );
+    return <SkeletonDashboard metricCards={6} showSidebar={true} />;
   }
 
   return (
@@ -256,9 +265,9 @@ export default function OperationsPage() {
                       {metric.icon}
                       <CardTitle className="text-farm-title">{metric.name}</CardTitle>
                     </div>
-                    <Badge className={getStatusColor(metric.status)}>
+                    <StatusBadge status={getStatusType(metric.status)}>
                       {metric.status}
-                    </Badge>
+                    </StatusBadge>
                   </div>
                 </CardHeader>
                 <CardContent>

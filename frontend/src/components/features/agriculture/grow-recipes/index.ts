@@ -1,8 +1,16 @@
-// Grow Recipe Components - Recipe management and templates
-export { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
-export { EnhancedEmptyState } from './EnhancedEmptyState';
-export { EnhancedGrowRecipeCard } from './EnhancedGrowRecipeCard';
+// Grow Recipe Components - Recipe management and configuration
+
+// Recipe cards and displays
 export { GrowRecipeCard } from './GrowRecipeCard';
+export { EnhancedGrowRecipeCard } from './EnhancedGrowRecipeCard';
+
+// Recipe management forms and modals
 export { GrowRecipeForm } from './GrowRecipeForm';
-export { RecipeStatsCard, TotalRecipesCard } from './RecipeStatsCard';
-export { RecipeStatsDashboard } from './RecipeStatsDashboard'; 
+export { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
+
+// Statistics and dashboards
+export { RecipeStatsCard, TotalRecipesCard, AvgSuccessRateCard, AvgGrowTimeCard } from './RecipeStatsCard';
+export { RecipeStatsDashboard } from './RecipeStatsDashboard';
+
+// Empty states and onboarding
+export { EnhancedEmptyState } from './EnhancedEmptyState'; 

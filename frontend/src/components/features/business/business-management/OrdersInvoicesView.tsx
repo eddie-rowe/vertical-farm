@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Plus, 
   Download, 
   Send, 
@@ -19,13 +17,81 @@ import {
   Loader2
 } from "lucide-react";
 import { businessManagementService, BusinessOrder } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { LoadingCard } from '@/components/ui/loading';
 
 export default function OrdersInvoicesView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [orders, setOrders] = useState<BusinessOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessOrder>({
+    searchFields: ['id', 'customer'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessOrder>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Order Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'delivered', label: 'Delivered' },
+        { value: 'ready', label: 'Ready' },
+        { value: 'processing', label: 'Processing' }
+      ]
+    },
+    {
+      id: 'paymentStatus',
+      label: 'Payment Status',
+      placeholder: 'Filter by payment status...',
+      options: [
+        { value: 'paid', label: 'Paid' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'overdue', label: 'Overdue' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [orders, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchOrders = async () => {
     try {
@@ -44,14 +110,6 @@ export default function OrdersInvoicesView() {
   useEffect(() => {
     fetchOrders();
   }, []);
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || order.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -86,8 +144,8 @@ export default function OrdersInvoicesView() {
             disabled={loading}
             className="flex items-center gap-2"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {loading ? 'Loading...' : 'Refresh'}
+            <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
           <Button variant="outline" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -154,30 +212,38 @@ export default function OrdersInvoicesView() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search orders..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search orders by ID or customer..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredOrders.length} of {orders.length} orders
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="delivered">Delivered</option>
-          <option value="ready">Ready</option>
-          <option value="processing">Processing</option>
-        </select>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -193,12 +259,7 @@ export default function OrdersInvoicesView() {
 
       {/* Loading State */}
       {loading && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 dark:text-gray-400">Loading orders from Square...</p>
-          </CardContent>
-        </Card>
+        <LoadingCard message="Loading orders from Square..." size="lg" />
       )}
 
       {/* Orders List */}

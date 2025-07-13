@@ -20,11 +20,14 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
   };
 
   const getTextColor = (val: number) => {
-    if (val >= 80) return 'text-green-600';
-    if (val >= 60) return 'text-yellow-600';
-    if (val >= 40) return 'text-red-600';
-    return 'text-gray-600';
+    if (val >= 80) return 'text-green-600 dark:text-green-400';
+    if (val >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    if (val >= 40) return 'text-red-600 dark:text-red-400';
+    return 'text-gray-600 dark:text-gray-400';
   };
+
+  // Dynamic background stroke color for dark mode
+  const backgroundStroke = 'stroke-gray-200 dark:stroke-gray-700';
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
@@ -39,7 +42,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#E5E7EB"
+            className={backgroundStroke}
             strokeWidth={strokeWidth}
             fill="none"
           />

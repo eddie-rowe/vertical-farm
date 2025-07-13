@@ -1,42 +1,9 @@
+import { LoadingPage } from '@/components/ui/loading';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Loader2 } from '@/lib/icons';
 
 export default function Loading() {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Loading screen with semantic HTML and ARIA labels */}
-      <div 
-        className="flex items-center justify-center min-h-screen"
-        role="status"
-        aria-label="Loading application content"
-      >
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-12 w-12 mx-auto">
-            <Loader2 className="h-12 w-12 text-primary" aria-hidden="true" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-foreground">
-              Loading Vertical Farm
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Preparing your dashboard...
-            </p>
-          </div>
-          <div className="w-64 mx-auto">
-            <div className="h-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary animate-pulse rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Screen reader only text */}
-      <span className="sr-only">
-        Loading vertical farm management system. Please wait while we prepare your dashboard.
-      </span>
-    </div>
-  );
+  return <LoadingPage />;
 }
 
 // Skeleton loader for dashboard layout

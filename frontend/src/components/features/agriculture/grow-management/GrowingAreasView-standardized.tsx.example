@@ -1,0 +1,439 @@
+/**
+ * Example Migration: GrowingAreasView using Standardized Search & Filters
+ * 
+ * This example shows how to migrate from manual search/filter implementation
+ * to using the new standardized search and filter components.
+ * 
+ * Key Changes:
+ * 1. Replace manual Input + Search icon with FarmSearchInput
+ * 2. Replace multiple useState hooks with useFarmSearch and useFarmFilters
+ * 3. Use FarmSearchAndFilter composite component for layout
+ * 4. Add active filter chips display
+ * 5. Simplified filter logic using standardized hooks
+ */
+
+'use client';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { RefreshCw, Grid, List, Zap, TrendingUp, TrendingDown } from "lucide-react";
+
+// ✅ NEW: Import standardized search and filter components
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+
+// ❌ OLD: Manual imports for search and filter
+// import { Input } from "@/components/ui/input";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// import { Search, Filter } from "lucide-react";
+
+import { FarmService } from '@/services/domain/farm/FarmService';
+
+// ... (GrowingAreaData interface and other types remain the same)
+interface GrowingAreaData {
+  id: string;
+  shelfId: string;
+  shelfName: string;
+  rackName: string;
+  rowName: string;
+  farmName: string;
+  recipeName: string;
+  speciesName: string;
+  startDate: string;
+  endDate: string;
+  status: 'planned' | 'active' | 'completed' | 'aborted';
+  progress: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  totalDays: number;
+  automationEnabled: boolean;
+  criticalAlerts: number;
+  environmentalScore: number;
+  isOnline: boolean;
+  // ... other fields
+}
+
+interface GrowingAreasViewProps {
+  onNavigateToTab: (tab: string) => void;
+}
+
+export default function GrowingAreasViewStandardized({ onNavigateToTab }: GrowingAreasViewProps) {
+  const [growingAreas, setGrowingAreas] = useState<GrowingAreaData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<'progress' | 'harvest' | 'alerts' | 'environmental'>('progress');
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  // ✅ NEW: Standardized search with built-in debouncing and filtering
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<GrowingAreaData>({
+    searchFields: ['speciesName', 'farmName', 'recipeName'],
+    caseSensitive: false
+  });
+
+  // ✅ NEW: Standardized filter management with chips
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<GrowingAreaData>({
+    filterFunction: (item, filters) => {
+      return filters.every(filter => {
+        if (!filter.value || filter.value === 'all') return true;
+        
+        switch (filter.id) {
+          case 'status':
+            return item.status === filter.value;
+          case 'alerts':
+            if (filter.value === 'alerts') return item.criticalAlerts > 0;
+            if (filter.value === 'no-alerts') return item.criticalAlerts === 0;
+            return true;
+          case 'farm':
+            return item.farmName === filter.value;
+          default:
+            return true;
+        }
+      });
+    }
+  });
+
+  // ❌ OLD: Multiple manual state hooks
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [statusFilter, setStatusFilter] = useState("all");
+  // const [farmFilter, setFarmFilter] = useState("all");
+  // const [alertFilter, setAlertFilter] = useState("all");
+
+  // ✅ NEW: Define filter configurations
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'active', label: 'Active' },
+        { value: 'planned', label: 'Planned' },
+        { value: 'completed', label: 'Completed' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'alerts',
+      label: 'Alerts',
+      placeholder: 'Filter by alerts',
+      options: [
+        { value: 'all', label: 'All Alerts' },
+        { value: 'alerts', label: 'Has Alerts' },
+        { value: 'no-alerts', label: 'No Alerts' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'farm',
+      label: 'Farm',
+      placeholder: 'Filter by farm',
+      options: [
+        { value: 'all', label: 'All Farms' },
+        // Dynamic options would be populated from actual farm data
+        { value: 'Farm A', label: 'Farm A' },
+        { value: 'Farm B', label: 'Farm B' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ... (fetchGrowingAreas and other functions remain the same)
+  const fetchGrowingAreas = useCallback(async () => {
+    // Implementation remains the same
+    setIsLoading(true);
+    try {
+      const farmService = FarmService.getInstance();
+      const farms = await farmService.getAll();
+      // ... mock data creation logic
+      setGrowingAreas(mockGrowingAreas);
+    } catch (error) {
+      console.error('Error fetching growing areas:', error);
+      setGrowingAreas([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGrowingAreas();
+  }, [fetchGrowingAreas]);
+
+  // ✅ NEW: Simplified filtering and sorting with standardized hooks
+  const filteredAndSortedAreas = useMemo(() => {
+    let result = growingAreas;
+    
+    // Apply search filter
+    result = searchFilterItems(result);
+    
+    // Apply other filters
+    result = filterFilterItems(result);
+    
+    // Apply sorting (unchanged)
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'progress':
+          return b.progress - a.progress;
+        case 'harvest':
+          return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+        case 'alerts':
+          return b.criticalAlerts - a.criticalAlerts;
+        case 'environmental':
+          return b.environmentalScore - a.environmentalScore;
+        default:
+          return 0;
+      }
+    });
+    
+    return result;
+  }, [growingAreas, searchFilterItems, filterFilterItems, sortBy]);
+
+  // ❌ OLD: Manual filtering logic (replaced by standardized hooks)
+  // const filteredAndSortedAreas = useMemo(() => {
+  //   const filtered = growingAreas.filter(area => {
+  //     const matchesSearch = searchTerm === "" ||
+  //       area.speciesName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       area.farmName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       area.recipeName.toLowerCase().includes(searchTerm.toLowerCase());
+  //     
+  //     const matchesStatus = statusFilter === "all" || area.status === statusFilter;
+  //     const matchesFarm = farmFilter === "all" || area.farmName === farmFilter;
+  //     const matchesAlert = alertFilter === "all" ||
+  //       (alertFilter === "alerts" && area.criticalAlerts > 0) ||
+  //       (alertFilter === "no-alerts" && area.criticalAlerts === 0);
+  //     
+  //     return matchesSearch && matchesStatus && matchesFarm && matchesAlert;
+  //   });
+  //   
+  //   // ... sorting logic
+  //   return filtered;
+  // }, [growingAreas, searchTerm, statusFilter, farmFilter, alertFilter, sortBy]);
+
+  const handleRefresh = async () => {
+    setLastRefresh(new Date());
+    await fetchGrowingAreas();
+  };
+
+  // ✅ NEW: Get active filter chips for display
+  const activeFilterChips = getActiveFilterChips(filterDefinitions);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Growing Areas</h2>
+          <p className="text-muted-foreground">
+            Monitor and manage your active growing cycles
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Summary (unchanged) */}
+      {/* ... stats cards remain the same ... */}
+
+      {/* ✅ NEW: Standardized Search and Filter Component */}
+      <div className="space-y-4">
+        <FarmSearchAndFilter
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchContext="species, farm, or recipe"
+          filters={filterDefinitions}
+          activeFilters={activeFilterChips}
+          onFilterChange={setFilter}
+          onRemoveFilter={removeFilter}
+          onClearAllFilters={clearAllFilters}
+          orientation="horizontal"
+          showFilterChips={true}
+        />
+        
+        {/* Additional controls (view mode, sort) */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Sort control remains the same */}
+          {/* ... sort select ... */}
+        </div>
+      </div>
+
+      {/* ❌ OLD: Manual search and filter layout */}
+      {/* 
+      <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search by species, farm, or recipe..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="planned">Planned</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={alertFilter} onValueChange={setAlertFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Alerts</SelectItem>
+              <SelectItem value="alerts">Has Alerts</SelectItem>
+              <SelectItem value="no-alerts">No Alerts</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      */}
+
+      {/* Results Display */}
+      <div className="space-y-4">
+        {/* ✅ NEW: Results count with active filter indication */}
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <span>
+            Showing {filteredAndSortedAreas.length} of {growingAreas.length} growing areas
+            {(hasSearch || hasActiveFilters) && (
+              <span className="ml-2 text-blue-600">
+                (filtered)
+              </span>
+            )}
+          </span>
+          
+          {(hasSearch || hasActiveFilters) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
+        </div>
+
+        {/* Grid/List Content */}
+        {isLoading ? (
+          <div className="text-center py-12">Loading growing areas...</div>
+        ) : filteredAndSortedAreas.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              {growingAreas.length === 0
+                ? "No growing areas found. Create your first growing cycle to get started."
+                : "No areas match your current filters. Try adjusting your search criteria."
+              }
+            </p>
+            {(hasSearch || hasActiveFilters) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => {
+                  clearSearch();
+                  clearAllFilters();
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className={viewMode === 'grid' 
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            : "space-y-4"
+          }>
+            {filteredAndSortedAreas.map((area) => (
+              <GrowingAreaCard key={area.id} area={area} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// GrowingAreaCard component remains unchanged
+const GrowingAreaCard = ({ area }: { area: GrowingAreaData }) => {
+  // ... component implementation remains the same
+  return (
+    <Card>
+      <CardContent>
+        {/* Card content unchanged */}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * Migration Benefits:
+ * 
+ * 1. **Reduced Code**: ~50 lines of manual filter logic replaced with standardized hooks
+ * 2. **Built-in Debouncing**: Search performance optimization out of the box
+ * 3. **Consistent UX**: Standard search and filter patterns across the app
+ * 4. **Active Filter Display**: Visual chips show current filters with easy removal
+ * 5. **Type Safety**: Strongly typed filter definitions and state management
+ * 6. **Maintainability**: Centralized search/filter logic reduces duplication
+ * 7. **Accessibility**: Built-in ARIA labels and keyboard navigation
+ * 8. **Responsive**: Automatic layout adjustments for different screen sizes
+ * 
+ * Key Migration Steps:
+ * 
+ * 1. Replace manual useState hooks with useFarmSearch and useFarmFilters
+ * 2. Define filter configurations using FilterDefinition interface
+ * 3. Replace manual Input + icon with FarmSearchAndFilter component
+ * 4. Simplify filtering logic using hook-provided filter functions
+ * 5. Add active filter chips display for better UX
+ * 6. Update placeholder text to follow standardized patterns
+ * 7. Remove manual debouncing and search icon positioning
+ * 8. Add clear all functionality for improved user experience
+ */ 

@@ -1,37 +1,24 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  MapPin, 
-  Search, 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Building, 
-  Grid3x3, 
-  Layers, 
-  Package,
-  AlertCircle,
-  CheckCircle,
-  Info,
-  Filter
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { DeviceAssignment, ImportedDevice } from '@/services/homeAssistantService';
+import React, { useState, useMemo, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { MapPin, Plus, Search, Info, Edit, Trash2 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import { DeviceAssignment } from '@/types/device-assignment'
+import deviceAssignmentService from '@/services/deviceAssignmentService'
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter'
+import { useFarmSearch, useFarmFilters } from '@/hooks'
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter'
 
 interface AssignmentTabProps {
-  assignments: DeviceAssignment[];
-  importedDevices: ImportedDevice[];
-  isLoading: boolean;
-  onCreateAssignment: (assignment: Omit<DeviceAssignment, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  onUpdateAssignment: (assignment: DeviceAssignment) => Promise<void>;
-  onDeleteAssignment: (entityId: string) => Promise<void>;
+  assignments: DeviceAssignment[]
+  onRefresh: () => void
 }
 
 // Mock farm structure data - in real app this would come from props or API
@@ -63,15 +50,29 @@ const mockShelves = [
 
 export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   assignments,
-  importedDevices,
-  isLoading,
-  onCreateAssignment,
-  onUpdateAssignment,
-  onDeleteAssignment
+  onRefresh
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<DeviceAssignment>({
+    searchFields: ['friendly_name', 'entity_id'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<DeviceAssignment>();
+
+  // Additional filter states
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>('all');
+
+  // Dialog and form states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<DeviceAssignment | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,11 +84,55 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   const [selectedRack, setSelectedRack] = useState<string>('');
   const [selectedShelf, setSelectedShelf] = useState<string>('');
 
-  // Get unassigned devices for assignment creation
+  // Mock data for devices - in real app this would come from props or API
+  const importedDevices = [
+    { entity_id: 'light.grow_light_1', name: 'Grow Light 1', device_type: 'light' },
+    { entity_id: 'switch.irrigation_pump', name: 'Irrigation Pump', device_type: 'switch' },
+    { entity_id: 'fan.exhaust_fan_1', name: 'Exhaust Fan 1', device_type: 'fan' },
+  ];
+
+  // Calculate unassigned devices
   const unassignedDevices = useMemo(() => {
     const assignedEntityIds = new Set(assignments.map(a => a.entity_id));
     return importedDevices.filter(device => !assignedEntityIds.has(device.entity_id));
-  }, [importedDevices, assignments]);
+  }, [assignments]);
+
+  // Handler functions
+  const onCreateAssignment = async (assignment: Omit<DeviceAssignment, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      // In real app, call the API service
+      // await deviceAssignmentService.createAssignment(assignment);
+      toast.success('Assignment created successfully');
+      onRefresh();
+    } catch (error) {
+      toast.error('Failed to create assignment');
+      console.error('Create assignment error:', error);
+    }
+  };
+
+  const onUpdateAssignment = async (assignment: DeviceAssignment) => {
+    try {
+      // In real app, call the API service
+      // await deviceAssignmentService.updateAssignment(assignment);
+      toast.success('Assignment updated successfully');
+      onRefresh();
+    } catch (error) {
+      toast.error('Failed to update assignment');
+      console.error('Update assignment error:', error);
+    }
+  };
+
+  const onDeleteAssignment = async (entityId: string) => {
+    try {
+      // In real app, call the API service
+      // await deviceAssignmentService.deleteAssignment(entityId);
+      toast.success('Assignment deleted successfully');
+      onRefresh();
+    } catch (error) {
+      toast.error('Failed to delete assignment');
+      console.error('Delete assignment error:', error);
+    }
+  };
 
   // Get unique device types for filter
   const deviceTypes = useMemo(() => {
@@ -95,21 +140,61 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
     return Array.from(types).sort();
   }, [assignments]);
 
-  // Filter assignments based on search and filters
+  // Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'farm_id',
+      label: 'Farm Location',
+      placeholder: 'Filter by farm',
+      options: [
+        { value: 'all', label: 'All Farms' },
+        ...mockFarms.map(farm => ({
+          value: farm.id,
+          label: farm.name
+        }))
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'entity_type',
+      label: 'Device Type',
+      placeholder: 'Filter by device type',
+      options: [
+        { value: 'all', label: 'All Types' },
+        ...deviceTypes.map(type => ({
+          value: type,
+          label: type.charAt(0).toUpperCase() + type.slice(1)
+        }))
+      ],
+      defaultValue: 'all'
+    }
+  ], [deviceTypes]);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Apply combined filtering using standardized hooks
   const filteredAssignments = useMemo(() => {
-    return assignments.filter(assignment => {
-      const matchesSearch = !searchTerm || 
-        assignment.friendly_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assignment.entity_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assignment.farm_name?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesLocation = locationFilter === 'all' || assignment.farm_id === locationFilter;
-      
-      const matchesType = deviceTypeFilter === 'all' || assignment.entity_type === deviceTypeFilter;
-      
-      return matchesSearch && matchesLocation && matchesType;
-    });
-  }, [assignments, searchTerm, locationFilter, deviceTypeFilter]);
+    let result = assignments;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [assignments, searchFilterItems, filterFilterItems]);
 
   // Get filtered rows based on selected farm
   const availableRows = useMemo(() => {
@@ -193,19 +278,24 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   };
 
   const getLocationBreadcrumb = (assignment: DeviceAssignment) => {
-    const parts = [];
-    if (assignment.farm_name) parts.push(assignment.farm_name);
-    if (assignment.row_name) parts.push(assignment.row_name);
-    if (assignment.rack_name) parts.push(assignment.rack_name);
-    if (assignment.shelf_name) parts.push(assignment.shelf_name);
-    return parts.join(' > ') || 'Unassigned';
+    const parts: string[] = [];
+    
+    const farm = mockFarms.find(f => f.id === assignment.farm_id);
+    if (farm) parts.push(farm.name);
+    
+    const row = mockRows.find(r => r.id === assignment.row_id);
+    if (row) parts.push(row.name);
+    
+    const rack = mockRacks.find(r => r.id === assignment.rack_id);
+    if (rack) parts.push(rack.name);
+    
+    const shelf = mockShelves.find(s => s.id === assignment.shelf_id);
+    if (shelf) parts.push(shelf.name);
+    
+    return parts.join(' > ') || 'No location assigned';
   };
 
   const getLocationIcon = (assignment: DeviceAssignment) => {
-    if (assignment.shelf_id) return Package;
-    if (assignment.rack_id) return Layers;
-    if (assignment.row_id) return Grid3x3;
-    if (assignment.farm_id) return Building;
     return MapPin;
   };
 

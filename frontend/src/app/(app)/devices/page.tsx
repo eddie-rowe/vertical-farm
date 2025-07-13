@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { FarmSelect } from "@/components/ui/farm-select";
 import { FarmInput } from "@/components/ui/farm-input";
 import { Separator } from "@/components/ui/separator";
@@ -42,13 +43,21 @@ import {
   Play,
   Activity,
   Shield,
-  MapPin,
   AlertTriangle
 } from "lucide-react";
 import { EmptyStateWithIntegrations } from '@/components/features/automation';
 import { DEVICE_INTEGRATIONS } from '@/lib/integrations/constants';
 import { usePageData } from '@/components/shared/hooks/usePageData';
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonDevicePage } from '@/components/ui/skeleton-extended';
 import { MetricsGrid } from '@/components/shared/metrics';
+import { AllDevicesTab } from '@/components/features/devices/all/AllDevicesTab';
+import { ActiveIntegrationsTab } from '@/components/features/devices/integrations/ActiveIntegrationsTab';
+import Link from 'next/link';
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 const tabs = [
   {
@@ -70,12 +79,6 @@ const tabs = [
     description: 'Manage connection sources and health'
   },
   {
-    id: 'assignments',
-    label: 'Assignments',
-    icon: <MapPin className="text-farm-accent gradient-icon" />,
-    description: 'Farm layout and device placement'
-  },
-  {
     id: 'settings',
     label: 'Settings',
     icon: <FaBuilding className="text-control-secondary gradient-icon" />,
@@ -91,9 +94,100 @@ interface DeviceData {
   hasData: boolean;
 }
 
+// Mock integration data for filtering
+interface IntegrationData {
+  id: string;
+  name: string;
+  deviceCount: number;
+  status: 'connected' | 'disconnected';
+  lastSync: string;
+}
+
+const mockIntegrations: IntegrationData[] = [
+  { id: 'home-assistant', name: 'Home Assistant', deviceCount: 24, status: 'connected', lastSync: '2 minutes ago' },
+  { id: 'arduino-cloud', name: 'Arduino Cloud', deviceCount: 12, status: 'connected', lastSync: '5 minutes ago' },
+  { id: 'smartthings', name: 'SmartThings', deviceCount: 11, status: 'connected', lastSync: '1 minute ago' }
+];
+
 const DeviceManagementPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState("");
+
+  // ✅ NEW: Replace manual search state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<IntegrationData>({
+    searchFields: ['name'],
+    caseSensitive: false
+  });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<IntegrationData>();
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'integration',
+      label: 'Integration',
+      placeholder: 'Filter by integration',
+      options: [
+        { value: 'all', label: 'All Integrations' },
+        { value: 'home-assistant', label: 'Home Assistant' },
+        { value: 'smartthings', label: 'SmartThings' },
+        { value: 'arduino-cloud', label: 'Arduino Cloud' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'deviceType',
+      label: 'Device Type',
+      placeholder: 'Filter by device type',
+      options: [
+        { value: 'all', label: 'All Device Types' },
+        { value: 'lights', label: 'Lights' },
+        { value: 'sensors', label: 'Sensors' },
+        { value: 'pumps', label: 'Pumps & Valves' },
+        { value: 'fans', label: 'Fans & Climate' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Apply combined filtering (for integrations list)
+  const filteredIntegrations = useMemo(() => {
+    let result = mockIntegrations;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [searchFilterItems, filterFilterItems]);
 
   // Use our standardized data loading hook
   const { data: deviceData, isLoading } = usePageData<DeviceData>({
@@ -121,11 +215,7 @@ const DeviceManagementPage = () => {
   }));
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-accent"></div>
-      </div>
-    );
+    return <SkeletonDevicePage />;
   }
 
   // Show empty state if no device data
@@ -162,14 +252,14 @@ const DeviceManagementPage = () => {
             <FaPlus className="h-4 w-4 mr-2" />
             Add Integration
           </FarmControlButton>
-                     <FarmControlButton variant="default" size="sm">
-             <FaWifi className="h-4 w-4 mr-2" />
-             Refresh All
-           </FarmControlButton>
-           <FarmControlButton variant="default" size="sm">
-             <FaCog className="h-4 w-4 mr-2" />
-             Settings
-           </FarmControlButton>
+          <FarmControlButton variant="default" size="sm">
+            <FaWifi className="h-4 w-4 mr-2" />
+            Refresh All
+          </FarmControlButton>
+          <FarmControlButton variant="default" size="sm">
+            <FaCog className="h-4 w-4 mr-2" />
+            Settings
+          </FarmControlButton>
         </div>
       </div>
 
@@ -210,7 +300,7 @@ const DeviceManagementPage = () => {
 
       {/* Main Tab Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
               {tab.icon}
@@ -220,46 +310,36 @@ const DeviceManagementPage = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Controls Section */}
+          {/* ✅ NEW: Standardized Search and Filter Controls */}
           <Card className="card-shadow">
             <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-                {/* Filter Options */}
-                <FarmSelect
-                  value="all"
-                  onChange={() => {}}
-                  options={[
-                    { value: 'all', label: 'All Integrations' },
-                    { value: 'home-assistant', label: 'Home Assistant' },
-                    { value: 'smartthings', label: 'SmartThings' },
-                    { value: 'arduino', label: 'Arduino Cloud' }
-                  ]}
-                  placeholder="Filter by Integration"
-                />
-
-                <FarmSelect
-                  value="all"
-                  onChange={() => {}}
-                  options={[
-                    { value: 'all', label: 'All Device Types' },
-                    { value: 'lights', label: 'Lights' },
-                    { value: 'sensors', label: 'Sensors' },
-                    { value: 'pumps', label: 'Pumps & Valves' },
-                    { value: 'fans', label: 'Fans & Climate' }
-                  ]}
-                  placeholder="Filter by Type"
-                />
-
-                {/* Search */}
-                <div className="flex-1 min-w-0">
-                  <FarmInput
-                    placeholder="Search devices, locations, integrations..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                  />
+              <FarmSearchAndFilter
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchContext="devices, locations, integrations"
+                searchPlaceholder="Search devices, locations, integrations..."
+                filters={filterDefinitions}
+                activeFilters={getActiveFilterChips(filterDefinitions)}
+                onFilterChange={handleFilterChange}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAllFilters={clearAllFilters}
+                orientation="horizontal"
+                showFilterChips={true}
+              />
+              
+              {/* Results summary */}
+              {(hasSearch || hasActiveFilters) && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Showing {filteredIntegrations.length} of {mockIntegrations.length} integrations
+                  </p>
+                  {(hasSearch || hasActiveFilters) && (
+                                         <FarmControlButton size="sm" variant="default" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                       Clear all filters
+                     </FarmControlButton>
+                  )}
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -277,7 +357,7 @@ const DeviceManagementPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Status</span>
-                    <Badge className="state-growing">Connected</Badge>
+                    <StatusBadge status="connected">Connected</StatusBadge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Devices</span>
@@ -308,7 +388,7 @@ const DeviceManagementPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Status</span>
-                    <Badge className="state-growing">Connected</Badge>
+                    <StatusBadge status="connected">Connected</StatusBadge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Devices</span>
@@ -339,7 +419,7 @@ const DeviceManagementPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Status</span>
-                    <Badge className="state-growing">Connected</Badge>
+                    <StatusBadge status="connected">Connected</StatusBadge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Devices</span>
@@ -423,57 +503,11 @@ const DeviceManagementPage = () => {
         </TabsContent>
 
         <TabsContent value="all-devices" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle className="text-farm-title">All Connected Devices</CardTitle>
-              <CardDescription className="text-control-label">Unified view of all devices across integrations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <FaCog className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-farm-title font-semibold mb-2">Device List View</h3>
-                <p className="text-control-label">
-                  This would show a comprehensive list of all devices with filtering, sorting, and bulk actions.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AllDevicesTab />
         </TabsContent>
 
         <TabsContent value="integrations" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle className="text-farm-title">Integration Management</CardTitle>
-              <CardDescription className="text-control-label">Configure and monitor your device integration sources</CardDescription>
-            </CardHeader>
-            <CardContent>
-                             <div className="text-center py-8">
-                 <FaWifi className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                 <h3 className="text-farm-title font-semibold mb-2">Integration Settings</h3>
-                <p className="text-control-label">
-                  Configure connection settings, sync intervals, and troubleshoot integration issues.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="assignments" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle className="text-farm-title">Device Farm Assignments</CardTitle>
-              <CardDescription className="text-control-label">Assign devices to specific farm locations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-farm-title font-semibold mb-2">Farm Layout Map</h3>
-                <p className="text-control-label">
-                  Visual farm layout showing device assignments to rows, racks, and shelves.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <ActiveIntegrationsTab />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
@@ -487,7 +521,7 @@ const DeviceManagementPage = () => {
                 <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-farm-title font-semibold mb-2">System Configuration</h3>
                 <p className="text-control-label">
-                  Global settings for device discovery, naming conventions, and automation rules.
+                  Device settings and configuration options will be available here.
                 </p>
               </div>
             </CardContent>

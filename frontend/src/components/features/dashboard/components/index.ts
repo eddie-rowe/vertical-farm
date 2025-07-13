@@ -1,7 +1,16 @@
-export { HeroMetrics } from './HeroMetrics';
+// Dashboard Components - Individual dashboard widgets and controls
+
+// Action and interaction components
+export * from './ActionButton';
+
+// Summary and metrics displays
+export * from './ExecutiveSummary';
+export * from './HeroMetrics';
+
+// Card components
 export { CategoryCard } from './CategoryCard';
-export { ExecutiveSummary } from './ExecutiveSummary';
 export { StrategicCard } from './StrategicCard';
-export { ActionButton } from './ActionButton';
-export { ProgressIndicator } from './ProgressIndicator';
-export { CircularProgress } from './CircularProgress'; 
+
+// Progress and status indicators
+export { CircularProgress } from './CircularProgress';
+export { ProgressIndicator } from './ProgressIndicator'; 

@@ -141,9 +141,9 @@ export const DeviceCard: FC<DeviceCardProps> = ({
           <div className="flex gap-2">
             {device.domain === 'light' && (
               <FarmControlButton 
-                size="sm" 
+                size="default" 
                 variant={isActive ? "default" : "primary"}
-                className="flex-1 min-h-[44px]"
+                className="flex-1"
                 onClick={() => onDeviceControl(device, isActive ? 'turn_off' : 'turn_on')}
               >
                 {isActive ? <FaSun className="h-4 w-4 mr-2" /> : <FaMoon className="h-4 w-4 mr-2" />}
@@ -168,9 +168,9 @@ export const DeviceCard: FC<DeviceCardProps> = ({
 
             {(device.domain !== 'light' && device.domain !== 'switch') && (
               <FarmControlButton 
-                size="sm" 
+                size="default" 
                 variant="default" 
-                className="flex-1 min-h-[44px]"
+                className="flex-1"
                 onClick={() => onDeviceControl(device, 'toggle')}
               >
                 <FaToggleOn className="h-4 w-4 mr-2" />
@@ -183,9 +183,9 @@ export const DeviceCard: FC<DeviceCardProps> = ({
           <div className="flex gap-2">
             {!isImported ? (
               <FarmControlButton 
-                size="sm" 
+                size="default" 
                 variant="default"
-                className="flex-1 min-h-[44px]"
+                className="flex-1"
                 onClick={() => onImportDevice(device)}
               >
                 <FaDownload className="h-4 w-4 mr-2" />
@@ -193,9 +193,9 @@ export const DeviceCard: FC<DeviceCardProps> = ({
               </FarmControlButton>
             ) : (
               <FarmControlButton 
-                size="sm" 
+                size="default" 
                 variant="default"
-                className="flex-1 min-h-[44px]"
+                className="flex-1"
                 onClick={() => onAssignDevice(device)}
               >
                 <MapPin className="h-4 w-4 mr-2" />
@@ -204,9 +204,9 @@ export const DeviceCard: FC<DeviceCardProps> = ({
             )}
             
             <FarmControlButton 
-              size="sm" 
+              size="default" 
               variant="default"
-              className="min-h-[44px] px-3"
+              className="px-3"
               onClick={() => {
                 // Add device details modal or expand functionality
               }}

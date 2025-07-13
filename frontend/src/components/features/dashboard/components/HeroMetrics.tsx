@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { FaDollarSign, FaChartLine, FaTasks, FaCalendarAlt } from 'react-icons/fa';
 
 interface HeroMetric {
@@ -57,12 +58,13 @@ export const HeroMetrics = () => {
     }
   };
 
-  const getTrendBadgeColor = (trend: 'up' | 'down' | 'stable') => {
+  // Helper function to map trend to StatusBadge status type
+  const getTrendStatus = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {
-      case 'up': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-      case 'down': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-      case 'stable': return 'bg-muted text-muted-foreground';
-      default: return 'bg-muted text-muted-foreground';
+      case 'up': return 'warning'; // Up trends might indicate higher costs
+      case 'down': return 'success'; // Down trends might indicate cost savings
+      case 'stable': return 'info';
+      default: return 'info';
     }
   };
 
@@ -84,12 +86,12 @@ export const HeroMetrics = () => {
             </div>
             
             <div className="flex items-center justify-between">
-              <Badge 
-                variant="secondary" 
-                className={`${getTrendBadgeColor(metric.trend)} text-xs`}
+              <StatusBadge 
+                status={getTrendStatus(metric.trend)}
+                size="sm"
               >
                 {metric.change}
-              </Badge>
+              </StatusBadge>
               <span className="text-xs text-content-secondary">{metric.description}</span>
             </div>
           </CardContent>

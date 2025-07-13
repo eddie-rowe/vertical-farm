@@ -17,6 +17,8 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { FarmControlButton } from '@/components/ui/farm-control-button'
 import { usePageData } from '@/components/shared/hooks/usePageData';
 import { MetricsGrid } from '@/components/shared/metrics';
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
 
 const tabs = [
   {
@@ -88,11 +90,7 @@ const AIPage: React.FC = () => {
   }));
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-accent"></div>
-      </div>
-    );
+    return <LoadingCard message="Loading AI insights..." />;
   }
 
   // Show empty state if no AI data

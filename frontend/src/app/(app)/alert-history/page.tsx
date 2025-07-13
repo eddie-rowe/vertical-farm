@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,10 @@ import {
   Settings2,
   Calendar
 } from "lucide-react";
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 interface AlertRecord {
   id: string;
@@ -153,19 +157,84 @@ function formatDateTime(date: Date): string {
 }
 
 export default function AlertHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<string>("all");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-
-  const filteredAlerts = mockAlertHistory.filter(alert => {
-    const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         alert.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "all" || alert.type === filterType;
-    const matchesCategory = filterCategory === "all" || alert.category === filterCategory;
-    
-    return matchesSearch && matchesType && matchesCategory;
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<AlertRecord>({
+    searchFields: ['title', 'description', 'location'],
+    caseSensitive: false
   });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<AlertRecord>();
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'type',
+      label: 'Alert Type',
+      placeholder: 'Filter by type',
+      options: [
+        { value: 'all', label: 'All Types' },
+        { value: 'critical', label: 'Critical' },
+        { value: 'warning', label: 'Warning' },
+        { value: 'info', label: 'Info' },
+        { value: 'resolved', label: 'Resolved' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'category',
+      label: 'Category',
+      placeholder: 'Filter by category',
+      options: [
+        { value: 'all', label: 'All Categories' },
+        { value: 'environmental', label: 'Environmental' },
+        { value: 'equipment', label: 'Equipment' },
+        { value: 'growth', label: 'Growth' },
+        { value: 'maintenance', label: 'Maintenance' },
+        { value: 'security', label: 'Security' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Apply combined filtering
+  const filteredAlerts = useMemo(() => {
+    let result = mockAlertHistory;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [searchFilterItems, filterFilterItems]);
 
   return (
     <div className="container mx-auto p-6">
@@ -175,7 +244,7 @@ export default function AlertHistoryPage() {
         size="md"
       />
 
-      {/* Filters and Search */}
+      {/* ✅ NEW: Standardized Search and Filter Component */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -184,45 +253,33 @@ export default function AlertHistoryPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <FarmInput
-                type="text"
-                placeholder="Search alerts, locations, descriptions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-                icon={<Search className="h-4 w-4" />}
-              />
+          <FarmSearchAndFilter
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchContext="alerts, locations, descriptions"
+            searchPlaceholder="Search alerts, locations, descriptions..."
+            filters={filterDefinitions}
+            activeFilters={getActiveFilterChips(filterDefinitions)}
+            onFilterChange={handleFilterChange}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAllFilters={clearAllFilters}
+            orientation="horizontal"
+            showFilterChips={true}
+          />
+          
+          {/* Results summary */}
+          {(hasSearch || hasActiveFilters) && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                Showing {filteredAlerts.length} of {mockAlertHistory.length} alerts
+              </p>
+              {(hasSearch || hasActiveFilters) && (
+                <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                  Clear all filters
+                </Button>
+              )}
             </div>
-            
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Alert Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="warning">Warning</SelectItem>
-                <SelectItem value="info">Info</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="environmental">Environmental</SelectItem>
-                <SelectItem value="equipment">Equipment</SelectItem>
-                <SelectItem value="growth">Growth</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="security">Security</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          )}
         </CardContent>
       </Card>
 

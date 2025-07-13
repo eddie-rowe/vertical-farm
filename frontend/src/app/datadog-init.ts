@@ -21,7 +21,7 @@ datadogRum.init({
     defaultPrivacyLevel: 'mask-user-input',
     // Specify URLs to propagate trace headers for connection between RUM and backend trace
     allowedTracingUrls: [
-      { match: "https://vertical-farm-backend.onrender", propagatorTypes: ["tracecontext"] },
+      { match: "https://vertical-farm-api.goodgoodgreens.org", propagatorTypes: ["tracecontext"] },
     ],
 });
 

@@ -11,7 +11,8 @@ import {
   FaTachometerAlt, 
   FaBoxes,
   FaExclamationTriangle,
-  FaCog
+  FaCog,
+  FaCalendarAlt
 } from "@/lib/icons";
 
 export const navItems = [
@@ -20,6 +21,7 @@ export const navItems = [
   { href: "/devices", label: "Device Configuration", icon: <FaCog />, variant: "maintenance" },
   { href: "/grow-management", label: "Grow Management", icon: <FaLeaf />, variant: "growing" },
   { href: "/operations", label: "Operations", icon: <FaTachometerAlt />, variant: "maintenance" },
+  { href: "/calendar", label: "Farm Calendar", icon: <FaCalendarAlt />, variant: "primary" },
   { href: "/analytics", label: "Analytics", icon: <FaChartBar />, variant: "primary" },
   { href: "/business", label: "Business Management", icon: <FaDollarSign />, variant: "primary" },
   { href: "/procurement", label: "Procurement", icon: <FaBoxes />, variant: "maintenance" },

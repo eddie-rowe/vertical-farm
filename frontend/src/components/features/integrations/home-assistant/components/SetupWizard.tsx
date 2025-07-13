@@ -165,40 +165,26 @@ export const SetupWizard: FC<SetupWizardProps> = ({
             <div className="flex gap-3">
               <FarmControlButton 
                 onClick={onTestConnection}
-                disabled={!config.url || !config.token || isConnecting}
+                disabled={!config.url || !config.token}
+                loading={isConnecting}
+                loadingText="Testing Connection..."
+                icon={<Wifi className="h-4 w-4" />}
                 className="flex-1"
               >
-                {isConnecting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Testing Connection...
-                  </>
-                ) : (
-                  <>
-                    <Wifi className="h-4 w-4 mr-2" />
-                    Test Connection
-                  </>
-                )}
+                Test Connection
               </FarmControlButton>
 
               {setupStep === 'discovery' && (
                 <FarmControlButton 
                   onClick={onSaveConfiguration}
-                  disabled={!config.name || !config.url || !config.token || isSaving}
+                  disabled={!config.name || !config.url || !config.token}
+                  loading={isSaving}
+                  loadingText="Saving..."
+                  icon={<FaCheck className="h-4 w-4" />}
                   variant="default"
                   className="flex-1"
                 >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <FaCheck className="h-4 w-4 mr-2" />
-                      Save & Continue
-                    </>
-                  )}
+                  Save & Continue
                 </FarmControlButton>
               )}
             </div>

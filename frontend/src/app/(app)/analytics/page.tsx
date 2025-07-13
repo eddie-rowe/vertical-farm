@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { FarmSelect } from "@/components/ui/farm-select";
 import { FarmInput } from "@/components/ui/farm-input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
 import { 
   FaChartBar, 
   FaChartLine, 
@@ -47,6 +49,10 @@ import {
 } from '@/components/features/business';
 import { usePageData } from '@/components/shared/hooks/usePageData';
 import { MetricsGrid, MetricCard } from '@/components/shared/metrics';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { LoadingCard } from '@/components/ui/loading';
+import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
 
 interface HistoricalGrow {
   id: string;
@@ -72,11 +78,32 @@ interface AnalyticsData {
 
 const AnalyticsPage = () => {
   const [historicalGrows, setHistoricalGrows] = useState<HistoricalGrow[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
   const [sortBy, setSortBy] = useState('end_date');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFarm, setSelectedFarm] = useState<string>('all');
+
+  // Use standardized search and filter hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<HistoricalGrow>({
+    searchFields: ['species_name', 'recipe_name', 'shelf_name', 'farm_name'],
+    caseSensitive: false
+  });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<HistoricalGrow>();
 
   // Use our standardized data loading hook
   const { data: analyticsData, isLoading: analyticsDataLoading } = usePageData<AnalyticsData>({
@@ -167,29 +194,92 @@ const AnalyticsPage = () => {
     setIsLoading(false);
   }, []);
 
-  // Calculate analytics from grow data
-  const filteredGrows = historicalGrows.filter(grow => {
-    const matchesSearch = !searchTerm || 
-      grow.species_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      grow.recipe_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      grow.shelf_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      grow.farm_name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Create filter definitions for analytics data
+  const filterDefinitions: FilterDefinition[] = useMemo(() => {
+    const uniqueSpecies = [...new Set(historicalGrows.map(grow => grow.species_name))];
+    const uniqueFarms = [...new Set(historicalGrows.map(grow => grow.farm_name))];
     
-    return matchesSearch;
-  });
+    return [
+      {
+        id: 'status',
+        label: 'Status',
+        placeholder: 'Filter by status',
+        options: [
+          { value: 'all', label: 'All Statuses' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'aborted', label: 'Aborted' }
+        ],
+        defaultValue: 'all'
+      },
+      {
+        id: 'species',
+        label: 'Species',
+        placeholder: 'Filter by species',
+        options: [
+          { value: 'all', label: 'All Species' },
+          ...uniqueSpecies.map(species => ({
+            value: species.toLowerCase(),
+            label: species
+          }))
+        ],
+        defaultValue: 'all'
+      },
+      {
+        id: 'farm',
+        label: 'Farm',
+        placeholder: 'Filter by farm',
+        options: [
+          { value: 'all', label: 'All Farms' },
+          ...uniqueFarms.map(farm => ({
+            value: farm.toLowerCase(),
+            label: farm
+          }))
+        ],
+        defaultValue: 'all'
+      }
+    ];
+  }, [historicalGrows]);
 
-  const sortedGrows = [...filteredGrows].sort((a, b) => {
-    switch (sortBy) {
-      case 'yield':
-        return (b.yield_kg || 0) - (a.yield_kg || 0);
-      case 'duration':
-        return b.duration_days - a.duration_days;
-      case 'species':
-        return a.species_name.localeCompare(b.species_name);
-      default: // end_date
-        return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
     }
-  });
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Apply combined filtering
+  const filteredGrows = useMemo(() => {
+    let result = historicalGrows;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [historicalGrows, searchFilterItems, filterFilterItems]);
+
+  const sortedGrows = useMemo(() => {
+    return [...filteredGrows].sort((a, b) => {
+      switch (sortBy) {
+        case 'yield':
+          return (b.yield_kg || 0) - (a.yield_kg || 0);
+        case 'duration':
+          return b.duration_days - a.duration_days;
+        case 'species':
+          return a.species_name.localeCompare(b.species_name);
+        default: // end_date
+          return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
+      }
+    });
+  }, [filteredGrows, sortBy]);
 
   // Analytics calculations
   const totalGrows = filteredGrows.length;
@@ -227,8 +317,27 @@ const AnalyticsPage = () => {
   };
 
   const handleWidgetClick = (widgetId: string) => {
-    console.log('Widget clicked:', widgetId);
-    // Add specific widget interaction logic here
+    console.log(`Widget clicked: ${widgetId}`);
+  };
+
+  // Helper function to map grow status to StatusBadge status type
+  const getGrowStatus = (status: HistoricalGrow['status']) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'aborted': return 'error';
+      default: return 'info';
+    }
+  };
+
+  // Helper function to map metric type to StatusBadge status
+  const getMetricStatus = (metricType: string) => {
+    switch (metricType) {
+      case 'success-rate': return 'success';
+      case 'efficiency': return 'success';
+      case 'insights': return 'info';
+      case 'data-points': return 'info';
+      default: return 'info';
+    }
   };
 
   const exportData = () => {
@@ -237,11 +346,7 @@ const AnalyticsPage = () => {
   };
 
   if (isLoading || analyticsDataLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-accent"></div>
-      </div>
-    );
+    return <SkeletonDashboard metricCards={4} showSidebar={false} />;
   }
 
   return (
@@ -265,6 +370,18 @@ const AnalyticsPage = () => {
           </FarmControlButton>
         </div>
       </PageHeader>
+
+      {/* Standardized Search and Filter Section */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search analytics, metrics, insights..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -307,15 +424,18 @@ const AnalyticsPage = () => {
                   placeholder="Time Range"
                 />
 
-                {/* Search */}
-                <div className="flex-1 min-w-0">
-                  <FarmInput
-                    placeholder="Search analytics, metrics, insights..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+                {/* Sort By */}
+                <FarmSelect
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  options={[
+                    { value: 'end_date', label: 'Sort by Date' },
+                    { value: 'yield', label: 'Sort by Yield' },
+                    { value: 'duration', label: 'Sort by Duration' },
+                    { value: 'species', label: 'Sort by Species' }
+                  ]}
+                  placeholder="Sort by"
+                />
               </div>
             </CardContent>
           </Card>
@@ -328,29 +448,25 @@ const AnalyticsPage = () => {
                 id: 'active-insights',
                 label: 'Active Insights',
                 value: analyticsData?.activeInsights?.toString() || "0",
-                icon: () => <FaBrain className="text-farm-accent" />,
-                stateClass: 'state-active'
+                icon: () => <FaBrain className="text-farm-accent" />
               },
               {
                 id: 'farm-efficiency',
                 label: 'Farm Efficiency',
                 value: `${analyticsData?.farmEfficiency || 0}%`,
-                icon: () => <FaBullseye className="text-green-600" />,
-                stateClass: 'state-growing'
+                icon: () => <FaBullseye className="text-green-600" />
               },
               {
                 id: 'data-points',
                 label: 'Data Points',
                 value: analyticsData?.dataPoints || "0",
-                icon: () => <FaChartLine className="text-blue-600" />,
-                stateClass: 'state-active'
+                icon: () => <FaChartLine className="text-blue-600" />
               },
               {
-                id: 'predictions',
-                label: 'Predictions',
+                id: 'ai-predictions',
+                label: 'AI Predictions',
                 value: `${analyticsData?.predictions || 0}%`,
-                icon: () => <FaFilter className="text-purple-600" />,
-                stateClass: 'state-maintenance'
+                icon: () => <FaFilter className="text-purple-600" />
               }
             ]}
           />
@@ -431,9 +547,9 @@ const AnalyticsPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sensor-value">{grow.yield_kg ? `${grow.yield_kg} kg` : 'N/A'}</p>
-                        <Badge className={grow.status === 'completed' ? 'state-growing' : 'state-offline'}>
+                        <StatusBadge status={getGrowStatus(grow.status)} size="sm">
                           {grow.status}
-                        </Badge>
+                        </StatusBadge>
                       </div>
                     </div>
                   ))}
@@ -449,16 +565,25 @@ const AnalyticsPage = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg state-growing">
-                      <p className="text-control-label">Success Rate</p>
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <p className="text-control-label">Success Rate</p>
+                        <StatusBadge status="success" size="sm">High</StatusBadge>
+                      </div>
                       <p className="text-sensor-value">{successRate.toFixed(1)}%</p>
                     </div>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg state-active">
-                      <p className="text-control-label">Avg Yield</p>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <p className="text-control-label">Avg Yield</p>
+                        <StatusBadge status="info" size="sm">Data</StatusBadge>
+                      </div>
                       <p className="text-sensor-value">{averageYield.toFixed(1)} kg</p>
                     </div>
-                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg state-active">
-                      <p className="text-control-label">Total Grows</p>
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <p className="text-control-label">Total Grows</p>
+                        <StatusBadge status="info" size="sm">Count</StatusBadge>
+                      </div>
                       <p className="text-sensor-value">{totalGrows}</p>
                     </div>
                     <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg state-maintenance">

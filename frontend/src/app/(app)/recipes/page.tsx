@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FarmControlButton } from '@/components/ui/farm-control-button'
 import { FarmInput } from '@/components/ui/farm-input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -25,6 +26,10 @@ import {
   Star,
   Leaf
 } from 'lucide-react'
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 interface Recipe {
   id: string
@@ -172,24 +177,93 @@ const SAMPLE_RECIPES: Recipe[] = [
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>(SAMPLE_RECIPES)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterCrop, setFilterCrop] = useState<string>('all')
-  const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<string>('name')
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<Recipe>({
+    searchFields: ['name', 'description', 'cropType'],
+    caseSensitive: false
+  });
 
-  // Filter and sort recipes
-  const filteredRecipes = recipes
-    .filter(recipe => {
-      const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          recipe.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          recipe.cropType.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCrop = filterCrop === 'all' || recipe.cropType === filterCrop
-      const matchesDifficulty = filterDifficulty === 'all' || recipe.difficulty === filterDifficulty
-      
-      return matchesSearch && matchesCrop && matchesDifficulty
-    })
-    .sort((a, b) => {
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<Recipe>();
+
+  // Keep sorting separate from search/filter
+  const [sortBy, setSortBy] = useState<string>('name')
+
+  // ✅ NEW: Dynamic crop types for filter options
+  const cropTypes = useMemo(() => 
+    [...new Set(recipes.map(r => r.cropType))], 
+    [recipes]
+  );
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'cropType',
+      label: 'Crop Type',
+      placeholder: 'Filter by crop type',
+      options: [
+        { value: 'all', label: 'All Crops' },
+        ...cropTypes.map(crop => ({
+          value: crop,
+          label: crop.charAt(0).toUpperCase() + crop.slice(1)
+        }))
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      placeholder: 'Filter by difficulty',
+      options: [
+        { value: 'all', label: 'All Levels' },
+        { value: 'beginner', label: 'Beginner' },
+        { value: 'intermediate', label: 'Intermediate' },
+        { value: 'advanced', label: 'Advanced' }
+      ],
+      defaultValue: 'all'
+    }
+  ], [cropTypes]);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Apply combined filtering and sorting
+  const filteredRecipes = useMemo(() => {
+    let result = recipes;
+    
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    // Apply sorting (kept separate from search/filter)
+    result = result.sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name)
@@ -204,9 +278,20 @@ export default function RecipesPage() {
         default:
           return 0
       }
-    })
+    });
+    
+    return result;
+  }, [recipes, searchFilterItems, filterFilterItems, sortBy]);
 
-  const cropTypes = [...new Set(recipes.map(r => r.cropType))]
+  // Helper function to map recipe difficulty to status type
+  const getDifficultyStatus = (difficulty: Recipe['difficulty']) => {
+    switch (difficulty) {
+      case 'beginner': return 'success';
+      case 'intermediate': return 'info'; 
+      case 'advanced': return 'warning';
+      default: return 'info';
+    }
+  };
 
   const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer card-shadow bg-farm-white" onClick={() => setSelectedRecipe(recipe)}>
@@ -231,12 +316,9 @@ export default function RecipesPage() {
           <Badge variant="outline" className="capitalize">
             {recipe.cropType} - {recipe.variety}
           </Badge>
-          <Badge variant={recipe.difficulty === 'beginner' ? 'secondary' : 
-                         recipe.difficulty === 'intermediate' ? 'default' : 'destructive'}
-                 className={recipe.difficulty === 'beginner' ? 'state-growing' : 
-                           recipe.difficulty === 'intermediate' ? 'state-active' : 'state-maintenance'}>
+          <StatusBadge status={getDifficultyStatus(recipe.difficulty)} size="sm">
             {recipe.difficulty}
-          </Badge>
+          </StatusBadge>
           {recipe.isPublic && (
             <Badge variant="outline" className="text-blue-600 border-blue-300">
               Public
@@ -277,59 +359,50 @@ export default function RecipesPage() {
           </FarmControlButton>
         </PageHeader>
 
-        {/* Search and Filters */}
-        <div className="flex flex-wrap gap-4 bg-accent-primary/5 dark:bg-accent-primary/10 p-4 rounded-lg card-shadow">
-          <div className="flex-1 min-w-[300px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <FarmInput
-                placeholder="Search recipes, crops, or descriptions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        {/* ✅ NEW: Standardized Search and Filter Component */}
+        <Card className="bg-accent-primary/5 dark:bg-accent-primary/10 card-shadow">
+          <CardContent className="pt-4">
+            <FarmSearchAndFilter
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchContext="recipes, crops, or descriptions"
+              searchPlaceholder="Search recipes, crops, or descriptions..."
+              filters={filterDefinitions}
+              activeFilters={getActiveFilterChips(filterDefinitions)}
+              onFilterChange={handleFilterChange}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={clearAllFilters}
+              orientation="horizontal"
+              showFilterChips={true}
+            />
+            
+            {/* Keep sorting separate */}
+            <div className="flex items-center justify-between mt-4">
+              {/* Results summary */}
+              {(hasSearch || hasActiveFilters) && (
+                <p className="text-sm text-gray-600">
+                  Showing {filteredRecipes.length} of {recipes.length} recipes
+                </p>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Sort by:</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                    <SelectItem value="usage">Usage Count</SelectItem>
+                    <SelectItem value="duration">Duration</SelectItem>
+                    <SelectItem value="created">Date Created</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          
-          <Select value={filterCrop} onValueChange={setFilterCrop}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Crop Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Crops</SelectItem>
-              {cropTypes.map(crop => (
-                <SelectItem key={crop} value={crop} className="capitalize">
-                  {crop}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Sort By" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="rating">Rating</SelectItem>
-              <SelectItem value="usage">Usage Count</SelectItem>
-              <SelectItem value="duration">Duration</SelectItem>
-              <SelectItem value="created">Date Created</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recipe Grid */}
@@ -356,7 +429,7 @@ export default function RecipesPage() {
         </div>
       )}
 
-      {/* Recipe Detail Modal */}
+      {/* Recipe Detail Modal - keeping existing implementation */}
       {selectedRecipe && (
         <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
@@ -377,22 +450,22 @@ export default function RecipesPage() {
               
               <TabsContent value="overview" className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <Clock className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
                     <div className="text-sensor-value text-control-content">{selectedRecipe.duration} days</div>
                     <div className="text-control-label">Duration</div>
                   </div>
-                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-growing">
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <Star className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
                     <div className="text-sensor-value text-control-content">{selectedRecipe.rating}</div>
                     <div className="text-control-label">Rating</div>
                   </div>
-                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <FlaskConical className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
                     <div className="text-sensor-value text-control-content">{selectedRecipe.usageCount}</div>
                     <div className="text-control-label">Uses</div>
                   </div>
-                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow state-active">
+                  <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <BookOpen className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
                     <div className="text-sensor-value text-control-content">{selectedRecipe.stages.length}</div>
                     <div className="text-control-label">Stages</div>

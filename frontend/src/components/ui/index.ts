@@ -15,6 +15,16 @@ export {
   selectTriggerVariants 
 } from './select'
 
+// Status Components (Standardized)
+export { StatusBadge, statusBadgeVariants } from './status-badge'
+export { StatusIndicator, statusIndicatorVariants } from './status-indicator'
+export { DeviceStatus, deviceStatusVariants } from './device-status'
+export { ConsolidatedStatusBadge } from './ConsolidatedStatusBadge'
+
+export type { StatusBadgeProps } from './status-badge'
+export type { StatusIndicatorProps } from './status-indicator'
+export type { DeviceStatusProps } from './device-status'
+
 // Legacy UI Components (maintained for compatibility)
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card'
 export { Badge, badgeVariants } from './badge'
@@ -44,8 +54,15 @@ export { FarmLayout, RackSection, ShelfRow } from './farm-layout'
 // Form Components (Phase 2)
 export { FarmInput } from './farm-input'
 export { FarmSelect } from './farm-select'
-export { FarmCheckbox } from './farm-checkbox'
-export { FarmRangeSlider } from './farm-range-slider'
+export { FarmSearchInput } from './farm-search-input'
+export { FarmFilterChips } from './farm-filter-chips'
+export { FarmSearchAndFilter } from './farm-search-and-filter'
+
+export type { FarmInputProps } from './farm-input'
+export type { FarmSelectProps } from './farm-select'
+export type { FarmSearchInputProps } from './farm-search-input'
+export type { FarmFilterChipsProps, FilterChip } from './farm-filter-chips'
+export type { FarmSearchAndFilterProps, FilterDefinition } from './farm-search-and-filter'
 
 // Form Templates (Phase 2)
 export { PlantConfigForm } from './plant-config-form'

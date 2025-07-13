@@ -1,59 +1,60 @@
 "use client"
 
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { Button, ButtonProps } from "./button"
 
-const farmControlButtonVariants = cva(
-  "farm-control-btn", // Uses our new @utility farm-control-btn
-  {
-    variants: {
-      variant: {
-        default: "",
-        primary: "state-active",
-        maintenance: "state-maintenance", 
-        offline: "state-offline",
-        growing: "state-growing"
-      },
-      size: {
-        default: "",
-        sm: "w-8 h-8 text-sm",
-        lg: "w-12 h-12 text-lg"
-      },
-      animation: {
-        none: "",
-        float: "animate-float",
-        pop: "animate-pop"
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-      animation: "none"
-    },
-  }
-)
+// Legacy variant mapping for FarmControlButton
+const farmVariantMap = {
+  default: "default" as const,
+  primary: "primary" as const,
+  maintenance: "maintenance" as const, 
+  offline: "offline" as const,
+  growing: "growing" as const
+}
+
+// Legacy size mapping for FarmControlButton
+const farmSizeMap = {
+  default: "control" as const,  // Use new control size for proper touch targets
+  sm: "sm" as const,
+  lg: "lg" as const
+}
 
 export interface FarmControlButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof farmControlButtonVariants> {
+  extends Omit<ButtonProps, "variant" | "size"> {
+  variant?: keyof typeof farmVariantMap
+  size?: keyof typeof farmSizeMap
   icon?: React.ReactNode
 }
 
 const FarmControlButton = React.forwardRef<HTMLButtonElement, FarmControlButtonProps>(
-  ({ className, variant, size, animation, icon, children, ...props }, ref) => {
+  ({ className, variant = "default", size = "default", icon, children, ...props }, ref) => {
+    // Map legacy props to Button component props
+    const buttonVariant = farmVariantMap[variant]
+    const buttonSize = farmSizeMap[size]
+
     return (
-      <button
-        className={cn(farmControlButtonVariants({ variant, size, animation, className }))}
+      <Button
         ref={ref}
+        variant={buttonVariant}
+        size={buttonSize}
+        className={cn(className)}
+        icon={icon}
+        iconPosition="left"
         {...props}
       >
-        {icon && <span className="flex items-center justify-center">{icon}</span>}
         {children}
-      </button>
+      </Button>
     )
   }
 )
 FarmControlButton.displayName = "FarmControlButton"
 
-export { FarmControlButton, farmControlButtonVariants } 
+// Preserve legacy variant types for backward compatibility
+export const farmControlButtonVariants = {
+  variant: farmVariantMap,
+  size: farmSizeMap
+}
+
+export { FarmControlButton } 

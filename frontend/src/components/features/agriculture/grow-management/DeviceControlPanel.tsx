@@ -76,7 +76,7 @@ const deviceTypes: DeviceControl[] = [
   }
 ];
 
-export function DeviceControlPanel({ scheduleId, shelfId, shelfName }: DeviceControlPanelProps) {
+export function GrowDeviceControlPanel({ scheduleId, shelfId, shelfName }: DeviceControlPanelProps) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [lastActions, setLastActions] = useState<Record<string, { action: string; status: 'success' | 'error'; timestamp: Date }>>({});
 

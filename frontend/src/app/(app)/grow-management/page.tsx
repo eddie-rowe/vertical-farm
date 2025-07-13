@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Sprout, ArrowRight } from "lucide-react";
 
-import { NewGrowSetup, GrowParametersView } from "@/components/features/agriculture";
-import { GrowOperationsDashboard } from "@/components/features/agriculture/GrowOperationsDashboard";
+import { NewGrowSetup, GrowParametersView, GrowingAreasView, GrowOperationsDashboard } from "@/components/features/agriculture";
 
 export default function GrowManagementPage() {
 
@@ -26,10 +25,11 @@ export default function GrowManagementPage() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard">Live Dashboard</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="dashboard">Overview</TabsTrigger>
           <TabsTrigger value="setup">New Grow Setup</TabsTrigger>
           <TabsTrigger value="parameters">Parameters & Recipes</TabsTrigger>
+          <TabsTrigger value="growing-areas">Growing Areas</TabsTrigger>
           <TabsTrigger value="germination">Germination Overview</TabsTrigger>
           <TabsTrigger value="transplant">Transplant Manager</TabsTrigger>
         </TabsList>
@@ -44,6 +44,10 @@ export default function GrowManagementPage() {
         
         <TabsContent value="parameters" className="space-y-4">
           <GrowParametersView />
+        </TabsContent>
+        
+        <TabsContent value="growing-areas" className="space-y-4">
+          <GrowingAreasView onNavigateToTab={handleNavigateToTab} />
         </TabsContent>
 
         <TabsContent value="germination" className="space-y-4">

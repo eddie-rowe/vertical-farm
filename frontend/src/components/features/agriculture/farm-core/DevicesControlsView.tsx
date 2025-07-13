@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Lightbulb, 
   Waves, 
@@ -14,13 +12,16 @@ import {
   Zap, 
   Power, 
   Settings, 
-  Search,
   MoreVertical,
   Play,
   Pause,
   RotateCcw
 } from 'lucide-react';
 import { FarmPageData } from "@/types/farm-layout";
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 interface DevicesControlsViewProps {
   farmPageData: FarmPageData | null;
@@ -105,19 +106,77 @@ const deviceTypeConfig = {
 
 export default function DevicesControlsView({ farmPageData }: DevicesControlsViewProps) {
   const [devices] = useState(mockDevices);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
 
-  // Filter devices based on search and filters
-  const filteredDevices = devices.filter(device => {
-    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || device.type === filterType;
-    const matchesStatus = filterStatus === 'all' || device.status === filterStatus;
-    
-    return matchesSearch && matchesType && matchesStatus;
+  // ✅ NEW: Replace manual search/filter state with standardized hooks
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    filterItems: searchFilterItems,
+    hasSearch
+  } = useFarmSearch<typeof mockDevices[0]>({
+    searchFields: ['name', 'location', 'type'],
+    caseSensitive: false
   });
+
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<typeof mockDevices[0]>();
+
+  // ✅ NEW: Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'type',
+      label: 'Device Type',
+      placeholder: 'Filter by type',
+      options: [
+        { value: 'all', label: 'All Types' },
+        { value: 'lighting', label: 'Lighting' },
+        { value: 'irrigation', label: 'Irrigation' },
+        { value: 'ventilation', label: 'Ventilation' },
+        { value: 'sensors', label: 'Sensors' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'online', label: 'Online' },
+        { value: 'offline', label: 'Offline' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // ✅ NEW: Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // ✅ NEW: Apply search and filters using standardized system
+  const filteredDevices = useMemo(() => {
+    let result = devices;
+    result = searchFilterItems(result);
+    result = filterFilterItems(result);
+    return result;
+  }, [devices, searchFilterItems, filterFilterItems]);
 
   // Device statistics
   const deviceStats = {
@@ -239,39 +298,35 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search devices..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Device Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="lighting">Lighting</SelectItem>
-                <SelectItem value="irrigation">Irrigation</SelectItem>
-                <SelectItem value="ventilation">Ventilation</SelectItem>
-                <SelectItem value="sensors">Sensors</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* ✅ NEW: Standardized Search and Filter Component */}
+          <div className="space-y-4">
+            <FarmSearchAndFilter
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchContext="devices"
+              searchPlaceholder="Search devices by name, location, or type..."
+              filters={filterDefinitions}
+              activeFilters={getActiveFilterChips(filterDefinitions)}
+              onFilterChange={handleFilterChange}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={clearAllFilters}
+              orientation="horizontal"
+              showFilterChips={true}
+            />
+            
+            {/* Results summary */}
+            {(hasSearch || hasActiveFilters) && (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredDevices.length} of {devices.length} devices
+                </p>
+                {(hasSearch || hasActiveFilters) && (
+                  <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                    Clear all filters
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Device List */}

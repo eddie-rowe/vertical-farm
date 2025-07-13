@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { businessManagementService, BusinessCustomer } from "@/services/businessManagementService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
@@ -21,14 +20,72 @@ import {
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { LoadingCard } from '@/components/ui/loading';
 
 export default function CustomersView() {
   const [customers, setCustomers] = useState<BusinessCustomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessCustomer>({
+    searchFields: ['name', 'email'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessCustomer>();
+
+  // Filter definitions for FarmSearchAndFilter
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      placeholder: 'Filter by status',
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      id: 'type',
+      label: 'Type',
+      placeholder: 'Filter by type',
+      options: [
+        { value: 'all', label: 'All Types' },
+        { value: 'wholesale', label: 'Wholesale' },
+        { value: 'restaurant', label: 'Restaurant' },
+        { value: 'retail', label: 'Retail' },
+        { value: 'csa', label: 'CSA' }
+      ],
+      defaultValue: 'all'
+    }
+  ], []);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    if (value === 'all') {
+      removeFilter(filterId);
+    } else {
+      setFilter(filterId, value);
+    }
+  }, [setFilter, removeFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
 
   useEffect(() => {
     loadCustomers();
@@ -48,14 +105,18 @@ export default function CustomersView() {
     }
   };
 
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || customer.status.toLowerCase() === statusFilter;
-    const matchesType = typeFilter === "all" || customer.type.toLowerCase() === typeFilter;
+  // Apply combined filtering
+  const filteredCustomers = useMemo(() => {
+    let result = customers;
     
-    return matchesSearch && matchesStatus && matchesType;
-  });
+    // Apply search filtering
+    result = searchFilterItems(result);
+    
+    // Apply standard filters
+    result = filterFilterItems(result);
+    
+    return result;
+  }, [customers, searchFilterItems, filterFilterItems]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -104,12 +165,7 @@ export default function CustomersView() {
 
       {/* Loading State */}
       {loading && !error && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-farm-accent mx-auto mb-4"></div>
-            <p className="text-control-content">Loading customer data...</p>
-          </CardContent>
-        </Card>
+        <LoadingCard message="Loading customer data..." size="lg" />
       )}
 
       {/* Customer Data */}
@@ -127,40 +183,38 @@ export default function CustomersView() {
             </Button>
           </div>
 
-          {/* Filters and Search */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search customers by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            >
-              <option value="all">All Types</option>
-              <option value="wholesale">Wholesale</option>
-              <option value="restaurant">Restaurant</option>
-              <option value="retail">Retail</option>
-              <option value="csa">CSA</option>
-            </select>
-          </div>
+          {/* Standardized Search and Filter Component */}
+          <Card className="mb-6">
+            <CardContent className="pt-4">
+              <FarmSearchAndFilter
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchContext="customers by name or email"
+                searchPlaceholder="Search customers by name or email..."
+                filters={filterDefinitions}
+                activeFilters={getActiveFilterChips(filterDefinitions)}
+                onFilterChange={handleFilterChange}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAllFilters={clearAllFilters}
+                orientation="horizontal"
+                showFilterChips={true}
+              />
+              
+              {/* Results summary */}
+              {(hasSearch || hasActiveFilters) && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Showing {filteredCustomers.length} of {customers.length} customers
+                  </p>
+                  {(hasSearch || hasActiveFilters) && (
+                    <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                      Clear all filters
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Customer Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

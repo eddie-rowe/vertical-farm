@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Plus, 
   User, 
   TrendingUp,
@@ -18,6 +16,9 @@ import {
   BarChart3,
   Download
 } from "lucide-react";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 // Mock data for performance tracking
 const performanceData = {
@@ -80,25 +81,25 @@ const performanceData = {
       id: "PF003",
       name: "Emily Davis",
       role: "Harvest Specialist",
-      overallScore: 92,
+      overallScore: 85,
       trend: "stable",
       trendValue: 0.5,
       goals: {
         completed: 6,
-        total: 7,
-        percentage: 85.7
+        total: 8,
+        percentage: 75
       },
       metrics: {
-        productivity: 94,
-        quality: 98,
-        teamwork: 89,
-        punctuality: 90,
-        initiative: 85
+        productivity: 88,
+        quality: 90,
+        teamwork: 80,
+        punctuality: 85,
+        initiative: 82
       },
-      achievements: ["Quality Excellence", "Customer Satisfaction"],
+      achievements: ["Quality Specialist"],
       lastReview: "2024-01-01",
       nextReview: "2024-04-01",
-      feedback: "Consistently delivers high-quality work. Excellent attention to harvest standards."
+      feedback: "Consistent performance with high attention to quality standards."
     },
     {
       id: "PF004",
@@ -106,7 +107,7 @@ const performanceData = {
       role: "Maintenance Tech",
       overallScore: 78,
       trend: "down",
-      trendValue: -2.3,
+      trendValue: -2.1,
       goals: {
         completed: 4,
         total: 8,
@@ -117,43 +118,99 @@ const performanceData = {
         quality: 82,
         teamwork: 78,
         punctuality: 80,
-        initiative: 70
+        initiative: 75
       },
-      achievements: ["Safety Compliance"],
+      achievements: [],
       lastReview: "2024-01-01",
       nextReview: "2024-04-01",
-      feedback: "Good technical skills but needs improvement in time management and goal completion."
+      feedback: "Needs improvement in productivity and goal completion. Additional training recommended."
     },
     {
       id: "PF005",
       name: "Alex Rodriguez",
-      role: "Data Analyst",
-      overallScore: 86,
+      role: "Growth Technician",
+      overallScore: 91,
       trend: "up",
-      trendValue: 4.8,
+      trendValue: 4.3,
       goals: {
-        completed: 5,
-        total: 6,
-        percentage: 83.3
+        completed: 9,
+        total: 10,
+        percentage: 90
       },
       metrics: {
-        productivity: 88,
-        quality: 90,
-        teamwork: 82,
-        punctuality: 94,
-        initiative: 89
+        productivity: 93,
+        quality: 89,
+        teamwork: 92,
+        punctuality: 95,
+        initiative: 90
       },
-      achievements: ["Data Innovation", "Process Improvement"],
+      achievements: ["Top Performer", "Team Player"],
       lastReview: "2024-01-01",
       nextReview: "2024-04-01",
-      feedback: "Strong analytical skills and innovative approaches to data insights."
+      feedback: "Excellent performance across all metrics. Great team contributor."
     }
   ]
 };
 
+type PerformanceEmployee = typeof performanceData.employees[0];
+
 export default function PerformanceView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [performanceFilter, setPerformanceFilter] = useState("all");
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<PerformanceEmployee>({
+    searchFields: ['name', 'role', 'feedback'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<PerformanceEmployee>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'performance',
+      label: 'Performance Level',
+      placeholder: 'Filter by performance...',
+      options: [
+        { value: 'excellent', label: 'Excellent (90+)' },
+        { value: 'good', label: 'Good (80-89)' },
+        { value: 'average', label: 'Average (70-79)' },
+        { value: 'needs-improvement', label: 'Needs Improvement (<70)' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredEmployees = useMemo(() => {
+    let result = performanceData.employees;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const getPerformanceColor = (score: number) => {
     if (score >= 90) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
@@ -162,26 +219,20 @@ export default function PerformanceView() {
     return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
   };
 
+  const getPerformanceLabel = (score: number) => {
+    if (score >= 90) return "Excellent";
+    if (score >= 80) return "Good";
+    if (score >= 70) return "Average";
+    return "Needs Improvement";
+  };
+
   const getTrendIcon = (trend: string) => {
-    if (trend === "up") return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === "down") return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <span className="h-4 w-4 text-gray-600">—</span>;
+    switch (trend) {
+      case "up": return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case "down": return <TrendingDown className="h-4 w-4 text-red-600" />;
+      default: return <Target className="h-4 w-4 text-gray-600" />;
+    }
   };
-
-  const getPerformanceLevel = (score: number) => {
-    if (score >= 90) return "excellent";
-    if (score >= 80) return "good";
-    if (score >= 70) return "average";
-    return "needs-improvement";
-  };
-
-  const filteredEmployees = performanceData.employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const performanceLevel = getPerformanceLevel(employee.overallScore);
-    const matchesPerformance = performanceFilter === "all" || performanceLevel === performanceFilter;
-    return matchesSearch && matchesPerformance;
-  });
 
   return (
     <div className="space-y-6">
@@ -202,7 +253,7 @@ export default function PerformanceView() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-600" />
+              <Star className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Top Performers</p>
                 <p className="text-2xl font-bold">{performanceData.summary.topPerformers}</p>
@@ -226,7 +277,7 @@ export default function PerformanceView() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-green-600" />
+              <Target className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Completed Goals</p>
                 <p className="text-2xl font-bold">{performanceData.summary.completedGoals}</p>
@@ -255,117 +306,145 @@ export default function PerformanceView() {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search employees or roles..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <select
-          value={performanceFilter}
-          onChange={(e) => setPerformanceFilter(e.target.value)}
-          className="px-3 py-2 border rounded-md bg-background"
-        >
-          <option value="all">All Performance</option>
-          <option value="excellent">Excellent (90+)</option>
-          <option value="good">Good (80-89)</option>
-          <option value="average">Average (70-79)</option>
-          <option value="needs-improvement">Needs Improvement (&lt;70)</option>
-        </select>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search employees by name, role, or feedback..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <span>
+          Showing {filteredEmployees.length} of {performanceData.employees.length} employees
+        </span>
+        {(hasSearch || hasActiveFilters) && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              clearSearch();
+              clearAllFilters();
+            }}
+          >
+            Clear all filters
+          </Button>
+        )}
       </div>
 
       {/* Performance Cards */}
-      <div className="grid gap-4">
-        {filteredEmployees.map((employee) => (
-          <Card key={employee.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-4 flex-1">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-semibold text-lg">{employee.name}</h4>
-                    <Badge variant="outline">{employee.role}</Badge>
-                    <Badge className={getPerformanceColor(employee.overallScore)}>
-                      {employee.overallScore}% Overall
-                    </Badge>
-                    <div className="flex items-center gap-1">
-                      {getTrendIcon(employee.trend)}
-                      <span className={`text-sm ${employee.trend === 'up' ? 'text-green-600' : employee.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
-                        {employee.trend === 'up' ? '+' : employee.trend === 'down' ? '' : ''}{employee.trendValue}%
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Goals Progress */}
-                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Goal Completion</span>
-                      <span className="text-sm">{employee.goals.completed}/{employee.goals.total} ({employee.goals.percentage}%)</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${employee.goals.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Performance Metrics */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {Object.entries(employee.metrics).map(([metric, score]) => (
-                      <div key={metric} className="text-center">
-                        <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{metric}</p>
-                        <p className="font-bold text-lg">{score}%</p>
-                        <div className="w-full bg-gray-200 rounded-full h-1 mt-1 dark:bg-gray-700">
-                          <div 
-                            className={`h-1 rounded-full ${score >= 90 ? 'bg-green-500' : score >= 80 ? 'bg-blue-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${score}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Achievements */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">Achievements:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {employee.achievements.map((achievement, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          <Award className="h-3 w-3 mr-1" />
-                          {achievement}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Review Information */}
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <p><span className="font-medium">Last Review:</span> {new Date(employee.lastReview).toLocaleDateString()}</p>
-                    <p><span className="font-medium">Next Review:</span> {new Date(employee.nextReview).toLocaleDateString()}</p>
-                    <p className="mt-2"><span className="font-medium">Feedback:</span> {employee.feedback}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 ml-4">
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Review
-                  </Button>
-                </div>
-              </div>
+      <div className="space-y-4">
+        {filteredEmployees.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                No Employees Found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {performanceData.employees.length === 0 
+                  ? "No employee performance data available." 
+                  : "No employees match your current search and filters."}
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredEmployees.map((employee) => (
+            <Card key={employee.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-lg font-semibold">{employee.name}</h3>
+                      <Badge className={getPerformanceColor(employee.overallScore)}>
+                        {employee.overallScore}% - {getPerformanceLabel(employee.overallScore)}
+                      </Badge>
+                      <div className="flex items-center gap-1">
+                        {getTrendIcon(employee.trend)}
+                        <span className={`text-sm ${
+                          employee.trend === 'up' ? 'text-green-600' : 
+                          employee.trend === 'down' ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {employee.trend === 'up' ? '+' : employee.trend === 'down' ? '-' : ''}
+                          {Math.abs(employee.trendValue)}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Role</p>
+                        <p className="font-medium">{employee.role}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Goals Progress</p>
+                        <p className="font-medium">
+                          {employee.goals.completed}/{employee.goals.total} ({employee.goals.percentage}%)
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Last Review</p>
+                        <p className="font-medium">{new Date(employee.lastReview).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Next Review</p>
+                        <p className="font-medium">{new Date(employee.nextReview).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    {/* Performance Metrics */}
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Performance Metrics</p>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        {Object.entries(employee.metrics).map(([metric, score]) => (
+                          <div key={metric} className="text-center">
+                            <p className="text-xs text-gray-500 capitalize">{metric}</p>
+                            <p className="font-semibold text-lg">{score}%</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Achievements */}
+                    {employee.achievements.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Achievements</p>
+                        <div className="flex gap-1 flex-wrap">
+                          {employee.achievements.map((achievement, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              <Award className="h-3 w-3 mr-1" />
+                              {achievement}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Feedback */}
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Latest Feedback</p>
+                      <p className="text-sm">{employee.feedback}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

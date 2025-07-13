@@ -8,6 +8,7 @@ export * from './loading';
 export * from './features/agriculture';
 export * from './features/automation';
 export * from './features/business';
+export * from './features/calendar';
 export * from './features/intelligence';
 export * from './features/monitoring'; 
 

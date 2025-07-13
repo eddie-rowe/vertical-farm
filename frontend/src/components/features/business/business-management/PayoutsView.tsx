@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
   Banknote, 
   DollarSign,
   AlertCircle,
@@ -19,13 +17,71 @@ import {
   Calendar
 } from "lucide-react";
 import { businessManagementService, BusinessPayout } from "@/services/businessManagementService";
+import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
+import { useFarmSearch, useFarmFilters } from '@/hooks';
+import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
 
 export default function PayoutsView() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [payouts, setPayouts] = useState<BusinessPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Standardized search and filter hooks
+  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessPayout>({
+    searchFields: ['id', 'destination'],
+    caseSensitive: false
+  });
+  
+  const {
+    filters,
+    setFilter,
+    removeFilter,
+    clearAllFilters,
+    getActiveFilterChips,
+    filterItems: filterFilterItems,
+    hasActiveFilters
+  } = useFarmFilters<BusinessPayout>();
+
+  // Filter definitions
+  const filterDefinitions: FilterDefinition[] = [
+    {
+      id: 'status',
+      label: 'Payout Status',
+      placeholder: 'Filter by status...',
+      options: [
+        { value: 'completed', label: 'Completed' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'processing', label: 'Processing' },
+        { value: 'failed', label: 'Failed' }
+      ]
+    }
+  ];
+
+  // Filter change handlers
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilter(filterId, value);
+  }, [setFilter]);
+
+  const handleRemoveFilter = useCallback((filterId: string) => {
+    removeFilter(filterId);
+  }, [removeFilter]);
+
+  // Combined filtering
+  const filteredPayouts = useMemo(() => {
+    let result = payouts;
+    
+    // Apply search filter
+    if (hasSearch) {
+      result = searchFilterItems(result);
+    }
+    
+    // Apply other filters
+    if (hasActiveFilters) {
+      result = filterFilterItems(result);
+    }
+    
+    return result;
+  }, [payouts, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const fetchPayouts = async () => {
     try {
@@ -44,14 +100,6 @@ export default function PayoutsView() {
   useEffect(() => {
     fetchPayouts();
   }, []);
-
-  const filteredPayouts = payouts.filter(payout => {
-    const matchesSearch = payout.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payout.destination.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || payout.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -174,31 +222,38 @@ export default function PayoutsView() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search payouts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Standardized Search and Filters */}
+      <FarmSearchAndFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search payouts by ID or destination..."
+        filters={filterDefinitions}
+        activeFilters={getActiveFilterChips(filterDefinitions)}
+        onFilterChange={handleFilterChange}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+      />
+
+      {/* Results Summary */}
+      {!loading && (
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>
+            Showing {filteredPayouts.length} of {payouts.length} payouts
+          </span>
+          {(hasSearch || hasActiveFilters) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearSearch();
+                clearAllFilters();
+              }}
+            >
+              Clear all filters
+            </Button>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-        >
-          <option value="all">All Status</option>
-          <option value="completed">Completed</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="failed">Failed</option>
-        </select>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -230,82 +285,56 @@ export default function PayoutsView() {
             <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
               No Payouts Found
             </h3>
-            <p className="text-gray-500 dark:text-gray-500">
-              {searchTerm || statusFilter !== "all" 
-                ? "No payouts match your current filters."
-                : "No payouts have been processed yet."}
+            <p className="text-gray-600 dark:text-gray-400">
+              {payouts.length === 0 
+                ? "No payouts available in your Square account." 
+                : "No payouts match your current filters."}
             </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Payouts List */}
       {!loading && filteredPayouts.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {filteredPayouts.map((payout) => (
             <Card key={payout.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {payout.id}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">{payout.destination}</p>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold">{payout.id}</h3>
+                      <Badge className={getStatusColor(payout.status)}>
+                        {getStatusIcon(payout.status)}
+                        <span className="ml-1">{payout.status}</span>
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Destination</p>
+                        <p className="font-medium">{payout.destination}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Amount</p>
+                        <p className="font-semibold text-lg text-green-600">${payout.amount.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Fees</p>
+                        <p className="font-medium text-red-600">${(payout.fees || 0).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Net</p>
+                        <p className="font-semibold text-lg">${(payout.amount - (payout.fees || 0)).toLocaleString()}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(payout.status)}>
-                      {getStatusIcon(payout.status)}
-                      <span className="ml-1">{payout.status}</span>
-                    </Badge>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      ${payout.amount.toLocaleString()}
-                    </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
-                  {payout.fees && payout.fees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Fees:</span>
-                      <span className="text-red-600 dark:text-red-400">
-                        -${payout.fees.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">Net Amount:</span>
-                    <span className="font-bold text-gray-900 dark:text-gray-100">
-                      ${(payout.amount - (payout.fees || 0)).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900 dark:text-gray-100">{payout.date}</span>
-                    </div>
-                  </div>
-                  {payout.arrivalDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Arrival Date:</span>
-                      <span className="text-gray-900 dark:text-gray-100">{payout.arrivalDate}</span>
-                    </div>
-                  )}
-                  {payout.type && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                      <Badge variant="outline">{payout.type}</Badge>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    View Details
-                  </Button>
                 </div>
               </CardContent>
             </Card>

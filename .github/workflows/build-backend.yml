@@ -94,7 +94,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/backend:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/backend:buildcache,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           
       - name: Generate build summary
         run: |
@@ -103,7 +103,7 @@ jobs:
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Image | \`${{ steps.meta.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Digest | \`${{ steps.build.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Platforms | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Platforms | linux/amd64 |" >> $GITHUB_STEP_SUMMARY
           echo "| Registry | ghcr.io |" >> $GITHUB_STEP_SUMMARY
           echo "| Pushed | ${{ inputs.push_to_registry && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
           

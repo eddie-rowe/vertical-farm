@@ -20,17 +20,17 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   };
 
   const getVarianceColor = () => {
-    if (isOnTarget) return 'text-green-600';
-    if (Math.abs(variance) <= 10) return 'text-yellow-600';
-    return 'text-red-600';
+    if (isOnTarget) return 'text-green-600 dark:text-green-400';
+    if (Math.abs(variance) <= 10) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {current}{unit} / {target}{unit}
           </span>
           <span className={`text-xs font-medium ${getVarianceColor()}`}>
@@ -50,7 +50,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
         />
       </div>
       
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
         <span>Current: {current}{unit}</span>
         <span>Target: {target}{unit}</span>
       </div>
