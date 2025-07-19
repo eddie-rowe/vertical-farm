@@ -35,6 +35,7 @@ permissions:
   actions: write
   pages: write
   id-token: write
+  checks: write
 
 jobs:
   # Phase 1: Parallel Testing (MUST PASS FIRST)
