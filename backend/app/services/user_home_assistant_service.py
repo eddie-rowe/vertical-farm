@@ -7,34 +7,35 @@ user-isolated integration with the vertical farm system.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set, Any, Tuple
 from datetime import datetime
-from fastapi import HTTPException, status
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID
+
+from fastapi import HTTPException, status
 from supabase import AClient as SupabaseAsyncClient
 
 from app.core.config import get_settings
 from app.core.security import (
-    validate_websocket_token,
     AuthenticationError,
     SessionExpiredError,
-    is_token_expired,
     get_session_health,
+    is_token_expired,
+    validate_websocket_token,
 )
+from app.db.supabase_client import get_async_supabase_client
+from app.services.error_handling import (
+    ErrorType,
+    HomeAssistantError,
+    RecoveryStrategy,
+    RetryConfig,
+    global_error_handler,
+    with_error_handling,
+)
+from app.services.home_assistant_client import ConnectionError as HAConnectionError
 from app.services.home_assistant_client import (
     HomeAssistantClient,
     HomeAssistantClientError,
-    ConnectionError as HAConnectionError,
 )
-from app.services.error_handling import (
-    global_error_handler,
-    HomeAssistantError,
-    ErrorType,
-    with_error_handling,
-    RetryConfig,
-    RecoveryStrategy,
-)
-from app.db.supabase_client import get_async_supabase_client
 
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,14 @@
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
-from supabase import AClient as SupabaseClient
-from httpx import HTTPStatusError
 
-from app.schemas.sensor_device import (
+from httpx import HTTPStatusError
+from supabase import AClient as SupabaseClient
+
+from app.models.enums import ParentType, SensorType  # For enum usage
+from app.schemas.sensor_device import (  # Pydantic schemas
     SensorDeviceCreate,
     SensorDeviceUpdate,
-)  # Pydantic schemas
-from app.models.enums import ParentType, SensorType  # For enum usage
+)
 
 # import logging
 # logger = logging.getLogger(__name__)

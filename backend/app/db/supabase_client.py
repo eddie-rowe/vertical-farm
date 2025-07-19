@@ -1,5 +1,6 @@
-from supabase import create_client, Client, acreate_client, AClient, AClientOptions
 from fastapi import Depends
+from supabase import AClient, AClientOptions, Client, acreate_client, create_client
+
 from app.core.config import settings
 from app.core.security import get_raw_supabase_token
 

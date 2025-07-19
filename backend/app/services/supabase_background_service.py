@@ -6,12 +6,12 @@ Replaces Redis-based background processing with Supabase queues and Edge Functio
 import asyncio
 import json
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 import httpx
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 from app.core.config import settings
 

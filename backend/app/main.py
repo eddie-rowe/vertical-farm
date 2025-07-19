@@ -1,9 +1,15 @@
+# from app.services import home_assistant_background_tasks  # Import to register tasks - no longer needed
+# Removed cache middleware - not needed at this stage of development
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi import Depends, FastAPI
 from fastapi.exceptions import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from supabase import AClient
+
 from app.api.v1.api import api_router as api_router_v1
 
 # from app.db.supabase_client import get_supabase_client # Only if example endpoint is used
@@ -11,18 +17,13 @@ from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
 from app.core.security import get_raw_supabase_token
 from app.db.supabase_client import get_async_rls_client
-from supabase import AClient
 
 # Home Assistant service now uses user-specific configurations - no global imports needed
 # from app.services.database_service import get_database_service # Removed - no longer needed after PostGREST migration
 # from app.services.background_processor import background_processor  # Deprecated Redis-based processor
-from app.services.supabase_background_service import (
+from app.services.supabase_background_service import (  # New Supabase-based service
     supabase_background_service,
-)  # New Supabase-based service
-
-# from app.services import home_assistant_background_tasks  # Import to register tasks - no longer needed
-# Removed cache middleware - not needed at this stage of development
-import logging
+)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -226,8 +227,9 @@ async def debug_user_profile(
     db: AClient = Depends(get_async_rls_client),
 ):
     """Debug endpoint to check user profile status"""
-    from app.crud import crud_user
     from jose import jwt
+
+    from app.crud import crud_user
 
     # Decode token to get user info (for debugging only)
     try:

@@ -1,12 +1,13 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from .supabase_background_service import SupabaseBackgroundService
+from supabase import Client
+
 from ..core.database import get_db
 from ..schemas.farm import FarmResponse
-from supabase import Client
+from .supabase_background_service import SupabaseBackgroundService
 
 logger = logging.getLogger(__name__)
 

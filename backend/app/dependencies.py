@@ -1,17 +1,18 @@
+from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import ValidationError
-from typing import Optional
+from supabase import AClient, acreate_client  # Changed
 
 from app.core.config import settings
 from app.crud import crud_user
+from app.db.supabase_client import get_async_supabase_client  # Changed
 from app.models.user import User
 from app.schemas.token import TokenPayload
-from app.db.supabase_client import get_async_supabase_client  # Changed
-from app.services.device_monitoring_service import DeviceMonitoringService
 from app.services.database_service import DatabaseService
-from supabase import AClient, acreate_client  # Changed
+from app.services.device_monitoring_service import DeviceMonitoringService
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/token"

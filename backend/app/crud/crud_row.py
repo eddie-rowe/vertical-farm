@@ -1,9 +1,10 @@
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
-from supabase import AClient as SupabaseClient
-from httpx import HTTPStatusError
 
-from app.schemas.row import RowCreate, RowUpdate, RowResponse  # Added RowResponse
+from httpx import HTTPStatusError
+from supabase import AClient as SupabaseClient
+
+from app.schemas.row import RowCreate, RowResponse, RowUpdate  # Added RowResponse
 
 # from app.db.supabase_client import get_async_supabase_client # Client should be injected
 from .crud_rack import rack  # Added import for rack CRUD

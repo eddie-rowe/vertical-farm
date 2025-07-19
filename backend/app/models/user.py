@@ -7,7 +7,9 @@ in the system with their roles and permissions.
 
 import uuid
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 from .enums import UserRole
 
 

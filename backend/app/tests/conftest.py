@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 # Add the backend directory to Python path
 backend_dir = os.path.dirname(
@@ -20,8 +20,8 @@ backend_dir = os.path.dirname(
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from app.main import app
 from app.core.config import get_settings
+from app.main import app
 
 
 @pytest.fixture

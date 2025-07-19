@@ -9,23 +9,24 @@ This test suite covers the most critical endpoints identified in the code review
 - Error handling and edge cases
 """
 
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
-from httpx import AsyncClient, ASGITransport
 from fastapi import status
-from datetime import datetime
+from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.models.home_assistant import (
-    HomeAssistantStatusResponse,
-    HealthCheckResponse,
-    DeviceListResponse,
     DeviceControlRequest,
     DeviceControlResponse,
+    DeviceListResponse,
+    HealthCheckResponse,
     HomeAssistantConfigRequest,
-    HomeAssistantTestConnectionRequest,
     HomeAssistantDevice,
+    HomeAssistantStatusResponse,
+    HomeAssistantTestConnectionRequest,
 )
 
 
@@ -73,8 +74,8 @@ class TestHomeAssistantEndpoints:
     @pytest.fixture
     def mock_ha_service(self):
         """Create a mock Home Assistant service for testing."""
-        from unittest.mock import AsyncMock, MagicMock
         from datetime import datetime
+        from unittest.mock import AsyncMock, MagicMock
 
         # Create an AsyncMock for the service
         mock_service = AsyncMock()

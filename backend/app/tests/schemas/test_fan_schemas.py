@@ -1,5 +1,6 @@
-import pytest
 from uuid import uuid4
+
+import pytest
 from pydantic import ValidationError
 
 from app.schemas.fan import FanCreate, FanUpdate

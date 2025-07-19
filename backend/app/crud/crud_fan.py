@@ -1,10 +1,11 @@
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
-from supabase import AClient as SupabaseClient
-from httpx import HTTPStatusError
 
-from app.schemas.fan import FanCreate, FanUpdate  # Pydantic schemas
+from httpx import HTTPStatusError
+from supabase import AClient as SupabaseClient
+
 from app.models.enums import ParentType  # For parent_type validation/enum usage
+from app.schemas.fan import FanCreate, FanUpdate  # Pydantic schemas
 
 # import logging
 # logger = logging.getLogger(__name__)

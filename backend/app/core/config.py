@@ -1,9 +1,8 @@
 from functools import lru_cache
-from typing import Optional, List, Union
+from typing import Annotated, List, Literal, Optional, Union
 
-from pydantic import field_validator, AnyUrl, BeforeValidator, computed_field
+from pydantic import AnyUrl, BeforeValidator, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Literal, Annotated
 
 
 # Helper function to parse CORS origins from a string

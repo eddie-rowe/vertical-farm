@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional, List
 import uuid
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 from app.models.enums import UserRole  # Assuming UserRole is in models.enums
 
 

@@ -7,43 +7,43 @@ Home Assistant devices within the vertical farm system.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
-from fastapi.responses import JSONResponse
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
-from app.services.user_home_assistant_service import (
-    get_user_home_assistant_service,
-    UserHomeAssistantService,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
+
+from app.core.security import get_current_active_user as get_current_user
+from app.db.supabase_client import get_async_rls_client, get_async_supabase_client
 from app.models.home_assistant import (
-    DeviceControlRequest,
-    DeviceSubscriptionRequest,
-    DeviceControlResponse,
-    HomeAssistantStatusResponse,
-    DeviceListResponse,
-    DeviceDetailsResponse,
-    SensorDataResponse,
-    HealthCheckResponse,
-    ErrorResponse,
-    HomeAssistantDevice,
-    SensorData,
     DeviceAssignmentRequest,
+    DeviceControlRequest,
+    DeviceControlResponse,
+    DeviceDetailsResponse,
+    DeviceImportRequest,
+    DeviceListResponse,
+    DeviceSubscriptionRequest,
+    ErrorResponse,
+    HealthCheckResponse,
     HomeAssistantConfigRequest,
     HomeAssistantConfigResponse,
+    HomeAssistantDevice,
+    HomeAssistantStatusResponse,
     HomeAssistantTestConnectionRequest,
     HomeAssistantTestConnectionResponse,
-    UserDeviceConfigRequest,
-    UserDeviceConfigResponse,
-    DeviceImportRequest,
-    ImportedDeviceResponse,
     ImportDevicesResponse,
     ImportedDeviceListResponse,
+    ImportedDeviceResponse,
     ImportedDeviceUpdateRequest,
+    SensorData,
+    SensorDataResponse,
+    UserDeviceConfigRequest,
+    UserDeviceConfigResponse,
 )
-from app.db.supabase_client import get_async_supabase_client, get_async_rls_client
-from app.core.security import get_current_active_user as get_current_user
-
+from app.services.user_home_assistant_service import (
+    UserHomeAssistantService,
+    get_user_home_assistant_service,
+)
 
 logger = logging.getLogger(__name__)
 

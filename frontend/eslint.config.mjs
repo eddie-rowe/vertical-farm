@@ -10,20 +10,26 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Global ignores - must be first
   {
     ignores: [
       "test-results/**/*",
       "playwright-report/**/*",
-      "**/*.json",
+      "**/*.json", 
       "next-env.d.ts",
       ".next/**/*",
       "out/**/*",
       "dist/**/*",
+      "node_modules/**/*",
     ],
+  },
+  // Extend Next.js configurations
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Custom rules
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "warn", 
       "react/no-unescaped-entities": "warn",
     },
   },

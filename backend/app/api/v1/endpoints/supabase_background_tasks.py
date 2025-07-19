@@ -4,12 +4,12 @@ Replaces Redis-based background task endpoints with Supabase-powered ones
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.services.supabase_background_service import supabase_background_service
 from app.core.security import get_current_active_user as get_current_user
-
+from app.services.supabase_background_service import supabase_background_service
 
 router = APIRouter()
 

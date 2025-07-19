@@ -1,6 +1,8 @@
-from typing import Optional, Literal, Dict, Any
+from typing import Any, Dict, Literal, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from app.models.enums import ParentType, SensorType
 
 

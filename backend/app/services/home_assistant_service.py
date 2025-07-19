@@ -7,16 +7,17 @@ high-level integration with the vertical farm system.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set
 from datetime import datetime
+from typing import Dict, List, Optional, Set
+
 from fastapi import HTTPException
 
 from app.core.config import get_settings
+from app.services.home_assistant_client import AuthenticationError
+from app.services.home_assistant_client import ConnectionError as HAConnectionError
 from app.services.home_assistant_client import (
     HomeAssistantClient,
     HomeAssistantClientError,
-    AuthenticationError,
-    ConnectionError as HAConnectionError,
 )
 
 logger = logging.getLogger(__name__)

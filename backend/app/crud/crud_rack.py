@@ -1,9 +1,11 @@
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
-from supabase import AClient as SupabaseClient
-from httpx import HTTPStatusError
 
-from app.schemas.rack import RackCreate, RackUpdate, RackResponse
+from httpx import HTTPStatusError
+from supabase import AClient as SupabaseClient
+
+from app.schemas.rack import RackCreate, RackResponse, RackUpdate
+
 from .crud_shelf import shelf  # Added import for shelf CRUD
 
 # import logging

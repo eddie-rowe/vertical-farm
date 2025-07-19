@@ -1,6 +1,7 @@
 # from .session import SessionLocal, engine # Comment out or remove this line
 from supabase import AClient as SupabaseClient  # Import AClient and alias it
-from .supabase_client import get_async_supabase_client, get_async_rls_client
+
+from .supabase_client import get_async_rls_client, get_async_supabase_client
 
 # Remove the Base import as it's no longer needed
 # from .base_class import Base  # noqa

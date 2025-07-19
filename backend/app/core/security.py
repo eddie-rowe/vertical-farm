@@ -1,19 +1,20 @@
-from fastapi import Request, HTTPException, status, Depends
-from jose import jwt, JWTError
+import asyncio
+import json
+import logging
 
 # Removed jose.utils import
 import os
+import re
+import time
+from collections import defaultdict, deque
 
 # Removed httpx import
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Dict, List, Tuple, TYPE_CHECKING, Callable
-import logging
 from functools import wraps
-import time
-from collections import defaultdict, deque
-import asyncio
-import re
-import json
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+from fastapi import Depends, HTTPException, Request, status
+from jose import JWTError, jwt
 
 from app.core.config import settings
 
@@ -697,15 +698,16 @@ async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
         raise AuthenticationError(f"Invalid token format: {str(e)}")
 
 
+from supabase import (
+    AClient as SupabaseAsyncClient,  # acreate_client removed as not used here directly
+)
+
 # --- Imports that might cause cycles if loaded before token validation functions are defined ---
 # from app.models.user import User as UserModel # Remove this import
 from app.crud import crud_user
 
 # from app.db.supabase_client import get_async_supabase_client # Remove this top-level import
 from app.db.supabase_client import get_async_rls_client
-from supabase import (
-    AClient as SupabaseAsyncClient,
-)  # acreate_client removed as not used here directly
 
 # from app.schemas.user import User # Remove this top-level import, will use string literal or local import
 
@@ -717,8 +719,9 @@ async def get_current_active_user(
     raw_token: str = Depends(get_raw_supabase_token),
     db: SupabaseAsyncClient = Depends(get_async_rls_client),
 ) -> "User":
-    from app.schemas.user import User
     from jose import jwt
+
+    from app.schemas.user import User
 
     logger.debug(f"Authenticating user with token length: {len(raw_token)}")
 
@@ -788,8 +791,9 @@ async def get_current_active_user_with_session_health(
     Returns:
         Tuple of (user, session_health)
     """
-    from app.schemas.user import User
     from jose import jwt
+
+    from app.schemas.user import User
 
     # Extract user ID and validate session health from token
     try:

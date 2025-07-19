@@ -1,9 +1,11 @@
 """Modern database service for connecting to PostgreSQL/Supabase with graceful degradation"""
 
-import asyncpg
 import logging
-from typing import Optional, AsyncGenerator
 from functools import lru_cache
+from typing import AsyncGenerator, Optional
+
+import asyncpg
+
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)

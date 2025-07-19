@@ -6,18 +6,19 @@ Handles device assignments, state caching, and WebSocket connections
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Set, Any, Tuple
 import uuid
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from fastapi import WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 from supabase import Client
+
+from .database_service import DatabaseService
+from .home_assistant_client import HomeAssistantClient
 
 # TODO: Replace with Supabase native queuing/caching when implementing real-time features
 
-from .home_assistant_client import HomeAssistantClient
-from .database_service import DatabaseService
 
 logger = logging.getLogger(__name__)
 

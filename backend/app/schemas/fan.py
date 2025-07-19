@@ -1,6 +1,7 @@
-from typing import Optional, Literal
+from typing import Literal, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FanBase(BaseModel):

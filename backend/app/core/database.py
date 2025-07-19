@@ -6,7 +6,9 @@ using Supabase as the backend database.
 """
 
 from typing import AsyncGenerator
+
 from supabase import Client, create_client
+
 from app.core.config import get_settings
 from app.db import get_async_supabase_client
 

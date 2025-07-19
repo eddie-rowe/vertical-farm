@@ -1,14 +1,17 @@
 from fastapi import APIRouter
 
+from app.api.v1 import grow_automation  # Layer Two: Grow automation endpoints
+from app.api.v1 import sensors_cached  # Cached sensor data endpoints
+
 # Import endpoint routers here - Only Home Assistant remains after PostGREST migration
+from app.api.v1.endpoints import farm_automation  # Farm automation background tasks
 from app.api.v1.endpoints import (
     home_assistant,  # Only remaining endpoint after migration
-    supabase_background_tasks,  # Supabase-based background tasks
-    farm_automation,  # Farm automation background tasks
-    square,  # Square payment integration
 )
-from app.api.v1 import sensors_cached  # Cached sensor data endpoints
-from app.api.v1 import grow_automation  # Layer Two: Grow automation endpoints
+from app.api.v1.endpoints import square  # Square payment integration
+from app.api.v1.endpoints import (
+    supabase_background_tasks,  # Supabase-based background tasks
+)
 
 api_router = APIRouter()
 

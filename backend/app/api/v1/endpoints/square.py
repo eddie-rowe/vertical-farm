@@ -6,35 +6,35 @@ within the vertical farm system.
 """
 
 import asyncio
-import logging
-from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Response, Request
-from fastapi.responses import JSONResponse
-from datetime import datetime, timedelta
-from pydantic import BaseModel, Field
-import os
-import httpx
-from decimal import Decimal
-import hmac
 import hashlib
+import hmac
 import json
+import logging
+import os
+from datetime import datetime, timedelta
+from decimal import Decimal
+from typing import Any, Dict, List, Optional, Union
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from app.core.security import get_current_active_user as get_current_user
+from app.db.supabase_client import get_async_rls_client, get_async_supabase_client
 from app.models.user import User
-from app.db.supabase_client import get_async_supabase_client, get_async_rls_client
 from app.schemas.square import (
-    SquareWebhookPayload,
-    SquareWebhookEventCreate,
-    SquareWebhookEventResponse,
     CacheInvalidationRequest,
     CacheInvalidationResponse,
     SquareWebhookCreate,
+    SquareWebhookEventCreate,
+    SquareWebhookEventResponse,
+    SquareWebhookPayload,
     SquareWebhookResponse,
+    WebhookHealthResponse,
     WebhookRegistrationRequest,
     WebhookRegistrationResponse,
-    WebhookHealthResponse,
 )
-
 
 logger = logging.getLogger(__name__)
 

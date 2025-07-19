@@ -1,8 +1,10 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
 import uuid
-from app.models.enums import PermissionLevel
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
+
+from app.models.enums import PermissionLevel
 
 
 class UserPermissionBase(BaseModel):

@@ -9,19 +9,20 @@ and real-time updates with enhanced error handling and recovery.
 import asyncio
 import json
 import logging
-from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
+
 import aiohttp
 import websockets
-from websockets.exceptions import ConnectionClosed, WebSocketException
 from asyncio_throttle import Throttler
+from websockets.exceptions import ConnectionClosed, WebSocketException
 
 from .error_handling import (
-    global_error_handler,
+    CircuitBreakerConfig,
     ErrorType,
     HomeAssistantError,
     RetryConfig,
-    CircuitBreakerConfig,
+    global_error_handler,
     with_error_handling,
 )
 

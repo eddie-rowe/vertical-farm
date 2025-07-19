@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ConfigDict
-from typing import (
-    Optional,
-)  # Optional not used here but good practice to keep if model evolves
 import uuid
 from datetime import datetime
+from typing import (  # Optional not used here but good practice to keep if model evolves
+    Optional,
+)
+
+from pydantic import BaseModel, ConfigDict
+
 from app.models.enums import PermissionLevel
 
 # from sqlalchemy import Column, ForeignKey, Enum as SQLAlchemyEnum, DateTime

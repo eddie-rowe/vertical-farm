@@ -5,13 +5,14 @@ Tests real task processing, queue performance, and error handling
 """
 
 import asyncio
-import aiohttp
-import time
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 import statistics
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
+import aiohttp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

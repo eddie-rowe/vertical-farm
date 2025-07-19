@@ -1,14 +1,16 @@
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
-from supabase import AClient as SupabaseClient
-from httpx import HTTPStatusError
 
-from app.schemas.shelf import (
-    ShelfCreate,
-    ShelfUpdate,
-    ShelfResponse,
-)  # Added ShelfResponse
+from httpx import HTTPStatusError
+from supabase import AClient as SupabaseClient
+
 from app.models.enums import ParentType  # Added ParentType
+from app.schemas.shelf import (  # Added ShelfResponse
+    ShelfCreate,
+    ShelfResponse,
+    ShelfUpdate,
+)
+
 from .crud_sensor_device import sensor_device  # Added import for sensor_device CRUD
 
 # import logging

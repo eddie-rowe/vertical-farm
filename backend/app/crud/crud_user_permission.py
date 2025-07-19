@@ -1,19 +1,21 @@
-from supabase import AClient, acreate_client  # Changed
-from uuid import UUID
-from app.schemas import (
-    user_permission as user_permission_schema,
-)  # For input/output types; was app.models
-from app.models import (
-    user_permission as user_permission_model,
-)  # For DB model instantiation
-from app.models.enums import PermissionLevel
-
-# from app.models.user import User # SQLAlchemy User model removed
-from app.models.enums import (
-    UserRole,
-)  # This enum might still be useful if user role is stored directly
 import datetime
 from typing import List, Optional  # Added List, Optional
+from uuid import UUID
+
+from supabase import AClient, acreate_client  # Changed
+
+from app.models import (
+    user_permission as user_permission_model,  # For DB model instantiation
+)
+
+# from app.models.user import User # SQLAlchemy User model removed
+from app.models.enums import (  # This enum might still be useful if user role is stored directly
+    PermissionLevel,
+    UserRole,
+)
+from app.schemas import (
+    user_permission as user_permission_schema,  # For input/output types; was app.models
+)
 
 USER_PERMISSIONS_TABLE_NAME = "farm_user_permissions"
 

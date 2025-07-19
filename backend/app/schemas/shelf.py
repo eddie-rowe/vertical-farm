@@ -1,6 +1,8 @@
-from typing import Optional, Literal, List
+from typing import List, Literal, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.schemas.sensor_device import SensorDeviceResponse
 
 

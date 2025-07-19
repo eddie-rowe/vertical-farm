@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from ....core.security import get_current_active_user as get_current_user
 from ....services.farm_automation_service import (
     FarmAutomationService,
-    setup_new_grow_schedule_automation,
     handle_sensor_alert_threshold,
+    setup_new_grow_schedule_automation,
 )
-from ....core.security import get_current_active_user as get_current_user
 
 router = APIRouter()
 

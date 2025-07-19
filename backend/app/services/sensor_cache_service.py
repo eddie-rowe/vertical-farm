@@ -16,14 +16,15 @@ Key Features:
 
 import json
 import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from supabase import Client
 
 from app.core.cache import CacheManager
 from app.core.database import get_db
-from supabase import Client
 
 logger = logging.getLogger(__name__)
 

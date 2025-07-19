@@ -3,30 +3,31 @@ Device API endpoints for Layer One functionality
 Handles device assignments, control, and WebSocket connections
 """
 
-from fastapi import (
-    APIRouter,
-    WebSocket,
-    WebSocketDisconnect,
-    HTTPException,
-    Depends,
-    Query,
-)
-from typing import List, Optional, Dict, Any
 import json
 import logging
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
 
 from ...dependencies import get_current_user, get_device_monitoring_service
-from ...services.device_monitoring_service import DeviceMonitoringService, DeviceType
 from ...schemas.device_schemas import (
-    DeviceAssignmentResponse,
-    CreateDeviceAssignmentRequest,
-    UpdateDeviceAssignmentRequest,
     ControlDeviceRequest,
     ControlDeviceResponse,
-    LocationDevicesResponse,
+    CreateDeviceAssignmentRequest,
+    DeviceAssignmentResponse,
     EmergencyControlRequest,
+    LocationDevicesResponse,
+    UpdateDeviceAssignmentRequest,
 )
+from ...services.device_monitoring_service import DeviceMonitoringService, DeviceType
 
 logger = logging.getLogger(__name__)
 
