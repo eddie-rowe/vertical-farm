@@ -66,7 +66,7 @@ describe("Grow Recipe Utilities", () => {
 
     it("should be immutable constants", () => {
       expect(() => {
-        // @ts-ignore - testing runtime immutability
+        // @ts-expect-error - testing runtime immutability
         VALIDATION_LIMITS.MIN_GROW_DAYS = 999;
       }).toThrow();
     });

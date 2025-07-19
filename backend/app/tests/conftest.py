@@ -1,6 +1,7 @@
 """
 Shared test fixtures and configuration for the backend test suite.
 """
+
 import asyncio
 import os
 import sys
@@ -13,7 +14,9 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport
 
 # Add the backend directory to Python path
-backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+backend_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
@@ -81,7 +84,7 @@ def sample_home_assistant_config():
     return {
         "url": "http://homeassistant.local:8123",
         "access_token": "test_token_123",
-        "name": "Test Home Assistant"
+        "name": "Test Home Assistant",
     }
 
 
@@ -94,8 +97,8 @@ def sample_device_data():
         "attributes": {
             "friendly_name": "Living Room Light",
             "supported_features": 41,
-            "brightness": None
-        }
+            "brightness": None,
+        },
     }
 
 
@@ -104,13 +107,9 @@ def sample_device_assignment():
     """Sample device assignment for testing."""
     return {
         "device_id": "light.living_room",
-        "farm_location": {
-            "row": 1,
-            "rack": 2,
-            "shelf": 3
-        },
+        "farm_location": {"row": 1, "rack": 2, "shelf": 3},
         "device_type": "light",
-        "name": "Living Room Light"
+        "name": "Living Room Light",
     }
 
 
@@ -130,7 +129,9 @@ async def setup_test_environment():
 @pytest_asyncio.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
     """Create an async test client for the FastAPI application."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
 
 
@@ -160,15 +161,15 @@ def mock_admin_user():
 def mock_home_assistant_service():
     """Create a mock Home Assistant service with default responses."""
     service = AsyncMock()
-    
+
     # Default successful responses
     service.get_user_integration_status.return_value = {
         "healthy": True,
         "rest_api": True,
         "websocket": True,
-        "last_updated": "2024-01-01T12:00:00Z"
+        "last_updated": "2024-01-01T12:00:00Z",
     }
-    
+
     service.get_user_devices.return_value = [
         {
             "entity_id": "light.test_light",
@@ -176,7 +177,7 @@ def mock_home_assistant_service():
             "state": "on",
             "attributes": {"brightness": 255, "friendly_name": "Test Light"},
             "last_changed": "2024-01-01T12:00:00Z",
-            "last_updated": "2024-01-01T12:00:00Z"
+            "last_updated": "2024-01-01T12:00:00Z",
         },
         {
             "entity_id": "sensor.temperature",
@@ -184,24 +185,24 @@ def mock_home_assistant_service():
             "state": "22.5",
             "attributes": {"unit_of_measurement": "°C", "friendly_name": "Temperature"},
             "last_changed": "2024-01-01T12:00:00Z",
-            "last_updated": "2024-01-01T12:00:00Z"
-        }
+            "last_updated": "2024-01-01T12:00:00Z",
+        },
     ]
-    
+
     service.control_device.return_value = {
         "success": True,
         "entity_id": "light.test_light",
         "action": "turn_on",
-        "message": "Device controlled successfully"
+        "message": "Device controlled successfully",
     }
-    
+
     service.test_connection.return_value = {
         "success": True,
         "message": "Connection successful",
         "version": "2024.1.0",
-        "response_time": 0.123
+        "response_time": 0.123,
     }
-    
+
     return service
 
 
@@ -214,7 +215,7 @@ def mock_database_service():
         "id": "config-123",
         "user_id": "test-user-123",
         "name": "Test Config",
-        "created_at": "2024-01-01T12:00:00Z"
+        "created_at": "2024-01-01T12:00:00Z",
     }
     return service
 
@@ -225,22 +226,16 @@ def mock_error_handler():
     handler = AsyncMock()
     handler.get_service_health.return_value = {
         "healthy": True,
-        "services": {
-            "home_assistant_rest": True,
-            "home_assistant_websocket": True
-        },
-        "circuit_breaker_status": "closed"
+        "services": {"home_assistant_rest": True, "home_assistant_websocket": True},
+        "circuit_breaker_status": "closed",
     }
-    
+
     handler.get_circuit_breaker_status.return_value = {
         "home_assistant_rest": "closed",
         "home_assistant_websocket": "closed",
-        "failure_counts": {
-            "home_assistant_rest": 0,
-            "home_assistant_websocket": 0
-        }
+        "failure_counts": {"home_assistant_rest": 0, "home_assistant_websocket": 0},
     }
-    
+
     return handler
 
 
@@ -254,9 +249,9 @@ def mock_environment_variables(monkeypatch):
         "JWT_SECRET_KEY": "test_jwt_secret",
         "ENVIRONMENT": "test",
         "CORS_ORIGINS": '["http://localhost:3000"]',
-        "LOG_LEVEL": "INFO"
+        "LOG_LEVEL": "INFO",
     }
-    
+
     for key, value in test_env_vars.items():
         monkeypatch.setenv(key, value)
 
@@ -264,4 +259,4 @@ def mock_environment_variables(monkeypatch):
 # Pytest markers for test categorization
 pytestmark = [
     pytest.mark.asyncio,
-] 
+]

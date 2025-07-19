@@ -3,18 +3,25 @@ from uuid import UUID
 from supabase import AClient as SupabaseClient
 from httpx import HTTPStatusError
 
-from app.schemas.fan import FanCreate, FanUpdate # Pydantic schemas
-from app.models.enums import ParentType # For parent_type validation/enum usage
+from app.schemas.fan import FanCreate, FanUpdate  # Pydantic schemas
+from app.models.enums import ParentType  # For parent_type validation/enum usage
 
 # import logging
 # logger = logging.getLogger(__name__)
+
 
 class CRUDFan:
     table_name = "fans"
 
     async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
         try:
-            response = await supabase.table(self.table_name).select("*").eq("id", str(id)).single().execute()
+            response = (
+                await supabase.table(self.table_name)
+                .select("*")
+                .eq("id", str(id))
+                .single()
+                .execute()
+            )
             return response.data
         except HTTPStatusError as e:
             if e.response.status_code == 406:
@@ -24,7 +31,13 @@ class CRUDFan:
             raise
 
     async def get_multi_by_parent(
-        self, supabase: SupabaseClient, *, parent_id: UUID, parent_type: ParentType, skip: int = 0, limit: int = 100
+        self,
+        supabase: SupabaseClient,
+        *,
+        parent_id: UUID,
+        parent_type: ParentType,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Dict[str, Any]]:
         try:
             response = (
@@ -32,7 +45,7 @@ class CRUDFan:
                 .select("*")
                 .eq("parent_id", str(parent_id))
                 .eq("parent_type", parent_type.value)
-                .order("name") # Example order
+                .order("name")  # Example order
                 .range(skip, skip + limit - 1)
                 .execute()
             )
@@ -42,7 +55,13 @@ class CRUDFan:
             raise
 
     async def get_multi_by_parent_with_total(
-        self, supabase: SupabaseClient, *, parent_id: UUID, parent_type: ParentType, skip: int = 0, limit: int = 100
+        self,
+        supabase: SupabaseClient,
+        *,
+        parent_id: UUID,
+        parent_type: ParentType,
+        skip: int = 0,
+        limit: int = 100,
     ) -> Tuple[List[Dict[str, Any]], int]:
         try:
             response = (
@@ -62,7 +81,12 @@ class CRUDFan:
             raise
 
     async def create_with_parent(
-        self, supabase: SupabaseClient, *, obj_in: FanCreate, parent_id: UUID, parent_type: ParentType
+        self,
+        supabase: SupabaseClient,
+        *,
+        obj_in: FanCreate,
+        parent_id: UUID,
+        parent_type: ParentType,
     ) -> Dict[str, Any]:
         try:
             fan_data = obj_in.model_dump()
@@ -71,7 +95,7 @@ class CRUDFan:
             # Ensure enum values from Pydantic model are correctly passed if they exist
             if obj_in.type:
                 fan_data["type"] = obj_in.type.value
-            
+
             response = await supabase.table(self.table_name).insert(fan_data).execute()
             if not response.data:
                 raise Exception("Failed to create fan: No data returned from Supabase")
@@ -92,9 +116,14 @@ class CRUDFan:
             if "type" in update_data and update_data["type"]:
                 update_data["type"] = update_data["type"].value
             if "parent_type" in update_data and update_data["parent_type"]:
-                 update_data["parent_type"] = update_data["parent_type"].value
-            
-            response = await supabase.table(self.table_name).update(update_data).eq("id", str(id)).execute()
+                update_data["parent_type"] = update_data["parent_type"].value
+
+            response = (
+                await supabase.table(self.table_name)
+                .update(update_data)
+                .eq("id", str(id))
+                .execute()
+            )
             if not response.data:
                 return None
             return response.data[0]
@@ -102,9 +131,16 @@ class CRUDFan:
             # logger.error(f"Error updating fan {id}: {e}")
             raise
 
-    async def remove(self, supabase: SupabaseClient, *, id: UUID) -> Optional[Dict[str, Any]]:
+    async def remove(
+        self, supabase: SupabaseClient, *, id: UUID
+    ) -> Optional[Dict[str, Any]]:
         try:
-            response = await supabase.table(self.table_name).delete().eq("id", str(id)).execute()
+            response = (
+                await supabase.table(self.table_name)
+                .delete()
+                .eq("id", str(id))
+                .execute()
+            )
             if not response.data:
                 return None
             return response.data[0]
@@ -112,4 +148,5 @@ class CRUDFan:
             # logger.error(f"Error deleting fan {id}: {e}")
             raise
 
-fan = CRUDFan() 
+
+fan = CRUDFan()

@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 class SensorReadingResponse(BaseModel):
     """Response model for individual sensor readings"""
+
     id: int
     device_assignment_id: str
     reading_type: str
@@ -29,6 +30,7 @@ class SensorReadingResponse(BaseModel):
 
 class SensorHistoryResponse(BaseModel):
     """Response model for sensor reading history"""
+
     device_id: str
     sensor_type: str
     period_hours: int
@@ -42,6 +44,7 @@ class SensorHistoryResponse(BaseModel):
 
 class SensorAggregateResponse(BaseModel):
     """Response model for sensor data aggregates"""
+
     device_assignment_id: str
     sensor_type: str
     avg_value: float
@@ -59,6 +62,7 @@ class SensorAggregateResponse(BaseModel):
 
 class StaticDataResponse(BaseModel):
     """Response model for static data (species, varieties, recipes)"""
+
     data_type: str
     items: List[Dict[str, Any]]
     total_count: int
@@ -71,6 +75,7 @@ class StaticDataResponse(BaseModel):
 
 class CacheStatsResponse(BaseModel):
     """Response model for cache performance statistics"""
+
     cache_type: str
     hit_rate: float
     total_requests: int
@@ -85,10 +90,11 @@ class CacheStatsResponse(BaseModel):
 
 class CacheInvalidationResponse(BaseModel):
     """Response model for cache invalidation operations"""
+
     success: bool
     message: str
     invalidated_keys: List[str]
     timestamp: datetime
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

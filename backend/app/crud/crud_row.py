@@ -3,22 +3,30 @@ from uuid import UUID
 from supabase import AClient as SupabaseClient
 from httpx import HTTPStatusError
 
-from app.schemas.row import RowCreate, RowUpdate, RowResponse # Added RowResponse
+from app.schemas.row import RowCreate, RowUpdate, RowResponse  # Added RowResponse
+
 # from app.db.supabase_client import get_async_supabase_client # Client should be injected
-from .crud_rack import rack # Added import for rack CRUD
+from .crud_rack import rack  # Added import for rack CRUD
 
 # import logging
 # logger = logging.getLogger(__name__)
+
 
 class CRUDRow:
     table_name = "rows"
 
     async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
         try:
-            response = await supabase.table(self.table_name).select("*").eq("id", str(id)).single().execute()
+            response = (
+                await supabase.table(self.table_name)
+                .select("*")
+                .eq("id", str(id))
+                .single()
+                .execute()
+            )
             return response.data
         except HTTPStatusError as e:
-            if e.response.status_code == 406: # PostgREST Not Found
+            if e.response.status_code == 406:  # PostgREST Not Found
                 return None
             # logger.error(f"Error fetching row {id}: {e}")
             raise
@@ -27,14 +35,19 @@ class CRUDRow:
             raise
 
     async def get_multi_by_farm(
-        self, supabase: SupabaseClient, *, farm_id: UUID, skip: int = 0, limit: int = 100
+        self,
+        supabase: SupabaseClient,
+        *,
+        farm_id: UUID,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
                 .select("*")
                 .eq("farm_id", str(farm_id))
-                .order("name") # Example: order by name, adjust as needed
+                .order("name")  # Example: order by name, adjust as needed
                 .range(skip, skip + limit - 1)
                 .execute()
             )
@@ -44,10 +57,17 @@ class CRUDRow:
             raise
 
     async def get_multi_by_farm_with_racks(
-        self, supabase: SupabaseClient, *, farm_id: UUID, skip: int = 0, limit: int = 100
+        self,
+        supabase: SupabaseClient,
+        *,
+        farm_id: UUID,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[RowResponse]:
-        rows_data = await self.get_multi_by_farm(supabase, farm_id=farm_id, skip=skip, limit=limit)
-        
+        rows_data = await self.get_multi_by_farm(
+            supabase, farm_id=farm_id, skip=skip, limit=limit
+        )
+
         rows_with_racks = []
         for row_data in rows_data:
             row_id = row_data.get("id")
@@ -55,24 +75,30 @@ class CRUDRow:
                 continue
 
             racks_list = await rack.get_multi_by_row_with_shelves(
-                supabase, row_id=UUID(row_id)
+                supabase,
+                row_id=UUID(row_id),
                 # Not passing skip/limit for racks here, assuming we want all racks for the row
             )
-            
+
             row_response_data = {**row_data, "racks": racks_list if racks_list else []}
             rows_with_racks.append(RowResponse(**row_response_data))
-            
+
         return rows_with_racks
-    
+
     async def get_multi_by_farm_with_total(
-        self, supabase: SupabaseClient, *, farm_id: UUID, skip: int = 0, limit: int = 100
+        self,
+        supabase: SupabaseClient,
+        *,
+        farm_id: UUID,
+        skip: int = 0,
+        limit: int = 100,
     ) -> Tuple[List[Dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
                 .select("*", count="exact")
                 .eq("farm_id", str(farm_id))
-                .order("name") 
+                .order("name")
                 .range(skip, skip + limit - 1)
                 .execute()
             )
@@ -89,9 +115,9 @@ class CRUDRow:
         try:
             row_data = obj_in.model_dump()
             row_data["farm_id"] = str(farm_id)
-            
+
             # Handle enum for orientation if it's part of obj_in and needs to be stored as value
-            if hasattr(obj_in, 'orientation') and obj_in.orientation:
+            if hasattr(obj_in, "orientation") and obj_in.orientation:
                 row_data["orientation"] = obj_in.orientation.value
 
             response = await supabase.table(self.table_name).insert(row_data).execute()
@@ -115,18 +141,30 @@ class CRUDRow:
             if "orientation" in update_data and update_data["orientation"]:
                 update_data["orientation"] = update_data["orientation"].value
 
-            response = await supabase.table(self.table_name).update(update_data).eq("id", str(id)).execute()
+            response = (
+                await supabase.table(self.table_name)
+                .update(update_data)
+                .eq("id", str(id))
+                .execute()
+            )
             if not response.data:
                 # logger.warning(f"Update for row {id} returned no data. Row might not exist or no change made. Resp: {response}")
-                return None # Or fetch current to confirm existence: await self.get(supabase, id)
+                return None  # Or fetch current to confirm existence: await self.get(supabase, id)
             return response.data[0]
         except Exception as e:
             # logger.error(f"Error updating row {id}: {e}")
             raise
 
-    async def remove(self, supabase: SupabaseClient, *, id: UUID) -> Optional[Dict[str, Any]]:
+    async def remove(
+        self, supabase: SupabaseClient, *, id: UUID
+    ) -> Optional[Dict[str, Any]]:
         try:
-            response = await supabase.table(self.table_name).delete().eq("id", str(id)).execute()
+            response = (
+                await supabase.table(self.table_name)
+                .delete()
+                .eq("id", str(id))
+                .execute()
+            )
             if not response.data:
                 return None
             return response.data[0]
@@ -134,4 +172,5 @@ class CRUDRow:
             # logger.error(f"Error deleting row {id}: {e}")
             raise
 
-row = CRUDRow() 
+
+row = CRUDRow()
