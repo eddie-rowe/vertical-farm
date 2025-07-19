@@ -1,0 +1,626 @@
+name: Frontend Tests
+
+on:
+  workflow_call:
+    outputs:
+      coverage:
+        description: "Frontend test coverage percentage"
+        value: ${{ jobs.test-matrix.outputs.coverage }}
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  security-events: write
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Stage 1: Quick Quality Gates (2-3 minutes)
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Check code formatting (Prettier)
+        working-directory: ./frontend
+        run: |
+          npx prettier --check . || {
+            echo "## ❌ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`npx prettier --write .\` to fix formatting" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ Code Formatting (Prettier)" >> $GITHUB_STEP_SUMMARY
+          echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Lint code (ESLint)
+        working-directory: ./frontend
+        run: |
+          npx eslint . \
+            --ext .js,.jsx,.ts,.tsx,.json \
+            --max-warnings 0 \
+            --format stylish || {
+            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Fix ESLint issues above" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ Linting (ESLint)" >> $GITHUB_STEP_SUMMARY
+          echo "No linting issues found" >> $GITHUB_STEP_SUMMARY
+      
+      - name: TypeScript checking
+        working-directory: ./frontend
+        run: |
+          npx tsc --noEmit --strict --skipLibCheck || {
+            echo "## ❌ TypeScript Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Fix TypeScript errors above" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ TypeScript Checking" >> $GITHUB_STEP_SUMMARY
+          echo "No TypeScript errors found" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./frontend
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Stage 2: Build Once (3-4 minutes)
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+            frontend/.next/cache
+            frontend/.turbo
+          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build:types || echo "No build:types script found"
+      
+      - name: Build application
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: |
+            frontend/node_modules/
+            frontend/.next/
+            frontend/dist/
+            frontend/build/
+            frontend/package.json
+            frontend/package-lock.json
+          retention-days: 1
+
+  # Stage 3: Test Matrix (5-8 minutes per job, parallel)
+  test-matrix:
+    name: Tests (Node ${{ matrix.node-version }}, ${{ matrix.test-type }})
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18', '20', '21']
+        test-type: ['unit', 'integration']
+    
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: frontend/
+      
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm run test:unit -- \
+            --coverage \
+            --coverageReporters=cobertura \
+            --coverageReporters=html \
+            --coverageReporters=lcov \
+            --coverageDirectory=coverage/unit \
+            --maxWorkers=50% \
+            --watchAll=false \
+            --testResultsProcessor=jest-junit
+      
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+        run: |
+          # Start the application using pre-built artifacts
+          npm start &
+          sleep 15
+          
+          # Run integration tests
+          npm run test:integration -- \
+            --coverage \
+            --coverageReporters=cobertura \
+            --coverageDirectory=coverage/integration \
+            --maxWorkers=25% \
+            --watchAll=false \
+            --testTimeout=30000
+      
+      - name: Generate coverage report
+        if: always()
+        working-directory: ./frontend
+        run: |
+          if [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
+            COVERAGE=$(npx lcov-total coverage/${{ matrix.test-type }}/lcov.info)
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          fi
+        id: coverage
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
+          path: |
+            frontend/coverage/
+            frontend/junit.xml
+          retention-days: 30
+      
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '20' && matrix.test-type == 'unit'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/unit/lcov.info
+          directory: ./frontend
+          flags: frontend,unit
+          name: frontend-unit-coverage
+          fail_ci_if_error: false
+      
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() && matrix.node-version == '20'
+        with:
+          files: frontend/junit.xml
+          check_name: "Frontend Tests (${{ matrix.test-type }})"
+          comment_mode: create new
+          fail_on: "test failures"
+
+  # Stage 4: E2E Tests (separate due to special requirements)
+  e2e-tests:
+    name: E2E Tests (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 25
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20', '21']  # Reduced matrix for E2E
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: frontend/
+      
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+        run: npx playwright install --with-deps chromium firefox webkit
+      
+      - name: Run E2E tests
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          # Start the application using pre-built artifacts
+          npm start &
+          sleep 20
+          
+          # Run E2E tests
+          npm run test:e2e -- \
+            --reporter=html \
+            --reporter=junit \
+            --output-dir=test-results/e2e
+      
+      - name: Upload E2E results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results-${{ matrix.node-version }}
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          retention-days: 30
+
+  # Stage 4: Security & Compliance (parallel with other stage 4 jobs)
+  security-scan:
+    name: Security & Compliance
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: frontend/
+      
+      - name: License Compliance Check
+        working-directory: ./frontend
+        run: |
+          npm install -g license-checker
+          
+          # Generate license report
+          license-checker --production --json > licenses.json
+          license-checker --production --csv > licenses.csv
+          
+          # Check for problematic licenses
+          license-checker --production --failOn "GPL-2.0;GPL-3.0;AGPL-3.0;LGPL-2.1;LGPL-3.0" || echo "⚠️ Problematic licenses detected"
+          
+          # Summary for GitHub
+          echo "## 📄 License Compliance Report" >> $GITHUB_STEP_SUMMARY
+          TOTAL_DEPS=$(jq 'keys | length' licenses.json)
+          echo "Total dependencies analyzed: $TOTAL_DEPS" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Enhanced Dependency Analysis
+        working-directory: ./frontend
+        run: |
+          # Audit with detailed output
+          npm audit --audit-level=moderate --json > npm-audit-detailed.json || true
+          npm audit --audit-level=moderate
+          
+          # Check for outdated packages
+          npm outdated --json > outdated-packages.json || true
+          
+          # Snyk scan (if token available)
+          if [ "${{ secrets.SNYK_TOKEN }}" != "" ]; then
+            npx snyk test --json > snyk-report.json || true
+            npx snyk monitor || true
+          fi
+      
+      - name: Bundle Security Analysis
+        working-directory: ./frontend
+        run: |
+          # Analyze bundle for potential security issues using pre-built artifacts
+          echo "## 📦 Bundle Security Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Find largest dependencies
+          if [ -d node_modules ]; then
+            echo "### Largest Dependencies:" >> $GITHUB_STEP_SUMMARY
+            du -sh node_modules/* | sort -hr | head -5 >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Run ESLint security scan
+        working-directory: ./frontend
+        run: |
+          npx eslint . \
+            --ext .js,.jsx,.ts,.tsx \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif || true
+      
+      - name: Upload ESLint results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: frontend/eslint-results.sarif
+      
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            frontend/npm-audit-detailed.json
+            frontend/licenses.json
+            frontend/licenses.csv
+            frontend/outdated-packages.json
+            frontend/snyk-report.json
+            frontend/eslint-results.sarif
+          retention-days: 30
+      
+      - name: Check for critical vulnerabilities
+        working-directory: ./frontend
+        run: |
+          if [ -f npm-audit-detailed.json ]; then
+            CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-detailed.json)
+            HIGH=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-detailed.json)
+            MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' npm-audit-detailed.json)
+            
+            echo "## 🚨 Vulnerability Summary" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "❌ Critical security vulnerabilities found!"
+              exit 1
+            fi
+            
+            if [ "$HIGH" -gt 5 ]; then
+              echo "⚠️ Too many high severity vulnerabilities ($HIGH)"
+              exit 1
+            fi
+          fi
+
+  # Stage 4: Accessibility Tests (parallel with other stage 4 jobs)
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: frontend/
+      
+      - name: Start application
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm start &
+          sleep 15
+      
+      - name: Run accessibility tests
+        working-directory: ./frontend
+        run: |
+          npx @axe-core/cli http://localhost:3000 \
+            --save accessibility-report.json \
+            --reporter json \
+            --exit
+      
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: frontend/accessibility-report.json
+          retention-days: 30
+
+  # Stage 4: Bundle Analysis (parallel with other stage 4 jobs)
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: frontend/
+      
+      - name: Bundle size analysis
+        working-directory: ./frontend
+        run: |
+          echo "## 📦 Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d .next ]; then
+            # Next.js bundle analysis using pre-built artifacts
+            BUNDLE_SIZE=$(du -sh .next | cut -f1)
+            echo "- **Total bundle size**: $BUNDLE_SIZE" >> $GITHUB_STEP_SUMMARY
+            
+            # Check for large chunks
+            find .next -name "*.js" -size +500k -exec basename {} \; > large-chunks.txt
+            if [ -s large-chunks.txt ]; then
+              echo "- **⚠️ Large chunks found**: Check for optimization opportunities" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              cat large-chunks.txt >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **✅ Bundle size**: All chunks are reasonably sized" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+      
+      - name: Dependency analysis
+        working-directory: ./frontend
+        run: |
+          echo "## 📊 Dependency Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Count dependencies
+          PROD_DEPS=$(jq '.dependencies | keys | length' package.json)
+          DEV_DEPS=$(jq '.devDependencies | keys | length' package.json)
+          
+          echo "- **Production dependencies**: $PROD_DEPS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Development dependencies**: $DEV_DEPS" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for duplicate dependencies
+          npx npm-check-duplicates || {
+            echo "- **⚠️ Duplicate dependencies detected**" >> $GITHUB_STEP_SUMMARY
+          }
+          
+          # Check for unused dependencies
+          if command -v depcheck &> /dev/null; then
+            npx depcheck --json > depcheck-report.json || true
+            UNUSED_COUNT=$(jq '.dependencies | length' depcheck-report.json 2>/dev/null || echo "0")
+            if [ "$UNUSED_COUNT" -gt 0 ]; then
+              echo "- **⚠️ Potentially unused dependencies**: $UNUSED_COUNT" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **✅ Dependencies**: All dependencies appear to be used" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+      
+      - name: Performance budget check
+        working-directory: ./frontend
+        run: |
+          echo "## ⚡ Performance Budget" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d .next/static ]; then
+            # Check JavaScript bundle size
+            JS_SIZE=$(find .next/static -name "*.js" -exec cat {} + | wc -c)
+            JS_SIZE_KB=$((JS_SIZE / 1024))
+            
+            echo "- **JavaScript bundle**: ${JS_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
+            
+            if [ $JS_SIZE_KB -gt 1000 ]; then
+              echo "- **⚠️ Large JavaScript bundle** (>${JS_SIZE_KB}KB)" >> $GITHUB_STEP_SUMMARY
+              echo "  Consider code splitting or tree shaking" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **✅ JavaScript bundle size**: Within reasonable limits" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Check CSS bundle size
+            CSS_SIZE=$(find .next/static -name "*.css" -exec cat {} + | wc -c 2>/dev/null || echo "0")
+            CSS_SIZE_KB=$((CSS_SIZE / 1024))
+            
+            if [ $CSS_SIZE_KB -gt 0 ]; then
+              echo "- **CSS bundle**: ${CSS_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
+              
+              if [ $CSS_SIZE_KB -gt 200 ]; then
+                echo "- **⚠️ Large CSS bundle** (>${CSS_SIZE_KB}KB)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- **✅ CSS bundle size**: Within reasonable limits" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          fi
+      
+      - name: Upload bundle analysis reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-analysis-reports
+          path: |
+            frontend/large-chunks.txt
+            frontend/depcheck-report.json
+          retention-days: 30 
