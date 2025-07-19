@@ -21,6 +21,8 @@ const eslintConfig = [
       "out/**/*",
       "dist/**/*",
       "node_modules/**/*",
+      "jest.config.js",
+      "*.config.js",
     ],
   },
   // Extend Next.js configurations
