@@ -1,56 +1,60 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Grid3X3, 
-  Archive, 
-  Layers, 
+import {
+  Grid3X3,
+  Archive,
+  Layers,
   Zap,
   Thermometer,
   Droplets,
   Wind,
   Lightbulb,
-  Activity
-} from 'lucide-react';
+  Activity,
+} from "lucide-react";
 import { Row, Rack, Shelf, SensorDevice } from "@/types/farm-layout";
 
 interface ElementTooltipProps {
   element: {
-    type: 'farm' | 'row' | 'rack' | 'shelf' | 'device';
+    type: "farm" | "row" | "rack" | "shelf" | "device";
     data: Row | Rack | Shelf | SensorDevice | any;
   } | null;
   position: { x: number; y: number };
   visible: boolean;
 }
 
-export default function ElementTooltip({ element, position, visible }: ElementTooltipProps) {
+export default function ElementTooltip({
+  element,
+  position,
+  visible,
+}: ElementTooltipProps) {
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
   useEffect(() => {
     if (!visible || !element) return;
 
     // Adjust tooltip position to stay within viewport
-    const tooltip = document.getElementById('element-tooltip');
+    const tooltip = document.getElementById("element-tooltip");
     if (tooltip) {
       const rect = tooltip.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      
+
       let newX = position.x;
       let newY = position.y;
-      
+
       // Adjust horizontal position
       if (position.x + rect.width > viewportWidth - 20) {
         newX = position.x - rect.width - 10;
       }
-      
+
       // Adjust vertical position
       if (position.y + rect.height > viewportHeight - 20) {
         newY = position.y - rect.height - 10;
       }
-      
+
       setAdjustedPosition({ x: newX, y: newY });
     }
   }, [position, visible, element]);
@@ -59,24 +63,37 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
 
   const getElementIcon = (type: string) => {
     switch (type) {
-      case 'row': return <Grid3X3 className="h-4 w-4" />;
-      case 'rack': return <Archive className="h-4 w-4" />;
-      case 'shelf': return <Layers className="h-4 w-4" />;
-      case 'device': return <Zap className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
+      case "row":
+        return <Grid3X3 className="h-4 w-4" />;
+      case "rack":
+        return <Archive className="h-4 w-4" />;
+      case "shelf":
+        return <Layers className="h-4 w-4" />;
+      case "device":
+        return <Zap className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
     }
   };
 
   const getDeviceIcon = (sensorType: string) => {
     switch (sensorType) {
-      case 'temperature': return <Thermometer className="h-4 w-4 text-red-500" />;
-      case 'humidity': return <Droplets className="h-4 w-4 text-blue-500" />;
-      case 'light_intensity': return <Lightbulb className="h-4 w-4 text-yellow-500" />;
-      case 'air_flow': return <Wind className="h-4 w-4 text-green-500" />;
-      case 'water_level': return <Droplets className="h-4 w-4 text-blue-600" />;
-      case 'co2': return <Activity className="h-4 w-4 text-purple-500" />;
-      case 'ph': return <Activity className="h-4 w-4 text-orange-500" />;
-      default: return <Zap className="h-4 w-4" />;
+      case "temperature":
+        return <Thermometer className="h-4 w-4 text-red-500" />;
+      case "humidity":
+        return <Droplets className="h-4 w-4 text-blue-500" />;
+      case "light_intensity":
+        return <Lightbulb className="h-4 w-4 text-yellow-500" />;
+      case "air_flow":
+        return <Wind className="h-4 w-4 text-green-500" />;
+      case "water_level":
+        return <Droplets className="h-4 w-4 text-blue-600" />;
+      case "co2":
+        return <Activity className="h-4 w-4 text-purple-500" />;
+      case "ph":
+        return <Activity className="h-4 w-4 text-orange-500" />;
+      default:
+        return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -84,7 +101,7 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
     const { type, data } = element;
 
     switch (type) {
-      case 'row':
+      case "row":
         const rowData = data as Row;
         return (
           <div>
@@ -98,13 +115,18 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
 
               <div>Orientation: {rowData.orientation}</div>
               <div>Racks: {rowData.racks?.length || 0}</div>
-              <div>Total Shelves: {rowData.racks?.reduce((acc, rack) => acc + (rack.shelves?.length || 0), 0) || 0}</div>
-
+              <div>
+                Total Shelves:{" "}
+                {rowData.racks?.reduce(
+                  (acc, rack) => acc + (rack.shelves?.length || 0),
+                  0,
+                ) || 0}
+              </div>
             </div>
           </div>
         );
 
-      case 'rack':
+      case "rack":
         const rackData = data as Rack;
         return (
           <div>
@@ -120,7 +142,7 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
           </div>
         );
 
-      case 'shelf':
+      case "shelf":
         const shelfData = data as Shelf;
         return (
           <div>
@@ -136,7 +158,10 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
                 <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <div className="font-medium mb-1">Devices:</div>
                   {shelfData.devices.map((device, index) => (
-                    <div key={index} className="flex items-center space-x-1 text-xs">
+                    <div
+                      key={index}
+                      className="flex items-center space-x-1 text-xs"
+                    >
                       {getDeviceIcon(device.sensor_type)}
                       <span>{device.name || device.sensor_type}</span>
                     </div>
@@ -147,7 +172,7 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
           </div>
         );
 
-      case 'device':
+      case "device":
         const deviceData = data as SensorDevice;
         return (
           <div>
@@ -157,15 +182,21 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
               <Badge variant="outline">{deviceData.sensor_type}</Badge>
             </div>
             <div className="space-y-1 text-sm">
-              <div>Name: {deviceData.name || 'Unnamed'}</div>
+              <div>Name: {deviceData.name || "Unnamed"}</div>
               <div>ID: {deviceData.id}</div>
               <div>Type: {deviceData.sensor_type}</div>
-              <div>Model: {deviceData.model_number || 'N/A'}</div>
-              <div>Unit: {deviceData.measurement_unit || 'N/A'}</div>
-              {deviceData.data_range_min !== undefined && deviceData.data_range_max !== undefined && (
-                <div>Range: {deviceData.data_range_min} - {deviceData.data_range_max}</div>
+              <div>Model: {deviceData.model_number || "N/A"}</div>
+              <div>Unit: {deviceData.measurement_unit || "N/A"}</div>
+              {deviceData.data_range_min !== undefined &&
+                deviceData.data_range_max !== undefined && (
+                  <div>
+                    Range: {deviceData.data_range_min} -{" "}
+                    {deviceData.data_range_max}
+                  </div>
+                )}
+              {deviceData.accuracy && (
+                <div>Accuracy: {deviceData.accuracy}</div>
               )}
-              {deviceData.accuracy && <div>Accuracy: {deviceData.accuracy}</div>}
             </div>
           </div>
         );
@@ -195,10 +226,8 @@ export default function ElementTooltip({ element, position, visible }: ElementTo
       }}
     >
       <Card className="shadow-lg border bg-white dark:bg-gray-900 max-w-xs">
-        <CardContent className="p-3">
-          {renderTooltipContent()}
-        </CardContent>
+        <CardContent className="p-3">{renderTooltipContent()}</CardContent>
       </Card>
     </div>
   );
-} 
+}

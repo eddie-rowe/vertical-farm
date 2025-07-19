@@ -1,17 +1,30 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FaSearch, FaMapMarkerAlt, FaDollarSign, FaChartLine, FaBuilding, FaUser } from '@/lib/icons';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  FaSearch,
+  FaMapMarkerAlt,
+  FaDollarSign,
+  FaChartLine,
+  FaBuilding,
+  FaUser,
+} from "@/lib/icons";
 
 interface BusinessOpportunity {
   id: string;
   title: string;
   description: string;
-  type: 'restaurant' | 'retail' | 'wholesale' | 'institutional' | 'direct';
+  type: "restaurant" | "retail" | "wholesale" | "institutional" | "direct";
   potentialValue: number;
   confidence: number;
   location: string;
@@ -23,157 +36,167 @@ interface BusinessOpportunity {
     phone: string;
   };
   requirements: string[];
-  status: 'new' | 'contacted' | 'negotiating' | 'closed-won' | 'closed-lost';
+  status: "new" | "contacted" | "negotiating" | "closed-won" | "closed-lost";
   dateFound: string;
   estimatedVolume: string;
 }
 
 interface MarketInsight {
   category: string;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   growth: number;
   description: string;
   icon: React.ReactNode;
 }
 
 export default function BusinessOpportunityView() {
-  const [searchRadius, setSearchRadius] = useState('10');
-  const [opportunityType, setOpportunityType] = useState('all');
-  
+  const [searchRadius, setSearchRadius] = useState("10");
+  const [opportunityType, setOpportunityType] = useState("all");
+
   // Mock data - replace with actual API calls
   const opportunities: BusinessOpportunity[] = [
     {
-      id: 'opp-001',
-      title: 'Green Leaf Bistro',
-      description: 'Farm-to-table restaurant looking for local organic produce supplier',
-      type: 'restaurant',
+      id: "opp-001",
+      title: "Green Leaf Bistro",
+      description:
+        "Farm-to-table restaurant looking for local organic produce supplier",
+      type: "restaurant",
       potentialValue: 15000,
       confidence: 85,
-      location: 'Downtown District',
-      distance: '2.3 miles',
+      location: "Downtown District",
+      distance: "2.3 miles",
       contactInfo: {
-        name: 'Sarah Martinez',
-        role: 'Head Chef',
-        email: 'sarah@greenleafbistro.com',
-        phone: '(555) 123-4567'
+        name: "Sarah Martinez",
+        role: "Head Chef",
+        email: "sarah@greenleafbistro.com",
+        phone: "(555) 123-4567",
       },
-      requirements: ['Organic certification', 'Daily delivery', 'Variety pack'],
-      status: 'new',
-      dateFound: '2024-01-24',
-      estimatedVolume: '50-75 lbs/week'
+      requirements: ["Organic certification", "Daily delivery", "Variety pack"],
+      status: "new",
+      dateFound: "2024-01-24",
+      estimatedVolume: "50-75 lbs/week",
     },
     {
-      id: 'opp-002',
-      title: 'Fresh Market Chain',
-      description: 'Regional grocery chain expanding local produce section',
-      type: 'retail',
+      id: "opp-002",
+      title: "Fresh Market Chain",
+      description: "Regional grocery chain expanding local produce section",
+      type: "retail",
       potentialValue: 45000,
       confidence: 72,
-      location: 'Suburban Plaza',
-      distance: '5.8 miles',
+      location: "Suburban Plaza",
+      distance: "5.8 miles",
       contactInfo: {
-        name: 'Mike Johnson',
-        role: 'Produce Manager',
-        email: 'mjohnson@freshmarket.com',
-        phone: '(555) 987-6543'
+        name: "Mike Johnson",
+        role: "Produce Manager",
+        email: "mjohnson@freshmarket.com",
+        phone: "(555) 987-6543",
       },
-      requirements: ['Consistent supply', 'Competitive pricing', 'GAP certification'],
-      status: 'contacted',
-      dateFound: '2024-01-22',
-      estimatedVolume: '200-300 lbs/week'
+      requirements: [
+        "Consistent supply",
+        "Competitive pricing",
+        "GAP certification",
+      ],
+      status: "contacted",
+      dateFound: "2024-01-22",
+      estimatedVolume: "200-300 lbs/week",
     },
     {
-      id: 'opp-003',
-      title: 'University Dining Services',
-      description: 'Large university looking for sustainable food suppliers',
-      type: 'institutional',
+      id: "opp-003",
+      title: "University Dining Services",
+      description: "Large university looking for sustainable food suppliers",
+      type: "institutional",
       potentialValue: 75000,
       confidence: 68,
-      location: 'University Campus',
-      distance: '8.2 miles',
+      location: "University Campus",
+      distance: "8.2 miles",
       contactInfo: {
-        name: 'Dr. Lisa Chen',
-        role: 'Sustainability Director',
-        email: 'l.chen@university.edu',
-        phone: '(555) 456-7890'
+        name: "Dr. Lisa Chen",
+        role: "Sustainability Director",
+        email: "l.chen@university.edu",
+        phone: "(555) 456-7890",
       },
-      requirements: ['Sustainability certification', 'Large volume capacity', 'Contract terms'],
-      status: 'negotiating',
-      dateFound: '2024-01-20',
-      estimatedVolume: '500-800 lbs/week'
-    }
+      requirements: [
+        "Sustainability certification",
+        "Large volume capacity",
+        "Contract terms",
+      ],
+      status: "negotiating",
+      dateFound: "2024-01-20",
+      estimatedVolume: "500-800 lbs/week",
+    },
   ];
 
   const marketInsights: MarketInsight[] = [
     {
-      category: 'Local Restaurant Market',
-      trend: 'up',
+      category: "Local Restaurant Market",
+      trend: "up",
       growth: 12.5,
-      description: 'Growing demand for locally sourced ingredients',
-      icon: <FaBuilding className="h-5 w-5" />
+      description: "Growing demand for locally sourced ingredients",
+      icon: <FaBuilding className="h-5 w-5" />,
     },
     {
-      category: 'Organic Retail',
-      trend: 'up',
+      category: "Organic Retail",
+      trend: "up",
       growth: 8.3,
-      description: 'Increased consumer preference for organic produce',
-      icon: <FaChartLine className="h-5 w-5" />
+      description: "Increased consumer preference for organic produce",
+      icon: <FaChartLine className="h-5 w-5" />,
     },
     {
-      category: 'Direct Sales',
-      trend: 'stable',
+      category: "Direct Sales",
+      trend: "stable",
       growth: 3.1,
-      description: 'Steady growth in farmers market and CSA programs',
-      icon: <FaUser className="h-5 w-5" />
+      description: "Steady growth in farmers market and CSA programs",
+      icon: <FaUser className="h-5 w-5" />,
     },
     {
-      category: 'Institutional Sales',
-      trend: 'up',
+      category: "Institutional Sales",
+      trend: "up",
       growth: 15.2,
-      description: 'Schools and hospitals prioritizing local sourcing',
-      icon: <FaBuilding className="h-5 w-5" />
-    }
+      description: "Schools and hospitals prioritizing local sourcing",
+      icon: <FaBuilding className="h-5 w-5" />,
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'contacted':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'negotiating':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'closed-won':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'closed-lost':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "new":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "contacted":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "negotiating":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "closed-won":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "closed-lost":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up':
-        return '📈';
-      case 'down':
-        return '📉';
-      case 'stable':
-        return '➡️';
+      case "up":
+        return "📈";
+      case "down":
+        return "📉";
+      case "stable":
+        return "➡️";
       default:
-        return '📊';
+        return "📊";
     }
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 80) return 'text-green-600';
-    if (confidence >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 80) return "text-green-600";
+    if (confidence >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
-  const filteredOpportunities = opportunityType === 'all' 
-    ? opportunities 
-    : opportunities.filter(opp => opp.type === opportunityType);
+  const filteredOpportunities =
+    opportunityType === "all"
+      ? opportunities
+      : opportunities.filter((opp) => opp.type === opportunityType);
 
   return (
     <div className="space-y-6">
@@ -206,7 +229,10 @@ export default function BusinessOpportunityView() {
 
       <Tabs defaultValue="opportunities" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="opportunities" className="flex items-center gap-2">
+          <TabsTrigger
+            value="opportunities"
+            className="flex items-center gap-2"
+          >
             <FaSearch className="h-4 w-4" />
             Opportunities
           </TabsTrigger>
@@ -238,20 +264,27 @@ export default function BusinessOpportunityView() {
 
           <div className="grid gap-4">
             {filteredOpportunities.map((opportunity) => (
-              <Card key={opportunity.id} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={opportunity.id}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg">{opportunity.title}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {opportunity.title}
+                      </CardTitle>
                       <CardDescription className="mt-1">
                         {opportunity.description}
                       </CardDescription>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <Badge className={getStatusColor(opportunity.status)}>
-                        {opportunity.status.replace('-', ' ').toUpperCase()}
+                        {opportunity.status.replace("-", " ").toUpperCase()}
                       </Badge>
-                      <span className={`text-sm font-semibold ${getConfidenceColor(opportunity.confidence)}`}>
+                      <span
+                        className={`text-sm font-semibold ${getConfidenceColor(opportunity.confidence)}`}
+                      >
                         {opportunity.confidence}% confidence
                       </span>
                     </div>
@@ -267,7 +300,9 @@ export default function BusinessOpportunityView() {
                     </div>
                     <div className="flex items-center gap-2">
                       <FaMapMarkerAlt className="h-4 w-4 text-gray-500" />
-                      <span>{opportunity.location} ({opportunity.distance})</span>
+                      <span>
+                        {opportunity.location} ({opportunity.distance})
+                      </span>
                     </div>
                     <div className="text-sm text-gray-600">
                       Volume: {opportunity.estimatedVolume}
@@ -275,9 +310,14 @@ export default function BusinessOpportunityView() {
                   </div>
 
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
-                    <h5 className="font-semibold text-sm mb-2">Contact Information</h5>
+                    <h5 className="font-semibold text-sm mb-2">
+                      Contact Information
+                    </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      <div>{opportunity.contactInfo.name} - {opportunity.contactInfo.role}</div>
+                      <div>
+                        {opportunity.contactInfo.name} -{" "}
+                        {opportunity.contactInfo.role}
+                      </div>
                       <div>{opportunity.contactInfo.email}</div>
                     </div>
                   </div>
@@ -286,7 +326,11 @@ export default function BusinessOpportunityView() {
                     <h5 className="font-semibold text-sm mb-2">Requirements</h5>
                     <div className="flex flex-wrap gap-2">
                       {opportunity.requirements.map((req, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {req}
                         </Badge>
                       ))}
@@ -301,7 +345,10 @@ export default function BusinessOpportunityView() {
                       <Button variant="outline" size="sm">
                         View Details
                       </Button>
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
                         Contact Lead
                       </Button>
                     </div>
@@ -315,7 +362,10 @@ export default function BusinessOpportunityView() {
         <TabsContent value="insights" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {marketInsights.map((insight, index) => (
-              <Card key={index} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={index}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -327,9 +377,14 @@ export default function BusinessOpportunityView() {
                       </h4>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getTrendIcon(insight.trend)}</span>
-                      <span className={`font-semibold ${insight.trend === 'up' ? 'text-green-600' : insight.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
-                        {insight.growth > 0 ? '+' : ''}{insight.growth}%
+                      <span className="text-2xl">
+                        {getTrendIcon(insight.trend)}
+                      </span>
+                      <span
+                        className={`font-semibold ${insight.trend === "up" ? "text-green-600" : insight.trend === "down" ? "text-red-600" : "text-gray-600"}`}
+                      >
+                        {insight.growth > 0 ? "+" : ""}
+                        {insight.growth}%
                       </span>
                     </div>
                   </div>
@@ -356,7 +411,8 @@ export default function BusinessOpportunityView() {
                     Advanced Analytics Coming Soon
                   </h3>
                   <p className="text-gray-500 dark:text-gray-500">
-                    Detailed market analysis and trend forecasting will be available here
+                    Detailed market analysis and trend forecasting will be
+                    available here
                   </p>
                 </div>
               </div>
@@ -393,4 +449,4 @@ export default function BusinessOpportunityView() {
       </Tabs>
     </div>
   );
-} 
+}

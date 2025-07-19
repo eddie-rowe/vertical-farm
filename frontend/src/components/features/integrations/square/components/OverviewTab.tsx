@@ -1,13 +1,15 @@
-import React from 'react';
-import { 
-  Activity, 
-  TrendingUp, 
-  Info
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { SyncStatus, ConnectionHealth } from '../types';
+import React from "react";
+import { Activity, TrendingUp, Info } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SyncStatus, ConnectionHealth } from "../types";
 
 interface OverviewTabProps {
   activeConfig: any;
@@ -25,14 +27,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   activeConfig,
   syncStatuses,
   connectionHealth,
-  getStatusColor
+  getStatusColor,
 }) => {
   if (!activeConfig) {
     return (
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          No Square integration configured. Please set up your connection in the Configuration tab.
+          No Square integration configured. Please set up your connection in the
+          Configuration tab.
         </AlertDescription>
       </Alert>
     );
@@ -83,7 +86,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {syncStatuses.map((sync) => (
-              <div key={sync.entity} className="flex items-center space-x-4 p-4 border rounded-lg">
+              <div
+                key={sync.entity}
+                className="flex items-center space-x-4 p-4 border rounded-lg"
+              >
                 <div className="flex items-center space-x-3 flex-1">
                   <sync.icon className="w-5 h-5 text-gray-600" />
                   <span className="font-medium">{sync.entity}</span>
@@ -132,4 +138,4 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       </Card>
     </div>
   );
-}; 
+};

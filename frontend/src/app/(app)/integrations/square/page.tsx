@@ -1,31 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { 
-  Activity, 
-  BarChart3, 
-  Settings, 
-  Database, 
-  Shield, 
-  RefreshCw, 
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Activity,
+  BarChart3,
+  Settings,
+  Database,
+  Shield,
+  RefreshCw,
   RotateCcw,
-  Info
-} from 'lucide-react';
+  Info,
+} from "lucide-react";
 
-import { SquareSetupGuide } from '@/components/features/automation';
-import { useSquareIntegration } from '@/components/features/integrations/square/hooks/useSquareIntegration';
-import { 
-  OverviewTab, 
-  ConfigurationTab, 
-  DataSyncTab, 
-  AdvancedTab 
-} from '@/components/features/integrations/square/components';
+import { SquareSetupGuide } from "@/components/features/automation";
+import { useSquareIntegration } from "@/components/features/integrations/square/hooks/useSquareIntegration";
+import {
+  OverviewTab,
+  ConfigurationTab,
+  DataSyncTab,
+  AdvancedTab,
+} from "@/components/features/integrations/square/components";
 
 export default function SquareIntegrationPage() {
   // Use the centralized hook for all state management
@@ -42,18 +48,18 @@ export default function SquareIntegrationPage() {
     isDeleting,
     connectionError,
     saveSuccess,
-    
+
     // Connection state
     status,
     isConnecting,
-    
+
     // Data state
     locations,
-    
+
     // UI state
     showSetupGuide,
     setShowSetupGuide,
-    
+
     // Integration management state
     connectionHealth,
     syncStatuses,
@@ -61,14 +67,14 @@ export default function SquareIntegrationPage() {
     isTesting,
     testResult,
     syncSettings,
-    
+
     // Setters
     setNewConfig,
     setEditingConfig,
     setShowCreateDialog,
     setShowEditDialog,
     setSyncSettings,
-    
+
     // Handlers
     handleCreateConfiguration,
     handleUpdateConfiguration,
@@ -79,10 +85,10 @@ export default function SquareIntegrationPage() {
     handleManualSync,
     handleSaveConfig,
     checkConnectionHealth,
-    
+
     // Utils
     getStatusColor,
-    getStatusBadge
+    getStatusBadge,
   } = useSquareIntegration();
 
   // Clear success message after 3 seconds
@@ -101,15 +107,19 @@ export default function SquareIntegrationPage() {
       <div className="bg-farm-white dark:bg-control-surface-dark card-shadow rounded-lg border p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-farm-title text-control-content dark:text-control-content-dark">Square Integration</h1>
+            <h1 className="text-farm-title text-control-content dark:text-control-content-dark">
+              Square Integration
+            </h1>
             <div className="flex items-center mt-2 space-x-4">
-              <Badge className={`${getStatusColor(connectionHealth.status)} border`}>
+              <Badge
+                className={`${getStatusColor(connectionHealth.status)} border`}
+              >
                 <span className="capitalize">{connectionHealth.status}</span>
               </Badge>
-              {connectionHealth.status === 'connected' && (
+              {connectionHealth.status === "connected" && (
                 <>
                   <span className="text-sm text-gray-500">
-                    Last sync: {syncStatuses[0]?.lastSync || 'Never'}
+                    Last sync: {syncStatuses[0]?.lastSync || "Never"}
                   </span>
                   <span className="text-sm text-gray-500">
                     Response time: {connectionHealth.responseTime}ms
@@ -138,22 +148,27 @@ export default function SquareIntegrationPage() {
               ) : (
                 <RotateCcw className="w-4 h-4 mr-2" />
               )}
-              {isManualSyncing ? 'Syncing...' : 'Sync Now'}
+              {isManualSyncing ? "Syncing..." : "Sync Now"}
             </FarmControlButton>
           </div>
         </div>
 
         {/* API Usage Indicator */}
-        {connectionHealth.status === 'connected' && (
+        {connectionHealth.status === "connected" && (
           <div className="mt-4 p-4 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">API Usage</span>
               <span className="text-sm text-gray-500">
-                {connectionHealth.apiLimitUsed} / {connectionHealth.apiLimitTotal}
+                {connectionHealth.apiLimitUsed} /{" "}
+                {connectionHealth.apiLimitTotal}
               </span>
             </div>
-            <Progress 
-              value={(connectionHealth.apiLimitUsed / connectionHealth.apiLimitTotal) * 100} 
+            <Progress
+              value={
+                (connectionHealth.apiLimitUsed /
+                  connectionHealth.apiLimitTotal) *
+                100
+              }
               className="h-2"
             />
           </div>
@@ -167,7 +182,10 @@ export default function SquareIntegrationPage() {
             <BarChart3 className="w-4 h-4" />
             <span>Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="configuration" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="configuration"
+            className="flex items-center space-x-2"
+          >
             <Settings className="w-4 h-4" />
             <span>Configuration</span>
           </TabsTrigger>
@@ -263,4 +281,4 @@ export default function SquareIntegrationPage() {
       </Dialog>
     </div>
   );
-} 
+}

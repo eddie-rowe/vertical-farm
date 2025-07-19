@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { 
-  Plus, 
-  Settings, 
-  BarChart3, 
-  Calendar, 
+import React, { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import {
+  Plus,
+  Settings,
+  BarChart3,
+  Calendar,
   AlertTriangle,
   Copy,
   Trash2,
@@ -16,104 +16,104 @@ import {
   Play,
   Pause,
   Square,
-  Scissors
-} from 'lucide-react'
+  Scissors,
+} from "lucide-react";
 
 interface MenuAction {
-  id: string
-  label: string
-  icon: React.ReactNode
-  shortcut?: string
-  danger?: boolean
-  disabled?: boolean
-  submenu?: MenuAction[]
-  onClick?: () => void
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  shortcut?: string;
+  danger?: boolean;
+  disabled?: boolean;
+  submenu?: MenuAction[];
+  onClick?: () => void;
 }
 
 interface ContextualMenuProps {
-  trigger: React.ReactNode
-  actions: MenuAction[]
-  elementType: 'shelf' | 'rack' | 'row'
-  elementName: string
+  trigger: React.ReactNode;
+  actions: MenuAction[];
+  elementType: "shelf" | "rack" | "row";
+  elementName: string;
 }
 
 export const ContextualMenu: React.FC<ContextualMenuProps> = ({
   trigger,
   actions,
   elementType,
-  elementName
+  elementName,
 }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [submenuOpen, setSubmenuOpen] = useState<string | null>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLDivElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [submenuOpen, setSubmenuOpen] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleContextMenu = (event: React.MouseEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    
-    setPosition({ x: event.clientX, y: event.clientY })
-    setIsOpen(true)
-  }
+    event.preventDefault();
+    event.stopPropagation();
+
+    setPosition({ x: event.clientX, y: event.clientY });
+    setIsOpen(true);
+  };
 
   const handleClick = (action: MenuAction) => {
     if (action.submenu) {
-      setSubmenuOpen(submenuOpen === action.id ? null : action.id)
+      setSubmenuOpen(submenuOpen === action.id ? null : action.id);
     } else {
-      action.onClick?.()
-      setIsOpen(false)
-      setSubmenuOpen(null)
+      action.onClick?.();
+      setIsOpen(false);
+      setSubmenuOpen(null);
     }
-  }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-        setSubmenuOpen(null)
+        setIsOpen(false);
+        setSubmenuOpen(null);
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleEscape)
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [isOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
 
   const handleEscape = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setIsOpen(false)
-      setSubmenuOpen(null)
+    if (event.key === "Escape") {
+      setIsOpen(false);
+      setSubmenuOpen(null);
     }
-  }
+  };
 
   const adjustPosition = (x: number, y: number) => {
-    const menuWidth = 240
-    const menuHeight = actions.length * 40 + 20
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
+    const menuWidth = 240;
+    const menuHeight = actions.length * 40 + 20;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-    let adjustedX = x
-    let adjustedY = y
+    let adjustedX = x;
+    let adjustedY = y;
 
     // Adjust horizontal position
     if (x + menuWidth > viewportWidth) {
-      adjustedX = viewportWidth - menuWidth - 10
+      adjustedX = viewportWidth - menuWidth - 10;
     }
 
     // Adjust vertical position
     if (y + menuHeight > viewportHeight) {
-      adjustedY = viewportHeight - menuHeight - 10
+      adjustedY = viewportHeight - menuHeight - 10;
     }
 
-    return { x: Math.max(10, adjustedX), y: Math.max(10, adjustedY) }
-  }
+    return { x: Math.max(10, adjustedX), y: Math.max(10, adjustedY) };
+  };
 
   const renderMenuItem = (action: MenuAction, isSubmenu = false) => (
     <div
@@ -122,34 +122,34 @@ export const ContextualMenu: React.FC<ContextualMenuProps> = ({
         "group relative flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors",
         !action.disabled && "hover:bg-slate-100 dark:hover:bg-slate-700",
         action.disabled && "opacity-50 cursor-not-allowed",
-        action.danger && !action.disabled && "hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400",
-        isSubmenu && "text-sm"
+        action.danger &&
+          !action.disabled &&
+          "hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400",
+        isSubmenu && "text-sm",
       )}
       onClick={() => !action.disabled && handleClick(action)}
     >
       <div className="flex items-center justify-center w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-inherit">
         {action.icon}
       </div>
-      
+
       <span className="flex-1 text-slate-700 dark:text-slate-300 group-hover:text-inherit">
         {action.label}
       </span>
-      
+
       {action.shortcut && (
         <span className="text-xs text-slate-400 dark:text-slate-500">
           {action.shortcut}
         </span>
       )}
-      
+
       {action.submenu && (
-        <div className="w-3 h-3 text-slate-400 dark:text-slate-500">
-          ▶
-        </div>
+        <div className="w-3 h-3 text-slate-400 dark:text-slate-500">▶</div>
       )}
     </div>
-  )
+  );
 
-  const adjustedPosition = adjustPosition(position.x, position.y)
+  const adjustedPosition = adjustPosition(position.x, position.y);
 
   return (
     <>
@@ -165,14 +165,14 @@ export const ContextualMenu: React.FC<ContextualMenuProps> = ({
         <>
           {/* Backdrop */}
           <div className="fixed inset-0 z-50" />
-          
+
           {/* Menu */}
           <div
             ref={menuRef}
             className="fixed z-50 w-60 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-2"
             style={{
               left: adjustedPosition.x,
-              top: adjustedPosition.y
+              top: adjustedPosition.y,
             }}
           >
             {/* Header */}
@@ -193,8 +193,8 @@ export const ContextualMenu: React.FC<ContextualMenuProps> = ({
         </>
       )}
     </>
-  )
-}
+  );
+};
 
 // Common action sets for different element types
 export const getShelfActions = (
@@ -210,107 +210,109 @@ export const getShelfActions = (
   onPauseGrow: () => void,
   onResumeGrow: () => void,
   onHarvestGrow: () => void,
-  hasActiveGrow: boolean = false
+  hasActiveGrow: boolean = false,
 ): MenuAction[] => [
   {
-    id: 'view',
-    label: 'View Details',
+    id: "view",
+    label: "View Details",
     icon: <Eye className="w-4 h-4" />,
-    shortcut: 'Enter',
-    onClick: onViewDetails
+    shortcut: "Enter",
+    onClick: onViewDetails,
   },
   {
-    id: 'edit',
-    label: 'Edit Shelf',
+    id: "edit",
+    label: "Edit Shelf",
     icon: <Edit className="w-4 h-4" />,
-    shortcut: 'E',
-    onClick: onEdit
+    shortcut: "E",
+    onClick: onEdit,
   },
   {
-    id: 'grow-operations',
-    label: 'Grow Operations',
+    id: "grow-operations",
+    label: "Grow Operations",
     icon: <Leaf className="w-4 h-4" />,
-    submenu: hasActiveGrow ? [
-      {
-        id: 'view-grow',
-        label: 'View Grow Details',
-        icon: <Eye className="w-4 h-4" />,
-        onClick: onViewGrowDetails
-      },
-      {
-        id: 'pause-grow',
-        label: 'Pause Grow',
-        icon: <Pause className="w-4 h-4" />,
-        onClick: onPauseGrow
-      },
-      {
-        id: 'resume-grow',
-        label: 'Resume Grow',
-        icon: <Play className="w-4 h-4" />,
-        onClick: onResumeGrow
-      },
-      {
-        id: 'harvest-grow',
-        label: 'Harvest',
-        icon: <Scissors className="w-4 h-4" />,
-        onClick: onHarvestGrow
-      },
-      {
-        id: 'start-new-grow',
-        label: 'Start New Grow',
-        icon: <Plus className="w-4 h-4" />,
-        onClick: onStartNewGrow
-      }
-    ] : [
-      {
-        id: 'start-new-grow',
-        label: 'Start New Grow',
-        icon: <Plus className="w-4 h-4" />,
-        onClick: onStartNewGrow
-      }
-    ]
+    submenu: hasActiveGrow
+      ? [
+          {
+            id: "view-grow",
+            label: "View Grow Details",
+            icon: <Eye className="w-4 h-4" />,
+            onClick: onViewGrowDetails,
+          },
+          {
+            id: "pause-grow",
+            label: "Pause Grow",
+            icon: <Pause className="w-4 h-4" />,
+            onClick: onPauseGrow,
+          },
+          {
+            id: "resume-grow",
+            label: "Resume Grow",
+            icon: <Play className="w-4 h-4" />,
+            onClick: onResumeGrow,
+          },
+          {
+            id: "harvest-grow",
+            label: "Harvest",
+            icon: <Scissors className="w-4 h-4" />,
+            onClick: onHarvestGrow,
+          },
+          {
+            id: "start-new-grow",
+            label: "Start New Grow",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: onStartNewGrow,
+          },
+        ]
+      : [
+          {
+            id: "start-new-grow",
+            label: "Start New Grow",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: onStartNewGrow,
+          },
+        ],
   },
   {
-    id: 'devices',
-    label: 'Manage Devices',
+    id: "devices",
+    label: "Manage Devices",
     icon: <Zap className="w-4 h-4" />,
     submenu: [
       {
-        id: 'add-device',
-        label: 'Add Device',
+        id: "add-device",
+        label: "Add Device",
         icon: <Plus className="w-4 h-4" />,
-        onClick: onAddDevice
+        onClick: onAddDevice,
       },
       {
-        id: 'manage-all',
-        label: 'Manage All',
+        id: "manage-all",
+        label: "Manage All",
         icon: <Settings className="w-4 h-4" />,
-        onClick: onManageDevices
-      }
-    ]
+        onClick: onManageDevices,
+      },
+    ],
   },
   {
-    id: 'monitoring',
-    label: 'View Metrics',
+    id: "monitoring",
+    label: "View Metrics",
     icon: <BarChart3 className="w-4 h-4" />,
-    onClick: onViewMetrics
+    onClick: onViewMetrics,
   },
   {
-    id: 'clone',
-    label: 'Clone Shelf',
+    id: "clone",
+    label: "Clone Shelf",
     icon: <Copy className="w-4 h-4" />,
-    shortcut: 'Ctrl+D',
-    onClick: onClone
+    shortcut: "Ctrl+D",
+    onClick: onClone,
   },
   {
-    id: 'delete',
-    label: 'Delete Shelf',
+    id: "delete",
+    label: "Delete Shelf",
     icon: <Trash2 className="w-4 h-4" />,
-    shortcut: 'Del',
+    shortcut: "Del",
     danger: true,
-    onClick: onDelete
-  }
-]
+    onClick: onDelete,
+  },
+];
 
 export const getRackActions = (
   onEdit: () => void,
@@ -318,51 +320,51 @@ export const getRackActions = (
   onAddShelf: () => void,
   onClone: () => void,
   onDelete: () => void,
-  onViewMetrics: () => void
+  onViewMetrics: () => void,
 ): MenuAction[] => [
   {
-    id: 'view',
-    label: 'View Details',
+    id: "view",
+    label: "View Details",
     icon: <Eye className="w-4 h-4" />,
-    shortcut: 'Enter',
-    onClick: onViewDetails
+    shortcut: "Enter",
+    onClick: onViewDetails,
   },
   {
-    id: 'edit',
-    label: 'Edit Rack',
+    id: "edit",
+    label: "Edit Rack",
     icon: <Edit className="w-4 h-4" />,
-    shortcut: 'E',
-    onClick: onEdit
+    shortcut: "E",
+    onClick: onEdit,
   },
   {
-    id: 'add-shelf',
-    label: 'Add Shelf',
+    id: "add-shelf",
+    label: "Add Shelf",
     icon: <Plus className="w-4 h-4" />,
-    shortcut: 'A',
-    onClick: onAddShelf
+    shortcut: "A",
+    onClick: onAddShelf,
   },
   {
-    id: 'monitoring',
-    label: 'View Metrics',
+    id: "monitoring",
+    label: "View Metrics",
     icon: <BarChart3 className="w-4 h-4" />,
-    onClick: onViewMetrics
+    onClick: onViewMetrics,
   },
   {
-    id: 'clone',
-    label: 'Clone Rack',
+    id: "clone",
+    label: "Clone Rack",
     icon: <Copy className="w-4 h-4" />,
-    shortcut: 'Ctrl+D',
-    onClick: onClone
+    shortcut: "Ctrl+D",
+    onClick: onClone,
   },
   {
-    id: 'delete',
-    label: 'Delete Rack',
+    id: "delete",
+    label: "Delete Rack",
     icon: <Trash2 className="w-4 h-4" />,
-    shortcut: 'Del',
+    shortcut: "Del",
     danger: true,
-    onClick: onDelete
-  }
-]
+    onClick: onDelete,
+  },
+];
 
 export const getRowActions = (
   onEdit: () => void,
@@ -370,48 +372,48 @@ export const getRowActions = (
   onAddRack: () => void,
   onClone: () => void,
   onDelete: () => void,
-  onViewMetrics: () => void
+  onViewMetrics: () => void,
 ): MenuAction[] => [
   {
-    id: 'view',
-    label: 'View Details',
+    id: "view",
+    label: "View Details",
     icon: <Eye className="w-4 h-4" />,
-    shortcut: 'Enter',
-    onClick: onViewDetails
+    shortcut: "Enter",
+    onClick: onViewDetails,
   },
   {
-    id: 'edit',
-    label: 'Edit Row',
+    id: "edit",
+    label: "Edit Row",
     icon: <Edit className="w-4 h-4" />,
-    shortcut: 'E',
-    onClick: onEdit
+    shortcut: "E",
+    onClick: onEdit,
   },
   {
-    id: 'add-rack',
-    label: 'Add Rack',
+    id: "add-rack",
+    label: "Add Rack",
     icon: <Plus className="w-4 h-4" />,
-    shortcut: 'A',
-    onClick: onAddRack
+    shortcut: "A",
+    onClick: onAddRack,
   },
   {
-    id: 'monitoring',
-    label: 'View Metrics',
+    id: "monitoring",
+    label: "View Metrics",
     icon: <BarChart3 className="w-4 h-4" />,
-    onClick: onViewMetrics
+    onClick: onViewMetrics,
   },
   {
-    id: 'clone',
-    label: 'Clone Row',
+    id: "clone",
+    label: "Clone Row",
     icon: <Copy className="w-4 h-4" />,
-    shortcut: 'Ctrl+D',
-    onClick: onClone
+    shortcut: "Ctrl+D",
+    onClick: onClone,
   },
   {
-    id: 'delete',
-    label: 'Delete Row',
+    id: "delete",
+    label: "Delete Row",
     icon: <Trash2 className="w-4 h-4" />,
-    shortcut: 'Del',
+    shortcut: "Del",
     danger: true,
-    onClick: onDelete
-  }
-] 
+    onClick: onDelete,
+  },
+];

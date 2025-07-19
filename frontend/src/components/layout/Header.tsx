@@ -1,5 +1,5 @@
-import ServerHeader from './ServerHeader';
-import ClientHeaderActions from './ClientHeaderActions';
+import ServerHeader from "./ServerHeader";
+import ClientHeaderActions from "./ClientHeaderActions";
 
 const Header: React.FC = () => {
   return (

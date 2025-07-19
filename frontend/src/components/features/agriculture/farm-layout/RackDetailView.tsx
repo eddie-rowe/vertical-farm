@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Rack, Shelf, UUID } from '@/types/farm'; // Removed SensorDevice
+import { useState, useEffect } from "react";
+import { Rack, Shelf, UUID } from "@/types/farm"; // Removed SensorDevice
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 import EntityEditModal, { EntityType } from "./EntityEditModal";
 import { ShelfSchema, ShelfFormData } from "@/lib/validations/shelfSchemas";
 import { DefaultValues, FieldValues, SubmitHandler } from "react-hook-form";
-import toast from 'react-hot-toast';
-import { v4 as uuidv4 } from 'uuid';
+import toast from "react-hot-toast";
+import { v4 as uuidv4 } from "uuid";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,8 +109,10 @@ export default function RackDetailView({
       toast.success("Shelf added successfully!");
     } else if (shelfModal.entity && shelfModal.entity.id) {
       const existingShelfId = shelfModal.entity.id as UUID;
-      updatedShelves = (internalRackData.shelves || []).map(s =>
-        s.id === existingShelfId ? { ...s, ...castFormValues, id: existingShelfId } : s
+      updatedShelves = (internalRackData.shelves || []).map((s) =>
+        s.id === existingShelfId
+          ? { ...s, ...castFormValues, id: existingShelfId }
+          : s,
       );
       toast.success("Shelf updated successfully!");
     } else {
@@ -125,7 +127,9 @@ export default function RackDetailView({
   // Placeholder for deleting a shelf
   const requestDeleteShelf = (shelfId: UUID) => {
     if (!internalRackData || !internalRackData.shelves) return;
-    const shelfToDelete = internalRackData.shelves.find(s => s.id === shelfId);
+    const shelfToDelete = internalRackData.shelves.find(
+      (s) => s.id === shelfId,
+    );
     if (shelfToDelete) {
       setConfirmShelfDeleteDialog({
         open: true,
@@ -140,7 +144,7 @@ export default function RackDetailView({
   const handleConfirmDeleteShelf = () => {
     if (!internalRackData || !confirmShelfDeleteDialog.shelfIdToDelete) return;
     const updatedShelves = (internalRackData.shelves || []).filter(
-      s => s.id !== confirmShelfDeleteDialog.shelfIdToDelete
+      (s) => s.id !== confirmShelfDeleteDialog.shelfIdToDelete,
     );
     handleShelfUpdate(updatedShelves);
     toast.success(`Shelf "${confirmShelfDeleteDialog.shelfName}" deleted.`);
@@ -171,7 +175,11 @@ export default function RackDetailView({
           </CardTitle>
           <div className="flex items-center space-x-2">
             {editMode && (
-              <Button variant="outline" size="icon" onClick={() => alert("Rack editing UI not yet implemented.")}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => alert("Rack editing UI not yet implemented.")}
+              >
                 <PencilIcon className="h-5 w-5" />
               </Button>
             )}
@@ -181,8 +189,13 @@ export default function RackDetailView({
           </div>
         </CardHeader>
         <CardContent>
-          <p><span className="font-medium">ID:</span> {internalRackData.id}</p>
-          <p><span className="font-medium">Total Shelves:</span> {internalRackData.shelves?.length || 0}</p>
+          <p>
+            <span className="font-medium">ID:</span> {internalRackData.id}
+          </p>
+          <p>
+            <span className="font-medium">Total Shelves:</span>{" "}
+            {internalRackData.shelves?.length || 0}
+          </p>
         </CardContent>
       </Card>
 
@@ -190,7 +203,11 @@ export default function RackDetailView({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-semibold">Shelves</CardTitle>
           {editMode && (
-            <Button onClick={() => openShelfModal(undefined, true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+            <Button
+              onClick={() => openShelfModal(undefined, true)}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
               <PlusIcon className="h-4 w-4 mr-2" /> Add Shelf
             </Button>
           )}
@@ -199,28 +216,45 @@ export default function RackDetailView({
           {internalRackData.shelves && internalRackData.shelves.length > 0 ? (
             <ul className="space-y-3">
               {internalRackData.shelves.map((shelf) => (
-                <li key={shelf.id} className="p-3 border rounded-md bg-slate-50 dark:bg-slate-800 shadow-sm">
+                <li
+                  key={shelf.id}
+                  className="p-3 border rounded-md bg-slate-50 dark:bg-slate-800 shadow-sm"
+                >
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{shelf.name}</span>
                     {editMode && (
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => openShelfModal(shelf)}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => openShelfModal(shelf)}
+                        >
                           <PencilIcon className="h-4 w-4" />
                         </Button>
-                        <Button variant="destructive" size="icon" className="h-7 w-7" onClick={() => requestDeleteShelf(shelf.id)}>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => requestDeleteShelf(shelf.id)}
+                        >
                           <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Shelf ID: {shelf.id}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Shelf ID: {shelf.id}
+                  </p>
                   {/* Devices/Sensors display can be added here later */}
                 </li>
               ))}
             </ul>
           ) : (
             <p className="text-sm text-gray-500 italic">
-              {editMode ? "No shelves in this rack. Click 'Add Shelf' to create one." : "No shelves configured for this rack."}
+              {editMode
+                ? "No shelves in this rack. Click 'Add Shelf' to create one."
+                : "No shelves configured for this rack."}
             </p>
           )}
         </CardContent>
@@ -232,24 +266,33 @@ export default function RackDetailView({
           onClose={closeShelfModal}
           defaultValues={shelfModal.entity as DefaultValues<FieldValues>}
           onSave={saveShelfModal}
-          title={`${shelfModal.isNew ? 'Create New' : 'Edit'} Shelf`}
-          entityType={'shelf' as EntityType}
+          title={`${shelfModal.isNew ? "Create New" : "Edit"} Shelf`}
+          entityType={"shelf" as EntityType}
           validationSchema={ShelfSchema}
         />
       )}
 
-      <AlertDialog open={confirmShelfDeleteDialog.open} onOpenChange={(open) => !open && handleCancelDeleteShelf()}>
+      <AlertDialog
+        open={confirmShelfDeleteDialog.open}
+        onOpenChange={(open) => !open && handleCancelDeleteShelf()}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the shelf &quot;{confirmShelfDeleteDialog.shelfName}&quot;.
-              All devices and sensors on this shelf will also be removed.
+              This action cannot be undone. This will permanently delete the
+              shelf &quot;{confirmShelfDeleteDialog.shelfName}&quot;. All
+              devices and sensors on this shelf will also be removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelDeleteShelf}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDeleteShelf} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel onClick={handleCancelDeleteShelf}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteShelf}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Delete Shelf
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -257,4 +300,4 @@ export default function RackDetailView({
       </AlertDialog>
     </div>
   );
-} 
+}

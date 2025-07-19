@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from "react";
 
 export interface UseSearchOptions<T> {
   /** Initial search term */
@@ -30,24 +30,31 @@ export interface UseSearchResult<T> {
  * Default search function that searches through specified fields
  */
 const defaultSearchFunction = <T>(
-  item: T, 
-  searchTerm: string, 
+  item: T,
+  searchTerm: string,
   searchFields: (keyof T)[] = [],
-  caseSensitive = false
+  caseSensitive = false,
 ): boolean => {
   if (!searchTerm.trim()) return true;
-  
-  const normalizedSearchTerm = caseSensitive ? searchTerm : searchTerm.toLowerCase();
-  
+
+  const normalizedSearchTerm = caseSensitive
+    ? searchTerm
+    : searchTerm.toLowerCase();
+
   // If no fields specified, search all string properties
-  const fieldsToSearch = searchFields.length > 0 
-    ? searchFields 
-    : Object.keys(item as any).filter(key => typeof (item as any)[key] === 'string') as (keyof T)[];
-  
-  return fieldsToSearch.some(field => {
+  const fieldsToSearch =
+    searchFields.length > 0
+      ? searchFields
+      : (Object.keys(item as any).filter(
+          (key) => typeof (item as any)[key] === "string",
+        ) as (keyof T)[]);
+
+  return fieldsToSearch.some((field) => {
     const fieldValue = item[field];
-    if (typeof fieldValue === 'string') {
-      const normalizedFieldValue = caseSensitive ? fieldValue : fieldValue.toLowerCase();
+    if (typeof fieldValue === "string") {
+      const normalizedFieldValue = caseSensitive
+        ? fieldValue
+        : fieldValue.toLowerCase();
       return normalizedFieldValue.includes(normalizedSearchTerm);
     }
     return false;
@@ -58,29 +65,34 @@ const defaultSearchFunction = <T>(
  * Hook for managing search functionality with debouncing and filtering
  */
 export const useFarmSearch = <T>(
-  options: UseSearchOptions<T> = {}
+  options: UseSearchOptions<T> = {},
 ): UseSearchResult<T> => {
   const {
-    initialSearchTerm = '',
+    initialSearchTerm = "",
     searchFunction,
     searchFields = [],
-    caseSensitive = false
+    caseSensitive = false,
   } = options;
 
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
 
   const clearSearch = useCallback(() => {
-    setSearchTerm('');
+    setSearchTerm("");
   }, []);
 
-  const filterItems = useCallback((items: T[]) => {
-    if (!searchTerm.trim()) return items;
-    
-    const searchFn = searchFunction || 
-      ((item: T, term: string) => defaultSearchFunction(item, term, searchFields, caseSensitive));
-    
-    return items.filter(item => searchFn(item, searchTerm));
-  }, [searchTerm, searchFunction, searchFields, caseSensitive]);
+  const filterItems = useCallback(
+    (items: T[]) => {
+      if (!searchTerm.trim()) return items;
+
+      const searchFn =
+        searchFunction ||
+        ((item: T, term: string) =>
+          defaultSearchFunction(item, term, searchFields, caseSensitive));
+
+      return items.filter((item) => searchFn(item, searchTerm));
+    },
+    [searchTerm, searchFunction, searchFields, caseSensitive],
+  );
 
   const hasSearch = useMemo(() => searchTerm.trim().length > 0, [searchTerm]);
 
@@ -89,6 +101,6 @@ export const useFarmSearch = <T>(
     setSearchTerm,
     clearSearch,
     filterItems,
-    hasSearch
+    hasSearch,
   };
-}; 
+};

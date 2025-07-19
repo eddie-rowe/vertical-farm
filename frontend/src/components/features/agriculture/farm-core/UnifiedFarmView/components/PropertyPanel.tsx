@@ -1,23 +1,38 @@
-import React, { useState, useCallback } from 'react'
-import { Row, Rack, Shelf } from '@/types/farm-layout'
-import { Settings, Save, Trash2, Info, Edit3, Calendar, Tag, MapPin } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { toast } from 'react-hot-toast'
+import React, { useState, useCallback } from "react";
+import { Row, Rack, Shelf } from "@/types/farm-layout";
+import {
+  Settings,
+  Save,
+  Trash2,
+  Info,
+  Edit3,
+  Calendar,
+  Tag,
+  MapPin,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { toast } from "react-hot-toast";
 
 interface PropertyPanelProps {
-  isOpen: boolean
-  element: Row | Rack | Shelf | null
-  elementType: 'row' | 'rack' | 'shelf'
-  onClose: () => void
-  onSave: (element: Row | Rack | Shelf) => void
-  onDelete?: (element: Row | Rack | Shelf) => void
+  isOpen: boolean;
+  element: Row | Rack | Shelf | null;
+  elementType: "row" | "rack" | "shelf";
+  onClose: () => void;
+  onSave: (element: Row | Rack | Shelf) => void;
+  onDelete?: (element: Row | Rack | Shelf) => void;
 }
 
 export const PropertyPanel: React.FC<PropertyPanelProps> = ({
@@ -26,88 +41,108 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   elementType,
   onClose,
   onSave,
-  onDelete
+  onDelete,
 }) => {
-  const [editedElement, setEditedElement] = useState<Row | Rack | Shelf | null>(element)
-  const [hasChanges, setHasChanges] = useState(false)
+  const [editedElement, setEditedElement] = useState<Row | Rack | Shelf | null>(
+    element,
+  );
+  const [hasChanges, setHasChanges] = useState(false);
 
   React.useEffect(() => {
-    setEditedElement(element ? { ...element } : null)
-    setHasChanges(false)
-  }, [element])
+    setEditedElement(element ? { ...element } : null);
+    setHasChanges(false);
+  }, [element]);
 
-  const updateProperty = useCallback((property: string, value: any) => {
-    if (!editedElement) return
-    
-    setEditedElement(prev => ({
-      ...prev!,
-      [property]: value
-    }))
-    setHasChanges(true)
-  }, [editedElement])
+  const updateProperty = useCallback(
+    (property: string, value: any) => {
+      if (!editedElement) return;
+
+      setEditedElement((prev) => ({
+        ...prev!,
+        [property]: value,
+      }));
+      setHasChanges(true);
+    },
+    [editedElement],
+  );
 
   const handleSave = useCallback(() => {
     if (!editedElement || !hasChanges) {
-      onClose()
-      return
+      onClose();
+      return;
     }
 
     try {
-      onSave(editedElement)
-      toast.success(`${elementType} updated successfully`)
-      setHasChanges(false)
-      onClose()
+      onSave(editedElement);
+      toast.success(`${elementType} updated successfully`);
+      setHasChanges(false);
+      onClose();
     } catch (error) {
-      toast.error(`Failed to update ${elementType}`)
+      toast.error(`Failed to update ${elementType}`);
     }
-  }, [editedElement, hasChanges, onSave, elementType, onClose])
+  }, [editedElement, hasChanges, onSave, elementType, onClose]);
 
   const handleDelete = useCallback(() => {
-    if (!editedElement || !onDelete) return
-    
+    if (!editedElement || !onDelete) return;
+
     if (confirm(`Are you sure you want to delete this ${elementType}?`)) {
       try {
-        onDelete(editedElement)
-        toast.success(`${elementType} deleted successfully`)
-        onClose()
+        onDelete(editedElement);
+        toast.success(`${elementType} deleted successfully`);
+        onClose();
       } catch (error) {
-        toast.error(`Failed to delete ${elementType}`)
+        toast.error(`Failed to delete ${elementType}`);
       }
     }
-  }, [editedElement, onDelete, elementType, onClose])
+  }, [editedElement, onDelete, elementType, onClose]);
 
   const getElementStats = () => {
-    if (!editedElement) return null
+    if (!editedElement) return null;
 
     switch (elementType) {
-      case 'row':
-        const row = editedElement as Row
+      case "row":
+        const row = editedElement as Row;
         return {
           racks: row.racks?.length || 0,
-          shelves: row.racks?.reduce((acc, rack) => acc + (rack.shelves?.length || 0), 0) || 0,
-          devices: row.racks?.reduce((acc, rack) => 
-            acc + (rack.shelves?.reduce((shelfAcc, shelf) => 
-              shelfAcc + (shelf.devices?.length || 0), 0) || 0), 0) || 0
-        }
-      case 'rack':
-        const rack = editedElement as Rack
+          shelves:
+            row.racks?.reduce(
+              (acc, rack) => acc + (rack.shelves?.length || 0),
+              0,
+            ) || 0,
+          devices:
+            row.racks?.reduce(
+              (acc, rack) =>
+                acc +
+                (rack.shelves?.reduce(
+                  (shelfAcc, shelf) => shelfAcc + (shelf.devices?.length || 0),
+                  0,
+                ) || 0),
+              0,
+            ) || 0,
+        };
+      case "rack":
+        const rack = editedElement as Rack;
         return {
           shelves: rack.shelves?.length || 0,
-          devices: rack.shelves?.reduce((acc, shelf) => acc + (shelf.devices?.length || 0), 0) || 0
-        }
-      case 'shelf':
-        const shelf = editedElement as Shelf
+          devices:
+            rack.shelves?.reduce(
+              (acc, shelf) => acc + (shelf.devices?.length || 0),
+              0,
+            ) || 0,
+        };
+      case "shelf":
+        const shelf = editedElement as Shelf;
         return {
-          devices: shelf.devices?.length || 0
-        }
+          devices: shelf.devices?.length || 0,
+        };
       default:
-        return null
+        return null;
     }
-  }
+  };
 
-  const stats = getElementStats()
+  const stats = getElementStats();
 
-  if (!editedElement) return null
+  if (!editedElement) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -129,14 +164,14 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Info className="w-4 h-4 text-blue-500" />
               <h3 className="font-medium">Basic Information</h3>
             </div>
-            
+
             <div className="space-y-3">
               <div>
                 <Label htmlFor="element-name">Name</Label>
                 <Input
                   id="element-name"
-                  value={editedElement.name || ''}
-                  onChange={(e) => updateProperty('name', e.target.value)}
+                  value={editedElement.name || ""}
+                  onChange={(e) => updateProperty("name", e.target.value)}
                   placeholder={`Enter ${elementType} name`}
                 />
               </div>
@@ -145,8 +180,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <Label htmlFor="element-description">Description</Label>
                 <Textarea
                   id="element-description"
-                  value={(editedElement as any).description || ''}
-                  onChange={(e) => updateProperty('description', e.target.value)}
+                  value={(editedElement as any).description || ""}
+                  onChange={(e) =>
+                    updateProperty("description", e.target.value)
+                  }
                   placeholder={`Enter ${elementType} description`}
                   rows={3}
                 />
@@ -164,30 +201,46 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <MapPin className="w-4 h-4 text-green-500" />
                   <h3 className="font-medium">Statistics</h3>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
-                  {elementType === 'row' && (
+                  {elementType === "row" && (
                     <>
                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.racks}</div>
-                        <div className="text-xs text-slate-600 dark:text-slate-300">Racks</div>
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {stats.racks}
+                        </div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
+                          Racks
+                        </div>
                       </div>
                       <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.shelves}</div>
-                        <div className="text-xs text-slate-600 dark:text-slate-300">Shelves</div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {stats.shelves}
+                        </div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
+                          Shelves
+                        </div>
                       </div>
                     </>
                   )}
-                  {(elementType === 'row' || elementType === 'rack') && (
+                  {(elementType === "row" || elementType === "rack") && (
                     <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.devices}</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-300">Devices</div>
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {stats.devices}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        Devices
+                      </div>
                     </div>
                   )}
-                  {elementType === 'shelf' && (
+                  {elementType === "shelf" && (
                     <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.devices}</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-300">Devices</div>
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {stats.devices}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        Devices
+                      </div>
                     </div>
                   )}
                 </div>
@@ -203,27 +256,35 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Settings className="w-4 h-4 text-orange-500" />
               <h3 className="font-medium">Settings</h3>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Active</Label>
-                  <p className="text-sm text-slate-500">Enable this {elementType} for operations</p>
+                  <p className="text-sm text-slate-500">
+                    Enable this {elementType} for operations
+                  </p>
                 </div>
                 <Switch
                   checked={(editedElement as any).active ?? true}
-                  onCheckedChange={(checked) => updateProperty('active', checked)}
+                  onCheckedChange={(checked) =>
+                    updateProperty("active", checked)
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Monitoring</Label>
-                  <p className="text-sm text-slate-500">Enable monitoring and alerts</p>
+                  <p className="text-sm text-slate-500">
+                    Enable monitoring and alerts
+                  </p>
                 </div>
                 <Switch
                   checked={(editedElement as any).monitoring ?? false}
-                  onCheckedChange={(checked) => updateProperty('monitoring', checked)}
+                  onCheckedChange={(checked) =>
+                    updateProperty("monitoring", checked)
+                  }
                 />
               </div>
             </div>
@@ -237,13 +298,21 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Tag className="w-4 h-4 text-purple-500" />
               <h3 className="font-medium">Metadata</h3>
             </div>
-            
+
             <div className="space-y-3">
               <div>
                 <Label>Tags</Label>
                 <Input
-                  value={(editedElement as any).tags?.join(', ') || ''}
-                  onChange={(e) => updateProperty('tags', e.target.value.split(',').map(tag => tag.trim()).filter(Boolean))}
+                  value={(editedElement as any).tags?.join(", ") || ""}
+                  onChange={(e) =>
+                    updateProperty(
+                      "tags",
+                      e.target.value
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter(Boolean),
+                    )
+                  }
                   placeholder="Enter tags separated by commas"
                 />
               </div>
@@ -251,8 +320,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <div>
                 <Label>Notes</Label>
                 <Textarea
-                  value={(editedElement as any).notes || ''}
-                  onChange={(e) => updateProperty('notes', e.target.value)}
+                  value={(editedElement as any).notes || ""}
+                  onChange={(e) => updateProperty("notes", e.target.value)}
                   placeholder="Enter additional notes"
                   rows={2}
                 />
@@ -269,9 +338,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             className="flex-1"
           >
             <Save className="w-4 h-4 mr-2" />
-            {hasChanges ? 'Save Changes' : 'No Changes'}
+            {hasChanges ? "Save Changes" : "No Changes"}
           </Button>
-          
+
           {onDelete && (
             <Button
               variant="destructive"
@@ -281,7 +350,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Trash2 className="w-4 h-4" />
             </Button>
           )}
-          
+
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -298,5 +367,5 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
         )}
       </SheetContent>
     </Sheet>
-  )
-} 
+  );
+};

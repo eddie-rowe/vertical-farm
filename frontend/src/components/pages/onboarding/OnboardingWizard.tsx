@@ -24,7 +24,11 @@ const steps = [
   },
 ];
 
-export default function OnboardingWizard({ onFinish }: { onFinish?: () => void }) {
+export default function OnboardingWizard({
+  onFinish,
+}: {
+  onFinish?: () => void;
+}) {
   const [step, setStep] = useState(0);
 
   return (
@@ -33,12 +37,19 @@ export default function OnboardingWizard({ onFinish }: { onFinish?: () => void }
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">🌱</span>
-            <h2 className="text-2xl font-bold text-green-900 dark:text-green-100">{steps[step].title}</h2>
+            <h2 className="text-2xl font-bold text-green-900 dark:text-green-100">
+              {steps[step].title}
+            </h2>
           </div>
-          <p className="text-gray-700 dark:text-gray-300 mb-4">{steps[step].description}</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            {steps[step].description}
+          </p>
           <div className="flex gap-2 mb-4">
             {steps.map((_, i) => (
-              <div key={i} className={`h-2 w-8 rounded-full ${i <= step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}></div>
+              <div
+                key={i}
+                className={`h-2 w-8 rounded-full ${i <= step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}
+              ></div>
             ))}
           </div>
         </div>

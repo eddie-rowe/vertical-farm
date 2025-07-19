@@ -1,6 +1,6 @@
 /**
  * Farm Compatibility Service
- * 
+ *
  * This service handles the transformation between Supabase types and existing
  * frontend types to ensure a smooth PostGREST migration without breaking
  * existing components.
@@ -15,8 +15,8 @@ import {
   CreateFarmData,
   getFarms as getSupabaseFarms,
   getFarmDetails as getSupabaseFarmDetails,
-  createFarm as createSupabaseFarm
-} from './supabaseService';
+  createFarm as createSupabaseFarm,
+} from "./supabaseService";
 
 import {
   Farm as FrontendFarm,
@@ -24,8 +24,8 @@ import {
   Row as FrontendRow,
   Rack as FrontendRack,
   Shelf as FrontendShelf,
-  UUID
-} from '@/types/farm-layout';
+  UUID,
+} from "@/types/farm-layout";
 
 // =====================================================
 // TYPE TRANSFORMATIONS
@@ -39,7 +39,7 @@ const transformShelf = (supabaseShelf: SupabaseShelf): FrontendShelf => ({
   name: supabaseShelf.name,
   rack_id: supabaseShelf.rack_id,
   created_at: supabaseShelf.created_at,
-  updated_at: supabaseShelf.updated_at
+  updated_at: supabaseShelf.updated_at,
 });
 
 /**
@@ -51,7 +51,7 @@ const transformRack = (supabaseRack: SupabaseRack): FrontendRack => ({
   row_id: supabaseRack.row_id,
   shelves: supabaseRack.shelves?.map(transformShelf) || [],
   created_at: supabaseRack.created_at,
-  updated_at: supabaseRack.updated_at
+  updated_at: supabaseRack.updated_at,
 });
 
 /**
@@ -61,11 +61,11 @@ const transformRow = (supabaseRow: SupabaseRow): FrontendRow => ({
   id: supabaseRow.id,
   name: supabaseRow.name,
   farm_id: supabaseRow.farm_id,
-  orientation: 'horizontal' as const,
-  area_type: 'grow_area' as const, // Default to grow_area for backward compatibility
+  orientation: "horizontal" as const,
+  area_type: "grow_area" as const, // Default to grow_area for backward compatibility
   racks: supabaseRow.racks?.map(transformRack) || [],
   created_at: supabaseRow.created_at,
-  updated_at: supabaseRow.updated_at
+  updated_at: supabaseRow.updated_at,
 });
 
 /**
@@ -78,17 +78,19 @@ const transformFarm = (supabaseFarm: SupabaseFarm): FrontendFarm => ({
   location: supabaseFarm.location,
   farm_image_url: supabaseFarm.farm_image_url,
   created_at: supabaseFarm.created_at,
-  updated_at: supabaseFarm.updated_at
+  updated_at: supabaseFarm.updated_at,
 });
 
 /**
  * Transform Supabase Farm with Hierarchy to Frontend FarmPageData
  */
-const transformFarmWithHierarchy = (supabaseFarmWithHierarchy: SupabaseFarmWithHierarchy): FarmPageData => ({
+const transformFarmWithHierarchy = (
+  supabaseFarmWithHierarchy: SupabaseFarmWithHierarchy,
+): FarmPageData => ({
   farm: {
     ...transformFarm(supabaseFarmWithHierarchy),
-    rows: supabaseFarmWithHierarchy.rows?.map(transformRow) || []
-  }
+    rows: supabaseFarmWithHierarchy.rows?.map(transformRow) || [],
+  },
 });
 
 // =====================================================
@@ -102,11 +104,11 @@ const transformFarmWithHierarchy = (supabaseFarmWithHierarchy: SupabaseFarmWithH
 export const getFarmsList = async () => {
   const response = await getSupabaseFarms();
   return {
-    farms: response.farms.map(farm => ({
+    farms: response.farms.map((farm) => ({
       id: farm.id,
-      name: farm.name
+      name: farm.name,
     })),
-    total: response.total
+    total: response.total,
   };
 };
 
@@ -123,7 +125,9 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmPageData> => {
  * Create farm compatible with existing frontend expectations
  * Replaces: createFarm() from apiClient
  */
-export const createFarm = async (farmData: CreateFarmData): Promise<FrontendFarm> => {
+export const createFarm = async (
+  farmData: CreateFarmData,
+): Promise<FrontendFarm> => {
   const supabaseFarm = await createSupabaseFarm(farmData);
   return transformFarm(supabaseFarm);
 };
@@ -160,13 +164,13 @@ export const farmCompatibilityService = {
   getFarmsList,
   getFarmDetails,
   createFarm,
-  
+
   // Direct access to transformers for advanced use cases
   transforms: {
     farm: transformFarm,
     farmWithHierarchy: transformFarmWithHierarchy,
     row: transformRow,
     rack: transformRack,
-    shelf: transformShelf
-  }
-}; 
+    shelf: transformShelf,
+  },
+};

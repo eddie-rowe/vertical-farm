@@ -1,56 +1,62 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { useRealtime } from '@/contexts/RealtimeContext'
-import { useRealtimeTable } from '@/hooks/useRealtimeTable'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { FaWifi, FaCircle } from '@/lib/icons'
+import React from "react";
+import { useRealtime } from "@/contexts/RealtimeContext";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FaWifi, FaCircle } from "@/lib/icons";
 
 export function RealtimeDemo() {
-  const { 
-    isConnected: realtimeConnected, 
+  const {
+    isConnected: realtimeConnected,
     connectionStatus,
     eventCount,
     lastEventTime,
-    subscriptionCount
-  } = useRealtime()
+    subscriptionCount,
+  } = useRealtime();
 
   // Subscribe to real-time updates from user configurations
   const {
     data: configs,
     loading: configsLoading,
-    error: configsError
-  } = useRealtimeTable('user_home_assistant_configs', {
+    error: configsError,
+  } = useRealtimeTable("user_home_assistant_configs", {
     showToasts: true,
     toastMessages: {
-      insert: 'New Home Assistant configuration added',
-      update: 'Home Assistant configuration updated',
-      delete: 'Home Assistant configuration removed'
-    }
-  })
+      insert: "New Home Assistant configuration added",
+      update: "Home Assistant configuration updated",
+      delete: "Home Assistant configuration removed",
+    },
+  });
 
   // Subscribe to device configurations
   const {
     data: deviceConfigs,
     loading: deviceConfigsLoading,
-    error: deviceConfigsError
-  } = useRealtimeTable('user_device_configs', {
+    error: deviceConfigsError,
+  } = useRealtimeTable("user_device_configs", {
     showToasts: true,
     toastMessages: {
-      insert: 'New device configuration added',
-      update: 'Device configuration updated',
-      delete: 'Device configuration removed'
-    }
-  })
+      insert: "New device configuration added",
+      update: "Device configuration updated",
+      delete: "Device configuration removed",
+    },
+  });
 
   const getStatusIcon = (connected: boolean) => {
     return connected ? (
       <FaWifi className="text-green-500" />
     ) : (
       <FaWifi className="text-red-500 opacity-50" />
-    )
-  }
+    );
+  };
 
   // formatTimestamp function removed as it was not being used
 
@@ -69,18 +75,22 @@ export function RealtimeDemo() {
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <span>Connection Status:</span>
-            <Badge 
+            <Badge
               variant={realtimeConnected ? "default" : "destructive"}
-              className={realtimeConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+              className={
+                realtimeConnected
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }
             >
               {connectionStatus}
             </Badge>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span>Last Activity:</span>
             <span className="text-sm text-gray-600">
-              {lastEventTime ? lastEventTime.toLocaleTimeString() : 'Never'}
+              {lastEventTime ? lastEventTime.toLocaleTimeString() : "Never"}
             </span>
           </div>
 
@@ -109,16 +119,23 @@ export function RealtimeDemo() {
               <div className="flex items-center justify-between text-sm">
                 <span>Status:</span>
                 <div className="flex items-center gap-1">
-                  <FaCircle 
+                  <FaCircle
                     className={`text-xs ${
-                      configsLoading ? 'text-yellow-500' : 
-                      configsError ? 'text-red-500' : 'text-green-500'
-                    }`} 
+                      configsLoading
+                        ? "text-yellow-500"
+                        : configsError
+                          ? "text-red-500"
+                          : "text-green-500"
+                    }`}
                   />
-                  {configsLoading ? 'Loading' : configsError ? 'Error' : 'Connected'}
+                  {configsLoading
+                    ? "Loading"
+                    : configsError
+                      ? "Error"
+                      : "Connected"}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between text-sm">
                 <span>Records:</span>
                 <span className="font-mono">{configs?.length || 0}</span>
@@ -126,7 +143,9 @@ export function RealtimeDemo() {
 
               <div className="flex items-center justify-between text-sm">
                 <span>Last Update:</span>
-                <span className="text-xs">{lastEventTime ? lastEventTime.toLocaleTimeString() : 'Never'}</span>
+                <span className="text-xs">
+                  {lastEventTime ? lastEventTime.toLocaleTimeString() : "Never"}
+                </span>
               </div>
 
               {configsError && (
@@ -150,16 +169,23 @@ export function RealtimeDemo() {
               <div className="flex items-center justify-between text-sm">
                 <span>Status:</span>
                 <div className="flex items-center gap-1">
-                  <FaCircle 
+                  <FaCircle
                     className={`text-xs ${
-                      deviceConfigsLoading ? 'text-yellow-500' : 
-                      deviceConfigsError ? 'text-red-500' : 'text-green-500'
-                    }`} 
+                      deviceConfigsLoading
+                        ? "text-yellow-500"
+                        : deviceConfigsError
+                          ? "text-red-500"
+                          : "text-green-500"
+                    }`}
                   />
-                  {deviceConfigsLoading ? 'Loading' : deviceConfigsError ? 'Error' : 'Connected'}
+                  {deviceConfigsLoading
+                    ? "Loading"
+                    : deviceConfigsError
+                      ? "Error"
+                      : "Connected"}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between text-sm">
                 <span>Records:</span>
                 <span className="font-mono">{deviceConfigs?.length || 0}</span>
@@ -167,7 +193,9 @@ export function RealtimeDemo() {
 
               <div className="flex items-center justify-between text-sm">
                 <span>Last Update:</span>
-                <span className="text-xs">{lastEventTime ? lastEventTime.toLocaleTimeString() : 'Never'}</span>
+                <span className="text-xs">
+                  {lastEventTime ? lastEventTime.toLocaleTimeString() : "Never"}
+                </span>
               </div>
 
               {deviceConfigsError && (
@@ -192,14 +220,16 @@ export function RealtimeDemo() {
           <CardContent>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {configs.slice(0, 5).map((config, index) => (
-                <div 
-                  key={config.id || index} 
+                <div
+                  key={config.id || index}
                   className="text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded font-mono"
                 >
-                  <div className="font-semibold">{config.name || 'Unnamed Config'}</div>
+                  <div className="font-semibold">
+                    {config.name || "Unnamed Config"}
+                  </div>
                   <div className="text-gray-600">
-                    URL: {config.url || 'No URL'} | 
-                    Enabled: {config.enabled ? 'Yes' : 'No'}
+                    URL: {config.url || "No URL"} | Enabled:{" "}
+                    {config.enabled ? "Yes" : "No"}
                   </div>
                 </div>
               ))}
@@ -208,5 +238,5 @@ export function RealtimeDemo() {
         </Card>
       )}
     </div>
-  )
-} 
+  );
+}

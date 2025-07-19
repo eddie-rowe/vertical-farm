@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,9 +10,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
-import { GrowRecipe } from '@/types/grow-recipes';
+import { GrowRecipe } from "@/types/grow-recipes";
 
 interface DeleteConfirmationDialogProps {
   recipe: GrowRecipe | null;
@@ -20,10 +20,10 @@ interface DeleteConfirmationDialogProps {
   onCancel: () => void;
 }
 
-export function DeleteConfirmationDialog({ 
-  recipe, 
-  onConfirm, 
-  onCancel 
+export function DeleteConfirmationDialog({
+  recipe,
+  onConfirm,
+  onCancel,
 }: DeleteConfirmationDialogProps) {
   return (
     <AlertDialog open={!!recipe} onOpenChange={(open) => !open && onCancel()}>
@@ -34,7 +34,8 @@ export function DeleteConfirmationDialog({
             Delete Grow Recipe
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete &quot;{recipe?.name}&quot;? This action cannot be undone.
+            Are you sure you want to delete &quot;{recipe?.name}&quot;? This
+            action cannot be undone.
             {recipe?.species?.name && (
               <span className="block mt-2 text-sm text-gray-600">
                 Species: {recipe.species.name}
@@ -54,4 +55,4 @@ export function DeleteConfirmationDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

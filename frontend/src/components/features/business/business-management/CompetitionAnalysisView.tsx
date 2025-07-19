@@ -1,16 +1,29 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FaSearch, FaEye, FaChartLine, FaDollarSign, FaMapMarkerAlt, FaBuilding } from '@/lib/icons';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  FaSearch,
+  FaEye,
+  FaChartLine,
+  FaDollarSign,
+  FaMapMarkerAlt,
+  FaBuilding,
+} from "@/lib/icons";
 
 interface Competitor {
   id: string;
   name: string;
-  type: 'vertical-farm' | 'greenhouse' | 'traditional-farm' | 'distributor';
+  type: "vertical-farm" | "greenhouse" | "traditional-farm" | "distributor";
   location: string;
   distance: string;
   size: string;
@@ -25,7 +38,7 @@ interface Competitor {
   weaknesses: string[];
   marketShare: number;
   lastUpdated: string;
-  status: 'active' | 'expanding' | 'struggling' | 'new';
+  status: "active" | "expanding" | "struggling" | "new";
 }
 
 interface MarketMetric {
@@ -39,185 +52,202 @@ interface MarketMetric {
 interface CompetitiveIntelligence {
   category: string;
   insights: string[];
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   actionItems: string[];
 }
 
 export default function CompetitionAnalysisView() {
-  const [searchRadius, setSearchRadius] = useState('25');
-  const [competitorType, setCompetitorType] = useState('all');
-  
+  const [searchRadius, setSearchRadius] = useState("25");
+  const [competitorType, setCompetitorType] = useState("all");
+
   // Mock data - replace with actual API calls
   const competitors: Competitor[] = [
     {
-      id: 'comp-001',
-      name: 'GreenTech Farms',
-      type: 'vertical-farm',
-      location: 'Industrial District',
-      distance: '12.5 miles',
-      size: '15,000 sq ft',
+      id: "comp-001",
+      name: "GreenTech Farms",
+      type: "vertical-farm",
+      location: "Industrial District",
+      distance: "12.5 miles",
+      size: "15,000 sq ft",
       establishedYear: 2019,
-      website: 'greentechfarms.com',
+      website: "greentechfarms.com",
       pricing: {
-        lettuce: '$3.50/lb',
-        herbs: '$8.00/lb',
-        microgreens: '$12.00/lb'
+        lettuce: "$3.50/lb",
+        herbs: "$8.00/lb",
+        microgreens: "$12.00/lb",
       },
-      strengths: ['Advanced automation', 'Strong distribution network', 'Consistent quality'],
-      weaknesses: ['Higher pricing', 'Limited crop variety', 'Energy costs'],
+      strengths: [
+        "Advanced automation",
+        "Strong distribution network",
+        "Consistent quality",
+      ],
+      weaknesses: ["Higher pricing", "Limited crop variety", "Energy costs"],
       marketShare: 35,
-      lastUpdated: '2024-01-24',
-      status: 'expanding'
+      lastUpdated: "2024-01-24",
+      status: "expanding",
     },
     {
-      id: 'comp-002',
-      name: 'Fresh Harvest Co.',
-      type: 'greenhouse',
-      location: 'Suburban Area',
-      distance: '8.2 miles',
-      size: '25,000 sq ft',
+      id: "comp-002",
+      name: "Fresh Harvest Co.",
+      type: "greenhouse",
+      location: "Suburban Area",
+      distance: "8.2 miles",
+      size: "25,000 sq ft",
       establishedYear: 2015,
-      website: 'freshharvestco.com',
+      website: "freshharvestco.com",
       pricing: {
-        lettuce: '$2.80/lb',
-        herbs: '$6.50/lb',
-        microgreens: '$10.00/lb'
+        lettuce: "$2.80/lb",
+        herbs: "$6.50/lb",
+        microgreens: "$10.00/lb",
       },
-      strengths: ['Lower costs', 'Established customer base', 'Local reputation'],
-      weaknesses: ['Weather dependent', 'Seasonal limitations', 'Aging infrastructure'],
+      strengths: [
+        "Lower costs",
+        "Established customer base",
+        "Local reputation",
+      ],
+      weaknesses: [
+        "Weather dependent",
+        "Seasonal limitations",
+        "Aging infrastructure",
+      ],
       marketShare: 28,
-      lastUpdated: '2024-01-23',
-      status: 'active'
+      lastUpdated: "2024-01-23",
+      status: "active",
     },
     {
-      id: 'comp-003',
-      name: 'Urban Greens',
-      type: 'vertical-farm',
-      location: 'Downtown',
-      distance: '15.8 miles',
-      size: '8,000 sq ft',
+      id: "comp-003",
+      name: "Urban Greens",
+      type: "vertical-farm",
+      location: "Downtown",
+      distance: "15.8 miles",
+      size: "8,000 sq ft",
       establishedYear: 2021,
-      website: 'urbangreens.co',
+      website: "urbangreens.co",
       pricing: {
-        lettuce: '$4.20/lb',
-        herbs: '$9.50/lb',
-        microgreens: '$15.00/lb'
+        lettuce: "$4.20/lb",
+        herbs: "$9.50/lb",
+        microgreens: "$15.00/lb",
       },
-      strengths: ['Premium positioning', 'Direct-to-consumer focus', 'Innovation'],
-      weaknesses: ['Small scale', 'High overhead', 'Limited capacity'],
+      strengths: [
+        "Premium positioning",
+        "Direct-to-consumer focus",
+        "Innovation",
+      ],
+      weaknesses: ["Small scale", "High overhead", "Limited capacity"],
       marketShare: 12,
-      lastUpdated: '2024-01-22',
-      status: 'new'
-    }
+      lastUpdated: "2024-01-22",
+      status: "new",
+    },
   ];
 
   const marketMetrics: MarketMetric[] = [
     {
-      metric: 'Market Size',
-      value: '$2.4M',
+      metric: "Market Size",
+      value: "$2.4M",
       change: 8.5,
-      period: 'vs last year',
-      icon: <FaDollarSign className="h-5 w-5" />
+      period: "vs last year",
+      icon: <FaDollarSign className="h-5 w-5" />,
     },
     {
-      metric: 'Average Price',
-      value: '$3.85/lb',
+      metric: "Average Price",
+      value: "$3.85/lb",
       change: -2.1,
-      period: 'vs last quarter',
-      icon: <FaChartLine className="h-5 w-5" />
+      period: "vs last quarter",
+      icon: <FaChartLine className="h-5 w-5" />,
     },
     {
-      metric: 'New Entrants',
-      value: '3',
+      metric: "New Entrants",
+      value: "3",
       change: 50,
-      period: 'vs last year',
-      icon: <FaBuilding className="h-5 w-5" />
+      period: "vs last year",
+      icon: <FaBuilding className="h-5 w-5" />,
     },
     {
-      metric: 'Market Growth',
-      value: '12.8%',
+      metric: "Market Growth",
+      value: "12.8%",
       change: 3.2,
-      period: 'annual rate',
-      icon: <FaChartLine className="h-5 w-5" />
-    }
+      period: "annual rate",
+      icon: <FaChartLine className="h-5 w-5" />,
+    },
   ];
 
   const competitiveIntelligence: CompetitiveIntelligence[] = [
     {
-      category: 'Pricing Strategy',
+      category: "Pricing Strategy",
       insights: [
-        'Premium positioning trend emerging in urban markets',
-        'Traditional farms struggling with cost pressures',
-        'Automation driving cost advantages for established players'
+        "Premium positioning trend emerging in urban markets",
+        "Traditional farms struggling with cost pressures",
+        "Automation driving cost advantages for established players",
       ],
-      priority: 'high',
+      priority: "high",
       actionItems: [
-        'Review pricing strategy for premium segments',
-        'Analyze automation ROI opportunities',
-        'Monitor traditional farm market exits'
-      ]
+        "Review pricing strategy for premium segments",
+        "Analyze automation ROI opportunities",
+        "Monitor traditional farm market exits",
+      ],
     },
     {
-      category: 'Market Positioning',
+      category: "Market Positioning",
       insights: [
-        'Sustainability messaging becoming key differentiator',
-        'Direct-to-consumer channels gaining traction',
-        'B2B partnerships with restaurants increasing'
+        "Sustainability messaging becoming key differentiator",
+        "Direct-to-consumer channels gaining traction",
+        "B2B partnerships with restaurants increasing",
       ],
-      priority: 'medium',
+      priority: "medium",
       actionItems: [
-        'Strengthen sustainability credentials',
-        'Explore D2C channel opportunities',
-        'Develop restaurant partnership program'
-      ]
+        "Strengthen sustainability credentials",
+        "Explore D2C channel opportunities",
+        "Develop restaurant partnership program",
+      ],
     },
     {
-      category: 'Technology Trends',
+      category: "Technology Trends",
       insights: [
-        'AI-driven crop optimization becoming standard',
-        'Energy efficiency critical for profitability',
-        'Data analytics for yield prediction expanding'
+        "AI-driven crop optimization becoming standard",
+        "Energy efficiency critical for profitability",
+        "Data analytics for yield prediction expanding",
       ],
-      priority: 'high',
+      priority: "high",
       actionItems: [
-        'Evaluate AI optimization platforms',
-        'Conduct energy efficiency audit',
-        'Implement advanced analytics systems'
-      ]
-    }
+        "Evaluate AI optimization platforms",
+        "Conduct energy efficiency audit",
+        "Implement advanced analytics systems",
+      ],
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'expanding':
-        return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700';
-      case 'active':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700';
-      case 'new':
-        return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700';
-      case 'struggling':
-        return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
+      case "expanding":
+        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700";
+      case "active":
+        return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700";
+      case "new":
+        return "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700";
+      case "struggling":
+        return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700";
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
+        return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'border-l-red-500 bg-red-50 dark:bg-red-950';
-      case 'medium':
-        return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950';
-      case 'low':
-        return 'border-l-green-500 bg-green-50 dark:bg-green-950';
+      case "high":
+        return "border-l-red-500 bg-red-50 dark:bg-red-950";
+      case "medium":
+        return "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950";
+      case "low":
+        return "border-l-green-500 bg-green-50 dark:bg-green-950";
       default:
-        return 'border-l-gray-500 bg-gray-50 dark:bg-gray-800';
+        return "border-l-gray-500 bg-gray-50 dark:bg-gray-800";
     }
   };
 
-  const filteredCompetitors = competitorType === 'all' 
-    ? competitors 
-    : competitors.filter(comp => comp.type === competitorType);
+  const filteredCompetitors =
+    competitorType === "all"
+      ? competitors
+      : competitors.filter((comp) => comp.type === competitorType);
 
   return (
     <div className="space-y-6">
@@ -281,13 +311,19 @@ export default function CompetitionAnalysisView() {
 
           <div className="grid gap-4">
             {filteredCompetitors.map((competitor) => (
-              <Card key={competitor.id} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={competitor.id}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg">{competitor.name}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {competitor.name}
+                      </CardTitle>
                       <CardDescription className="mt-1">
-                        {competitor.type.replace('-', ' ')} • {competitor.size} • Est. {competitor.establishedYear}
+                        {competitor.type.replace("-", " ")} • {competitor.size}{" "}
+                        • Est. {competitor.establishedYear}
                       </CardDescription>
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -305,11 +341,17 @@ export default function CompetitionAnalysisView() {
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <FaMapMarkerAlt className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span>{competitor.location} ({competitor.distance})</span>
+                        <span>
+                          {competitor.location} ({competitor.distance})
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Website: </span>
-                        <span className="text-blue-600 dark:text-blue-400">{competitor.website}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          Website:{" "}
+                        </span>
+                        <span className="text-blue-600 dark:text-blue-400">
+                          {competitor.website}
+                        </span>
                       </div>
                     </div>
                     <div>
@@ -324,7 +366,9 @@ export default function CompetitionAnalysisView() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <h5 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-400">Strengths</h5>
+                      <h5 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-400">
+                        Strengths
+                      </h5>
                       <ul className="text-sm space-y-1">
                         {competitor.strengths.map((strength, index) => (
                           <li key={index} className="flex items-center gap-2">
@@ -335,7 +379,9 @@ export default function CompetitionAnalysisView() {
                       </ul>
                     </div>
                     <div>
-                      <h5 className="font-semibold text-sm mb-2 text-red-700 dark:text-red-400">Weaknesses</h5>
+                      <h5 className="font-semibold text-sm mb-2 text-red-700 dark:text-red-400">
+                        Weaknesses
+                      </h5>
                       <ul className="text-sm space-y-1">
                         {competitor.weaknesses.map((weakness, index) => (
                           <li key={index} className="flex items-center gap-2">
@@ -356,7 +402,10 @@ export default function CompetitionAnalysisView() {
                         <FaEye className="mr-2 h-3 w-3" />
                         View Profile
                       </Button>
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
                         Update Data
                       </Button>
                     </div>
@@ -370,14 +419,20 @@ export default function CompetitionAnalysisView() {
         <TabsContent value="market" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {marketMetrics.map((metric, index) => (
-              <Card key={index} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={index}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg text-green-600 dark:text-green-400">
                       {metric.icon}
                     </div>
-                    <span className={`text-sm font-semibold ${metric.change > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {metric.change > 0 ? '+' : ''}{metric.change}%
+                    <span
+                      className={`text-sm font-semibold ${metric.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      {metric.change > 0 ? "+" : ""}
+                      {metric.change}%
                     </span>
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
@@ -409,7 +464,8 @@ export default function CompetitionAnalysisView() {
                     Market Trend Charts Coming Soon
                   </h3>
                   <p className="text-gray-500 dark:text-gray-500">
-                    Interactive charts and historical market data will be available here
+                    Interactive charts and historical market data will be
+                    available here
                   </p>
                 </div>
               </div>
@@ -420,11 +476,17 @@ export default function CompetitionAnalysisView() {
         <TabsContent value="intelligence" className="space-y-4">
           <div className="grid gap-4">
             {competitiveIntelligence.map((intel, index) => (
-              <Card key={index} className={`border-l-4 ${getPriorityColor(intel.priority)} border-gray-200 dark:border-gray-700`}>
+              <Card
+                key={index}
+                className={`border-l-4 ${getPriorityColor(intel.priority)} border-gray-200 dark:border-gray-700`}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{intel.category}</CardTitle>
-                    <Badge variant="outline" className={`${intel.priority === 'high' ? 'border-red-500 text-red-700 dark:text-red-400' : intel.priority === 'medium' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' : 'border-green-500 text-green-700 dark:text-green-400'}`}>
+                    <Badge
+                      variant="outline"
+                      className={`${intel.priority === "high" ? "border-red-500 text-red-700 dark:text-red-400" : intel.priority === "medium" ? "border-yellow-500 text-yellow-700 dark:text-yellow-400" : "border-green-500 text-green-700 dark:text-green-400"}`}
+                    >
                       {intel.priority.toUpperCase()} PRIORITY
                     </Badge>
                   </div>
@@ -432,7 +494,9 @@ export default function CompetitionAnalysisView() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <h5 className="font-semibold text-sm mb-2">Key Insights</h5>
+                      <h5 className="font-semibold text-sm mb-2">
+                        Key Insights
+                      </h5>
                       <ul className="text-sm space-y-2">
                         {intel.insights.map((insight, idx) => (
                           <li key={idx} className="flex items-start gap-2">
@@ -443,7 +507,9 @@ export default function CompetitionAnalysisView() {
                       </ul>
                     </div>
                     <div>
-                      <h5 className="font-semibold text-sm mb-2">Action Items</h5>
+                      <h5 className="font-semibold text-sm mb-2">
+                        Action Items
+                      </h5>
                       <ul className="text-sm space-y-2">
                         {intel.actionItems.map((action, idx) => (
                           <li key={idx} className="flex items-start gap-2">
@@ -474,7 +540,8 @@ export default function CompetitionAnalysisView() {
                     AI Intelligence Coming Soon
                   </h3>
                   <p className="text-gray-500 dark:text-gray-500">
-                    Automated competitive intelligence and market monitoring will be available here
+                    Automated competitive intelligence and market monitoring
+                    will be available here
                   </p>
                   <Button className="mt-4" variant="outline">
                     Configure AI Monitoring
@@ -487,4 +554,4 @@ export default function CompetitionAnalysisView() {
       </Tabs>
     </div>
   );
-} 
+}

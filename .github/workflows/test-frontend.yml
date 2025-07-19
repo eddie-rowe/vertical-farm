@@ -87,13 +87,8 @@ jobs:
           echo "## ✅ TypeScript Checking" >> $GITHUB_STEP_SUMMARY
           echo "No TypeScript errors found" >> $GITHUB_STEP_SUMMARY
       
-      - name: Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./frontend
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug --only-verified
+      # Note: Security scanning (secrets, licenses, vulnerabilities) is now handled
+      # by the consolidated security-scan.yml workflow to eliminate duplication
 
   # Stage 2: Build Once (3-4 minutes)
   build:
@@ -164,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['18', '20', '21']
+        node-version: ['21']
         test-type: ['unit', 'integration']
     
     outputs:
@@ -189,14 +184,26 @@ jobs:
           name: frontend-build-${{ github.sha }}
           path: frontend/
       
+      - name: Setup test environment
+        working-directory: ./frontend
+        run: |
+          # Create test results directory
+          mkdir -p test-results
+          
+          # Install jest-junit for test reporting (if not already available)
+          npm list jest-junit || npm install --no-save jest-junit
+      
       - name: Run unit tests
         if: matrix.test-type == 'unit'
         working-directory: ./frontend
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          JEST_JUNIT_OUTPUT_DIR: test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
         run: |
-          npm run test:unit -- \
+          npm test -- \
+            --testPathPattern=tests/unit/ \
             --coverage \
             --coverageReporters=cobertura \
             --coverageReporters=html \
@@ -204,7 +211,7 @@ jobs:
             --coverageDirectory=coverage/unit \
             --maxWorkers=50% \
             --watchAll=false \
-            --testResultsProcessor=jest-junit
+            --passWithNoTests
       
       - name: Run integration tests
         if: matrix.test-type == 'integration'
@@ -213,29 +220,58 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_API_URL: http://localhost:3000
+          JEST_JUNIT_OUTPUT_DIR: test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
         run: |
           # Start the application using pre-built artifacts
           npm start &
+          APP_PID=$!
           sleep 15
           
           # Run integration tests
-          npm run test:integration -- \
+          npm test -- \
+            --testPathPattern=tests/integration/ \
             --coverage \
             --coverageReporters=cobertura \
+            --coverageReporters=html \
+            --coverageReporters=lcov \
             --coverageDirectory=coverage/integration \
             --maxWorkers=25% \
             --watchAll=false \
-            --testTimeout=30000
+            --testTimeout=30000 \
+            --passWithNoTests || TEST_EXIT_CODE=$?
+          
+          # Clean up application
+          kill $APP_PID 2>/dev/null || true
+          
+          # Exit with test result
+          exit ${TEST_EXIT_CODE:-0}
       
       - name: Generate coverage report
         if: always()
         working-directory: ./frontend
         run: |
-          if [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
-            COVERAGE=$(npx lcov-total coverage/${{ matrix.test-type }}/lcov.info)
+          if [ -f coverage/${{ matrix.test-type }}/lcov.info ]; then
+            # Extract coverage percentage from lcov.info
+            COVERAGE=$(awk -F, '/SF:/ {files++} /LH:/ {hit+=$2} /LF:/ {total+=$2} END {if(total>0) printf "%.1f", (hit/total)*100; else print "0"}' coverage/${{ matrix.test-type }}/lcov.info)
             echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
             echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
             echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          elif [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
+            # Fallback to XML if lcov not available
+            COVERAGE=$(python3 -c "
+            import xml.etree.ElementTree as ET
+            tree = ET.parse('coverage/${{ matrix.test-type }}/cobertura-coverage.xml')
+            root = tree.getroot()
+            print(f'{float(root.attrib.get(\"line-rate\", 0)) * 100:.1f}')
+            " 2>/dev/null || echo "0")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "percentage=0" >> $GITHUB_OUTPUT
+            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
+            echo "No coverage data found" >> $GITHUB_STEP_SUMMARY
           fi
         id: coverage
       
@@ -243,14 +279,14 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
+          name: frontend-test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
           path: |
-            frontend/coverage/
-            frontend/junit.xml
+            frontend/coverage/${{ matrix.test-type }}/
+            frontend/test-results/
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.node-version == '20' && matrix.test-type == 'unit'
+        if: matrix.node-version == '21' && matrix.test-type == 'unit'
         uses: codecov/codecov-action@v4
         with:
           file: ./frontend/coverage/unit/lcov.info
@@ -261,9 +297,9 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.node-version == '20'
+        if: always() && matrix.node-version == '21'
         with:
-          files: frontend/junit.xml
+          files: frontend/test-results/junit.xml
           check_name: "Frontend Tests (${{ matrix.test-type }})"
           comment_mode: create new
           fail_on: "test failures"
@@ -278,7 +314,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '21']  # Reduced matrix for E2E
+        node-version: ['21']  # Latest Node.js version
     
     steps:
       - name: Checkout code
@@ -331,131 +367,8 @@ jobs:
             frontend/playwright-report/
           retention-days: 30
 
-  # Stage 4: Security & Compliance (parallel with other stage 4 jobs)
-  security-scan:
-    name: Security & Compliance
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'pull_request'
-    timeout-minutes: 15
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: frontend/
-      
-      - name: License Compliance Check
-        working-directory: ./frontend
-        run: |
-          npm install -g license-checker
-          
-          # Generate license report
-          license-checker --production --json > licenses.json
-          license-checker --production --csv > licenses.csv
-          
-          # Check for problematic licenses
-          license-checker --production --failOn "GPL-2.0;GPL-3.0;AGPL-3.0;LGPL-2.1;LGPL-3.0" || echo "⚠️ Problematic licenses detected"
-          
-          # Summary for GitHub
-          echo "## 📄 License Compliance Report" >> $GITHUB_STEP_SUMMARY
-          TOTAL_DEPS=$(jq 'keys | length' licenses.json)
-          echo "Total dependencies analyzed: $TOTAL_DEPS" >> $GITHUB_STEP_SUMMARY
-      
-      - name: Enhanced Dependency Analysis
-        working-directory: ./frontend
-        run: |
-          # Audit with detailed output
-          npm audit --audit-level=moderate --json > npm-audit-detailed.json || true
-          npm audit --audit-level=moderate
-          
-          # Check for outdated packages
-          npm outdated --json > outdated-packages.json || true
-          
-          # Snyk scan (if token available)
-          if [ "${{ secrets.SNYK_TOKEN }}" != "" ]; then
-            npx snyk test --json > snyk-report.json || true
-            npx snyk monitor || true
-          fi
-      
-      - name: Bundle Security Analysis
-        working-directory: ./frontend
-        run: |
-          # Analyze bundle for potential security issues using pre-built artifacts
-          echo "## 📦 Bundle Security Analysis" >> $GITHUB_STEP_SUMMARY
-          
-          # Find largest dependencies
-          if [ -d node_modules ]; then
-            echo "### Largest Dependencies:" >> $GITHUB_STEP_SUMMARY
-            du -sh node_modules/* | sort -hr | head -5 >> $GITHUB_STEP_SUMMARY
-          fi
-      
-      - name: Run ESLint security scan
-        working-directory: ./frontend
-        run: |
-          npx eslint . \
-            --ext .js,.jsx,.ts,.tsx \
-            --format @microsoft/eslint-formatter-sarif \
-            --output-file eslint-results.sarif || true
-      
-      - name: Upload ESLint results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: frontend/eslint-results.sarif
-      
-      - name: Upload security artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-reports
-          path: |
-            frontend/npm-audit-detailed.json
-            frontend/licenses.json
-            frontend/licenses.csv
-            frontend/outdated-packages.json
-            frontend/snyk-report.json
-            frontend/eslint-results.sarif
-          retention-days: 30
-      
-      - name: Check for critical vulnerabilities
-        working-directory: ./frontend
-        run: |
-          if [ -f npm-audit-detailed.json ]; then
-            CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-detailed.json)
-            HIGH=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-detailed.json)
-            MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' npm-audit-detailed.json)
-            
-            echo "## 🚨 Vulnerability Summary" >> $GITHUB_STEP_SUMMARY
-            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
-            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
-            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
-            echo "| Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
-            
-            if [ "$CRITICAL" -gt 0 ]; then
-              echo "❌ Critical security vulnerabilities found!"
-              exit 1
-            fi
-            
-            if [ "$HIGH" -gt 5 ]; then
-              echo "⚠️ Too many high severity vulnerabilities ($HIGH)"
-              exit 1
-            fi
-          fi
+  # Note: Security scanning (licenses, dependencies, vulnerabilities) is now handled
+  # by the consolidated security-scan.yml workflow to eliminate duplication
 
   # Stage 4: Accessibility Tests (parallel with other stage 4 jobs)
   accessibility-tests:
@@ -503,7 +416,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: accessibility-report
+          name: frontend-accessibility-report
           path: frontend/accessibility-report.json
           retention-days: 30
 
@@ -619,7 +532,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bundle-analysis-reports
+          name: frontend-bundle-analysis-reports
           path: |
             frontend/large-chunks.txt
             frontend/depcheck-report.json

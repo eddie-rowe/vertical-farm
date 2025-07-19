@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { FC, useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { Label } from '@/components/ui/label';
-import { HADevice, AssignmentForm } from '@/types/integrations/homeassistant';
+import { FC, useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Label } from "@/components/ui/label";
+import { HADevice, AssignmentForm } from "@/types/integrations/homeassistant";
 
 interface AssignmentModalProps {
   open: boolean;
@@ -21,32 +33,41 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
   onAssign,
 }) => {
   const [assignmentForm, setAssignmentForm] = useState<AssignmentForm>({
-    farm_id: '',
-    row_id: '',
-    rack_id: '',
-    shelf_id: '',
+    farm_id: "",
+    row_id: "",
+    rack_id: "",
+    shelf_id: "",
   });
 
   // Reset form when modal opens/closes
   useEffect(() => {
     if (open) {
       setAssignmentForm({
-        farm_id: '',
-        row_id: '',
-        rack_id: '',
-        shelf_id: '',
+        farm_id: "",
+        row_id: "",
+        rack_id: "",
+        shelf_id: "",
       });
     }
   }, [open]);
 
   const handleAssign = () => {
-    if (assignmentForm.farm_id && assignmentForm.row_id && assignmentForm.rack_id && assignmentForm.shelf_id) {
+    if (
+      assignmentForm.farm_id &&
+      assignmentForm.row_id &&
+      assignmentForm.rack_id &&
+      assignmentForm.shelf_id
+    ) {
       onAssign(assignmentForm);
       onClose();
     }
   };
 
-  const isFormValid = assignmentForm.farm_id && assignmentForm.row_id && assignmentForm.rack_id && assignmentForm.shelf_id;
+  const isFormValid =
+    assignmentForm.farm_id &&
+    assignmentForm.row_id &&
+    assignmentForm.rack_id &&
+    assignmentForm.shelf_id;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -60,10 +81,10 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
         <div className="space-y-4">
           <div>
             <Label>Farm</Label>
-            <Select 
-              value={assignmentForm.farm_id} 
-              onValueChange={(value) => 
-                setAssignmentForm(prev => ({ ...prev, farm_id: value }))
+            <Select
+              value={assignmentForm.farm_id}
+              onValueChange={(value) =>
+                setAssignmentForm((prev) => ({ ...prev, farm_id: value }))
               }
             >
               <SelectTrigger>
@@ -75,13 +96,13 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
               </SelectContent>
             </Select>
           </div>
-          
+
           <div>
             <Label>Row</Label>
-            <Select 
-              value={assignmentForm.row_id} 
-              onValueChange={(value) => 
-                setAssignmentForm(prev => ({ ...prev, row_id: value }))
+            <Select
+              value={assignmentForm.row_id}
+              onValueChange={(value) =>
+                setAssignmentForm((prev) => ({ ...prev, row_id: value }))
               }
             >
               <SelectTrigger>
@@ -96,10 +117,10 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
 
           <div>
             <Label>Rack</Label>
-            <Select 
-              value={assignmentForm.rack_id} 
-              onValueChange={(value) => 
-                setAssignmentForm(prev => ({ ...prev, rack_id: value }))
+            <Select
+              value={assignmentForm.rack_id}
+              onValueChange={(value) =>
+                setAssignmentForm((prev) => ({ ...prev, rack_id: value }))
               }
             >
               <SelectTrigger>
@@ -114,10 +135,10 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
 
           <div>
             <Label>Shelf</Label>
-            <Select 
-              value={assignmentForm.shelf_id} 
-              onValueChange={(value) => 
-                setAssignmentForm(prev => ({ ...prev, shelf_id: value }))
+            <Select
+              value={assignmentForm.shelf_id}
+              onValueChange={(value) =>
+                setAssignmentForm((prev) => ({ ...prev, shelf_id: value }))
               }
             >
               <SelectTrigger>
@@ -131,17 +152,14 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
           </div>
 
           <div className="flex gap-3 pt-4">
-            <FarmControlButton 
-              onClick={handleAssign} 
+            <FarmControlButton
+              onClick={handleAssign}
               className="flex-1"
               disabled={!isFormValid}
             >
               Assign Device
             </FarmControlButton>
-            <FarmControlButton 
-              variant="default" 
-              onClick={onClose}
-            >
+            <FarmControlButton variant="default" onClick={onClose}>
               Cancel
             </FarmControlButton>
           </div>
@@ -149,4 +167,4 @@ export const AssignmentModal: FC<AssignmentModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-}; 
+};

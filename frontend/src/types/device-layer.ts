@@ -1,19 +1,19 @@
 export type UUID = string;
 
 // Device Types from Home Assistant
-export type DeviceType = 'light' | 'pump' | 'fan' | 'sensor';
+export type DeviceType = "light" | "pump" | "fan" | "sensor";
 
 // Device States
-export type DeviceState = 'on' | 'off' | 'unavailable' | 'unknown';
+export type DeviceState = "on" | "off" | "unavailable" | "unknown";
 
 // Device Actions
-export type DeviceAction = 
-  | { type: 'turn_on'; data?: Record<string, any> }
-  | { type: 'turn_off'; data?: Record<string, any> }
-  | { type: 'toggle'; data?: Record<string, any> }
-  | { type: 'set_brightness'; brightness: number }
-  | { type: 'set_color'; rgb_color: [number, number, number] }
-  | { type: 'set_speed'; speed: number };
+export type DeviceAction =
+  | { type: "turn_on"; data?: Record<string, any> }
+  | { type: "turn_off"; data?: Record<string, any> }
+  | { type: "toggle"; data?: Record<string, any> }
+  | { type: "set_brightness"; brightness: number }
+  | { type: "set_color"; rgb_color: [number, number, number] }
+  | { type: "set_speed"; speed: number };
 
 // Device Assignment from database
 export interface DeviceAssignment {
@@ -37,15 +37,15 @@ export interface DeviceCapabilities {
   rgb_color?: boolean;
   color_temp?: boolean;
   effect?: boolean;
-  
-  // Pump/Fan capabilities  
+
+  // Pump/Fan capabilities
   speed_control?: boolean;
   flow_rate?: boolean;
-  
+
   // Sensor capabilities
   measurement_unit?: string;
   precision?: number;
-  
+
   // Common capabilities
   power?: boolean;
   scheduling?: boolean;
@@ -68,22 +68,22 @@ export interface DeviceAttributes {
   friendly_name?: string;
   icon?: string;
   unit_of_measurement?: string;
-  
+
   // Light attributes
   brightness?: number; // 0-255
   rgb_color?: [number, number, number];
   color_temp?: number;
   effect?: string;
-  
+
   // Sensor attributes
   temperature?: number;
   humidity?: number;
   pressure?: number;
-  
+
   // Pump/Fan attributes
   speed?: number;
   flow_rate?: number;
-  
+
   // Device status
   last_seen?: string;
   battery_level?: number;
@@ -98,7 +98,7 @@ export interface DeviceControlHistory {
   action_type: string;
   previous_state?: string;
   new_state?: string;
-  triggered_by: 'manual' | 'automation' | 'schedule';
+  triggered_by: "manual" | "automation" | "schedule";
   success: boolean;
   error_message?: string;
   created_at: string;
@@ -121,7 +121,7 @@ export interface LocationDevices {
 
 // WebSocket Message Types
 export interface DeviceWebSocketMessage {
-  type: 'device_state_update' | 'device_control_response' | 'connection_status';
+  type: "device_state_update" | "device_control_response" | "connection_status";
   data: any;
   timestamp: string;
 }
@@ -147,7 +147,7 @@ export interface DeviceLayerState {
   enabled: boolean;
   loading: boolean;
   error?: string;
-  connectionStatus: 'connected' | 'disconnected' | 'connecting';
+  connectionStatus: "connected" | "disconnected" | "connecting";
   devices: Record<string, DeviceData>; // keyed by entity_id
   locationDevices: Record<string, LocationDevices>; // keyed by location_id
   selectedDevice?: string; // entity_id of selected device
@@ -174,7 +174,7 @@ export interface DeviceOverlayProps {
 // Device Status Indicator Props
 export interface DeviceStatusIndicatorProps {
   device: DeviceData;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   interactive?: boolean;
   onClick?: () => void;
@@ -213,8 +213,8 @@ export type DeviceFilter = {
   is_online?: boolean;
 };
 
-export type DeviceSortBy = 'name' | 'type' | 'state' | 'last_updated';
-export type SortOrder = 'asc' | 'desc';
+export type DeviceSortBy = "name" | "type" | "state" | "last_updated";
+export type SortOrder = "asc" | "desc";
 
 // Device Assignment Management
 export interface CreateDeviceAssignmentRequest {
@@ -233,8 +233,8 @@ export interface UpdateDeviceAssignmentRequest {
 
 // Emergency Controls
 export interface EmergencyControlAction {
-  type: 'emergency_stop' | 'emergency_start' | 'reset_all';
+  type: "emergency_stop" | "emergency_start" | "reset_all";
   location_ids?: string[]; // If specified, only affect these locations
   device_types?: DeviceType[]; // If specified, only affect these device types
   reason?: string;
-} 
+}

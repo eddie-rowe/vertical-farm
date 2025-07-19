@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import React, { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 
 // Type declarations for external services
 declare global {
@@ -22,7 +22,7 @@ interface ErrorProps {
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Log error to monitoring service
-    console.error('Application Error:', {
+    console.error("Application Error:", {
       message: error.message,
       stack: error.stack,
       digest: error.digest,
@@ -32,22 +32,24 @@ export default function Error({ error, reset }: ErrorProps) {
     });
 
     // Report to external error tracking (Datadog, Sentry, etc.)
-    if (typeof window !== 'undefined' && window.DD_RUM) {
+    if (typeof window !== "undefined" && window.DD_RUM) {
       window.DD_RUM.addError(error, {
         digest: error.digest,
-        errorType: 'application-error',
+        errorType: "application-error",
       });
     }
   }, [error]);
 
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   const handleReportBug = () => {
     const subject = encodeURIComponent(`Error Report: ${error.message}`);
     const body = encodeURIComponent(
-      `Error Details:\n\nMessage: ${error.message}\nDigest: ${error.digest || 'N/A'}\nTimestamp: ${new Date().toISOString()}\nURL: ${window.location.href}\n\nUser Agent: ${navigator.userAgent}\n\nStack Trace:\n${error.stack || 'Not available'}`
+      `Error Details:\n\nMessage: ${error.message}\nDigest: ${error.digest || "N/A"}\nTimestamp: ${new Date().toISOString()}\nURL: ${window.location.href}\n\nUser Agent: ${navigator.userAgent}\n\nStack Trace:\n${error.stack || "Not available"}`,
     );
-    window.open(`mailto:support@goodgoodgreens.org?subject=${subject}&body=${body}`);
+    window.open(
+      `mailto:support@goodgoodgreens.org?subject=${subject}&body=${body}`,
+    );
   };
 
   return (
@@ -55,7 +57,10 @@ export default function Error({ error, reset }: ErrorProps) {
       <Card className="w-full max-w-md border-red-200 dark:border-red-800">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-            <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" aria-hidden="true" />
+            <AlertTriangle
+              className="h-8 w-8 text-red-600 dark:text-red-400"
+              aria-hidden="true"
+            />
           </div>
           <CardTitle className="text-xl font-semibold text-red-900 dark:text-red-100">
             Something went wrong
@@ -63,7 +68,8 @@ export default function Error({ error, reset }: ErrorProps) {
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-sm text-muted-foreground">
-            We apologize for the inconvenience. An unexpected error has occurred while processing your request.
+            We apologize for the inconvenience. An unexpected error has occurred
+            while processing your request.
           </p>
 
           {isDevelopment && (
@@ -72,9 +78,13 @@ export default function Error({ error, reset }: ErrorProps) {
                 Error Details (Development)
               </summary>
               <div className="mt-2 text-xs text-muted-foreground bg-red-50 dark:bg-red-950/20 p-3 rounded border border-red-200 dark:border-red-800">
-                <p><strong>Message:</strong> {error.message}</p>
+                <p>
+                  <strong>Message:</strong> {error.message}
+                </p>
                 {error.digest && (
-                  <p><strong>Digest:</strong> {error.digest}</p>
+                  <p>
+                    <strong>Digest:</strong> {error.digest}
+                  </p>
                 )}
                 {error.stack && (
                   <div className="mt-2">
@@ -89,7 +99,7 @@ export default function Error({ error, reset }: ErrorProps) {
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button 
+            <Button
               onClick={reset}
               className="flex-1"
               variant="default"
@@ -98,9 +108,9 @@ export default function Error({ error, reset }: ErrorProps) {
               <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
               Try Again
             </Button>
-            
-            <Button 
-              onClick={() => window.location.href = '/'}
+
+            <Button
+              onClick={() => (window.location.href = "/")}
               variant="outline"
               size="sm"
               className="flex-1"
@@ -136,7 +146,7 @@ export default function Error({ error, reset }: ErrorProps) {
 // Error boundary HOC for additional error handling
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<{ error: Error; retry: () => void }>
+  fallback?: React.ComponentType<{ error: Error; retry: () => void }>,
 ) {
   return function WrappedComponent(props: P) {
     return (
@@ -149,7 +159,10 @@ export function withErrorBoundary<P extends object>(
 
 // Client-side error boundary component
 class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ComponentType<{ error: Error; retry: () => void }> },
+  {
+    children: React.ReactNode;
+    fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
+  },
   { hasError: boolean; error: Error | null }
 > {
   constructor(props: any) {
@@ -162,13 +175,13 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error boundary caught an error:', error, errorInfo);
-    
+    console.error("Error boundary caught an error:", error, errorInfo);
+
     // Report to monitoring service
-    if (typeof window !== 'undefined' && window.DD_RUM) {
+    if (typeof window !== "undefined" && window.DD_RUM) {
       window.DD_RUM.addError(error, {
         errorInfo,
-        errorType: 'react-error-boundary',
+        errorType: "react-error-boundary",
       });
     }
   }
@@ -177,20 +190,22 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError && this.state.error) {
       const Fallback = this.props.fallback;
       if (Fallback) {
-        return <Fallback 
-          error={this.state.error} 
-          retry={() => this.setState({ hasError: false, error: null })} 
-        />;
+        return (
+          <Fallback
+            error={this.state.error}
+            retry={() => this.setState({ hasError: false, error: null })}
+          />
+        );
       }
-      
+
       return (
-        <Error 
-          error={this.state.error as any} 
-          reset={() => this.setState({ hasError: false, error: null })} 
+        <Error
+          error={this.state.error as any}
+          reset={() => this.setState({ hasError: false, error: null })}
         />
       );
     }
 
     return this.props.children;
   }
-} 
+}

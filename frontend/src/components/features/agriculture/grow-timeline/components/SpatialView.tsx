@@ -1,6 +1,6 @@
-import React from 'react';
-import { GrowTimelineItem } from '../types';
-import { STATUS_COLORS, groupGrowsByFarm } from '../data';
+import React from "react";
+import { GrowTimelineItem } from "../types";
+import { STATUS_COLORS, groupGrowsByFarm } from "../data";
 
 interface SpatialViewProps {
   grows: GrowTimelineItem[];
@@ -28,9 +28,11 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
 
   const handleGrowContextMenu = (growId: string, event: React.MouseEvent) => {
     event.preventDefault();
-    const grow = grows.find(g => g.id === growId);
+    const grow = grows.find((g) => g.id === growId);
     if (grow) {
-      const action = window.confirm(`Abort grow ${grow.shelfName}?`) ? 'abort' : null;
+      const action = window.confirm(`Abort grow ${grow.shelfName}?`)
+        ? "abort"
+        : null;
       if (action) {
         onGrowAction(growId, action);
       }
@@ -45,33 +47,44 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
               {farmName}
             </h3>
-            
+
             <div className="space-y-6">
               {Object.entries(rows).map(([rowName, racks]) => (
                 <div key={rowName} className="space-y-3">
-                  <h4 className="text-md font-medium text-gray-700">{rowName}</h4>
-                  
+                  <h4 className="text-md font-medium text-gray-700">
+                    {rowName}
+                  </h4>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(racks).map(([rackName, rackGrows]) => (
-                      <div key={rackName} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                        <h5 className="text-sm font-medium text-gray-600 mb-3">{rackName}</h5>
-                        
+                      <div
+                        key={rackName}
+                        className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                      >
+                        <h5 className="text-sm font-medium text-gray-600 mb-3">
+                          {rackName}
+                        </h5>
+
                         <div className="grid grid-cols-2 gap-2">
                           {rackGrows.map((grow) => {
                             const isSelected = selectedGrows.includes(grow.id);
                             const isHovered = hoveredGrow === grow.id;
-                            
+
                             return (
                               <div
                                 key={grow.id}
                                 className={`relative p-3 rounded-md cursor-pointer transition-all duration-200 ${
-                                  isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
-                                } ${isHovered ? 'shadow-lg scale-105' : 'shadow-sm'}`}
+                                  isSelected
+                                    ? "ring-2 ring-blue-500 ring-offset-1"
+                                    : ""
+                                } ${isHovered ? "shadow-lg scale-105" : "shadow-sm"}`}
                                 style={{
                                   backgroundColor: STATUS_COLORS[grow.status],
                                 }}
                                 onClick={(e) => handleGrowClick(grow.id, e)}
-                                onContextMenu={(e) => handleGrowContextMenu(grow.id, e)}
+                                onContextMenu={(e) =>
+                                  handleGrowContextMenu(grow.id, e)
+                                }
                                 onMouseEnter={() => onGrowHover(grow.id)}
                                 onMouseLeave={() => onGrowHover(null)}
                               >
@@ -86,7 +99,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                                     {grow.progress}%
                                   </div>
                                 </div>
-                                
+
                                 {/* Status indicators */}
                                 <div className="absolute top-1 right-1 flex space-x-1">
                                   {grow.criticalAlerts > 0 && (
@@ -96,7 +109,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                                     <div className="w-2 h-2 bg-green-400 rounded-full" />
                                   )}
                                 </div>
-                                
+
                                 {/* Progress bar */}
                                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white bg-opacity-20 rounded-b-md">
                                   <div
@@ -108,13 +121,20 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                             );
                           })}
                         </div>
-                        
+
                         {/* Rack summary */}
                         <div className="mt-3 pt-3 border-t border-gray-300">
                           <div className="flex justify-between text-xs text-gray-600">
                             <span>{rackGrows.length} shelves</span>
                             <span>
-                              Avg: {Math.round(rackGrows.reduce((sum, g) => sum + g.progress, 0) / rackGrows.length)}%
+                              Avg:{" "}
+                              {Math.round(
+                                rackGrows.reduce(
+                                  (sum, g) => sum + g.progress,
+                                  0,
+                                ) / rackGrows.length,
+                              )}
+                              %
                             </span>
                           </div>
                         </div>
@@ -132,19 +152,19 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
       {hoveredGrow && (
         <div className="fixed z-50 bg-gray-900 text-white p-3 rounded-lg shadow-lg pointer-events-none">
           {(() => {
-            const grow = grows.find(g => g.id === hoveredGrow);
+            const grow = grows.find((g) => g.id === hoveredGrow);
             if (!grow) return null;
 
             return (
               <div className="space-y-1 text-sm">
                 <div className="font-medium">{grow.shelfName}</div>
-                <div className="text-gray-300">{grow.recipeName} - {grow.speciesName}</div>
+                <div className="text-gray-300">
+                  {grow.recipeName} - {grow.speciesName}
+                </div>
                 <div className="text-gray-300">
                   Day {grow.daysElapsed} of {grow.totalDays}
                 </div>
-                <div className="text-gray-300">
-                  Progress: {grow.progress}%
-                </div>
+                <div className="text-gray-300">Progress: {grow.progress}%</div>
                 <div className="text-gray-300">
                   Environmental Score: {grow.environmentalScore}/100
                 </div>
@@ -154,9 +174,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                   </div>
                 )}
                 {grow.automationEnabled && (
-                  <div className="text-green-400">
-                    Automation enabled
-                  </div>
+                  <div className="text-green-400">Automation enabled</div>
                 )}
               </div>
             );
@@ -192,4 +210,4 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
       </div>
     </div>
   );
-}; 
+};

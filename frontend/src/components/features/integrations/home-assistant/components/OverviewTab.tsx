@@ -1,16 +1,28 @@
-import React from 'react';
-import { 
-  Activity, 
-  TrendingUp, 
+import React from "react";
+import {
+  Activity,
+  TrendingUp,
   Info,
   Home,
   Zap,
-  Thermometer
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { HAConfig, HAConnectionStatus, HADevice, DeviceAssignment, ImportedDevice } from '@/services/homeAssistantService';
+  Thermometer,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type {
+  HAConfig,
+  HAConnectionStatus,
+  HADevice,
+  DeviceAssignment,
+  ImportedDevice,
+} from "@/services/homeAssistantService";
 
 interface OverviewTabProps {
   config: HAConfig | null;
@@ -27,50 +39,54 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   devices,
   assignments,
   importedDevices,
-  getStatusColor
+  getStatusColor,
 }) => {
   if (!config) {
     return (
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          No Home Assistant integration configured. Please set up your connection in the Configuration tab.
+          No Home Assistant integration configured. Please set up your
+          connection in the Configuration tab.
         </AlertDescription>
       </Alert>
     );
   }
 
-  const devicesByType = devices.reduce((acc, device) => {
-    const type = device.device_class || 'other';
-    acc[type] = (acc[type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const devicesByType = devices.reduce(
+    (acc, device) => {
+      const type = device.device_class || "other";
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   const quickMetrics = [
     {
-      label: 'Total Devices',
+      label: "Total Devices",
       value: devices.length,
       icon: Home,
-      description: 'Available devices'
+      description: "Available devices",
     },
     {
-      label: 'Imported',
+      label: "Imported",
       value: importedDevices.length,
       icon: Zap,
-      description: 'Devices in database'
+      description: "Devices in database",
     },
     {
-      label: 'Assigned',
+      label: "Assigned",
       value: assignments.length,
       icon: Thermometer,
-      description: 'Devices assigned to farms'
+      description: "Devices assigned to farms",
     },
     {
-      label: 'Online',
-      value: devices.filter(d => d.state !== 'unavailable').length,
+      label: "Online",
+      value: devices.filter((d) => d.state !== "unavailable").length,
       icon: Activity,
-      description: 'Responsive devices'
-    }
+      description: "Responsive devices",
+    },
   ];
 
   return (
@@ -115,10 +131,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {Object.entries(devicesByType).map(([type, count]) => (
-              <div key={type} className="flex items-center space-x-4 p-4 border rounded-lg">
+              <div
+                key={type}
+                className="flex items-center space-x-4 p-4 border rounded-lg"
+              >
                 <div className="flex items-center space-x-3 flex-1">
                   <Home className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium capitalize">{type.replace('_', ' ')}</span>
+                  <span className="font-medium capitalize">
+                    {type.replace("_", " ")}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -146,8 +167,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 border rounded-lg">
-              <div className={`text-sensor-value ${status.connected ? 'text-green-600' : 'text-red-600'}`}>
-                {status.connected ? 'Online' : 'Offline'}
+              <div
+                className={`text-sensor-value ${status.connected ? "text-green-600" : "text-red-600"}`}
+              >
+                {status.connected ? "Online" : "Offline"}
               </div>
               <div className="text-sm text-gray-500">Connection Status</div>
             </div>
@@ -159,7 +182,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
             <div className="text-center p-4 border rounded-lg">
               <div className="text-sensor-value text-accent-primary">
-                {Math.round((importedDevices.length / Math.max(devices.length, 1)) * 100)}%
+                {Math.round(
+                  (importedDevices.length / Math.max(devices.length, 1)) * 100,
+                )}
+                %
               </div>
               <div className="text-sm text-gray-500">Import Coverage</div>
             </div>
@@ -168,4 +194,4 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       </Card>
     </div>
   );
-}; 
+};

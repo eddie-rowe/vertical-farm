@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
-export type AnimationType = 
-  | 'fadeIn' 
-  | 'fadeOut' 
-  | 'slideIn' 
-  | 'slideOut' 
-  | 'scaleIn' 
-  | 'scaleOut' 
-  | 'pulse' 
-  | 'bounce' 
-  | 'shake';
+export type AnimationType =
+  | "fadeIn"
+  | "fadeOut"
+  | "slideIn"
+  | "slideOut"
+  | "scaleIn"
+  | "scaleOut"
+  | "pulse"
+  | "bounce"
+  | "shake";
 
 export interface AnimationConfig {
   type: AnimationType;
   duration: number;
   delay?: number;
-  easing?: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear';
-  iterations?: number | 'infinite';
-  direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
+  easing?: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+  iterations?: number | "infinite";
+  direction?: "normal" | "reverse" | "alternate" | "alternate-reverse";
 }
 
 interface AnimationControllerProps {
@@ -35,28 +35,31 @@ const AnimationController: React.FC<AnimationControllerProps> = ({
   config,
   children,
   onAnimationComplete,
-  className = ''
+  className = "",
 }) => {
   const elementRef = useRef<HTMLDivElement>(null);
-  const [animationState, setAnimationState] = useState<'idle' | 'running' | 'completed'>('idle');
+  const [animationState, setAnimationState] = useState<
+    "idle" | "running" | "completed"
+  >("idle");
 
   useEffect(() => {
     if (!elementRef.current || !isActive) return;
 
     const element = elementRef.current;
-    setAnimationState('running');
+    setAnimationState("running");
 
     // Create animation keyframes based on type
     const keyframes = getKeyframes(config.type);
-    
+
     // Configure animation options
     const animationOptions: KeyframeAnimationOptions = {
       duration: config.duration,
       delay: config.delay || 0,
-      easing: config.easing || 'ease',
-      iterations: config.iterations === 'infinite' ? Infinity : (config.iterations || 1),
-      direction: config.direction || 'normal',
-      fill: 'both'
+      easing: config.easing || "ease",
+      iterations:
+        config.iterations === "infinite" ? Infinity : config.iterations || 1,
+      direction: config.direction || "normal",
+      fill: "both",
     };
 
     // Start animation
@@ -64,7 +67,7 @@ const AnimationController: React.FC<AnimationControllerProps> = ({
 
     // Handle animation completion
     animation.onfinish = () => {
-      setAnimationState('completed');
+      setAnimationState("completed");
       onAnimationComplete?.();
     };
 
@@ -81,9 +84,9 @@ const AnimationController: React.FC<AnimationControllerProps> = ({
       style={{
         animationDuration: `${config.duration}ms`,
         animationDelay: `${config.delay || 0}ms`,
-        animationTimingFunction: config.easing || 'ease',
+        animationTimingFunction: config.easing || "ease",
         animationIterationCount: config.iterations || 1,
-        animationDirection: config.direction || 'normal'
+        animationDirection: config.direction || "normal",
       }}
     >
       {children}
@@ -94,57 +97,51 @@ const AnimationController: React.FC<AnimationControllerProps> = ({
 // Helper function to get keyframes for different animation types
 function getKeyframes(type: AnimationType): Keyframe[] {
   switch (type) {
-    case 'fadeIn':
+    case "fadeIn":
+      return [{ opacity: 0 }, { opacity: 1 }];
+    case "fadeOut":
+      return [{ opacity: 1 }, { opacity: 0 }];
+    case "slideIn":
       return [
-        { opacity: 0 },
-        { opacity: 1 }
+        { transform: "translateX(-100%)", opacity: 0 },
+        { transform: "translateX(0)", opacity: 1 },
       ];
-    case 'fadeOut':
+    case "slideOut":
       return [
-        { opacity: 1 },
-        { opacity: 0 }
+        { transform: "translateX(0)", opacity: 1 },
+        { transform: "translateX(100%)", opacity: 0 },
       ];
-    case 'slideIn':
+    case "scaleIn":
       return [
-        { transform: 'translateX(-100%)', opacity: 0 },
-        { transform: 'translateX(0)', opacity: 1 }
+        { transform: "scale(0)", opacity: 0 },
+        { transform: "scale(1)", opacity: 1 },
       ];
-    case 'slideOut':
+    case "scaleOut":
       return [
-        { transform: 'translateX(0)', opacity: 1 },
-        { transform: 'translateX(100%)', opacity: 0 }
+        { transform: "scale(1)", opacity: 1 },
+        { transform: "scale(0)", opacity: 0 },
       ];
-    case 'scaleIn':
+    case "pulse":
       return [
-        { transform: 'scale(0)', opacity: 0 },
-        { transform: 'scale(1)', opacity: 1 }
+        { transform: "scale(1)" },
+        { transform: "scale(1.05)" },
+        { transform: "scale(1)" },
       ];
-    case 'scaleOut':
+    case "bounce":
       return [
-        { transform: 'scale(1)', opacity: 1 },
-        { transform: 'scale(0)', opacity: 0 }
+        { transform: "translateY(0)" },
+        { transform: "translateY(-10px)" },
+        { transform: "translateY(0)" },
+        { transform: "translateY(-5px)" },
+        { transform: "translateY(0)" },
       ];
-    case 'pulse':
+    case "shake":
       return [
-        { transform: 'scale(1)' },
-        { transform: 'scale(1.05)' },
-        { transform: 'scale(1)' }
-      ];
-    case 'bounce':
-      return [
-        { transform: 'translateY(0)' },
-        { transform: 'translateY(-10px)' },
-        { transform: 'translateY(0)' },
-        { transform: 'translateY(-5px)' },
-        { transform: 'translateY(0)' }
-      ];
-    case 'shake':
-      return [
-        { transform: 'translateX(0)' },
-        { transform: 'translateX(-5px)' },
-        { transform: 'translateX(5px)' },
-        { transform: 'translateX(-5px)' },
-        { transform: 'translateX(0)' }
+        { transform: "translateX(0)" },
+        { transform: "translateX(-5px)" },
+        { transform: "translateX(5px)" },
+        { transform: "translateX(-5px)" },
+        { transform: "translateX(0)" },
       ];
     default:
       return [{ opacity: 1 }];
@@ -152,26 +149,29 @@ function getKeyframes(type: AnimationType): Keyframe[] {
 }
 
 // Helper function to get CSS classes for animations
-function getAnimationClasses(type: AnimationType, state: 'idle' | 'running' | 'completed'): string {
-  const baseClasses = 'transition-all';
-  
-  if (state === 'idle') return baseClasses;
-  
+function getAnimationClasses(
+  type: AnimationType,
+  state: "idle" | "running" | "completed",
+): string {
+  const baseClasses = "transition-all";
+
+  if (state === "idle") return baseClasses;
+
   switch (type) {
-    case 'fadeIn':
-    case 'fadeOut':
+    case "fadeIn":
+    case "fadeOut":
       return `${baseClasses} opacity-transition`;
-    case 'slideIn':
-    case 'slideOut':
+    case "slideIn":
+    case "slideOut":
       return `${baseClasses} transform-transition`;
-    case 'scaleIn':
-    case 'scaleOut':
+    case "scaleIn":
+    case "scaleOut":
       return `${baseClasses} scale-transition`;
-    case 'pulse':
+    case "pulse":
       return `${baseClasses} animate-pulse-custom`;
-    case 'bounce':
+    case "bounce":
       return `${baseClasses} animate-bounce-custom`;
-    case 'shake':
+    case "shake":
       return `${baseClasses} animate-shake-custom`;
     default:
       return baseClasses;
@@ -181,36 +181,36 @@ function getAnimationClasses(type: AnimationType, state: 'idle' | 'running' | 'c
 // Preset animation configurations
 export const AnimationPresets = {
   quickFadeIn: {
-    type: 'fadeIn' as AnimationType,
+    type: "fadeIn" as AnimationType,
     duration: 200,
-    easing: 'ease-out' as const
+    easing: "ease-out" as const,
   },
   smoothSlideIn: {
-    type: 'slideIn' as AnimationType,
+    type: "slideIn" as AnimationType,
     duration: 300,
-    easing: 'ease-out' as const
+    easing: "ease-out" as const,
   },
   gentleScale: {
-    type: 'scaleIn' as AnimationType,
+    type: "scaleIn" as AnimationType,
     duration: 250,
-    easing: 'ease-out' as const
+    easing: "ease-out" as const,
   },
   attentionPulse: {
-    type: 'pulse' as AnimationType,
+    type: "pulse" as AnimationType,
     duration: 600,
     iterations: 3 as const,
-    easing: 'ease-in-out' as const
+    easing: "ease-in-out" as const,
   },
   errorShake: {
-    type: 'shake' as AnimationType,
+    type: "shake" as AnimationType,
     duration: 400,
-    easing: 'ease-in-out' as const
+    easing: "ease-in-out" as const,
   },
   successBounce: {
-    type: 'bounce' as AnimationType,
+    type: "bounce" as AnimationType,
     duration: 600,
-    easing: 'ease-out' as const
-  }
+    easing: "ease-out" as const,
+  },
 };
 
 // Hook for managing multiple animations
@@ -225,7 +225,7 @@ export const useAnimationSequence = (animations: AnimationConfig[]) => {
 
   const handleAnimationComplete = () => {
     if (currentIndex < animations.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+      setCurrentIndex((prev) => prev + 1);
     } else {
       setIsPlaying(false);
       setCurrentIndex(0);
@@ -237,7 +237,8 @@ export const useAnimationSequence = (animations: AnimationConfig[]) => {
     isPlaying,
     startSequence,
     handleAnimationComplete,
-    progress: animations.length > 0 ? (currentIndex + 1) / animations.length : 0
+    progress:
+      animations.length > 0 ? (currentIndex + 1) / animations.length : 0,
   };
 };
 
@@ -247,13 +248,19 @@ export const useHoverAnimation = (config: AnimationConfig) => {
 
   const hoverProps = {
     onMouseEnter: () => setIsHovered(true),
-    onMouseLeave: () => setIsHovered(false)
+    onMouseLeave: () => setIsHovered(false),
   };
 
   return {
     isHovered,
     hoverProps,
-    AnimatedComponent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    AnimatedComponent: ({
+      children,
+      className,
+    }: {
+      children: React.ReactNode;
+      className?: string;
+    }) => (
       <AnimationController
         isActive={isHovered}
         config={config}
@@ -261,7 +268,7 @@ export const useHoverAnimation = (config: AnimationConfig) => {
       >
         {children}
       </AnimationController>
-    )
+    ),
   };
 };
 
@@ -280,7 +287,7 @@ export const StaggeredAnimation: React.FC<{
           isActive={isActive}
           config={{
             ...config,
-            delay: (config.delay || 0) + (index * staggerDelay)
+            delay: (config.delay || 0) + index * staggerDelay,
           }}
         >
           {child}
@@ -290,4 +297,4 @@ export const StaggeredAnimation: React.FC<{
   );
 };
 
-export default AnimationController; 
+export default AnimationController;

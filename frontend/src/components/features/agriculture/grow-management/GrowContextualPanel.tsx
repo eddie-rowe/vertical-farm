@@ -9,13 +9,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Leaf, 
-  Calendar, 
-  Clock, 
-  Settings, 
-  Activity, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Leaf,
+  Calendar,
+  Clock,
+  Settings,
+  Activity,
   AlertTriangle,
   CheckCircle,
   Edit,
@@ -32,7 +38,7 @@ import {
   Thermometer,
   Wind,
   Eye,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 
 interface GrowData {
@@ -46,7 +52,7 @@ interface GrowData {
   speciesName: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'active' | 'completed' | 'aborted';
+  status: "planned" | "active" | "completed" | "aborted";
   progress: number;
   daysElapsed: number;
   daysRemaining: number;
@@ -75,7 +81,7 @@ interface GrowData {
     timestamp: string;
     type: string;
     message: string;
-    severity: 'info' | 'warning' | 'error';
+    severity: "info" | "warning" | "error";
   }[];
 }
 
@@ -90,7 +96,7 @@ export default function GrowContextualPanel({
   selectedGrowId,
   onGrowUpdate,
   onGrowAction,
-  className = ""
+  className = "",
 }: GrowContextualPanelProps) {
   const [growData, setGrowData] = useState<GrowData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -121,42 +127,43 @@ export default function GrowContextualPanel({
         automationEnabled: true,
         criticalAlerts: 0,
         environmentalScore: 92,
-        notes: "Growing well, good color development. Adjusted lighting schedule yesterday.",
+        notes:
+          "Growing well, good color development. Adjusted lighting schedule yesterday.",
         environmentalData: {
           temperature: 22.5,
           humidity: 68,
           lightLevel: 85,
           airflow: 72,
           ph: 6.2,
-          ec: 1.4
+          ec: 1.4,
         },
         automationSettings: {
           lightHours: 14,
           wateringFrequency: 24,
           temperatureMin: 18,
           temperatureMax: 24,
-          humidityTarget: 65
+          humidityTarget: 65,
         },
         recentEvents: [
           {
             timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
             type: "watering",
             message: "Automated watering cycle completed",
-            severity: "info"
+            severity: "info",
           },
           {
             timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
             type: "lighting",
             message: "Light cycle adjusted to 14 hours",
-            severity: "info"
+            severity: "info",
           },
           {
             timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
             type: "environment",
             message: "Humidity slightly above target range",
-            severity: "warning"
-          }
-        ]
+            severity: "warning",
+          },
+        ],
       };
 
       setTimeout(() => {
@@ -177,28 +184,37 @@ export default function GrowContextualPanel({
     setIsEditing(false);
   };
 
-  const getStatusColor = (status: GrowData['status']) => {
+  const getStatusColor = (status: GrowData["status"]) => {
     switch (status) {
-      case 'planned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      case 'aborted': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800';
+      case "planned":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "completed":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "aborted":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getEnvironmentalStatus = (value: number, min: number, max: number) => {
-    if (value < min || value > max) return 'error';
-    if (value < min * 1.1 || value > max * 0.9) return 'warning';
-    return 'good';
+    if (value < min || value > max) return "error";
+    if (value < min * 1.1 || value > max * 0.9) return "warning";
+    return "good";
   };
 
   const getEnvironmentalColor = (status: string) => {
     switch (status) {
-      case 'good': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+      case "good":
+        return "text-green-600";
+      case "warning":
+        return "text-yellow-600";
+      case "error":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
     }
   };
 
@@ -206,7 +222,7 @@ export default function GrowContextualPanel({
     const diff = Date.now() - new Date(timestamp).getTime();
     const hours = Math.floor(diff / (60 * 60 * 1000));
     const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-    
+
     if (hours > 0) return `${hours}h ${minutes}m ago`;
     return `${minutes}m ago`;
   };
@@ -258,24 +274,30 @@ export default function GrowContextualPanel({
             {growData.status}
           </Badge>
         </div>
-        
+
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">{growData.progress}%</p>
+            <p className="text-2xl font-bold text-green-600">
+              {growData.progress}%
+            </p>
             <p className="text-xs text-gray-500">Progress</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{growData.daysRemaining}</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {growData.daysRemaining}
+            </p>
             <p className="text-xs text-gray-500">Days left</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{growData.environmentalScore}</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {growData.environmentalScore}
+            </p>
             <p className="text-xs text-gray-500">Env Score</p>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
@@ -306,7 +328,9 @@ export default function GrowContextualPanel({
               </div>
               <Progress value={growData.progress} className="h-2" />
               <div className="flex justify-between text-xs text-gray-500">
-                <span>Day {growData.daysElapsed}/{growData.totalDays}</span>
+                <span>
+                  Day {growData.daysElapsed}/{growData.totalDays}
+                </span>
                 <span>{growData.daysRemaining} days remaining</span>
               </div>
             </div>
@@ -315,7 +339,8 @@ export default function GrowContextualPanel({
             <div className="space-y-2">
               <Label className="text-sm font-medium">Location</Label>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                📍 {growData.farmName} › {growData.rowName} › {growData.rackName} › {growData.shelfName}
+                📍 {growData.farmName} › {growData.rowName} ›{" "}
+                {growData.rackName} › {growData.shelfName}
               </div>
             </div>
 
@@ -325,11 +350,15 @@ export default function GrowContextualPanel({
               <div className="space-y-1 text-sm">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>Started: {new Date(growData.startDate).toLocaleDateString()}</span>
+                  <span>
+                    Started: {new Date(growData.startDate).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>Harvest: {new Date(growData.endDate).toLocaleDateString()}</span>
+                  <span>
+                    Harvest: {new Date(growData.endDate).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -339,7 +368,11 @@ export default function GrowContextualPanel({
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Notes</Label>
                 {!isEditing && (
-                  <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                  >
                     <Edit className="h-3 w-3" />
                   </Button>
                 )}
@@ -357,7 +390,11 @@ export default function GrowContextualPanel({
                       <Save className="h-3 w-3 mr-1" />
                       Save
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditing(false)}
+                    >
                       <X className="h-3 w-3 mr-1" />
                       Cancel
                     </Button>
@@ -374,30 +411,50 @@ export default function GrowContextualPanel({
             <div className="space-y-2">
               <Label className="text-sm font-medium">Actions</Label>
               <div className="flex flex-wrap gap-2">
-                {growData.status === 'active' && (
+                {growData.status === "active" && (
                   <>
-                    <Button variant="outline" size="sm" onClick={() => onGrowAction?.(growData.id, 'pause')}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onGrowAction?.(growData.id, "pause")}
+                    >
                       <Pause className="h-3 w-3 mr-1" />
                       Pause
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => onGrowAction?.(growData.id, 'harvest')}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onGrowAction?.(growData.id, "harvest")}
+                    >
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Harvest
                     </Button>
                   </>
                 )}
-                {growData.status === 'planned' && (
-                  <Button variant="outline" size="sm" onClick={() => onGrowAction?.(growData.id, 'start')}>
+                {growData.status === "planned" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onGrowAction?.(growData.id, "start")}
+                  >
                     <Play className="h-3 w-3 mr-1" />
                     Start
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={() => onGrowAction?.(growData.id, 'clone')}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onGrowAction?.(growData.id, "clone")}
+                >
                   <RotateCcw className="h-3 w-3 mr-1" />
                   Clone
                 </Button>
-                {growData.status !== 'completed' && (
-                  <Button variant="destructive" size="sm" onClick={() => onGrowAction?.(growData.id, 'abort')}>
+                {growData.status !== "completed" && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onGrowAction?.(growData.id, "abort")}
+                  >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Abort
                   </Button>
@@ -414,34 +471,49 @@ export default function GrowContextualPanel({
                   <Thermometer className="h-4 w-4" />
                   <span className="text-sm font-medium">Temperature</span>
                 </div>
-                <div className="text-lg font-bold">{growData.environmentalData.temperature}°C</div>
-                <div className="text-xs text-gray-500">Target: {growData.automationSettings.temperatureMin}-{growData.automationSettings.temperatureMax}°C</div>
+                <div className="text-lg font-bold">
+                  {growData.environmentalData.temperature}°C
+                </div>
+                <div className="text-xs text-gray-500">
+                  Target: {growData.automationSettings.temperatureMin}-
+                  {growData.automationSettings.temperatureMax}°C
+                </div>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Droplets className="h-4 w-4" />
                   <span className="text-sm font-medium">Humidity</span>
                 </div>
-                <div className="text-lg font-bold">{growData.environmentalData.humidity}%</div>
-                <div className="text-xs text-gray-500">Target: {growData.automationSettings.humidityTarget}%</div>
+                <div className="text-lg font-bold">
+                  {growData.environmentalData.humidity}%
+                </div>
+                <div className="text-xs text-gray-500">
+                  Target: {growData.automationSettings.humidityTarget}%
+                </div>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Sun className="h-4 w-4" />
                   <span className="text-sm font-medium">Light Level</span>
                 </div>
-                <div className="text-lg font-bold">{growData.environmentalData.lightLevel}%</div>
-                <div className="text-xs text-gray-500">{growData.automationSettings.lightHours}h/day</div>
+                <div className="text-lg font-bold">
+                  {growData.environmentalData.lightLevel}%
+                </div>
+                <div className="text-xs text-gray-500">
+                  {growData.automationSettings.lightHours}h/day
+                </div>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Wind className="h-4 w-4" />
                   <span className="text-sm font-medium">Airflow</span>
                 </div>
-                <div className="text-lg font-bold">{growData.environmentalData.airflow}%</div>
+                <div className="text-lg font-bold">
+                  {growData.environmentalData.airflow}%
+                </div>
                 <div className="text-xs text-gray-500">Circulation</div>
               </div>
             </div>
@@ -452,11 +524,15 @@ export default function GrowContextualPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 dark:bg-gray-900 rounded p-2">
                   <div className="text-sm font-medium">pH Level</div>
-                  <div className="text-lg font-bold">{growData.environmentalData.ph}</div>
+                  <div className="text-lg font-bold">
+                    {growData.environmentalData.ph}
+                  </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 rounded p-2">
                   <div className="text-sm font-medium">EC Level</div>
-                  <div className="text-lg font-bold">{growData.environmentalData.ec} mS/cm</div>
+                  <div className="text-lg font-bold">
+                    {growData.environmentalData.ec} mS/cm
+                  </div>
                 </div>
               </div>
             </div>
@@ -469,7 +545,9 @@ export default function GrowContextualPanel({
                 <Bot className="h-4 w-4" />
                 <span className="text-sm font-medium">Automation</span>
               </div>
-              <Badge variant={growData.automationEnabled ? "default" : "secondary"}>
+              <Badge
+                variant={growData.automationEnabled ? "default" : "secondary"}
+              >
                 {growData.automationEnabled ? "Enabled" : "Disabled"}
               </Badge>
             </div>
@@ -479,50 +557,50 @@ export default function GrowContextualPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Light Hours/Day</Label>
-                  <Input 
-                    type="number" 
-                    value={growData.automationSettings.lightHours} 
+                  <Input
+                    type="number"
+                    value={growData.automationSettings.lightHours}
                     className="h-8 text-sm"
                     readOnly
                   />
                 </div>
                 <div>
                   <Label className="text-xs">Watering Frequency (hrs)</Label>
-                  <Input 
-                    type="number" 
-                    value={growData.automationSettings.wateringFrequency} 
+                  <Input
+                    type="number"
+                    value={growData.automationSettings.wateringFrequency}
                     className="h-8 text-sm"
                     readOnly
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Min Temperature</Label>
-                  <Input 
-                    type="number" 
-                    value={growData.automationSettings.temperatureMin} 
+                  <Input
+                    type="number"
+                    value={growData.automationSettings.temperatureMin}
                     className="h-8 text-sm"
                     readOnly
                   />
                 </div>
                 <div>
                   <Label className="text-xs">Max Temperature</Label>
-                  <Input 
-                    type="number" 
-                    value={growData.automationSettings.temperatureMax} 
+                  <Input
+                    type="number"
+                    value={growData.automationSettings.temperatureMax}
                     className="h-8 text-sm"
                     readOnly
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label className="text-xs">Target Humidity</Label>
-                <Input 
-                  type="number" 
-                  value={growData.automationSettings.humidityTarget} 
+                <Input
+                  type="number"
+                  value={growData.automationSettings.humidityTarget}
                   className="h-8 text-sm"
                   readOnly
                 />
@@ -551,14 +629,24 @@ export default function GrowContextualPanel({
               <Label className="text-sm font-medium">Recent Events</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {growData.recentEvents.map((event, index) => (
-                  <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      event.severity === 'error' ? 'bg-red-500' :
-                      event.severity === 'warning' ? 'bg-yellow-500' : 'bg-green-500'
-                    }`} />
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded"
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full mt-2 ${
+                        event.severity === "error"
+                          ? "bg-red-500"
+                          : event.severity === "warning"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                      }`}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm">{event.message}</div>
-                      <div className="text-xs text-gray-500">{formatTimeAgo(event.timestamp)}</div>
+                      <div className="text-xs text-gray-500">
+                        {formatTimeAgo(event.timestamp)}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -584,4 +672,4 @@ export default function GrowContextualPanel({
       </CardContent>
     </Card>
   );
-} 
+}

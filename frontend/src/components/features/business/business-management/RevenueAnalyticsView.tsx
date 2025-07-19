@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -12,7 +12,7 @@ import {
   BarChart3,
   Download,
   Target,
-  Award
+  Award,
 } from "lucide-react";
 
 export default function RevenueAnalyticsView() {
@@ -20,43 +20,43 @@ export default function RevenueAnalyticsView() {
 
   // Mock analytics data
   const revenueData = {
-    totalRevenue: 12547.50,
+    totalRevenue: 12547.5,
     monthlyGrowth: 8.2,
     averageOrderValue: 145.32,
     totalOrders: 86,
     newCustomers: 12,
     returningCustomers: 18,
     topProducts: [
-      { name: "Organic Lettuce", revenue: 3250.00, orders: 42, growth: 12.5 },
-      { name: "Fresh Basil", revenue: 2180.00, orders: 28, growth: 8.3 },
-      { name: "Microgreens Mix", revenue: 1890.00, orders: 15, growth: 15.2 },
-      { name: "Baby Spinach", revenue: 1420.00, orders: 22, growth: -2.1 },
-      { name: "Fresh Kale", revenue: 1205.00, orders: 18, growth: 6.8 }
+      { name: "Organic Lettuce", revenue: 3250.0, orders: 42, growth: 12.5 },
+      { name: "Fresh Basil", revenue: 2180.0, orders: 28, growth: 8.3 },
+      { name: "Microgreens Mix", revenue: 1890.0, orders: 15, growth: 15.2 },
+      { name: "Baby Spinach", revenue: 1420.0, orders: 22, growth: -2.1 },
+      { name: "Fresh Kale", revenue: 1205.0, orders: 18, growth: 6.8 },
     ],
     customerSegments: [
-      { segment: "Restaurants", revenue: 5420.00, orders: 32, percentage: 43.2 },
-      { segment: "Wholesale", revenue: 4125.00, orders: 24, percentage: 32.9 },
-      { segment: "CSA", revenue: 1890.00, orders: 18, percentage: 15.1 },
-      { segment: "Retail", revenue: 1112.50, orders: 12, percentage: 8.8 }
+      { segment: "Restaurants", revenue: 5420.0, orders: 32, percentage: 43.2 },
+      { segment: "Wholesale", revenue: 4125.0, orders: 24, percentage: 32.9 },
+      { segment: "CSA", revenue: 1890.0, orders: 18, percentage: 15.1 },
+      { segment: "Retail", revenue: 1112.5, orders: 12, percentage: 8.8 },
     ],
     monthlyTrends: [
       { month: "Aug", revenue: 8240, orders: 58 },
       { month: "Sep", revenue: 9150, orders: 64 },
       { month: "Oct", revenue: 10420, orders: 71 },
       { month: "Nov", revenue: 11680, orders: 78 },
-      { month: "Dec", revenue: 12547, orders: 86 }
-    ]
+      { month: "Dec", revenue: 12547, orders: 86 },
+    ],
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+    return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
   };
 
   return (
@@ -64,8 +64,12 @@ export default function RevenueAnalyticsView() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Revenue Analytics</h2>
-          <p className="text-gray-600 dark:text-gray-400">Business performance insights and revenue tracking</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Revenue Analytics
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Business performance insights and revenue tracking
+          </p>
         </div>
         <div className="flex gap-2">
           <select
@@ -91,14 +95,17 @@ export default function RevenueAnalyticsView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Revenue
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   {formatCurrency(revenueData.totalRevenue)}
                 </p>
                 <div className="flex items-center mt-2">
                   <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                   <span className="text-sm text-green-600 font-medium">
-                    {formatPercentage(revenueData.monthlyGrowth)} from last month
+                    {formatPercentage(revenueData.monthlyGrowth)} from last
+                    month
                   </span>
                 </div>
               </div>
@@ -113,13 +120,17 @@ export default function RevenueAnalyticsView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Order Value</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Average Order Value
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   {formatCurrency(revenueData.averageOrderValue)}
                 </p>
                 <div className="flex items-center mt-2">
                   <TrendingUp className="h-4 w-4 text-blue-600 mr-1" />
-                  <span className="text-sm text-blue-600 font-medium">+5.2% from last month</span>
+                  <span className="text-sm text-blue-600 font-medium">
+                    +5.2% from last month
+                  </span>
                 </div>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
@@ -133,13 +144,17 @@ export default function RevenueAnalyticsView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Orders
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   {revenueData.totalOrders.toLocaleString()}
                 </p>
                 <div className="flex items-center mt-2">
                   <TrendingUp className="h-4 w-4 text-purple-600 mr-1" />
-                  <span className="text-sm text-purple-600 font-medium">+12.4% from last month</span>
+                  <span className="text-sm text-purple-600 font-medium">
+                    +12.4% from last month
+                  </span>
                 </div>
               </div>
               <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
@@ -153,13 +168,17 @@ export default function RevenueAnalyticsView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Customer Growth</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Customer Growth
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   +{revenueData.newCustomers}
                 </p>
                 <div className="flex items-center mt-2">
                   <Users className="h-4 w-4 text-orange-600 mr-1" />
-                  <span className="text-sm text-orange-600 font-medium">New customers this month</span>
+                  <span className="text-sm text-orange-600 font-medium">
+                    New customers this month
+                  </span>
                 </div>
               </div>
               <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
@@ -183,18 +202,21 @@ export default function RevenueAnalyticsView() {
           <CardContent>
             <div className="space-y-4">
               {revenueData.monthlyTrends.map((month) => (
-                <div key={month.month} className="flex items-center justify-between">
+                <div
+                  key={month.month}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-8">
                       {month.month}
                     </span>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <div 
+                        <div
                           className="h-2 bg-green-500 rounded"
-                          style={{ 
-                            width: `${(month.revenue / Math.max(...revenueData.monthlyTrends.map(m => m.revenue))) * 100}%`,
-                            minWidth: '20px'
+                          style={{
+                            width: `${(month.revenue / Math.max(...revenueData.monthlyTrends.map((m) => m.revenue))) * 100}%`,
+                            minWidth: "20px",
                           }}
                         />
                         <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -234,7 +256,7 @@ export default function RevenueAnalyticsView() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
+                      <div
                         className="h-2 bg-blue-500 rounded-full"
                         style={{ width: `${segment.percentage}%` }}
                       />
@@ -264,7 +286,10 @@ export default function RevenueAnalyticsView() {
         <CardContent>
           <div className="space-y-4">
             {revenueData.topProducts.map((product, index) => (
-              <div key={product.name} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <div
+                key={product.name}
+                className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div className="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full">
                     <span className="text-sm font-bold text-gray-600 dark:text-gray-400">
@@ -272,7 +297,9 @@ export default function RevenueAnalyticsView() {
                     </span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{product.name}</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {product.name}
+                    </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {product.orders} orders
                     </p>
@@ -289,9 +316,11 @@ export default function RevenueAnalyticsView() {
                       ) : (
                         <TrendingDown className="h-3 w-3 text-red-600" />
                       )}
-                      <span className={`text-xs font-medium ${
-                        product.growth > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`text-xs font-medium ${
+                          product.growth > 0 ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
                         {formatPercentage(product.growth)}
                       </span>
                     </div>
@@ -315,39 +344,60 @@ export default function RevenueAnalyticsView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue Goal</span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">84%</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Revenue Goal
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  84%
+                </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="h-2 bg-green-500 rounded-full" style={{ width: '84%' }}></div>
+                <div
+                  className="h-2 bg-green-500 rounded-full"
+                  style={{ width: "84%" }}
+                ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>${revenueData.totalRevenue.toLocaleString()}</span>
                 <span>Target: $15,000</span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">New Customers</span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">60%</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  New Customers
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  60%
+                </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="h-2 bg-blue-500 rounded-full" style={{ width: '60%' }}></div>
+                <div
+                  className="h-2 bg-blue-500 rounded-full"
+                  style={{ width: "60%" }}
+                ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>{revenueData.newCustomers}</span>
                 <span>Target: 20</span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Orders</span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">86%</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Orders
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  86%
+                </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="h-2 bg-purple-500 rounded-full" style={{ width: '86%' }}></div>
+                <div
+                  className="h-2 bg-purple-500 rounded-full"
+                  style={{ width: "86%" }}
+                ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>{revenueData.totalOrders}</span>
@@ -359,4 +409,4 @@ export default function RevenueAnalyticsView() {
       </Card>
     </div>
   );
-} 
+}

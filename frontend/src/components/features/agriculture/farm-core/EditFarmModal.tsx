@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -24,10 +24,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { updateFarm, deleteFarm, CreateFarmData } from "@/services/supabaseService";
+import {
+  updateFarm,
+  deleteFarm,
+  CreateFarmData,
+} from "@/services/supabaseService";
 import { Farm } from "@/types/farm";
-import toast from 'react-hot-toast';
-import { Edit2, Trash2 } from 'lucide-react';
+import toast from "react-hot-toast";
+import { Edit2, Trash2 } from "lucide-react";
 
 interface EditFarmModalProps {
   farm: Farm;
@@ -42,17 +46,22 @@ interface FormErrors {
   farm_image_url?: string;
 }
 
-export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trigger }: EditFarmModalProps) {
+export default function EditFarmModal({
+  farm,
+  onFarmUpdated,
+  onFarmDeleted,
+  trigger,
+}: EditFarmModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
   const [formData, setFormData] = useState<CreateFarmData>({
     name: farm.name,
-    location: farm.location || '',
-    farm_image_url: farm.farm_image_url || '',
+    location: farm.location || "",
+    farm_image_url: farm.farm_image_url || "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -62,8 +71,8 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
     if (isOpen) {
       setFormData({
         name: farm.name,
-        location: farm.location || '',
-        farm_image_url: farm.farm_image_url || '',
+        location: farm.location || "",
+        farm_image_url: farm.farm_image_url || "",
       });
       setErrors({});
     }
@@ -74,19 +83,19 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
 
     // Name validation (required, 3-50 chars)
     if (!formData.name.trim()) {
-      newErrors.name = 'Farm name is required';
+      newErrors.name = "Farm name is required";
     } else if (formData.name.trim().length < 3) {
-      newErrors.name = 'Farm name must be at least 3 characters';
+      newErrors.name = "Farm name must be at least 3 characters";
     } else if (formData.name.trim().length > 50) {
-      newErrors.name = 'Farm name must be less than 50 characters';
+      newErrors.name = "Farm name must be less than 50 characters";
     }
 
     // Location validation (optional, but if provided must be 3-100 chars)
     if (formData.location && formData.location.trim()) {
       if (formData.location.trim().length < 3) {
-        newErrors.location = 'Location must be at least 3 characters';
+        newErrors.location = "Location must be at least 3 characters";
       } else if (formData.location.trim().length > 100) {
-        newErrors.location = 'Location must be less than 100 characters';
+        newErrors.location = "Location must be less than 100 characters";
       }
     }
 
@@ -94,7 +103,7 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
     if (formData.farm_image_url && formData.farm_image_url.trim()) {
       const urlPattern = /^https?:\/\/[\w\d.-]+\.[a-z]{2,}(?:\/[^\s]*)?$/;
       if (!urlPattern.test(formData.farm_image_url.trim())) {
-        newErrors.farm_image_url = 'Please enter a valid URL';
+        newErrors.farm_image_url = "Please enter a valid URL";
       }
     }
 
@@ -104,7 +113,7 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -126,14 +135,14 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
 
       const updatedFarm = await updateFarm(farm.id, cleanedData);
       toast.success(`Farm "${updatedFarm.name}" updated successfully!`);
-      
+
       setIsOpen(false);
-      
+
       // Notify parent component (cast to match interface expectations)
       onFarmUpdated(updatedFarm as Farm);
     } catch (error: any) {
-      console.error('Failed to update farm:', error);
-      toast.error(error.message || 'Failed to update farm');
+      console.error("Failed to update farm:", error);
+      toast.error(error.message || "Failed to update farm");
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +150,9 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
 
   const handleDelete = async () => {
     if (deleteConfirmText !== farm.name) {
-      toast.error('Farm name does not match. Please type the exact farm name to confirm deletion.');
+      toast.error(
+        "Farm name does not match. Please type the exact farm name to confirm deletion.",
+      );
       return;
     }
 
@@ -149,32 +160,35 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
     try {
       await deleteFarm(farm.id);
       toast.success(`Farm "${farm.name}" deleted successfully!`);
-      
+
       setShowDeleteDialog(false);
       setIsOpen(false);
-      setDeleteConfirmText('');
-      
+      setDeleteConfirmText("");
+
       // Notify parent component
       onFarmDeleted();
     } catch (error: any) {
-      console.error('Failed to delete farm:', error);
-      toast.error(error.message || 'Failed to delete farm');
+      console.error("Failed to delete farm:", error);
+      toast.error(error.message || "Failed to delete farm");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleInputChange = (field: keyof CreateFarmData, value: string | undefined) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreateFarmData,
+    value: string | undefined,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: undefined
+        [field]: undefined,
       }));
     }
   };
@@ -198,46 +212,57 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
             Update farm details or delete this farm.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="edit-name">Farm Name *</Label>
             <Input
               id="edit-name"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Enter farm name"
-              className={errors.name ? 'border-red-500' : ''}
+              className={errors.name ? "border-red-500" : ""}
             />
-            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-sm text-red-500">{errors.name}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="edit-location">Location</Label>
             <Input
               id="edit-location"
-              value={formData.location || ''}
-              onChange={(e) => handleInputChange('location', e.target.value)}
+              value={formData.location || ""}
+              onChange={(e) => handleInputChange("location", e.target.value)}
               placeholder="Enter farm location"
-              className={errors.location ? 'border-red-500' : ''}
+              className={errors.location ? "border-red-500" : ""}
             />
-            {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
+            {errors.location && (
+              <p className="text-sm text-red-500">{errors.location}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="edit-farm_image_url">Farm Image URL</Label>
             <Input
               id="edit-farm_image_url"
-              value={formData.farm_image_url || ''}
-              onChange={(e) => handleInputChange('farm_image_url', e.target.value)}
+              value={formData.farm_image_url || ""}
+              onChange={(e) =>
+                handleInputChange("farm_image_url", e.target.value)
+              }
               placeholder="https://example.com/farm-plan.jpg"
-              className={errors.farm_image_url ? 'border-red-500' : ''}
+              className={errors.farm_image_url ? "border-red-500" : ""}
             />
-            {errors.farm_image_url && <p className="text-sm text-red-500">{errors.farm_image_url}</p>}
+            {errors.farm_image_url && (
+              <p className="text-sm text-red-500">{errors.farm_image_url}</p>
+            )}
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t">
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialog
+              open={showDeleteDialog}
+              onOpenChange={setShowDeleteDialog}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   type="button"
@@ -254,12 +279,17 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
                   <AlertDialogTitle>Delete Farm</AlertDialogTitle>
                   <AlertDialogDescription className="space-y-3">
                     <p>
-                      This action cannot be undone. This will permanently delete the farm{' '}
-                      <span className="font-semibold">"{farm.name}"</span> and all associated data including rows, racks, shelves, and device assignments.
+                      This action cannot be undone. This will permanently delete
+                      the farm{" "}
+                      <span className="font-semibold">"{farm.name}"</span> and
+                      all associated data including rows, racks, shelves, and
+                      device assignments.
                     </p>
                     <div className="space-y-2">
                       <Label htmlFor="delete-confirm">
-                        Type <span className="font-semibold">"{farm.name}"</span> to confirm:
+                        Type{" "}
+                        <span className="font-semibold">"{farm.name}"</span> to
+                        confirm:
                       </Label>
                       <Input
                         id="delete-confirm"
@@ -271,7 +301,7 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>
+                  <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
@@ -279,7 +309,7 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
                     disabled={isDeleteDisabled}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    {isDeleting ? 'Deleting...' : 'Delete Farm'}
+                    {isDeleting ? "Deleting..." : "Delete Farm"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -295,7 +325,7 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Farm'}
+                {isLoading ? "Updating..." : "Update Farm"}
               </Button>
             </div>
           </div>
@@ -303,4 +333,4 @@ export default function EditFarmModal({ farm, onFarmUpdated, onFarmDeleted, trig
       </DialogContent>
     </Dialog>
   );
-} 
+}

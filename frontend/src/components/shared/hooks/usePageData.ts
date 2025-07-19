@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Configuration for usePageData hook
@@ -30,13 +30,13 @@ export interface PageDataResult<T> {
 
 /**
  * Custom hook for standardizing page data loading patterns
- * 
+ *
  * This hook encapsulates the common pattern of:
  * 1. Loading state management
  * 2. localStorage integration checks
  * 3. Mock data simulation
  * 4. Determining if data should show empty state vs content
- * 
+ *
  * @param config Configuration object for the hook
  * @returns Object with data, loading state, and utilities
  */
@@ -45,7 +45,7 @@ export function usePageData<T>(config: PageDataConfig<T>): PageDataResult<T> {
     storageKey,
     mockData,
     hasDataCheck = (data: T) => Boolean(data),
-    loadingDelay = 1000
+    loadingDelay = 1000,
   } = config;
 
   const [data, setData] = useState<T>(mockData);
@@ -53,25 +53,25 @@ export function usePageData<T>(config: PageDataConfig<T>): PageDataResult<T> {
 
   const loadData = async () => {
     setIsLoading(true);
-    
+
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, loadingDelay));
-    
+    await new Promise((resolve) => setTimeout(resolve, loadingDelay));
+
     // Check if user has connected integrations
     const hasConnectedIntegrations = localStorage.getItem(storageKey);
-    
+
     if (hasConnectedIntegrations) {
       setData(mockData);
     } else {
       // Set empty/default data based on the structure of mockData
-      const emptyData = Array.isArray(mockData) 
-        ? [] as T
-        : typeof mockData === 'object' && mockData !== null
-          ? { ...mockData, hasData: false } as T
+      const emptyData = Array.isArray(mockData)
+        ? ([] as T)
+        : typeof mockData === "object" && mockData !== null
+          ? ({ ...mockData, hasData: false } as T)
           : mockData;
       setData(emptyData);
     }
-    
+
     setIsLoading(false);
   };
 
@@ -85,6 +85,6 @@ export function usePageData<T>(config: PageDataConfig<T>): PageDataResult<T> {
     data,
     isLoading,
     hasData,
-    refetch: loadData
+    refetch: loadData,
   };
-} 
+}

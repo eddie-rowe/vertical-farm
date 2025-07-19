@@ -1,23 +1,47 @@
-import React from 'react';
-import { 
-  Plus, 
-  Settings, 
-  Edit, 
-  Trash2, 
-  Check, 
+import React from "react";
+import {
+  Plus,
+  Settings,
+  Edit,
+  Trash2,
+  Check,
   X,
-  AlertCircle
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { SquareConfig, SquareConfigCreate, SquareConfigUpdate, SquareConnectionStatus } from '@/services/squareService';
-import { TestResult } from '../types';
+  AlertCircle,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  SquareConfig,
+  SquareConfigCreate,
+  SquareConfigUpdate,
+  SquareConnectionStatus,
+} from "@/services/squareService";
+import { TestResult } from "../types";
 
 interface ConfigurationTabProps {
   configs: SquareConfig[];
@@ -35,7 +59,9 @@ interface ConfigurationTabProps {
   connectionError: string | null;
   saveSuccess: string | null;
   setNewConfig: (config: SquareConfigCreate) => void;
-  setEditingConfig: (config: (SquareConfigUpdate & { id: string }) | null) => void;
+  setEditingConfig: (
+    config: (SquareConfigUpdate & { id: string }) | null,
+  ) => void;
   setShowCreateDialog: (show: boolean) => void;
   setShowEditDialog: (show: boolean) => void;
   handleCreateConfiguration: () => Promise<void>;
@@ -72,7 +98,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
   handleTestConnection,
   handleSetActiveConfig,
   handleEditConfiguration,
-  getStatusBadge
+  getStatusBadge,
 }) => {
   return (
     <div className="space-y-6">
@@ -83,7 +109,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
           <AlertDescription>{saveSuccess}</AlertDescription>
         </Alert>
       )}
-      
+
       {connectionError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -115,7 +141,8 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                 <DialogHeader>
                   <DialogTitle>Create Square Configuration</DialogTitle>
                   <DialogDescription>
-                    Add a new Square API configuration to connect your Square account
+                    Add a new Square API configuration to connect your Square
+                    account
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -124,7 +151,9 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                     <Input
                       id="name"
                       value={newConfig.name}
-                      onChange={(e) => setNewConfig({ ...newConfig, name: e.target.value })}
+                      onChange={(e) =>
+                        setNewConfig({ ...newConfig, name: e.target.value })
+                      }
                       placeholder="My Square Store"
                     />
                   </div>
@@ -133,7 +162,12 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                     <Input
                       id="application_id"
                       value={newConfig.application_id}
-                      onChange={(e) => setNewConfig({ ...newConfig, application_id: e.target.value })}
+                      onChange={(e) =>
+                        setNewConfig({
+                          ...newConfig,
+                          application_id: e.target.value,
+                        })
+                      }
                       placeholder="sq0idp-..."
                     />
                   </div>
@@ -143,15 +177,25 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                       id="access_token"
                       type="password"
                       value={newConfig.access_token}
-                      onChange={(e) => setNewConfig({ ...newConfig, access_token: e.target.value })}
+                      onChange={(e) =>
+                        setNewConfig({
+                          ...newConfig,
+                          access_token: e.target.value,
+                        })
+                      }
                       placeholder="EAAAl..."
                     />
                   </div>
                   <div>
                     <Label htmlFor="environment">Environment</Label>
-                    <Select 
-                      value={newConfig.environment} 
-                      onValueChange={(value) => setNewConfig({ ...newConfig, environment: value as 'sandbox' | 'production' })}
+                    <Select
+                      value={newConfig.environment}
+                      onValueChange={(value) =>
+                        setNewConfig({
+                          ...newConfig,
+                          environment: value as "sandbox" | "production",
+                        })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -163,10 +207,16 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                     </Select>
                   </div>
                   <div className="flex space-x-2">
-                    <Button onClick={handleCreateConfiguration} disabled={isSaving}>
-                      {isSaving ? 'Creating...' : 'Create Configuration'}
+                    <Button
+                      onClick={handleCreateConfiguration}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Creating..." : "Create Configuration"}
                     </Button>
-                    <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCreateDialog(false)}
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -185,12 +235,17 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
             <div className="text-center py-8">
               <Settings className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">No Square configurations found</p>
-              <p className="text-sm text-gray-400 mt-2">Create your first configuration to get started</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Create your first configuration to get started
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               {configs.map((config) => (
-                <div key={config.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={config.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center space-x-4">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
@@ -209,7 +264,9 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {getStatusBadge(config.is_active ? status.connected : false)}
+                      {getStatusBadge(
+                        config.is_active ? status.connected : false,
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -219,7 +276,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                       onClick={() => handleTestConnection(config.id!)}
                       disabled={isTesting}
                     >
-                      {isTesting ? 'Testing...' : 'Test'}
+                      {isTesting ? "Testing..." : "Test"}
                     </Button>
                     {!config.is_active && (
                       <Button
@@ -273,7 +330,9 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                 <Input
                   id="edit-name"
                   value={editingConfig.name}
-                  onChange={(e) => setEditingConfig({ ...editingConfig, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditingConfig({ ...editingConfig, name: e.target.value })
+                  }
                   placeholder="My Square Store"
                 />
               </div>
@@ -282,7 +341,12 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                 <Input
                   id="edit-application_id"
                   value={editingConfig.application_id}
-                  onChange={(e) => setEditingConfig({ ...editingConfig, application_id: e.target.value })}
+                  onChange={(e) =>
+                    setEditingConfig({
+                      ...editingConfig,
+                      application_id: e.target.value,
+                    })
+                  }
                   placeholder="sq0idp-..."
                 />
               </div>
@@ -292,15 +356,25 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                   id="edit-access_token"
                   type="password"
                   value={editingConfig.access_token}
-                  onChange={(e) => setEditingConfig({ ...editingConfig, access_token: e.target.value })}
+                  onChange={(e) =>
+                    setEditingConfig({
+                      ...editingConfig,
+                      access_token: e.target.value,
+                    })
+                  }
                   placeholder="EAAAl..."
                 />
               </div>
               <div>
                 <Label htmlFor="edit-environment">Environment</Label>
-                <Select 
-                  value={editingConfig.environment} 
-                  onValueChange={(value) => setEditingConfig({ ...editingConfig, environment: value as 'sandbox' | 'production' })}
+                <Select
+                  value={editingConfig.environment}
+                  onValueChange={(value) =>
+                    setEditingConfig({
+                      ...editingConfig,
+                      environment: value as "sandbox" | "production",
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -313,9 +387,12 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
               </div>
               <div className="flex space-x-2">
                 <Button onClick={handleUpdateConfiguration} disabled={isSaving}>
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                >
                   Cancel
                 </Button>
               </div>
@@ -326,11 +403,17 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
 
       {/* Test Result */}
       {testResult && (
-        <Alert variant={testResult.type === 'error' ? 'destructive' : 'default'}>
-          {testResult.type === 'error' ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+        <Alert
+          variant={testResult.type === "error" ? "destructive" : "default"}
+        >
+          {testResult.type === "error" ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
           <AlertDescription>{testResult.message}</AlertDescription>
         </Alert>
       )}
     </div>
   );
-}; 
+};

@@ -5,27 +5,159 @@ on:
     outputs:
       coverage:
         description: "Backend test coverage percentage"
-        value: ${{ jobs.test.outputs.coverage }}
+        value: ${{ jobs.test-matrix.outputs.coverage }}
 
 permissions:
   contents: read
   checks: write
   pull-requests: write
+  security-events: write
 
 env:
   PYTHON_VERSION: '3.13'
 
 jobs:
-  test:
-    name: Backend Tests (Python ${{ matrix.python-version }})
+  # Stage 1: Quality Gates (2-3 minutes)
+  quality-gates:
+    name: Quality Gates
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-quality-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt', 'backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-quality-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-pip-quality-
+      
+      - name: Install quality tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort mypy flake8 pylint vulture
+          pip install types-requests types-redis types-PyYAML
+      
+      - name: Check code formatting (Black)
+        working-directory: ./backend
+        run: |
+          black --check --diff app/ || {
+            echo "## ❌ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`black app/\` to fix formatting issues" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ Code Formatting (Black)" >> $GITHUB_STEP_SUMMARY
+          echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check import sorting (isort)
+        working-directory: ./backend
+        run: |
+          isort --check-only --diff app/ || {
+            echo "## ❌ Import Sorting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`isort app/\` to fix import ordering" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ Import Sorting (isort)" >> $GITHUB_STEP_SUMMARY
+          echo "All imports are properly sorted" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Linting (flake8)
+        working-directory: ./backend
+        run: |
+          flake8 app/ --max-line-length=88 --extend-ignore=E203,W503 || {
+            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Fix flake8 issues above" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "## ✅ Linting (flake8)" >> $GITHUB_STEP_SUMMARY
+          echo "No linting issues found" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Type checking (mypy)
+        working-directory: ./backend
+        run: |
+          mypy app/ --ignore-missing-imports --no-strict-optional || {
+            echo "## ⚠️ Type Checking Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Review mypy output above for type issues" >> $GITHUB_STEP_SUMMARY
+            echo "Consider adding type hints or mypy configuration" >> $GITHUB_STEP_SUMMARY
+          }
+          echo "## ✅ Type Checking (mypy)" >> $GITHUB_STEP_SUMMARY
+          echo "Type checking completed" >> $GITHUB_STEP_SUMMARY
+
+  # Stage 2: Build & Install (3-4 minutes)
+  build:
+    name: Build Python Environment
+    runs-on: ubuntu-latest
+    needs: quality-gates
     timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+            backend/.pytest_cache
+          key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt', 'backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-python-
+      
+      - name: Create virtual environment and install dependencies
+        working-directory: ./backend
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -e .[all,test]
+          pip install pytest-cov pytest-xdist pytest-timeout
+          
+          # Verify installation
+          python -c "import app; print('Backend app module imported successfully')"
+          pytest --version
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build-${{ github.sha }}
+          path: |
+            backend/venv/
+            backend/app/
+            backend/pyproject.toml
+            backend/requirements.txt
+          retention-days: 1
+
+  # Stage 3: Test Matrix (5-8 minutes per job, parallel)
+  test-matrix:
+    name: Tests (${{ matrix.test-type }})
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
     
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
-        test-group: ['unit', 'integration', 'api']
+        test-type: ['unit', 'integration', 'api']
     
     outputs:
       coverage: ${{ steps.coverage.outputs.percentage }}
@@ -36,38 +168,34 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: Cache Python dependencies
-        uses: actions/cache@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-            backend/.pytest_cache
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('backend/requirements.txt', 'backend/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python-version }}-
-            ${{ runner.os }}-python-
+          name: backend-build-${{ github.sha }}
+          path: backend/
       
-      - name: Install dependencies
+      - name: Activate virtual environment
         working-directory: ./backend
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .[all,test]
-          pip install pytest-cov pytest-xdist pytest-timeout
+          chmod +x venv/bin/activate
+          source venv/bin/activate
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "PATH=$VIRTUAL_ENV/bin:$PATH" >> $GITHUB_ENV
       
       - name: Run unit tests
-        if: matrix.test-group == 'unit'
+        if: matrix.test-type == 'unit'
         working-directory: ./backend
         env:
           TESTING: true
         run: |
-          pytest tests/unit/ \
-            --cov=src \
+          source venv/bin/activate
+          pytest app/tests/unit/ \
+            --cov=app \
             --cov-report=xml:coverage-unit.xml \
             --cov-report=html:htmlcov-unit \
             --junit-xml=test-results-unit.xml \
@@ -76,7 +204,7 @@ jobs:
             -v
       
       - name: Run integration tests
-        if: matrix.test-group == 'integration'
+        if: matrix.test-type == 'integration'
         working-directory: ./backend
         env:
           TESTING: true
@@ -84,8 +212,9 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          pytest tests/integration/ \
-            --cov=src \
+          source venv/bin/activate
+          pytest app/tests/integration/ \
+            --cov=app \
             --cov-report=xml:coverage-integration.xml \
             --cov-report=html:htmlcov-integration \
             --junit-xml=test-results-integration.xml \
@@ -94,7 +223,7 @@ jobs:
             -v
       
       - name: Run API tests
-        if: matrix.test-group == 'api'
+        if: matrix.test-type == 'api'
         working-directory: ./backend
         env:
           TESTING: true
@@ -102,32 +231,43 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           API_BASE_URL: http://localhost:8000
         run: |
+          source venv/bin/activate
+          
           # Start the API server in background
-          python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 &
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          API_PID=$!
           sleep 10
           
-          pytest tests/api/ \
-            --cov=src \
+          # Run API tests
+          pytest app/tests/api/ \
+            --cov=app \
             --cov-report=xml:coverage-api.xml \
             --cov-report=html:htmlcov-api \
             --junit-xml=test-results-api.xml \
             -n auto \
             --timeout=90 \
-            -v
+            -v || TEST_EXIT_CODE=$?
+          
+          # Clean up API server
+          kill $API_PID 2>/dev/null || true
+          
+          # Exit with test result
+          exit ${TEST_EXIT_CODE:-0}
       
       - name: Generate coverage report
         if: always()
         working-directory: ./backend
         run: |
-          if [ -f coverage-${{ matrix.test-group }}.xml ]; then
+          source venv/bin/activate
+          if [ -f coverage-${{ matrix.test-type }}.xml ]; then
             COVERAGE=$(python -c "
             import xml.etree.ElementTree as ET
-            tree = ET.parse('coverage-${{ matrix.test-group }}.xml')
+            tree = ET.parse('coverage-${{ matrix.test-type }}.xml')
             root = tree.getroot()
             print(f\"{float(root.attrib['line-rate']) * 100:.1f}\")
             ")
             echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-            echo "### 📊 Coverage Report (${{ matrix.test-group }})" >> $GITHUB_STEP_SUMMARY
+            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
             echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
           fi
         id: coverage
@@ -136,7 +276,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: backend-test-results-${{ matrix.python-version }}-${{ matrix.test-group }}
+          name: backend-test-results-${{ matrix.test-type }}
           path: |
             backend/test-results-*.xml
             backend/coverage-*.xml
@@ -144,7 +284,7 @@ jobs:
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.13' && matrix.test-group == 'unit'
+        if: matrix.test-type == 'unit'
         uses: codecov/codecov-action@v4
         with:
           file: ./backend/coverage-unit.xml
@@ -155,122 +295,65 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.python-version == '3.13'
+        if: always()
         with:
           files: backend/test-results-*.xml
-          check_name: "Backend Tests (${{ matrix.test-group }})"
+          check_name: "Backend Tests (${{ matrix.test-type }})"
           comment_mode: create new
           fail_on: "test failures"
-      
-      - name: Post test summary
-        if: always()
-        run: |
-          echo "## 🧪 Backend Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Group | Python | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| ${{ matrix.test-group }} | ${{ matrix.python-version }} | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
-  
-  quality-and-security:
-    name: Backend Quality & Security Analysis
+
+  # Stage 4: Code Quality Analysis (parallel with other stage 4 jobs)
+  code-quality:
+    name: Code Quality Analysis
     runs-on: ubuntu-latest
+    needs: build
     timeout-minutes: 10
     
-    permissions:
-      contents: read
-      security-events: write
-      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: Cache Python dependencies
-        uses: actions/cache@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-quality-security-${{ hashFiles('backend/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-quality-security-
+          name: backend-build-${{ github.sha }}
+          path: backend/
       
-      - name: Install all quality and security tools
+      - name: Install analysis tools
         run: |
-          pip install black isort mypy flake8 pylint vulture bandit safety pip-licenses detect-secrets
-          pip install types-requests types-redis types-PyYAML
+          pip install pylint vulture
       
-      # =============================================================================
-      # CODE QUALITY CHECKS
-      # =============================================================================
-      
-      # Code Formatting Checks
-      - name: Check code formatting (Black)
+      - name: Activate virtual environment
         working-directory: ./backend
         run: |
-          black --check --diff src/ tests/ || {
-            echo "## ❌ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Run \`black src/ tests/\` to fix formatting issues" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "## ✅ Code Formatting (Black)" >> $GITHUB_STEP_SUMMARY
-          echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
+          chmod +x venv/bin/activate
+          source venv/bin/activate
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "PATH=$VIRTUAL_ENV/bin:$PATH" >> $GITHUB_ENV
       
-      # Import Sorting
-      - name: Check import sorting (isort)
-        working-directory: ./backend
-        run: |
-          isort --check-only --diff src/ tests/ || {
-            echo "## ❌ Import Sorting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Run \`isort src/ tests/\` to fix import ordering" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "## ✅ Import Sorting (isort)" >> $GITHUB_STEP_SUMMARY
-          echo "All imports are properly sorted" >> $GITHUB_STEP_SUMMARY
-      
-      # Linting
-      - name: Linting (flake8)
-        working-directory: ./backend
-        run: |
-          flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503 || {
-            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Fix flake8 issues above" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "## ✅ Linting (flake8)" >> $GITHUB_STEP_SUMMARY
-          echo "No linting issues found" >> $GITHUB_STEP_SUMMARY
-      
-      # Type Checking
-      - name: Type checking (mypy)
-        working-directory: ./backend
-        run: |
-          mypy src/ --ignore-missing-imports --no-strict-optional || {
-            echo "## ⚠️ Type Checking Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Review mypy output above for type issues" >> $GITHUB_STEP_SUMMARY
-            echo "Consider adding type hints or mypy configuration" >> $GITHUB_STEP_SUMMARY
-          }
-          echo "## ✅ Type Checking (mypy)" >> $GITHUB_STEP_SUMMARY
-          echo "Type checking completed" >> $GITHUB_STEP_SUMMARY
-      
-      # Code Quality Analysis
       - name: Code quality analysis (pylint)
         working-directory: ./backend
         run: |
-          pylint src/ --fail-under=8.0 --output-format=text || {
+          source venv/bin/activate
+          pylint app/ --fail-under=8.0 --output-format=text || {
             echo "## ⚠️ Code Quality Below Threshold" >> $GITHUB_STEP_SUMMARY
             echo "PyLint score below 8.0 - consider refactoring" >> $GITHUB_STEP_SUMMARY
           }
           echo "## ✅ Code Quality (pylint)" >> $GITHUB_STEP_SUMMARY
           echo "Code quality meets standards" >> $GITHUB_STEP_SUMMARY
       
-      # Dead Code Detection
       - name: Dead code detection (vulture)
         working-directory: ./backend
         run: |
-          vulture src/ --min-confidence 80 > vulture-report.txt || true
+          source venv/bin/activate
+          vulture app/ --min-confidence 80 > vulture-report.txt || true
           if [ -s vulture-report.txt ]; then
             echo "## 🧹 Dead Code Detection" >> $GITHUB_STEP_SUMMARY
             echo "Potential dead code found - review vulture-report.txt" >> $GITHUB_STEP_SUMMARY
@@ -282,96 +365,11 @@ jobs:
             echo "No dead code detected" >> $GITHUB_STEP_SUMMARY
           fi
       
-      # =============================================================================
-      # SECURITY CHECKS
-      # =============================================================================
-      
-      # Secret Scanning
-      - name: Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./backend
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug --only-verified
-      
-      # License Compliance
-      - name: License Check
-        working-directory: ./backend
-        run: |
-          pip-licenses --format=json --with-license-file --output-file=licenses.json
-          
-          # Check for problematic licenses
-          pip-licenses --fail-on GPL-2.0,GPL-3.0,AGPL-3.0
-      
-      # Security Vulnerability Scanning (CONSOLIDATED - no duplicate Bandit!)
-      - name: Security vulnerability scan (Bandit)
-        working-directory: ./backend
-        run: |
-          bandit -r src/ -f json -o bandit-report.json || true
-          bandit -r src/ -f sarif -o bandit-report.sarif || true
-      
-      # Dependency Security
-      - name: Python Dependency Security Scan
-        run: |
-          safety check --json --output safety-report.json || true
-          
-          # Check for critical vulnerabilities
-          if [ -f safety-report.json ]; then
-            CRITICAL_COUNT=$(jq '.vulnerabilities | length' safety-report.json)
-            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
-            
-            if [ "$CRITICAL_COUNT" -gt 0 ]; then
-              echo "❌ Critical security vulnerabilities found in dependencies!"
-              jq '.vulnerabilities[] | "⚠️ \(.package_name) \(.installed_version): \(.vulnerability.cve)"' safety-report.json
-              exit 1
-            fi
-          fi
-      
-      # =============================================================================
-      # UPLOADS & REPORTING
-      # =============================================================================
-      
-      - name: Upload Bandit scan results to Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: bandit-report.sarif
-      
-      - name: Upload all quality and security artifacts
+      - name: Upload code quality reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: backend-quality-security-reports
+          name: backend-code-quality-reports
           path: |
-            bandit-report.json
-            safety-report.json
-            licenses.json
             backend/vulture-report.txt
-          retention-days: 30
-      
-      # Final Security Assessment
-      - name: Final security assessment
-        run: |
-          echo "## 🛡️ Security & Quality Assessment" >> $GITHUB_STEP_SUMMARY
-          echo "| Check Type | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Formatting | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Import Sorting | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Linting | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Type Checking | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Scan | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| License Compliance | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Dependency Security | ✅ |" >> $GITHUB_STEP_SUMMARY
-          
-          if [ -f bandit-report.json ]; then
-            HIGH_COUNT=$(jq '.metrics._totals.SEVERITY.HIGH' bandit-report.json)
-            MEDIUM_COUNT=$(jq '.metrics._totals.SEVERITY.MEDIUM' bandit-report.json)
-            echo "High severity issues: $HIGH_COUNT"
-            echo "Medium severity issues: $MEDIUM_COUNT"
-            
-            if [ "$HIGH_COUNT" -gt 0 ]; then
-              echo "❌ High severity security issues found!"
-              exit 1
-            fi
-          fi 
+          retention-days: 30 

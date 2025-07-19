@@ -4,19 +4,23 @@ import { useState } from "react";
 const helpSteps = [
   {
     title: "Dashboard Overview",
-    content: "This is your main dashboard. Here you can see quick stats, recent activity, and notifications.",
+    content:
+      "This is your main dashboard. Here you can see quick stats, recent activity, and notifications.",
   },
   {
     title: "Navigation Sidebar",
-    content: "Use the sidebar to access analytics, data tables, settings, and more.",
+    content:
+      "Use the sidebar to access analytics, data tables, settings, and more.",
   },
   {
     title: "Quick Actions",
-    content: "Perform common tasks like configuring your layout or adding new rows from the quick actions section.",
+    content:
+      "Perform common tasks like configuring your layout or adding new rows from the quick actions section.",
   },
   {
     title: "Need More Help?",
-    content: "Visit the Help page or contact support for more detailed guidance.",
+    content:
+      "Visit the Help page or contact support for more detailed guidance.",
   },
 ];
 
@@ -26,11 +30,18 @@ export default function HelpOverlay({ onClose }: { onClose?: () => void }) {
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 max-w-md w-full animate-pop">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">{helpSteps[step].title}</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4">{helpSteps[step].content}</p>
+          <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
+            {helpSteps[step].title}
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            {helpSteps[step].content}
+          </p>
           <div className="flex gap-2 mb-4">
             {helpSteps.map((_, i) => (
-              <div key={i} className={`h-2 w-8 rounded-full ${i <= step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}></div>
+              <div
+                key={i}
+                className={`h-2 w-8 rounded-full ${i <= step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}
+              ></div>
             ))}
           </div>
         </div>
@@ -45,7 +56,9 @@ export default function HelpOverlay({ onClose }: { onClose?: () => void }) {
           {step < helpSteps.length - 1 ? (
             <button
               className="btn-animated px-4 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-semibold"
-              onClick={() => setStep((s) => Math.min(helpSteps.length - 1, s + 1))}
+              onClick={() =>
+                setStep((s) => Math.min(helpSteps.length - 1, s + 1))
+              }
             >
               Next
             </button>

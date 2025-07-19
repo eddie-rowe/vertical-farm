@@ -1,6 +1,6 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { MetricCard, MetricCardProps } from './MetricCard';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { MetricCard, MetricCardProps } from "./MetricCard";
 
 /**
  * Metric data interface for grid display
@@ -38,7 +38,7 @@ export interface MetricsGridProps {
 
 /**
  * Flexible grid component for displaying metric cards
- * 
+ *
  * This component provides consistent grid layouts for metrics
  * with responsive behavior and customizable column counts.
  */
@@ -46,30 +46,30 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
   metrics,
   columns = 3,
   className,
-  responsive = true
+  responsive = true,
 }) => {
   // Generate grid column classes based on column count and responsiveness
   const getGridClasses = () => {
-    const baseClasses = 'grid gap-6';
-    
+    const baseClasses = "grid gap-6";
+
     if (!responsive) {
       return cn(baseClasses, {
-        'grid-cols-2': columns === 2,
-        'grid-cols-3': columns === 3,
-        'grid-cols-4': columns === 4
+        "grid-cols-2": columns === 2,
+        "grid-cols-3": columns === 3,
+        "grid-cols-4": columns === 4,
       });
     }
 
     // Responsive grid classes
     switch (columns) {
       case 2:
-        return cn(baseClasses, 'grid-cols-1 md:grid-cols-2');
+        return cn(baseClasses, "grid-cols-1 md:grid-cols-2");
       case 3:
-        return cn(baseClasses, 'grid-cols-1 md:grid-cols-3');
+        return cn(baseClasses, "grid-cols-1 md:grid-cols-3");
       case 4:
-        return cn(baseClasses, 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4');
+        return cn(baseClasses, "grid-cols-1 md:grid-cols-2 lg:grid-cols-4");
       default:
-        return cn(baseClasses, 'grid-cols-1 md:grid-cols-3');
+        return cn(baseClasses, "grid-cols-1 md:grid-cols-3");
     }
   };
 
@@ -98,28 +98,29 @@ export const createMetric = (
   icon: React.ComponentType<{ className?: string }>,
   label: string,
   value: string | number,
-  options?: Partial<Pick<MetricData, 'stateClass' | 'iconColor' | 'valueFormatter'>>
+  options?: Partial<
+    Pick<MetricData, "stateClass" | "iconColor" | "valueFormatter">
+  >,
 ): MetricData => ({
   id,
   icon,
   label,
   value,
-  ...options
+  ...options,
 });
 
 /**
  * Common metric formatters
  */
 export const MetricFormatters = {
-  currency: (value: string | number) => 
-    typeof value === 'number' ? `$${value.toLocaleString()}` : value,
-  
-  percentage: (value: string | number) => 
-    typeof value === 'number' ? `${value}%` : value,
-  
-  count: (value: string | number) => 
-    typeof value === 'number' ? value.toLocaleString() : value,
-  
-  status: (value: string | number) => 
-    String(value).toUpperCase()
-} as const; 
+  currency: (value: string | number) =>
+    typeof value === "number" ? `$${value.toLocaleString()}` : value,
+
+  percentage: (value: string | number) =>
+    typeof value === "number" ? `${value}%` : value,
+
+  count: (value: string | number) =>
+    typeof value === "number" ? value.toLocaleString() : value,
+
+  status: (value: string | number) => String(value).toUpperCase(),
+} as const;

@@ -1,12 +1,17 @@
-'use client';
+"use client";
 
-import { Edit, Trash2, Clock, Droplets, Sun } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Edit, Trash2, Clock, Droplets, Sun } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { GrowRecipe } from '@/types/grow-recipes';
+import { GrowRecipe } from "@/types/grow-recipes";
 
 interface GrowRecipeCardProps {
   recipe: GrowRecipe;
@@ -14,22 +19,34 @@ interface GrowRecipeCardProps {
   onDelete: (recipe: GrowRecipe) => void;
 }
 
-export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps) {
+export function GrowRecipeCard({
+  recipe,
+  onEdit,
+  onDelete,
+}: GrowRecipeCardProps) {
   const getDifficultyColor = (difficulty: string | null) => {
     switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Easy":
+        return "bg-green-100 text-green-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "Hard":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPythiumRiskColor = (risk: string | null) => {
     switch (risk) {
-      case 'Low': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'High': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Low":
+        return "bg-green-100 text-green-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "High":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -40,7 +57,7 @@ export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps
           <div className="flex-1">
             <CardTitle className="text-lg mb-1">{recipe.name}</CardTitle>
             <p className="text-sm text-gray-600">
-              {recipe.species?.name || 'Unknown Species'}
+              {recipe.species?.name || "Unknown Species"}
             </p>
           </div>
           <div className="flex gap-1">
@@ -58,7 +75,7 @@ export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps
                 <TooltipContent>Edit recipe</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -83,19 +100,19 @@ export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-600">
-              {recipe.total_grow_days || recipe.grow_days || '-'} days
+              {recipe.total_grow_days || recipe.grow_days || "-"} days
             </span>
           </div>
           <div className="flex items-center gap-1">
             <Sun className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-600">
-              {recipe.light_hours_per_day || '-'}h light
+              {recipe.light_hours_per_day || "-"}h light
             </span>
           </div>
           <div className="flex items-center gap-1">
             <Droplets className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-600">
-              {recipe.water_frequency || 'Custom'}
+              {recipe.water_frequency || "Custom"}
             </span>
           </div>
         </div>
@@ -125,7 +142,9 @@ export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps
         {recipe.average_yield && (
           <div className="text-sm">
             <span className="text-gray-600">Expected Yield: </span>
-            <span className="font-medium">{recipe.average_yield}g per tray</span>
+            <span className="font-medium">
+              {recipe.average_yield}g per tray
+            </span>
           </div>
         )}
 
@@ -152,4 +171,4 @@ export function GrowRecipeCard({ recipe, onEdit, onDelete }: GrowRecipeCardProps
       </CardContent>
     </Card>
   );
-} 
+}

@@ -17,7 +17,7 @@ const farmRangeSliderVariants = cva(
     defaultVariants: {
       inputSize: "default",
     },
-  }
+  },
 );
 
 const farmRangeTrackVariants = cva(
@@ -33,7 +33,7 @@ const farmRangeTrackVariants = cva(
     defaultVariants: {
       inputSize: "default",
     },
-  }
+  },
 );
 
 const farmRangeThumbVariants = cva(
@@ -49,7 +49,7 @@ const farmRangeThumbVariants = cva(
     defaultVariants: {
       inputSize: "default",
     },
-  }
+  },
 );
 
 export interface FarmRangeSliderProps
@@ -69,67 +69,73 @@ export interface FarmRangeSliderProps
   markPoints?: Array<{ value: number; label: string }>;
 }
 
-const FarmRangeSlider = React.forwardRef<HTMLInputElement, FarmRangeSliderProps>(
-  ({ 
-    className, 
-    inputSize, 
-    label, 
-    helpText, 
-    errorText, 
-    min = 0,
-    max = 100,
-    step = 1,
-    value,
-    defaultValue,
-    onValueChange,
-    onChange,
-    unit,
-    showValue = true,
-    markPoints = [],
-    ...props 
-  }, ref) => {
+const FarmRangeSlider = React.forwardRef<
+  HTMLInputElement,
+  FarmRangeSliderProps
+>(
+  (
+    {
+      className,
+      inputSize,
+      label,
+      helpText,
+      errorText,
+      min = 0,
+      max = 100,
+      step = 1,
+      value,
+      defaultValue,
+      onValueChange,
+      onChange,
+      unit,
+      showValue = true,
+      markPoints = [],
+      ...props
+    },
+    ref,
+  ) => {
     const sliderId = React.useId();
     const helpId = React.useId();
     const errorId = React.useId();
-    
-    const [localValue, setLocalValue] = React.useState(value ?? defaultValue ?? min);
+
+    const [localValue, setLocalValue] = React.useState(
+      value ?? defaultValue ?? min,
+    );
     const displayValue = value ?? localValue;
-    
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = Number(event.target.value);
       setLocalValue(newValue);
       onChange?.(event);
       onValueChange?.(newValue);
     };
-    
+
     const percentage = ((displayValue - min) / (max - min)) * 100;
-    
+
     return (
       <div className="w-full space-y-2">
         <div className="flex items-center justify-between">
           {label && (
-            <label 
-              htmlFor={sliderId} 
-              className="form-label mb-0"
-            >
+            <label htmlFor={sliderId} className="form-label mb-0">
               {label}
             </label>
           )}
           {showValue && (
             <span className="text-sm font-medium text-foreground">
-              {displayValue}{unit}
+              {displayValue}
+              {unit}
             </span>
           )}
         </div>
-        
+
         <div className={cn(farmRangeSliderVariants({ inputSize }), className)}>
           <div className={cn(farmRangeTrackVariants({ inputSize }))}>
-            <div 
+            <div
               className="absolute h-full bg-primary rounded-full"
               style={{ width: `${percentage}%` }}
             />
           </div>
-          
+
           <input
             type="range"
             id={sliderId}
@@ -148,27 +154,24 @@ const FarmRangeSlider = React.forwardRef<HTMLInputElement, FarmRangeSliderProps>
               "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5",
               "[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary",
               "[&::-moz-range-thumb]:cursor-pointer",
-              inputSize === "lg" && "touch-target"
+              inputSize === "lg" && "touch-target",
             )}
             ref={ref}
-            aria-describedby={cn(
-              helpText && helpId,
-              errorText && errorId
-            )}
+            aria-describedby={cn(helpText && helpId, errorText && errorId)}
             aria-invalid={errorText ? "true" : undefined}
             {...props}
           />
-          
-          <div 
+
+          <div
             className={cn(farmRangeThumbVariants({ inputSize }))}
-            style={{ 
-              position: 'absolute',
-              left: `calc(${percentage}% - ${inputSize === 'sm' ? '8px' : inputSize === 'lg' ? '12px' : '10px'})`,
-              pointerEvents: 'none'
+            style={{
+              position: "absolute",
+              left: `calc(${percentage}% - ${inputSize === "sm" ? "8px" : inputSize === "lg" ? "12px" : "10px"})`,
+              pointerEvents: "none",
             }}
           />
         </div>
-        
+
         {markPoints.length > 0 && (
           <div className="flex justify-between text-xs text-muted-foreground px-1">
             {markPoints.map((mark, index) => (
@@ -178,18 +181,24 @@ const FarmRangeSlider = React.forwardRef<HTMLInputElement, FarmRangeSliderProps>
             ))}
           </div>
         )}
-        
+
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{min}{unit}</span>
-          <span>{max}{unit}</span>
+          <span>
+            {min}
+            {unit}
+          </span>
+          <span>
+            {max}
+            {unit}
+          </span>
         </div>
-        
+
         {helpText && !errorText && (
           <span id={helpId} className="form-help">
             {helpText}
           </span>
         )}
-        
+
         {errorText && (
           <span id={errorId} className="form-error">
             {errorText}
@@ -197,9 +206,9 @@ const FarmRangeSlider = React.forwardRef<HTMLInputElement, FarmRangeSliderProps>
         )}
       </div>
     );
-  }
+  },
 );
 
 FarmRangeSlider.displayName = "FarmRangeSlider";
 
-export { FarmRangeSlider, farmRangeSliderVariants }; 
+export { FarmRangeSlider, farmRangeSliderVariants };

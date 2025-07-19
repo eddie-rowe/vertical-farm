@@ -1,8 +1,8 @@
-import React from 'react';
-import { Header, Sidebar } from '../../components/layout';
-import { MobileBottomNav } from '../../components/layout/MobileNavigation';
+import React from "react";
+import { Header, Sidebar } from "../../components/layout";
+import { MobileBottomNav } from "../../components/layout/MobileNavigation";
 // import { AuthProvider } from '../../contexts/AuthContext'; // Removed - now in root layout
-import { ThemeProvider } from '../../contexts/ThemeContext';
+import { ThemeProvider } from "../../contexts/ThemeContext";
 import ProtectedPageWrapper from "../../components/pages/auth/ProtectedPageWrapper";
 
 export default function AppLayout({
@@ -27,4 +27,4 @@ export default function AppLayout({
       </ProtectedPageWrapper>
     </ThemeProvider>
   );
-} 
+}

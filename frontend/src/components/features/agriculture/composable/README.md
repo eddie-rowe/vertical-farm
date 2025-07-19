@@ -14,7 +14,7 @@ import { FarmAreaRenderer, createFarmAreaConfig } from './composable/FarmAreaRen
 function MyFarmPage() {
   const rows = [...] // Your row data
   const config = createFarmAreaConfig('grow_area', 'standard')
-  
+
   return (
     <FarmAreaRenderer
       rows={rows}
@@ -32,7 +32,7 @@ function MyFarmPage() {
 ### Core Components
 
 1. **FarmAreaRenderer** - Main component that coordinates all layers
-2. **FarmAreaProvider** - State management using React Context + useReducer  
+2. **FarmAreaProvider** - State management using React Context + useReducer
 3. **Layer Components** - Modular rendering layers (Layout, Interaction, Content)
 4. **Configuration System** - Type-safe configuration objects for customization
 
@@ -52,20 +52,22 @@ FarmAreaRenderer
 ### Growing Areas
 
 Available presets:
+
 - `standard` - Full-featured with all capabilities
-- `simple` - Basic functionality for smaller operations  
+- `simple` - Basic functionality for smaller operations
 - `commercial` - High-density layout for commercial farms
 - `research` - Enhanced tracking for research environments
 
 ```typescript
-import { getGrowingAreaConfig } from './configurations/growingAreaConfig'
+import { getGrowingAreaConfig } from "./configurations/growingAreaConfig";
 
-const config = getGrowingAreaConfig('commercial')
+const config = getGrowingAreaConfig("commercial");
 ```
 
 ### Germination Tents
 
 Available presets:
+
 - `standard` - Full germination tracking capabilities
 - `compact` - Space-efficient for smaller setups
 - `research` - Detailed tracking for research
@@ -73,9 +75,9 @@ Available presets:
 - `hobby` - Simplified for hobbyists
 
 ```typescript
-import { getGerminationAreaConfig } from './configurations/germinationAreaConfig'
+import { getGerminationAreaConfig } from "./configurations/germinationAreaConfig";
 
-const config = getGerminationAreaConfig('research')
+const config = getGerminationAreaConfig("research");
 ```
 
 ## Configuration Structure
@@ -84,15 +86,15 @@ Each configuration defines:
 
 ```typescript
 interface AreaConfiguration {
-  areaType: 'grow_area' | 'germination_tent'
-  name: string
-  description: string
-  
-  layout: LayoutConfig      // Grid layout, responsive design
-  interactions: InteractionConfig  // Click/drag/keyboard behavior  
-  content: ContentConfig    // What information to show
-  overlays: OverlayConfig[] // Data overlay layers
-  modals: ModalConfig[]     // Modal dialogs and editors
+  areaType: "grow_area" | "germination_tent";
+  name: string;
+  description: string;
+
+  layout: LayoutConfig; // Grid layout, responsive design
+  interactions: InteractionConfig; // Click/drag/keyboard behavior
+  content: ContentConfig; // What information to show
+  overlays: OverlayConfig[]; // Data overlay layers
+  modals: ModalConfig[]; // Modal dialogs and editors
 }
 ```
 
@@ -111,7 +113,7 @@ layout: {
   },
   spacing: {
     areaGap: 'gap-6',
-    rackGap: 'gap-4', 
+    rackGap: 'gap-4',
     shelfGap: 'gap-2',
     containerPadding: 'p-6'
   }
@@ -160,15 +162,15 @@ Defines data overlay layers (devices, monitoring data, etc.):
 ```typescript
 overlays: [
   {
-    id: 'devices',
-    name: 'Device Status',
+    id: "devices",
+    name: "Device Status",
     enabled: true,
     defaultVisible: true,
-    layer: 'devices',
+    layer: "devices",
     opacity: 1.0,
-    zIndex: 10
-  }
-]
+    zIndex: 10,
+  },
+];
 ```
 
 ### Modal Configuration
@@ -178,15 +180,15 @@ Configures modal dialogs and editors:
 ```typescript
 modals: [
   {
-    id: 'elementDetail',
-    name: 'Element Detail Editor', 
+    id: "elementDetail",
+    name: "Element Detail Editor",
     enabled: true,
-    trigger: 'double-click',
-    target: 'rack',
-    component: 'ElementDetailModal',
-    size: 'lg'
-  }
-]
+    trigger: "double-click",
+    target: "rack",
+    component: "ElementDetailModal",
+    size: "lg",
+  },
+];
 ```
 
 ## State Management
@@ -195,15 +197,15 @@ The system uses React Context + useReducer for predictable state management:
 
 ```typescript
 // Available in any child component
-const { state, actions, configuration } = useFarmArea()
+const { state, actions, configuration } = useFarmArea();
 
 // Available actions
-actions.selectRow(row)
-actions.selectRack(rack) 
-actions.selectShelf(shelf)
-actions.toggleOverlay('devices')
-actions.showModal('elementDetail')
-actions.setEditMode(true)
+actions.selectRow(row);
+actions.selectRack(rack);
+actions.selectShelf(shelf);
+actions.toggleOverlay("devices");
+actions.showModal("elementDetail");
+actions.setEditMode(true);
 ```
 
 ## Migration Guide
@@ -211,11 +213,13 @@ actions.setEditMode(true)
 ### From UnifiedFarmView
 
 Replace:
+
 ```typescript
 <UnifiedFarmView rows={rows} />
 ```
 
 With:
+
 ```typescript
 <FarmAreaRenderer
   rows={rows}
@@ -227,15 +231,17 @@ With:
 ### From FarmAreaGrid
 
 Replace:
+
 ```typescript
 <FarmAreaGrid rows={rows} areaType="germination_tent" />
 ```
 
 With:
+
 ```typescript
 <FarmAreaRenderer
   rows={rows}
-  areaType="germination_tent" 
+  areaType="germination_tent"
   configuration={getGerminationAreaConfig('standard')}
 />
 ```
@@ -248,17 +254,17 @@ Create custom configurations by extending existing ones:
 
 ```typescript
 const customConfig: AreaConfiguration = {
-  ...getGrowingAreaConfig('standard'),
-  name: 'Custom Growing Area',
+  ...getGrowingAreaConfig("standard"),
+  name: "Custom Growing Area",
   interactions: {
-    ...getGrowingAreaConfig('standard').interactions,
-    enableDragDrop: false
+    ...getGrowingAreaConfig("standard").interactions,
+    enableDragDrop: false,
   },
   content: {
-    ...getGrowingAreaConfig('standard').content,
-    contentStyle: 'minimal'
-  }
-}
+    ...getGrowingAreaConfig("standard").content,
+    contentStyle: "minimal",
+  },
+};
 ```
 
 ### Multiple Area Types in One Page
@@ -267,7 +273,7 @@ const customConfig: AreaConfiguration = {
 function FarmManagementPage() {
   const growingConfig = getGrowingAreaConfig('commercial')
   const germinationConfig = getGerminationAreaConfig('production')
-  
+
   return (
     <div className="space-y-8">
       <section>
@@ -278,7 +284,7 @@ function FarmManagementPage() {
           configuration={growingConfig}
         />
       </section>
-      
+
       <section>
         <h2>Germination Tents</h2>
         <FarmAreaRenderer
@@ -298,7 +304,7 @@ function FarmManagementPage() {
 function ConfigurableFarmView() {
   const [preset, setPreset] = useState('standard')
   const config = getGrowingAreaConfig(preset)
-  
+
   return (
     <div>
       <select value={preset} onChange={(e) => setPreset(e.target.value)}>
@@ -307,7 +313,7 @@ function ConfigurableFarmView() {
         <option value="commercial">Commercial</option>
         <option value="research">Research</option>
       </select>
-      
+
       <FarmAreaRenderer
         rows={rows}
         areaType="grow_area"
@@ -323,7 +329,7 @@ function ConfigurableFarmView() {
 To complete the implementation:
 
 1. **Create Layer Components** - Build the actual LayoutLayer, InteractionLayer, and ContentLayer components
-2. **Implement Missing Components** - Create the modal components referenced in configurations  
+2. **Implement Missing Components** - Create the modal components referenced in configurations
 3. **Add Advanced Features** - Implement overlay rendering, drag-and-drop, keyboard navigation
 4. **Performance Optimization** - Add virtualization, memoization, and other optimizations
 5. **Testing** - Add comprehensive tests for all configurations and interactions
@@ -334,7 +340,7 @@ To complete the implementation:
 composable/
 ├── FarmAreaRenderer.tsx          # Main renderer component
 ├── providers/
-│   └── FarmAreaProvider.tsx      # State management 
+│   └── FarmAreaProvider.tsx      # State management
 ├── layers/
 │   ├── LayoutLayer.tsx           # Grid layout management
 │   ├── InteractionLayer.tsx      # Event handling
@@ -346,4 +352,4 @@ composable/
 └── README.md                     # This documentation
 ```
 
-This system provides a solid foundation for flexible, maintainable farm area rendering that can grow with your application's needs while maintaining type safety and consistent user experience. 
+This system provides a solid foundation for flexible, maintainable farm area rendering that can grow with your application's needs while maintaining type safety and consistent user experience.

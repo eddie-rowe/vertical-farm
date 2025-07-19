@@ -1,6 +1,6 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // =============================================================================
 // Card Skeletons
@@ -13,14 +13,14 @@ interface SkeletonCardProps {
   className?: string;
 }
 
-export function SkeletonCard({ 
-  showImage = false, 
-  showHeader = true, 
-  lines = 3, 
-  className 
+export function SkeletonCard({
+  showImage = false,
+  showHeader = true,
+  lines = 3,
+  className,
 }: SkeletonCardProps) {
   return (
-    <div className={cn('rounded-lg border bg-card p-4 space-y-3', className)}>
+    <div className={cn("rounded-lg border bg-card p-4 space-y-3", className)}>
       {/* Card Header */}
       {showHeader && (
         <div className="flex items-center justify-between">
@@ -31,19 +31,16 @@ export function SkeletonCard({
           <Skeleton className="h-8 w-16" />
         </div>
       )}
-      
+
       {/* Card Image */}
       {showImage && <Skeleton className="h-32 w-full rounded" />}
-      
+
       {/* Card Content */}
       <div className="space-y-2">
         {Array.from({ length: lines }).map((_, i) => (
-          <Skeleton 
-            key={i} 
-            className={cn(
-              'h-3',
-              i === lines - 1 ? 'w-2/3' : 'w-full'
-            )}
+          <Skeleton
+            key={i}
+            className={cn("h-3", i === lines - 1 ? "w-2/3" : "w-full")}
           />
         ))}
       </div>
@@ -57,13 +54,13 @@ interface SkeletonMetricCardProps {
   className?: string;
 }
 
-export function SkeletonMetricCard({ 
-  showTrend = true, 
-  showIcon = true, 
-  className 
+export function SkeletonMetricCard({
+  showTrend = true,
+  showIcon = true,
+  className,
 }: SkeletonMetricCardProps) {
   return (
-    <div className={cn('rounded-lg border bg-card p-4', className)}>
+    <div className={cn("rounded-lg border bg-card p-4", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {showIcon && <Skeleton className="w-10 h-10 rounded-lg" />}
@@ -97,18 +94,22 @@ interface SkeletonTableProps {
   className?: string;
 }
 
-export function SkeletonTable({ 
-  rows = 5, 
-  columns = 4, 
-  showHeader = true, 
-  className 
+export function SkeletonTable({
+  rows = 5,
+  columns = 4,
+  showHeader = true,
+  className,
 }: SkeletonTableProps) {
   return (
-    <div className={cn('space-y-4', className)} role="status" aria-label="Loading table data">
+    <div
+      className={cn("space-y-4", className)}
+      role="status"
+      aria-label="Loading table data"
+    >
       {/* Table Header */}
       {showHeader && (
-        <div 
-          className="grid gap-4 pb-2 border-b" 
+        <div
+          className="grid gap-4 pb-2 border-b"
           style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
         >
           {Array.from({ length: columns }).map((_, i) => (
@@ -116,22 +117,19 @@ export function SkeletonTable({
           ))}
         </div>
       )}
-      
+
       {/* Table Rows */}
       <div className="space-y-3">
         {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div 
-            key={rowIndex} 
-            className="grid gap-4 py-2" 
+          <div
+            key={rowIndex}
+            className="grid gap-4 py-2"
             style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
           >
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <Skeleton 
-                key={colIndex} 
-                className={cn(
-                  'h-4',
-                  colIndex === 0 ? 'w-3/4' : 'w-full'
-                )}
+              <Skeleton
+                key={colIndex}
+                className={cn("h-4", colIndex === 0 ? "w-3/4" : "w-full")}
               />
             ))}
           </div>
@@ -155,24 +153,28 @@ interface SkeletonListProps {
   className?: string;
 }
 
-export function SkeletonList({ 
-  items = 5, 
-  showAvatar = true, 
+export function SkeletonList({
+  items = 5,
+  showAvatar = true,
   showActions = false,
   showMeta = true,
-  className 
+  className,
 }: SkeletonListProps) {
   return (
-    <div className={cn('space-y-4', className)} role="status" aria-label="Loading list data">
+    <div
+      className={cn("space-y-4", className)}
+      role="status"
+      aria-label="Loading list data"
+    >
       {Array.from({ length: items }).map((_, index) => (
         <div key={index} className="flex items-center space-x-4 p-2 rounded-lg">
           {showAvatar && <Skeleton className="h-12 w-12 rounded-full" />}
-          
+
           <div className="space-y-2 flex-1">
             <Skeleton className="h-4 w-full" />
             {showMeta && <Skeleton className="h-3 w-2/3" />}
           </div>
-          
+
           {showActions && (
             <div className="flex gap-2">
               <Skeleton className="h-8 w-16" />
@@ -181,7 +183,7 @@ export function SkeletonList({
           )}
         </div>
       ))}
-      
+
       <span className="sr-only">Loading list data...</span>
     </div>
   );
@@ -198,14 +200,18 @@ interface SkeletonFormProps {
   className?: string;
 }
 
-export function SkeletonForm({ 
-  fields = 4, 
-  showTitle = true, 
-  showActions = true, 
-  className 
+export function SkeletonForm({
+  fields = 4,
+  showTitle = true,
+  showActions = true,
+  className,
 }: SkeletonFormProps) {
   return (
-    <div className={cn('space-y-6', className)} role="status" aria-label="Loading form">
+    <div
+      className={cn("space-y-6", className)}
+      role="status"
+      aria-label="Loading form"
+    >
       {/* Form Title */}
       {showTitle && (
         <div className="space-y-2">
@@ -213,7 +219,7 @@ export function SkeletonForm({
           <Skeleton className="h-4 w-64" />
         </div>
       )}
-      
+
       {/* Form Fields */}
       <div className="space-y-4">
         {Array.from({ length: fields }).map((_, index) => (
@@ -223,7 +229,7 @@ export function SkeletonForm({
           </div>
         ))}
       </div>
-      
+
       {/* Form Actions */}
       {showActions && (
         <div className="flex gap-3 pt-4">
@@ -231,7 +237,7 @@ export function SkeletonForm({
           <Skeleton className="h-10 w-20" />
         </div>
       )}
-      
+
       <span className="sr-only">Loading form...</span>
     </div>
   );
@@ -248,14 +254,18 @@ interface SkeletonChartProps {
   className?: string;
 }
 
-export function SkeletonChart({ 
-  height = 'h-64', 
-  showLegend = true, 
-  showTitle = true, 
-  className 
+export function SkeletonChart({
+  height = "h-64",
+  showLegend = true,
+  showTitle = true,
+  className,
 }: SkeletonChartProps) {
   return (
-    <div className={cn('space-y-4', className)} role="status" aria-label="Loading chart">
+    <div
+      className={cn("space-y-4", className)}
+      role="status"
+      aria-label="Loading chart"
+    >
       {/* Chart Title */}
       {showTitle && (
         <div className="space-y-2">
@@ -263,10 +273,10 @@ export function SkeletonChart({
           <Skeleton className="h-3 w-48" />
         </div>
       )}
-      
+
       {/* Chart Area */}
-      <Skeleton className={cn('w-full rounded', height)} />
-      
+      <Skeleton className={cn("w-full rounded", height)} />
+
       {/* Chart Legend */}
       {showLegend && (
         <div className="flex gap-4 justify-center">
@@ -278,7 +288,7 @@ export function SkeletonChart({
           ))}
         </div>
       )}
-      
+
       <span className="sr-only">Loading chart...</span>
     </div>
   );
@@ -295,14 +305,18 @@ interface SkeletonDashboardProps {
   className?: string;
 }
 
-export function SkeletonDashboard({ 
-  showHeader = true, 
-  metricCards = 4, 
+export function SkeletonDashboard({
+  showHeader = true,
+  metricCards = 4,
   showSidebar = false,
-  className 
+  className,
 }: SkeletonDashboardProps) {
   return (
-    <div className={cn('space-y-6', className)} role="status" aria-label="Loading dashboard">
+    <div
+      className={cn("space-y-6", className)}
+      role="status"
+      aria-label="Loading dashboard"
+    >
       {/* Dashboard Header */}
       {showHeader && (
         <div className="flex items-center justify-between">
@@ -318,24 +332,30 @@ export function SkeletonDashboard({
       )}
 
       {/* Metric Cards */}
-      <div className={cn(
-        'grid gap-4',
-        metricCards <= 2 ? 'grid-cols-1 md:grid-cols-2' :
-        metricCards === 3 ? 'grid-cols-1 md:grid-cols-3' :
-        'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-      )}>
+      <div
+        className={cn(
+          "grid gap-4",
+          metricCards <= 2
+            ? "grid-cols-1 md:grid-cols-2"
+            : metricCards === 3
+              ? "grid-cols-1 md:grid-cols-3"
+              : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+        )}
+      >
         {Array.from({ length: metricCards }).map((_, i) => (
           <SkeletonMetricCard key={i} />
         ))}
       </div>
 
       {/* Main Content Grid */}
-      <div className={cn(
-        'grid gap-6',
-        showSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
-      )}>
+      <div
+        className={cn(
+          "grid gap-6",
+          showSidebar ? "lg:grid-cols-3" : "lg:grid-cols-2",
+        )}
+      >
         {/* Main Chart */}
-        <div className={showSidebar ? 'lg:col-span-2' : ''}>
+        <div className={showSidebar ? "lg:col-span-2" : ""}>
           <div className="rounded-lg border bg-card p-6">
             <SkeletonChart />
           </div>
@@ -346,7 +366,7 @@ export function SkeletonDashboard({
           <div className="rounded-lg border bg-card p-6">
             <SkeletonList items={4} showAvatar={false} />
           </div>
-          
+
           {!showSidebar && (
             <div className="rounded-lg border bg-card p-6">
               <SkeletonChart height="h-48" showLegend={false} />
@@ -413,4 +433,4 @@ export function SkeletonIntegrationsPage() {
       </div>
     </div>
   );
-} 
+}

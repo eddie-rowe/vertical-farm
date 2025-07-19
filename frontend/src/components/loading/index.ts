@@ -1,2 +1,2 @@
-export { DashboardSkeleton } from './DashboardSkeleton';
-export { LoadingSpinner } from './LoadingSpinner'; 
+export { DashboardSkeleton } from "./DashboardSkeleton";
+export { LoadingSpinner } from "./LoadingSpinner";

@@ -1,7 +1,7 @@
-import React from 'react';
-import { GrowTimelineItem } from '../types';
-import { STATUS_COLORS } from '../data';
-import { useTimelineCalculations } from '../hooks';
+import React from "react";
+import { GrowTimelineItem } from "../types";
+import { STATUS_COLORS } from "../data";
+import { useTimelineCalculations } from "../hooks";
 
 interface TimelineViewProps {
   grows: GrowTimelineItem[];
@@ -26,16 +26,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   onGrowHover,
   onGrowAction,
 }) => {
-  const {
-    positions,
-    getCurrentTimePosition,
-    generateTimeMarkers,
-  } = useTimelineCalculations({
-    grows,
-    zoomLevel,
-    timeRange,
-    currentDate,
-  });
+  const { positions, getCurrentTimePosition, generateTimeMarkers } =
+    useTimelineCalculations({
+      grows,
+      zoomLevel,
+      timeRange,
+      currentDate,
+    });
 
   const timeMarkers = generateTimeMarkers;
   const currentTimePosition = getCurrentTimePosition;
@@ -48,9 +45,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const handleGrowContextMenu = (growId: string, event: React.MouseEvent) => {
     event.preventDefault();
     // Show context menu with actions
-    const grow = grows.find(g => g.id === growId);
+    const grow = grows.find((g) => g.id === growId);
     if (grow) {
-      const action = window.confirm(`Abort grow ${grow.shelfName}?`) ? 'abort' : null;
+      const action = window.confirm(`Abort grow ${grow.shelfName}?`)
+        ? "abort"
+        : null;
       if (action) {
         onGrowAction(growId, action);
       }
@@ -73,7 +72,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             </span>
           </div>
         ))}
-        
+
         {/* Current time indicator */}
         <div
           className="absolute top-0 h-full w-0.5 bg-red-500 z-10"
@@ -96,14 +95,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             <div
               key={grow.id}
               className={`absolute h-8 rounded cursor-pointer transition-all duration-200 ${
-                isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
-              } ${isHovered ? 'shadow-lg scale-105' : 'shadow-sm'}`}
+                isSelected ? "ring-2 ring-blue-500 ring-offset-1" : ""
+              } ${isHovered ? "shadow-lg scale-105" : "shadow-sm"}`}
               style={{
                 top: `${index * 36 + 8}px`,
                 left: position.left,
                 width: position.width,
                 backgroundColor: STATUS_COLORS[grow.status],
-                minWidth: '20px',
+                minWidth: "20px",
               }}
               onClick={(e) => handleGrowClick(grow.id, e)}
               onContextMenu={(e) => handleGrowContextMenu(grow.id, e)}
@@ -135,13 +134,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         {hoveredGrow && (
           <div className="absolute z-20 bg-gray-900 text-white p-3 rounded-lg shadow-lg pointer-events-none">
             {(() => {
-              const grow = grows.find(g => g.id === hoveredGrow);
+              const grow = grows.find((g) => g.id === hoveredGrow);
               if (!grow) return null;
 
               return (
                 <div className="space-y-1 text-sm">
                   <div className="font-medium">{grow.shelfName}</div>
-                  <div className="text-gray-300">{grow.recipeName} - {grow.speciesName}</div>
+                  <div className="text-gray-300">
+                    {grow.recipeName} - {grow.speciesName}
+                  </div>
                   <div className="text-gray-300">
                     {grow.daysElapsed} / {grow.totalDays} days
                   </div>
@@ -168,4 +169,4 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       </div>
     </div>
   );
-}; 
+};

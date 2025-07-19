@@ -14,10 +14,16 @@ export interface DataTableProps<T> {
   onRowSelect?: (row: T) => void;
 }
 
-export default function DataTable<T extends { id: string | number }>({ data, columns, onRowSelect }: DataTableProps<T>) {
+export default function DataTable<T extends { id: string | number }>({
+  data,
+  columns,
+  onRowSelect,
+}: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<keyof T | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
-  const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<string | number>>(
+    new Set(),
+  );
 
   const sortedData = sortKey
     ? [...data].sort((a, b) => {
@@ -50,7 +56,8 @@ export default function DataTable<T extends { id: string | number }>({ data, col
                 type="checkbox"
                 checked={selectedRows.size === data.length}
                 onChange={() => {
-                  if (selectedRows.size === data.length) setSelectedRows(new Set());
+                  if (selectedRows.size === data.length)
+                    setSelectedRows(new Set());
                   else setSelectedRows(new Set(data.map((row) => row.id)));
                 }}
                 aria-label="Select all rows"
@@ -78,7 +85,14 @@ export default function DataTable<T extends { id: string | number }>({ data, col
         </thead>
         <tbody>
           {sortedData.map((row) => (
-            <tr key={row.id} className={selectedRows.has(row.id) ? "bg-green-50 dark:bg-green-900/30" : ""}>
+            <tr
+              key={row.id}
+              className={
+                selectedRows.has(row.id)
+                  ? "bg-green-50 dark:bg-green-900/30"
+                  : ""
+              }
+            >
               <td className="px-4 py-2">
                 <input
                   type="checkbox"
@@ -100,7 +114,13 @@ export default function DataTable<T extends { id: string | number }>({ data, col
       {selectedRows.size > 0 && (
         <div className="p-4 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-4 items-center">
           <span>{selectedRows.size} selected</span>
-                          <Button variant="destructive" size="sm" onClick={() => setSelectedRows(new Set())}>Clear</Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setSelectedRows(new Set())}
+          >
+            Clear
+          </Button>
           {/* Add more bulk actions here */}
         </div>
       )}

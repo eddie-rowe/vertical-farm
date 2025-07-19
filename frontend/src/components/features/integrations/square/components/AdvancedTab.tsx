@@ -1,9 +1,9 @@
-import React from 'react';
-import { 
-  Shield, 
-  Settings, 
-  AlertTriangle, 
-  FileText, 
+import React from "react";
+import {
+  Shield,
+  Settings,
+  AlertTriangle,
+  FileText,
   TestTube,
   Download,
   Eye,
@@ -13,19 +13,31 @@ import {
   Globe,
   AlertCircle,
   Check,
-  X
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { SquareLocation } from '@/services/squareService';
-import { DEBUG_ACTIONS } from '../data';
+  X,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { SquareLocation } from "@/services/squareService";
+import { DEBUG_ACTIONS } from "../data";
 
 interface AdvancedTabProps {
   activeConfig: any;
@@ -40,11 +52,11 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
   locations,
   connectionError,
   showSetupGuide,
-  setShowSetupGuide
+  setShowSetupGuide,
 }) => {
-  const [webhookUrl, setWebhookUrl] = React.useState('');
-  const [selectedLocation, setSelectedLocation] = React.useState<string>('');
-  const [logLevel, setLogLevel] = React.useState<string>('info');
+  const [webhookUrl, setWebhookUrl] = React.useState("");
+  const [selectedLocation, setSelectedLocation] = React.useState<string>("");
+  const [logLevel, setLogLevel] = React.useState<string>("info");
   const [enableVerboseLogging, setEnableVerboseLogging] = React.useState(false);
   const [enableWebhooks, setEnableWebhooks] = React.useState(false);
 
@@ -53,7 +65,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          No Square integration configured. Please set up your connection in the Configuration tab.
+          No Square integration configured. Please set up your connection in the
+          Configuration tab.
         </AlertDescription>
       </Alert>
     );
@@ -76,7 +89,10 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
           {/* Location Filtering */}
           <div className="space-y-2">
             <Label htmlFor="location-filter">Location Filter</Label>
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <Select
+              value={selectedLocation}
+              onValueChange={setSelectedLocation}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
@@ -109,7 +125,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                 onCheckedChange={setEnableWebhooks}
               />
             </div>
-            
+
             {enableWebhooks && (
               <div className="space-y-2">
                 <Label htmlFor="webhook-url">Webhook URL</Label>
@@ -142,7 +158,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <Label htmlFor="verbose-logging">Verbose Logging</Label>
@@ -209,7 +225,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             </div>
             <Switch id="retry-failed" defaultChecked />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="error-notifications">Error Notifications</Label>
@@ -219,7 +235,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             </div>
             <Switch id="error-notifications" defaultChecked />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="error-email">Notification Email</Label>
             <Input
@@ -252,7 +268,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             </div>
             <Switch id="encrypt-tokens" defaultChecked />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="rotate-tokens">Auto-rotate Tokens</Label>
@@ -262,7 +278,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             </div>
             <Switch id="rotate-tokens" />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="audit-logs">Audit Logging</Label>
@@ -299,4 +315,4 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
       </Card>
     </div>
   );
-}; 
+};

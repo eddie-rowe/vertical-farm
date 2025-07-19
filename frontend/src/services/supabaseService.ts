@@ -1,9 +1,9 @@
 /**
  * Supabase PostGREST Service
- * 
+ *
  * This service replaces FastAPI endpoints with direct Supabase calls,
  * leveraging PostGREST, RLS policies, and database functions.
- * 
+ *
  * Benefits:
  * - 2-3x faster performance (direct database access)
  * - Zero boilerplate CRUD operations
@@ -12,8 +12,8 @@
  * - Built-in filtering, pagination, and sorting
  */
 
-import { supabase } from '@/lib/supabaseClient';
-import { UUID } from '@/types/common';
+import { supabase } from "@/lib/supabaseClient";
+import { UUID } from "@/types/common";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -107,7 +107,10 @@ export interface DeviceStatusSummary {
  * Get the current authenticated user
  */
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw error;
   return user;
 };
@@ -117,7 +120,7 @@ export const getCurrentUser = async () => {
  */
 const requireAuth = async () => {
   const user = await getCurrentUser();
-  if (!user) throw new Error('User not authenticated');
+  if (!user) throw new Error("User not authenticated");
   return user;
 };
 
@@ -136,33 +139,36 @@ export const getFarms = async (options?: {
   ascending?: boolean;
 }): Promise<{ farms: Farm[]; total: number }> => {
   await requireAuth();
-  
-  let query = supabase
-    .from('farms')
-    .select('*', { count: 'exact' });
-  
+
+  let query = supabase.from("farms").select("*", { count: "exact" });
+
   if (options?.limit) {
     query = query.limit(options.limit);
   }
-  
+
   if (options?.offset) {
-    query = query.range(options.offset, options.offset + (options.limit || 100) - 1);
+    query = query.range(
+      options.offset,
+      options.offset + (options.limit || 100) - 1,
+    );
   }
-  
+
   if (options?.orderBy) {
-    query = query.order(options.orderBy, { ascending: options.ascending ?? true });
+    query = query.order(options.orderBy, {
+      ascending: options.ascending ?? true,
+    });
   }
-  
+
   const { data, error, count } = await query;
-  
+
   if (error) {
-    console.error('Error fetching farms:', error);
+    console.error("Error fetching farms:", error);
     throw error;
   }
-  
+
   return {
     farms: data || [],
-    total: count || 0
+    total: count || 0,
   };
 };
 
@@ -170,12 +176,15 @@ export const getFarms = async (options?: {
  * Get a single farm by ID with complete hierarchy
  * Uses PostGREST joins for efficient data loading
  */
-export const getFarmDetails = async (farmId: UUID): Promise<FarmWithHierarchy> => {
+export const getFarmDetails = async (
+  farmId: UUID,
+): Promise<FarmWithHierarchy> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('farms')
-    .select(`
+    .from("farms")
+    .select(
+      `
       *,
       rows (
         *,
@@ -184,15 +193,16 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmWithHierarchy> =
           shelves (*)
         )
       )
-    `)
-    .eq('id', farmId)
+    `,
+    )
+    .eq("id", farmId)
     .single();
-  
+
   if (error) {
     console.error(`Error fetching farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -202,21 +212,23 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmWithHierarchy> =
  */
 export const createFarm = async (farmData: CreateFarmData): Promise<Farm> => {
   const user = await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('farms')
-    .insert([{
-      ...farmData,
-      user_id: user.id
-    }])
+    .from("farms")
+    .insert([
+      {
+        ...farmData,
+        user_id: user.id,
+      },
+    ])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating farm:', error);
+    console.error("Error creating farm:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -224,21 +236,24 @@ export const createFarm = async (farmData: CreateFarmData): Promise<Farm> => {
  * Update an existing farm
  * Uses RLS policies for authorization
  */
-export const updateFarm = async (farmId: UUID, farmData: Partial<CreateFarmData>): Promise<Farm> => {
+export const updateFarm = async (
+  farmId: UUID,
+  farmData: Partial<CreateFarmData>,
+): Promise<Farm> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('farms')
+    .from("farms")
     .update(farmData)
-    .eq('id', farmId)
+    .eq("id", farmId)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`Error updating farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -248,12 +263,9 @@ export const updateFarm = async (farmId: UUID, farmData: Partial<CreateFarmData>
  */
 export const deleteFarm = async (farmId: UUID): Promise<void> => {
   await requireAuth();
-  
-  const { error } = await supabase
-    .from('farms')
-    .delete()
-    .eq('id', farmId);
-  
+
+  const { error } = await supabase.from("farms").delete().eq("id", farmId);
+
   if (error) {
     console.error(`Error deleting farm ${farmId}:`, error);
     throw error;
@@ -269,18 +281,18 @@ export const deleteFarm = async (farmId: UUID): Promise<void> => {
  */
 export const getRowsByFarm = async (farmId: UUID): Promise<Row[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
-    .select('id, name, farm_id, created_at, updated_at')
-    .eq('farm_id', farmId)
-    .order('name', { ascending: true });
-  
+    .from("rows")
+    .select("id, name, farm_id, created_at, updated_at")
+    .eq("farm_id", farmId)
+    .order("name", { ascending: true });
+
   if (error) {
     console.error(`Error fetching rows for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -292,18 +304,18 @@ export const createRow = async (rowData: {
   farm_id: UUID;
 }): Promise<Row> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
+    .from("rows")
     .insert([rowData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating row:', error);
+    console.error("Error creating row:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -312,18 +324,18 @@ export const createRow = async (rowData: {
  */
 export const getRacksByRow = async (rowId: UUID): Promise<Rack[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select('id, name, row_id, created_at, updated_at')
-    .eq('row_id', rowId)
-    .order('name', { ascending: true });
-  
+    .from("racks")
+    .select("id, name, row_id, created_at, updated_at")
+    .eq("row_id", rowId)
+    .order("name", { ascending: true });
+
   if (error) {
     console.error(`Error fetching racks for row ${rowId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -335,18 +347,18 @@ export const createRack = async (rackData: {
   row_id: UUID;
 }): Promise<Rack> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
+    .from("racks")
     .insert([rackData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating rack:', error);
+    console.error("Error creating rack:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -355,18 +367,18 @@ export const createRack = async (rackData: {
  */
 export const getShelvesByRack = async (rackId: UUID): Promise<Shelf[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select('id, name, rack_id, created_at, updated_at')
-    .eq('rack_id', rackId)
-    .order('name', { ascending: true });
-  
+    .from("shelves")
+    .select("id, name, rack_id, created_at, updated_at")
+    .eq("rack_id", rackId)
+    .order("name", { ascending: true });
+
   if (error) {
     console.error(`Error fetching shelves for rack ${rackId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -378,18 +390,18 @@ export const createShelf = async (shelfData: {
   rack_id: UUID;
 }): Promise<Shelf> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
+    .from("shelves")
     .insert([shelfData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating shelf:', error);
+    console.error("Error creating shelf:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -400,45 +412,54 @@ export const createShelf = async (shelfData: {
 /**
  * Get all device assignments for a farm
  */
-export const getDeviceAssignmentsByFarm = async (farmId: UUID): Promise<DeviceAssignment[]> => {
+export const getDeviceAssignmentsByFarm = async (
+  farmId: UUID,
+): Promise<DeviceAssignment[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('device_assignments')
-    .select(`
+    .from("device_assignments")
+    .select(
+      `
       *,
       farms(name),
       rows(name),
       racks(name),
       shelves(name)
-    `)
-    .eq('farm_id', farmId);
-  
+    `,
+    )
+    .eq("farm_id", farmId);
+
   if (error) {
-    console.error(`Error fetching device assignments for farm ${farmId}:`, error);
+    console.error(
+      `Error fetching device assignments for farm ${farmId}:`,
+      error,
+    );
     throw error;
   }
-  
+
   return data || [];
 };
 
 /**
  * Search devices using the database function
  */
-export const searchDevices = async (searchTerm: string, farmId?: UUID): Promise<any[]> => {
+export const searchDevices = async (
+  searchTerm: string,
+  farmId?: UUID,
+): Promise<any[]> => {
   await requireAuth();
-  
-  const { data, error } = await supabase
-    .rpc('search_devices', {
-      search_term: searchTerm,
-      farm_uuid: farmId
-    });
-  
+
+  const { data, error } = await supabase.rpc("search_devices", {
+    search_term: searchTerm,
+    farm_uuid: farmId,
+  });
+
   if (error) {
-    console.error('Error searching devices:', error);
+    console.error("Error searching devices:", error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -456,18 +477,18 @@ export const assignDevice = async (deviceData: {
   user_config_id: UUID;
 }): Promise<DeviceAssignment> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('device_assignments')
+    .from("device_assignments")
     .insert([deviceData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error assigning device:', error);
+    console.error("Error assigning device:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -478,38 +499,40 @@ export const assignDevice = async (deviceData: {
 /**
  * Get farm statistics using the database function
  */
-export const getFarmStatistics = async (farmId: UUID): Promise<FarmStatistics> => {
+export const getFarmStatistics = async (
+  farmId: UUID,
+): Promise<FarmStatistics> => {
   await requireAuth();
-  
-  const { data, error } = await supabase
-    .rpc('get_farm_statistics', {
-      farm_uuid: farmId
-    });
-  
+
+  const { data, error } = await supabase.rpc("get_farm_statistics", {
+    farm_uuid: farmId,
+  });
+
   if (error) {
     console.error(`Error getting farm statistics for ${farmId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
 /**
  * Get device status summary using the database function
  */
-export const getDeviceStatusSummary = async (farmId?: UUID): Promise<DeviceStatusSummary[]> => {
+export const getDeviceStatusSummary = async (
+  farmId?: UUID,
+): Promise<DeviceStatusSummary[]> => {
   await requireAuth();
-  
-  const { data, error } = await supabase
-    .rpc('get_device_status_summary', {
-      farm_uuid: farmId
-    });
-  
+
+  const { data, error } = await supabase.rpc("get_device_status_summary", {
+    farm_uuid: farmId,
+  });
+
   if (error) {
-    console.error('Error getting device status summary:', error);
+    console.error("Error getting device status summary:", error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -522,19 +545,19 @@ export const getDeviceStatusSummary = async (farmId?: UUID): Promise<DeviceStatu
  */
 export const subscribeFarmUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void
+  callback: (payload: any) => void,
 ) => {
   return supabase
     .channel(`farm-${farmId}`)
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'farms',
-        filter: `id=eq.${farmId}`
+        event: "*",
+        schema: "public",
+        table: "farms",
+        filter: `id=eq.${farmId}`,
       },
-      callback
+      callback,
     )
     .subscribe();
 };
@@ -544,19 +567,19 @@ export const subscribeFarmUpdates = (
  */
 export const subscribeDeviceUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void
+  callback: (payload: any) => void,
 ) => {
   return supabase
     .channel(`devices-${farmId}`)
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'device_assignments',
-        filter: `farm_id=eq.${farmId}`
+        event: "*",
+        schema: "public",
+        table: "device_assignments",
+        filter: `farm_id=eq.${farmId}`,
       },
-      callback
+      callback,
     )
     .subscribe();
 };
@@ -566,47 +589,47 @@ export const subscribeDeviceUpdates = (
  */
 export const subscribeHierarchyUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void
+  callback: (payload: any) => void,
 ) => {
   const channel = supabase.channel(`hierarchy-${farmId}`);
-  
+
   // Subscribe to rows
   channel.on(
-    'postgres_changes',
+    "postgres_changes",
     {
-      event: '*',
-      schema: 'public',
-      table: 'rows',
-      filter: `farm_id=eq.${farmId}`
+      event: "*",
+      schema: "public",
+      table: "rows",
+      filter: `farm_id=eq.${farmId}`,
     },
-    callback
+    callback,
   );
-  
+
   // Subscribe to racks (via rows)
   channel.on(
-    'postgres_changes',
+    "postgres_changes",
     {
-      event: '*',
-      schema: 'public',
-      table: 'racks'
+      event: "*",
+      schema: "public",
+      table: "racks",
     },
     (payload) => {
       // You might want to filter racks by checking if row_id belongs to this farm
       callback(payload);
-    }
+    },
   );
-  
+
   // Subscribe to shelves (via racks)
   channel.on(
-    'postgres_changes',
+    "postgres_changes",
     {
-      event: '*',
-      schema: 'public',
-      table: 'shelves'
+      event: "*",
+      schema: "public",
+      table: "shelves",
     },
-    callback
+    callback,
   );
-  
+
   return channel.subscribe();
 };
 
@@ -619,13 +642,13 @@ export const subscribeHierarchyUpdates = (
  */
 export const handleSupabaseError = (error: any, operation: string) => {
   console.error(`Supabase ${operation} error:`, error);
-  
-  if (error.code === 'PGRST301') {
-    throw new Error('Resource not found or access denied');
-  } else if (error.code === 'PGRST116') {
-    throw new Error('Resource already exists');
-  } else if (error.message?.includes('RLS')) {
-    throw new Error('You do not have permission to perform this action');
+
+  if (error.code === "PGRST301") {
+    throw new Error("Resource not found or access denied");
+  } else if (error.code === "PGRST116") {
+    throw new Error("Resource already exists");
+  } else if (error.message?.includes("RLS")) {
+    throw new Error("You do not have permission to perform this action");
   } else {
     throw new Error(error.message || `Failed to ${operation}`);
   }
@@ -640,19 +663,16 @@ export const handleSupabaseError = (error: any, operation: string) => {
  */
 export const createMultiple = async <T>(
   table: string,
-  items: Partial<T>[]
+  items: Partial<T>[],
 ): Promise<T[]> => {
   await requireAuth();
-  
-  const { data, error } = await supabase
-    .from(table)
-    .insert(items)
-    .select();
-  
+
+  const { data, error } = await supabase.from(table).insert(items).select();
+
   if (error) {
     handleSupabaseError(error, `create multiple ${table}`);
   }
-  
+
   return data || [];
 };
 
@@ -661,27 +681,22 @@ export const createMultiple = async <T>(
  */
 export const updateMultiple = async <T>(
   table: string,
-  updates: Array<{ id: UUID; data: Partial<T> }>
+  updates: Array<{ id: UUID; data: Partial<T> }>,
 ): Promise<T[]> => {
   await requireAuth();
-  
+
   // Supabase doesn't support bulk updates directly, so we use a transaction-like approach
   const promises = updates.map(({ id, data }) =>
-    supabase
-      .from(table)
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single()
+    supabase.from(table).update(data).eq("id", id).select().single(),
   );
-  
+
   const results = await Promise.all(promises);
-  
-  const errors = results.filter(r => r.error);
+
+  const errors = results.filter((r) => r.error);
   if (errors.length > 0) {
-    console.error('Bulk update errors:', errors);
+    console.error("Bulk update errors:", errors);
     throw new Error(`Failed to update ${errors.length} items`);
   }
-  
-  return results.map(r => r.data).filter(Boolean);
-}; 
+
+  return results.map((r) => r.data).filter(Boolean);
+};

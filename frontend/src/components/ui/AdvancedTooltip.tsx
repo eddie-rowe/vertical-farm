@@ -1,92 +1,96 @@
-import React from 'react'
-import { 
+import React from "react";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger 
-} from '@/components/ui/tooltip'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Thermometer, 
-  Droplets, 
-  Sun, 
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import {
+  Thermometer,
+  Droplets,
+  Sun,
   Activity,
   Wifi,
   WifiOff,
   AlertTriangle,
   CheckCircle,
-  Clock
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+  Clock,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EnvironmentalData {
   temperature?: {
-    current: number
-    target: number
-    unit: 'C' | 'F'
-    status: 'optimal' | 'warning' | 'critical'
-  }
+    current: number;
+    target: number;
+    unit: "C" | "F";
+    status: "optimal" | "warning" | "critical";
+  };
   humidity?: {
-    current: number
-    target: number
-    status: 'optimal' | 'warning' | 'critical'
-  }
+    current: number;
+    target: number;
+    status: "optimal" | "warning" | "critical";
+  };
   lightLevel?: {
-    current: number
-    target: number
-    unit: 'lux' | '%'
-    status: 'optimal' | 'warning' | 'critical'
-  }
+    current: number;
+    target: number;
+    unit: "lux" | "%";
+    status: "optimal" | "warning" | "critical";
+  };
   ph?: {
-    current: number
-    target: number
-    status: 'optimal' | 'warning' | 'critical'
-  }
+    current: number;
+    target: number;
+    status: "optimal" | "warning" | "critical";
+  };
 }
 
 interface DeviceStatus {
-  connectivity: 'connected' | 'disconnected' | 'poor'
-  lastUpdate: string
-  batteryLevel?: number
+  connectivity: "connected" | "disconnected" | "poor";
+  lastUpdate: string;
+  batteryLevel?: number;
 }
 
 interface AdvancedTooltipProps {
-  children: React.ReactNode
-  title: string
-  elementType: 'shelf' | 'rack' | 'row'
-  environmentalData?: EnvironmentalData
-  deviceStatus?: DeviceStatus
-  deviceCount?: number
+  children: React.ReactNode;
+  title: string;
+  elementType: "shelf" | "rack" | "row";
+  environmentalData?: EnvironmentalData;
+  deviceStatus?: DeviceStatus;
+  deviceCount?: number;
   alerts?: Array<{
-    id: string
-    message: string
-    severity: 'low' | 'medium' | 'high'
-    timestamp: string
-  }>
-  side?: 'top' | 'right' | 'bottom' | 'left'
+    id: string;
+    message: string;
+    severity: "low" | "medium" | "high";
+    timestamp: string;
+  }>;
+  side?: "top" | "right" | "bottom" | "left";
 }
 
-const StatusIcon: React.FC<{ status: 'optimal' | 'warning' | 'critical' }> = ({ status }) => {
+const StatusIcon: React.FC<{ status: "optimal" | "warning" | "critical" }> = ({
+  status,
+}) => {
   switch (status) {
-    case 'optimal':
-      return <CheckCircle className="w-3 h-3 text-green-500" />
-    case 'warning':
-      return <AlertTriangle className="w-3 h-3 text-yellow-500" />
-    case 'critical':
-      return <AlertTriangle className="w-3 h-3 text-red-500" />
+    case "optimal":
+      return <CheckCircle className="w-3 h-3 text-green-500" />;
+    case "warning":
+      return <AlertTriangle className="w-3 h-3 text-yellow-500" />;
+    case "critical":
+      return <AlertTriangle className="w-3 h-3 text-red-500" />;
   }
-}
+};
 
-const ConnectivityIcon: React.FC<{ connectivity: 'connected' | 'disconnected' | 'poor' }> = ({ connectivity }) => {
+const ConnectivityIcon: React.FC<{
+  connectivity: "connected" | "disconnected" | "poor";
+}> = ({ connectivity }) => {
   switch (connectivity) {
-    case 'connected':
-      return <Wifi className="w-3 h-3 text-green-500" />
-    case 'poor':
-      return <Wifi className="w-3 h-3 text-yellow-500" />
-    case 'disconnected':
-      return <WifiOff className="w-3 h-3 text-red-500" />
+    case "connected":
+      return <Wifi className="w-3 h-3 text-green-500" />;
+    case "poor":
+      return <Wifi className="w-3 h-3 text-yellow-500" />;
+    case "disconnected":
+      return <WifiOff className="w-3 h-3 text-red-500" />;
   }
-}
+};
 
 export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
   children,
@@ -96,29 +100,27 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
   deviceStatus,
   deviceCount = 0,
   alerts = [],
-  side = 'top'
+  side = "top",
 }) => {
   const formatTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const time = new Date(timestamp)
-    const diffMs = now.getTime() - time.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `${diffHours}h ago`
-    const diffDays = Math.floor(diffHours / 24)
-    return `${diffDays}d ago`
-  }
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now.getTime() - time.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
 
   return (
     <TooltipProvider>
       <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          {children}
-        </TooltipTrigger>
-        <TooltipContent 
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent
           side={side}
           className="w-80 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl"
         >
@@ -139,7 +141,7 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
                 <div className="flex items-center gap-2">
                   <ConnectivityIcon connectivity={deviceStatus.connectivity} />
                   <span className="text-sm text-slate-700 dark:text-slate-300">
-                    {deviceCount} device{deviceCount !== 1 ? 's' : ''}
+                    {deviceCount} device{deviceCount !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
@@ -155,7 +157,7 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
                 <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   Environmental Conditions
                 </h5>
-                
+
                 {environmentalData.temperature && (
                   <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
                     <div className="flex items-center gap-2">
@@ -164,9 +166,12 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-mono">
-                        {environmentalData.temperature.current}°{environmentalData.temperature.unit}
+                        {environmentalData.temperature.current}°
+                        {environmentalData.temperature.unit}
                       </span>
-                      <StatusIcon status={environmentalData.temperature.status} />
+                      <StatusIcon
+                        status={environmentalData.temperature.status}
+                      />
                     </div>
                   </div>
                 )}
@@ -194,9 +199,12 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-mono">
-                        {environmentalData.lightLevel.current}{environmentalData.lightLevel.unit}
+                        {environmentalData.lightLevel.current}
+                        {environmentalData.lightLevel.unit}
                       </span>
-                      <StatusIcon status={environmentalData.lightLevel.status} />
+                      <StatusIcon
+                        status={environmentalData.lightLevel.status}
+                      />
                     </div>
                   </div>
                 )}
@@ -230,9 +238,12 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
                       key={alert.id}
                       className={cn(
                         "flex items-center gap-2 p-2 rounded text-xs",
-                        alert.severity === 'high' && "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300",
-                        alert.severity === 'medium' && "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300",
-                        alert.severity === 'low' && "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                        alert.severity === "high" &&
+                          "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300",
+                        alert.severity === "medium" &&
+                          "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300",
+                        alert.severity === "low" &&
+                          "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300",
                       )}
                     >
                       <AlertTriangle className="w-3 h-3 shrink-0" />
@@ -251,5 +262,5 @@ export const AdvancedTooltip: React.FC<AdvancedTooltipProps> = ({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  )
-} 
+  );
+};
