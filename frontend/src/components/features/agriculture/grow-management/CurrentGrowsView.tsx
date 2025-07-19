@@ -1,12 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Calendar, Clock, Search, Eye, Trash2, Edit, Bot } from "lucide-react";
 import AutomationMonitorCard from "./AutomationMonitorCard";
 
@@ -22,7 +34,7 @@ interface CurrentGrow {
   species_name: string;
   start_date: string;
   estimated_end_date: string;
-  status: 'planned' | 'active' | 'completed' | 'aborted';
+  status: "planned" | "active" | "completed" | "aborted";
   notes?: string;
   progress_percentage: number;
   days_elapsed: number;
@@ -40,10 +52,13 @@ interface CurrentGrowsViewProps {
   statusFilter: string;
 }
 
-export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGrowsViewProps) {
+export default function CurrentGrowsView({
+  searchTerm,
+  statusFilter,
+}: CurrentGrowsViewProps) {
   const [currentGrows, setCurrentGrows] = useState<CurrentGrow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showAutomation, setShowAutomation] = useState(true);
 
   // Mock data for demonstration - replace with actual API calls
@@ -70,7 +85,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
         target_temperature_min: 18,
         target_temperature_max: 22,
         watering_frequency_hours: 24,
-        notes: "Growing well, good color development"
+        notes: "Growing well, good color development",
       },
       {
         id: "grow-2",
@@ -93,7 +108,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
         target_temperature_min: 20,
         target_temperature_max: 26,
         watering_frequency_hours: 12,
-        notes: "Strong germination, adjusting lighting schedule"
+        notes: "Strong germination, adjusting lighting schedule",
       },
       {
         id: "grow-3",
@@ -116,64 +131,71 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
         target_temperature_min: 18,
         target_temperature_max: 22,
         watering_frequency_hours: 24,
-        notes: "Harvested successfully - 2.3kg yield"
-      }
+        notes: "Harvested successfully - 2.3kg yield",
+      },
     ];
 
     setCurrentGrows(mockGrows);
     setIsLoading(false);
   }, []);
 
-  const filteredGrows = currentGrows.filter(grow => {
-    const matchesSearch = !searchTerm || 
+  const filteredGrows = currentGrows.filter((grow) => {
+    const matchesSearch =
+      !searchTerm ||
       grow.species_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       grow.recipe_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       grow.shelf_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       grow.farm_name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || grow.status === statusFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "all" || grow.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: CurrentGrow['status']) => {
+  const getStatusColor = (status: CurrentGrow["status"]) => {
     switch (status) {
-      case 'planned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      case 'aborted': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800';
+      case "planned":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "completed":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "aborted":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-
-
   const handleViewDetails = (growId: string) => {
     // TODO: Navigate to detailed grow view
-    console.log('View details for grow:', growId);
+    console.log("View details for grow:", growId);
   };
 
   const handleEditGrow = (growId: string) => {
     // TODO: Open edit modal
-    console.log('Edit grow:', growId);
+    console.log("Edit grow:", growId);
   };
 
   const handleAbortGrow = async (growId: string) => {
-    if (!confirm('Are you sure you want to abort this grow? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to abort this grow? This action cannot be undone.",
+      )
+    ) {
       return;
     }
-    
+
     try {
       // TODO: API call to abort grow
-      setCurrentGrows(grows => 
-        grows.map(grow => 
-          grow.id === growId 
-            ? { ...grow, status: 'aborted' as const } 
-            : grow
-        )
+      setCurrentGrows((grows) =>
+        grows.map((grow) =>
+          grow.id === growId ? { ...grow, status: "aborted" as const } : grow,
+        ),
       );
     } catch (error) {
-      console.error('Error aborting grow:', error);
+      console.error("Error aborting grow:", error);
     }
   };
 
@@ -197,14 +219,21 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                 <Input
                   placeholder="Search grows by species, recipe, or location..."
                   value={searchTerm}
-                  onChange={() => {/* searchTerm is controlled by parent */}}
+                  onChange={() => {
+                    /* searchTerm is controlled by parent */
+                  }}
                   className="pl-10"
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={() => {/* statusFilter is controlled by parent */}}>
+              <Select
+                value={statusFilter}
+                onValueChange={() => {
+                  /* statusFilter is controlled by parent */
+                }}
+              >
                 <SelectTrigger className="w-40">
                   <SelectValue />
                 </SelectTrigger>
@@ -216,20 +245,22 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                   <SelectItem value="aborted">Aborted</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button
                 variant="outline"
                 onClick={() => setShowAutomation(!showAutomation)}
               >
                 <Bot className="h-4 w-4 mr-1" />
-                {showAutomation ? 'Hide' : 'Show'} Automation
+                {showAutomation ? "Hide" : "Show"} Automation
               </Button>
-              
+
               <Button
                 variant="outline"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                onClick={() =>
+                  setViewMode(viewMode === "grid" ? "list" : "grid")
+                }
               >
-                {viewMode === 'grid' ? 'List View' : 'Grid View'}
+                {viewMode === "grid" ? "List View" : "Grid View"}
               </Button>
             </div>
           </div>
@@ -241,15 +272,17 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
-              {currentGrows.filter(g => g.status === 'active').length}
+              {currentGrows.filter((g) => g.status === "active").length}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Active Grows</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Active Grows
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-blue-600">
-              {currentGrows.filter(g => g.status === 'planned').length}
+              {currentGrows.filter((g) => g.status === "planned").length}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Planned</p>
           </CardContent>
@@ -257,31 +290,46 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-gray-600">
-              {currentGrows.filter(g => g.status === 'completed').length}
+              {currentGrows.filter((g) => g.status === "completed").length}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Completed
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
-              {Math.round(currentGrows.filter(g => g.status === 'active').reduce((acc, g) => acc + g.progress_percentage, 0) / Math.max(currentGrows.filter(g => g.status === 'active').length, 1))}%
+              {Math.round(
+                currentGrows
+                  .filter((g) => g.status === "active")
+                  .reduce((acc, g) => acc + g.progress_percentage, 0) /
+                  Math.max(
+                    currentGrows.filter((g) => g.status === "active").length,
+                    1,
+                  ),
+              )}
+              %
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Avg Progress</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Avg Progress
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Grows Display */}
-      {viewMode === 'grid' ? (
+      {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGrows.map(grow => (
+          {filteredGrows.map((grow) => (
             <div key={grow.id} className="space-y-4">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg">{grow.species_name}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {grow.species_name}
+                      </CardTitle>
                       <CardDescription>{grow.recipe_name}</CardDescription>
                     </div>
                     <Badge className={getStatusColor(grow.status)}>
@@ -295,9 +343,14 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                       <span>Progress</span>
                       <span>{grow.progress_percentage}%</span>
                     </div>
-                    <Progress value={grow.progress_percentage} className="h-2" />
+                    <Progress
+                      value={grow.progress_percentage}
+                      className="h-2"
+                    />
                     <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                      <span>Day {grow.days_elapsed}/{grow.total_days}</span>
+                      <span>
+                        Day {grow.days_elapsed}/{grow.total_days}
+                      </span>
                       <span>{grow.days_remaining} days left</span>
                     </div>
                   </div>
@@ -305,14 +358,21 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>Started: {new Date(grow.start_date).toLocaleDateString()}</span>
+                      <span>
+                        Started:{" "}
+                        {new Date(grow.start_date).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      <span>Harvest: {new Date(grow.estimated_end_date).toLocaleDateString()}</span>
+                      <span>
+                        Harvest:{" "}
+                        {new Date(grow.estimated_end_date).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      📍 {grow.farm_name} › {grow.row_name} › {grow.rack_name} › {grow.shelf_name}
+                      📍 {grow.farm_name} › {grow.row_name} › {grow.rack_name} ›{" "}
+                      {grow.shelf_name}
                     </div>
                   </div>
 
@@ -332,7 +392,7 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    {grow.status === 'active' && (
+                    {grow.status === "active" && (
                       <>
                         <Button
                           variant="outline"
@@ -353,9 +413,9 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Automation Monitor */}
-              {showAutomation && grow.status === 'active' && (
+              {showAutomation && grow.status === "active" && (
                 <AutomationMonitorCard
                   scheduleId={grow.id}
                   shelfName={grow.shelf_name}
@@ -382,10 +442,9 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
             <div className="text-center py-8">
               <p className="text-gray-500 text-lg">No grows found</p>
               <p className="text-sm text-gray-400 mt-2">
-                {searchTerm || statusFilter !== 'all' 
-                  ? 'Try adjusting your search or filters'
-                  : 'Start your first grow in the "New Grow Setup" tab'
-                }
+                {searchTerm || statusFilter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : 'Start your first grow in the "New Grow Setup" tab'}
               </p>
             </div>
           </CardContent>
@@ -393,4 +452,4 @@ export default function CurrentGrowsView({ searchTerm, statusFilter }: CurrentGr
       )}
     </div>
   );
-} 
+}

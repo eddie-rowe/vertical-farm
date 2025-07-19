@@ -3,31 +3,45 @@
  * Base automation types used across the system
  */
 
-import { UUID, BaseEntity, ExecutionStatus, Priority } from '../common';
+import { UUID, BaseEntity, ExecutionStatus, Priority } from "../common";
 
 /** Types of automation tasks that can be executed */
-export type AutomationTaskType = 
-  | 'schedule_progression'
-  | 'environmental_check'
-  | 'watering_cycle'
-  | 'lighting_cycle'
-  | 'harvest_readiness'
-  | 'recipe_application'
-  | 'alert_generation'
-  | 'sensor_aggregation'
-  | 'device_control';
+export type AutomationTaskType =
+  | "schedule_progression"
+  | "environmental_check"
+  | "watering_cycle"
+  | "lighting_cycle"
+  | "harvest_readiness"
+  | "recipe_application"
+  | "alert_generation"
+  | "sensor_aggregation"
+  | "device_control";
 
 /** Status of task execution */
-export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+export type TaskStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 /** Alert severity levels */
-export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
+export type AlertSeverity = "info" | "warning" | "error" | "critical";
 
 /** Types of automation triggers */
-export type TriggerType = 'time_based' | 'sensor_based' | 'event_based' | 'schedule_based';
+export type TriggerType =
+  | "time_based"
+  | "sensor_based"
+  | "event_based"
+  | "schedule_based";
 
 /** Schedule status types */
-export type ScheduleStatus = 'planned' | 'active' | 'completed' | 'aborted' | 'paused';
+export type ScheduleStatus =
+  | "planned"
+  | "active"
+  | "completed"
+  | "aborted"
+  | "paused";
 
 /**
  * Task execution log
@@ -295,4 +309,4 @@ export interface AutomationStatus {
   uptime_seconds?: number;
   /** Last system restart */
   last_restart?: string;
-} 
+}

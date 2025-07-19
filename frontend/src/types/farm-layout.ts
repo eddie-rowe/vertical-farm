@@ -1,7 +1,7 @@
 export type UUID = string; // Using string for UUIDs on the frontend for simplicity
 
 // Area types for different farm sections
-export type AreaType = 'grow_area' | 'germination_tent';
+export type AreaType = "grow_area" | "germination_tent";
 
 // Germination-specific operational data
 export interface GerminationData {
@@ -24,15 +24,24 @@ export interface SensorDevice {
   id: UUID;
   name?: string;
   model_number?: string | null;
-  sensor_type: 'temperature' | 'humidity' | 'co2' | 'ph' | 'ec' | 'water_level' | 'light_intensity' | 'air_flow' | 'soil_moisture';
+  sensor_type:
+    | "temperature"
+    | "humidity"
+    | "co2"
+    | "ph"
+    | "ec"
+    | "water_level"
+    | "light_intensity"
+    | "air_flow"
+    | "soil_moisture";
   measurement_unit?: string | null;
   data_range_min?: number | null;
   data_range_max?: number | null;
   accuracy?: string | null;
-  parent_type: 'shelf' | 'rack' | 'row' | 'farm';
+  parent_type: "shelf" | "rack" | "row" | "farm";
   parent_id: UUID;
-  created_at?: string | null; 
-  updated_at?: string | null; 
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Enhanced shelf with area type context and operational data
@@ -40,11 +49,11 @@ export interface Shelf {
   id: UUID;
   name?: string;
   rack_id: UUID;
-  devices?: SensorDevice[]; 
+  devices?: SensorDevice[];
   // Operational data based on area type
   germination_data?: GerminationData;
-  created_at?: string | null; 
-  updated_at?: string | null; 
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Enhanced rack with area type context
@@ -52,9 +61,9 @@ export interface Rack {
   id: UUID;
   name?: string;
   row_id: UUID;
-  shelves?: Shelf[]; 
-  created_at?: string | null; 
-  updated_at?: string | null; 
+  shelves?: Shelf[];
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Enhanced row with area type context
@@ -62,11 +71,11 @@ export interface Row {
   id: UUID;
   name?: string;
   farm_id: UUID;
-  orientation: 'horizontal' | 'vertical';
+  orientation: "horizontal" | "vertical";
   area_type: AreaType; // New field to distinguish grow areas from germination tents
-  racks?: Rack[]; 
-  created_at?: string | null; 
-  updated_at?: string | null; 
+  racks?: Rack[];
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Farm remains largely the same but now contains both area types

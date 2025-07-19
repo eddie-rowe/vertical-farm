@@ -1,35 +1,105 @@
-import { 
-  FaSeedling, 
-  FaChartBar, 
-  FaLeaf, 
-  FaQuestionCircle, 
-  FaPlug, 
-  FaBuilding, 
-  FaDollarSign, 
-  FaUsers, 
-  FaBrain, 
-  FaTachometerAlt, 
+import {
+  FaSeedling,
+  FaChartBar,
+  FaLeaf,
+  FaQuestionCircle,
+  FaPlug,
+  FaBuilding,
+  FaDollarSign,
+  FaUsers,
+  FaBrain,
+  FaTachometerAlt,
   FaBoxes,
   FaExclamationTriangle,
   FaCog,
-  FaCalendarAlt
+  FaCalendarAlt,
 } from "@/lib/icons";
 
 export const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: <FaSeedling />, variant: "primary" },
-  { href: "/farms", label: "Farm Layout", icon: <FaBuilding />, variant: "growing" },
-  { href: "/devices", label: "Device Configuration", icon: <FaCog />, variant: "maintenance" },
-  { href: "/grow-management", label: "Grow Management", icon: <FaLeaf />, variant: "growing" },
-  { href: "/operations", label: "Operations", icon: <FaTachometerAlt />, variant: "maintenance" },
-  { href: "/calendar", label: "Farm Calendar", icon: <FaCalendarAlt />, variant: "primary" },
-  { href: "/analytics", label: "Analytics", icon: <FaChartBar />, variant: "primary" },
-  { href: "/business", label: "Business Management", icon: <FaDollarSign />, variant: "primary" },
-  { href: "/procurement", label: "Procurement", icon: <FaBoxes />, variant: "maintenance" },
-  { href: "/team", label: "Team Management", icon: <FaUsers />, variant: "growing" },
-  { href: "/ai", label: "AI Intelligence", icon: <FaBrain />, variant: "primary" },
-  { href: "/integrations", label: "Integrations", icon: <FaPlug />, variant: "maintenance" },
-  { href: "/alert-history", label: "Alert History", icon: <FaExclamationTriangle />, variant: "maintenance" },
-  { href: "/help", label: "Help", icon: <FaQuestionCircle />, variant: "offline" },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: <FaSeedling />,
+    variant: "primary",
+  },
+  {
+    href: "/farms",
+    label: "Farm Layout",
+    icon: <FaBuilding />,
+    variant: "growing",
+  },
+  {
+    href: "/devices",
+    label: "Device Configuration",
+    icon: <FaCog />,
+    variant: "maintenance",
+  },
+  {
+    href: "/grow-management",
+    label: "Grow Management",
+    icon: <FaLeaf />,
+    variant: "growing",
+  },
+  {
+    href: "/operations",
+    label: "Operations",
+    icon: <FaTachometerAlt />,
+    variant: "maintenance",
+  },
+  {
+    href: "/calendar",
+    label: "Farm Calendar",
+    icon: <FaCalendarAlt />,
+    variant: "primary",
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    icon: <FaChartBar />,
+    variant: "primary",
+  },
+  {
+    href: "/business",
+    label: "Business Management",
+    icon: <FaDollarSign />,
+    variant: "primary",
+  },
+  {
+    href: "/procurement",
+    label: "Procurement",
+    icon: <FaBoxes />,
+    variant: "maintenance",
+  },
+  {
+    href: "/team",
+    label: "Team Management",
+    icon: <FaUsers />,
+    variant: "growing",
+  },
+  {
+    href: "/ai",
+    label: "AI Intelligence",
+    icon: <FaBrain />,
+    variant: "primary",
+  },
+  {
+    href: "/integrations",
+    label: "Integrations",
+    icon: <FaPlug />,
+    variant: "maintenance",
+  },
+  {
+    href: "/alert-history",
+    label: "Alert History",
+    icon: <FaExclamationTriangle />,
+    variant: "maintenance",
+  },
+  {
+    href: "/help",
+    label: "Help",
+    icon: <FaQuestionCircle />,
+    variant: "offline",
+  },
 ];
 
 interface ServerSidebarProps {
@@ -48,18 +118,18 @@ const ServerSidebar: React.FC<ServerSidebarProps> = ({ children }) => {
             <h2 className="text-farm-title text-xl font-bold text-gray-900 dark:text-gray-100">
               Farm Control
             </h2>
-            <p className="text-xs text-muted-foreground">Vertical Agriculture</p>
+            <p className="text-xs text-muted-foreground">
+              Vertical Agriculture
+            </p>
           </div>
         </div>
       </div>
-      
+
       <nav className="flex-1 px-4 pb-4">
-        <ul className="space-y-2">
-          {children}
-        </ul>
+        <ul className="space-y-2">{children}</ul>
       </nav>
     </aside>
   );
 };
 
-export default ServerSidebar; 
+export default ServerSidebar;

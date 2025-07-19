@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 
 // Debounce hook for performance optimization
 export function useDebounce<T>(value: T, delay: number): T {
@@ -23,12 +29,15 @@ export function useThrottle<T>(value: T, limit: number): T {
   const lastRan = useRef(Date.now());
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (Date.now() - lastRan.current >= limit) {
-        setThrottledValue(value);
-        lastRan.current = Date.now();
-      }
-    }, limit - (Date.now() - lastRan.current));
+    const handler = setTimeout(
+      () => {
+        if (Date.now() - lastRan.current >= limit) {
+          setThrottledValue(value);
+          lastRan.current = Date.now();
+        }
+      },
+      limit - (Date.now() - lastRan.current),
+    );
 
     return () => {
       clearTimeout(handler);
@@ -41,7 +50,7 @@ export function useThrottle<T>(value: T, limit: number): T {
 // Intersection Observer hook for lazy loading
 export function useIntersectionObserver(
   ref: React.RefObject<HTMLElement | HTMLImageElement | null>,
-  options: IntersectionObserverInit = {}
+  options: IntersectionObserverInit = {},
 ): IntersectionObserverEntry | null {
   const [entry, setEntry] = useState<IntersectionObserverEntry | null>(null);
 
@@ -49,14 +58,11 @@ export function useIntersectionObserver(
     const element = ref.current;
     if (!element) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => setEntry(entry),
-      {
-        threshold: 0.1,
-        rootMargin: '50px',
-        ...options,
-      }
-    );
+    const observer = new IntersectionObserver(([entry]) => setEntry(entry), {
+      threshold: 0.1,
+      rootMargin: "50px",
+      ...options,
+    });
 
     observer.observe(element);
     return () => observer.disconnect();
@@ -83,7 +89,7 @@ export function LazyImage({
   const shouldLoad = entry?.isIntersecting;
 
   useEffect(() => {
-    if (shouldLoad && src && !isLoaded && typeof src === 'string') {
+    if (shouldLoad && src && !isLoaded && typeof src === "string") {
       const img = new Image();
       img.onload = () => setIsLoaded(true);
       img.onerror = () => setHasError(true);
@@ -106,7 +112,7 @@ export function LazyImage({
       {...props}
       style={{
         ...props.style,
-        transition: 'opacity 0.3s ease',
+        transition: "opacity 0.3s ease",
         opacity: isLoaded ? 1 : 0,
       }}
     />
@@ -124,33 +130,33 @@ export function usePerformance(name: string) {
 
   const start = useCallback(() => {
     startTime.current = performance.now();
-    setMetrics(prev => ({ ...prev, startTime: startTime.current }));
-    
-    if (typeof window !== 'undefined' && 'performance' in window) {
+    setMetrics((prev) => ({ ...prev, startTime: startTime.current }));
+
+    if (typeof window !== "undefined" && "performance" in window) {
       performance.mark(`${name}-start`);
     }
   }, [name]);
 
   const end = useCallback(() => {
     if (!startTime.current) return;
-    
+
     const endTime = performance.now();
     const duration = endTime - startTime.current;
-    
+
     setMetrics({
       startTime: startTime.current,
       endTime,
       duration,
     });
 
-    if (typeof window !== 'undefined' && 'performance' in window) {
+    if (typeof window !== "undefined" && "performance" in window) {
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
     }
 
     // Log performance metrics in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Performance [${name}]:`, duration.toFixed(2), 'ms');
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Performance [${name}]:`, duration.toFixed(2), "ms");
     }
   }, [name]);
 
@@ -161,7 +167,7 @@ export function usePerformance(name: string) {
 export function useMemoizedSelector<T, R>(
   data: T,
   selector: (data: T) => R,
-  deps?: React.DependencyList
+  deps?: React.DependencyList,
 ): R {
   return useMemo(() => selector(data), deps ? [data, ...deps] : [data]);
 }
@@ -169,7 +175,7 @@ export function useMemoizedSelector<T, R>(
 // Async state hook with error handling
 export function useAsyncState<T>(
   asyncFunction: () => Promise<T>,
-  dependencies: React.DependencyList = []
+  dependencies: React.DependencyList = [],
 ) {
   const [state, setState] = useState<{
     data: T | null;
@@ -182,8 +188,8 @@ export function useAsyncState<T>(
   });
 
   const execute = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+
     try {
       const data = await asyncFunction();
       setState({ data, loading: false, error: null });
@@ -216,29 +222,32 @@ export function VirtualizedList<T>({
   overscan?: number;
 }) {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   const visibleStart = Math.floor(scrollTop / itemHeight);
   const visibleEnd = Math.min(
     visibleStart + Math.ceil(containerHeight / itemHeight),
-    items.length - 1
+    items.length - 1,
   );
-  
+
   const paddingTop = visibleStart * itemHeight;
   const paddingBottom = (items.length - visibleEnd - 1) * itemHeight;
-  
+
   const visibleItems = items.slice(
     Math.max(0, visibleStart - overscan),
-    Math.min(items.length, visibleEnd + 1 + overscan)
+    Math.min(items.length, visibleEnd + 1 + overscan),
   );
 
   return (
     <div
-      style={{ height: containerHeight, overflow: 'auto' }}
+      style={{ height: containerHeight, overflow: "auto" }}
       onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
     >
       <div style={{ paddingTop, paddingBottom }}>
         {visibleItems.map((item, index) => (
-          <div key={visibleStart - overscan + index} style={{ height: itemHeight }}>
+          <div
+            key={visibleStart - overscan + index}
+            style={{ height: itemHeight }}
+          >
             {renderItem(item, visibleStart - overscan + index)}
           </div>
         ))}
@@ -256,7 +265,7 @@ export function useMemoryMonitor(interval = 5000) {
   }>({});
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('performance' in window)) return;
+    if (typeof window === "undefined" || !("performance" in window)) return;
 
     const updateMemoryInfo = () => {
       const memory = (performance as any).memory;
@@ -279,16 +288,16 @@ export function useMemoryMonitor(interval = 5000) {
 }
 
 // Resource preloader
-export function preloadResource(href: string, as: string = 'fetch') {
-  if (typeof window === 'undefined') return;
+export function preloadResource(href: string, as: string = "fetch") {
+  if (typeof window === "undefined") return;
 
-  const link = document.createElement('link');
-  link.rel = 'preload';
+  const link = document.createElement("link");
+  link.rel = "preload";
   link.href = href;
   link.as = as;
-  
-  if (as === 'fetch') {
-    link.crossOrigin = 'anonymous';
+
+  if (as === "fetch") {
+    link.crossOrigin = "anonymous";
   }
 
   document.head.appendChild(link);
@@ -296,54 +305,60 @@ export function preloadResource(href: string, as: string = 'fetch') {
 
 // Critical resource hints
 export function addResourceHints() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   // DNS prefetch for external domains
   const domains = [
-    'fonts.googleapis.com',
-    'fonts.gstatic.com',
-    'api.goodgoodgreens.org',
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "api.goodgoodgreens.org",
   ];
 
-  domains.forEach(domain => {
-    const link = document.createElement('link');
-    link.rel = 'dns-prefetch';
+  domains.forEach((domain) => {
+    const link = document.createElement("link");
+    link.rel = "dns-prefetch";
     link.href = `//${domain}`;
     document.head.appendChild(link);
   });
 
   // Preconnect to critical origins
   const preconnectDomains = [
-    'https://fonts.googleapis.com',
-    'https://api.goodgoodgreens.org',
+    "https://fonts.googleapis.com",
+    "https://api.goodgoodgreens.org",
   ];
 
-  preconnectDomains.forEach(domain => {
-    const link = document.createElement('link');
-    link.rel = 'preconnect';
+  preconnectDomains.forEach((domain) => {
+    const link = document.createElement("link");
+    link.rel = "preconnect";
     link.href = domain;
-    link.crossOrigin = 'anonymous';
+    link.crossOrigin = "anonymous";
     document.head.appendChild(link);
   });
 }
 
 // Performance observer for Core Web Vitals
 export function observeWebVitals(callback: (metric: any) => void) {
-  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+  if (typeof window === "undefined" || !("PerformanceObserver" in window))
+    return;
 
   // Largest Contentful Paint
   const lcpObserver = new PerformanceObserver((list) => {
     const entries = list.getEntries();
     const lastEntry = entries[entries.length - 1];
     callback({
-      name: 'LCP',
+      name: "LCP",
       value: lastEntry.startTime,
-      rating: lastEntry.startTime > 2500 ? 'poor' : lastEntry.startTime > 1200 ? 'needs-improvement' : 'good'
+      rating:
+        lastEntry.startTime > 2500
+          ? "poor"
+          : lastEntry.startTime > 1200
+            ? "needs-improvement"
+            : "good",
     });
   });
 
   try {
-    lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+    lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
   } catch (_e) {
     // LCP not supported
   }
@@ -353,16 +368,20 @@ export function observeWebVitals(callback: (metric: any) => void) {
     const entries = list.getEntries();
     entries.forEach((entry: any) => {
       callback({
-        name: 'FID',
+        name: "FID",
         value: entry.processingStart - entry.startTime,
-        rating: entry.processingStart - entry.startTime > 300 ? 'poor' : 
-                entry.processingStart - entry.startTime > 100 ? 'needs-improvement' : 'good'
+        rating:
+          entry.processingStart - entry.startTime > 300
+            ? "poor"
+            : entry.processingStart - entry.startTime > 100
+              ? "needs-improvement"
+              : "good",
       });
     });
   });
 
   try {
-    fidObserver.observe({ entryTypes: ['first-input'] });
+    fidObserver.observe({ entryTypes: ["first-input"] });
   } catch (_e) {
     // FID not supported
   }
@@ -375,17 +394,22 @@ export function observeWebVitals(callback: (metric: any) => void) {
       if (!entry.hadRecentInput) {
         clsValue += entry.value;
         callback({
-          name: 'CLS',
+          name: "CLS",
           value: clsValue,
-          rating: clsValue > 0.25 ? 'poor' : clsValue > 0.1 ? 'needs-improvement' : 'good'
+          rating:
+            clsValue > 0.25
+              ? "poor"
+              : clsValue > 0.1
+                ? "needs-improvement"
+                : "good",
         });
       }
     });
   });
 
   try {
-    clsObserver.observe({ entryTypes: ['layout-shift'] });
+    clsObserver.observe({ entryTypes: ["layout-shift"] });
   } catch (_e) {
     // CLS not supported
   }
-} 
+}

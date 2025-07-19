@@ -56,7 +56,10 @@ export function DashboardSkeleton() {
             <CardContent>
               <div className="space-y-4">
                 {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div
+                    key={index}
+                    className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  >
                     <div className="flex justify-between items-center mb-3">
                       <Skeleton className="h-4 w-16" />
                       <Skeleton className="h-5 w-20 rounded-full" />
@@ -87,7 +90,10 @@ export function DashboardSkeleton() {
             <CardContent>
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  >
                     <div className="flex items-center gap-3">
                       <Skeleton className="w-4 h-4" />
                       <Skeleton className="h-4 w-24" />
@@ -116,7 +122,10 @@ export function DashboardSkeleton() {
             <CardContent>
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="p-3 rounded-lg border-l-4 border-gray-200">
+                  <div
+                    key={index}
+                    className="p-3 rounded-lg border-l-4 border-gray-200"
+                  >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <Skeleton className="h-4 w-full mb-1" />
@@ -141,7 +150,10 @@ export function DashboardSkeleton() {
             <CardContent>
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="flex items-start gap-3 p-2 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-2 rounded-lg"
+                  >
                     <Skeleton className="w-2 h-2 rounded-full mt-2 flex-shrink-0" />
                     <div className="flex-1">
                       <Skeleton className="h-3 w-full mb-1" />
@@ -156,4 +168,4 @@ export function DashboardSkeleton() {
       </main>
     </div>
   );
-} 
+}

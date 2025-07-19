@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Rack, Shelf, SensorDevice } from '@/types/farm-layout';
+import React, { useCallback, useEffect, useState } from "react";
+import { Row, Rack, Shelf, SensorDevice } from "@/types/farm-layout";
 
 export type SelectableElement = {
   id: string;
-  type: 'row' | 'rack' | 'shelf' | 'device';
+  type: "row" | "rack" | "shelf" | "device";
   element: Row | Rack | Shelf | SensorDevice;
   parentId?: string;
 };
@@ -13,7 +13,7 @@ export type SelectableElement = {
 export interface SelectionState {
   selectedElements: Map<string, SelectableElement>;
   lastSelected?: string;
-  selectionMode: 'single' | 'multi';
+  selectionMode: "single" | "multi";
 }
 
 interface SelectionManagerProps {
@@ -22,7 +22,10 @@ interface SelectionManagerProps {
     selectedElements: Map<string, SelectableElement>;
     isSelected: (id: string) => boolean;
     isMultiSelected: () => boolean;
-    handleElementClick: (element: SelectableElement, event: React.MouseEvent) => void;
+    handleElementClick: (
+      element: SelectableElement,
+      event: React.MouseEvent,
+    ) => void;
     handleClearSelection: () => void;
     handleSelectAll: (elements: SelectableElement[]) => void;
     selectionCount: number;
@@ -32,92 +35,99 @@ interface SelectionManagerProps {
 
 const SelectionManager: React.FC<SelectionManagerProps> = ({
   onSelectionChange,
-  children
+  children,
 }) => {
   const [selectionState, setSelectionState] = useState<SelectionState>({
     selectedElements: new Map(),
-    selectionMode: 'single'
+    selectionMode: "single",
   });
 
   // Update selection mode based on modifier keys
   const updateSelectionMode = useCallback((event: React.MouseEvent) => {
-    const newMode = event.ctrlKey || event.metaKey || event.shiftKey ? 'multi' : 'single';
-    setSelectionState(prev => ({ ...prev, selectionMode: newMode }));
+    const newMode =
+      event.ctrlKey || event.metaKey || event.shiftKey ? "multi" : "single";
+    setSelectionState((prev) => ({ ...prev, selectionMode: newMode }));
   }, []);
 
   // Handle element selection
-  const handleElementClick = useCallback((element: SelectableElement, event: React.MouseEvent) => {
-    event.stopPropagation();
-    updateSelectionMode(event);
+  const handleElementClick = useCallback(
+    (element: SelectableElement, event: React.MouseEvent) => {
+      event.stopPropagation();
+      updateSelectionMode(event);
 
-    setSelectionState(prev => {
-      const newSelection = new Map(prev.selectedElements);
-      const isCurrentlySelected = newSelection.has(element.id);
+      setSelectionState((prev) => {
+        const newSelection = new Map(prev.selectedElements);
+        const isCurrentlySelected = newSelection.has(element.id);
 
-      if (prev.selectionMode === 'single') {
-        // Single selection mode - replace current selection
-        newSelection.clear();
-        if (!isCurrentlySelected) {
-          newSelection.set(element.id, element);
-        }
-      } else {
-        // Multi selection mode
-        if (event.shiftKey && prev.lastSelected) {
-          // Range selection (if we have a previous selection)
-          // For now, just add to selection - range logic would need element ordering
+        if (prev.selectionMode === "single") {
+          // Single selection mode - replace current selection
+          newSelection.clear();
           if (!isCurrentlySelected) {
             newSelection.set(element.id, element);
           }
-        } else if (event.ctrlKey || event.metaKey) {
-          // Toggle selection
-          if (isCurrentlySelected) {
-            newSelection.delete(element.id);
+        } else {
+          // Multi selection mode
+          if (event.shiftKey && prev.lastSelected) {
+            // Range selection (if we have a previous selection)
+            // For now, just add to selection - range logic would need element ordering
+            if (!isCurrentlySelected) {
+              newSelection.set(element.id, element);
+            }
+          } else if (event.ctrlKey || event.metaKey) {
+            // Toggle selection
+            if (isCurrentlySelected) {
+              newSelection.delete(element.id);
+            } else {
+              newSelection.set(element.id, element);
+            }
           } else {
+            // Add to selection
             newSelection.set(element.id, element);
           }
-        } else {
-          // Add to selection
-          newSelection.set(element.id, element);
         }
-      }
 
-      const newState = {
-        selectedElements: newSelection,
-        lastSelected: newSelection.size > 0 ? element.id : undefined,
-        selectionMode: prev.selectionMode
-      };
+        const newState = {
+          selectedElements: newSelection,
+          lastSelected: newSelection.size > 0 ? element.id : undefined,
+          selectionMode: prev.selectionMode,
+        };
 
-      return newState;
-    });
-  }, [updateSelectionMode]);
+        return newState;
+      });
+    },
+    [updateSelectionMode],
+  );
 
   // Clear all selections
   const handleClearSelection = useCallback(() => {
-    setSelectionState(prev => ({
+    setSelectionState((prev) => ({
       ...prev,
       selectedElements: new Map(),
-      lastSelected: undefined
+      lastSelected: undefined,
     }));
   }, []);
 
   // Select all elements
   const handleSelectAll = useCallback((elements: SelectableElement[]) => {
     const newSelection = new Map<string, SelectableElement>();
-    elements.forEach(element => {
+    elements.forEach((element) => {
       newSelection.set(element.id, element);
     });
 
-    setSelectionState(prev => ({
+    setSelectionState((prev) => ({
       ...prev,
       selectedElements: newSelection,
-      selectionMode: 'multi'
+      selectionMode: "multi",
     }));
   }, []);
 
   // Utility functions
-  const isSelected = useCallback((id: string) => {
-    return selectionState.selectedElements.has(id);
-  }, [selectionState.selectedElements]);
+  const isSelected = useCallback(
+    (id: string) => {
+      return selectionState.selectedElements.has(id);
+    },
+    [selectionState.selectedElements],
+  );
 
   const isMultiSelected = useCallback(() => {
     return selectionState.selectedElements.size > 1;
@@ -125,21 +135,21 @@ const SelectionManager: React.FC<SelectionManagerProps> = ({
 
   const getSelectionInfo = useCallback(() => {
     const count = selectionState.selectedElements.size;
-    if (count === 0) return 'No selection';
+    if (count === 0) return "No selection";
     if (count === 1) {
       const element = Array.from(selectionState.selectedElements.values())[0];
       return `Selected: ${element.type} ${element.id}`;
     }
-    
+
     // Group by type for multi-selection
     const typeGroups = new Map<string, number>();
-    selectionState.selectedElements.forEach(element => {
+    selectionState.selectedElements.forEach((element) => {
       typeGroups.set(element.type, (typeGroups.get(element.type) || 0) + 1);
     });
 
     const groupStrings = Array.from(typeGroups.entries())
-      .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
-      .join(', ');
+      .map(([type, count]) => `${count} ${type}${count > 1 ? "s" : ""}`)
+      .join(", ");
 
     return `Selected: ${groupStrings}`;
   }, [selectionState.selectedElements]);
@@ -148,19 +158,19 @@ const SelectionManager: React.FC<SelectionManagerProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Escape to clear selection
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         handleClearSelection();
       }
-      
+
       // Ctrl+A to select all (would need all elements passed in)
-      if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+      if ((event.ctrlKey || event.metaKey) && event.key === "a") {
         event.preventDefault();
         // This would need to be implemented by the parent component
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleClearSelection]);
 
   // Notify parent of selection changes
@@ -178,7 +188,7 @@ const SelectionManager: React.FC<SelectionManagerProps> = ({
         handleClearSelection,
         handleSelectAll,
         selectionCount: selectionState.selectedElements.size,
-        getSelectionInfo
+        getSelectionInfo,
       })}
     </>
   );
@@ -188,22 +198,27 @@ const SelectionManager: React.FC<SelectionManagerProps> = ({
 export const SelectionIndicator: React.FC<{
   isSelected: boolean;
   isHovered: boolean;
-  elementType: 'row' | 'rack' | 'shelf' | 'device';
-  size?: 'small' | 'medium' | 'large';
-}> = ({ isSelected, isHovered, elementType, size = 'medium' }) => {
+  elementType: "row" | "rack" | "shelf" | "device";
+  size?: "small" | "medium" | "large";
+}> = ({ isSelected, isHovered, elementType, size = "medium" }) => {
   const getSize = () => {
     switch (size) {
-      case 'small': return 'w-2 h-2';
-      case 'medium': return 'w-3 h-3';
-      case 'large': return 'w-4 h-4';
-      default: return 'w-3 h-3';
+      case "small":
+        return "w-2 h-2";
+      case "medium":
+        return "w-3 h-3";
+      case "large":
+        return "w-4 h-4";
+      default:
+        return "w-3 h-3";
     }
   };
 
   const getColor = () => {
-    if (isSelected) return 'bg-blue-500 border-blue-600';
-    if (isHovered) return 'bg-blue-200 border-blue-300 dark:bg-blue-800 dark:border-blue-700';
-    return 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500';
+    if (isSelected) return "bg-blue-500 border-blue-600";
+    if (isHovered)
+      return "bg-blue-200 border-blue-300 dark:bg-blue-800 dark:border-blue-700";
+    return "bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500";
   };
 
   if (!isSelected && !isHovered) return null;
@@ -214,10 +229,10 @@ export const SelectionIndicator: React.FC<{
         absolute -top-1 -right-1 ${getSize()} 
         rounded-full border-2 ${getColor()}
         transform transition-all duration-200 ease-in-out
-        ${isSelected ? 'scale-110' : 'scale-100'}
+        ${isSelected ? "scale-110" : "scale-100"}
         shadow-sm
       `}
-      aria-label={`${elementType} ${isSelected ? 'selected' : 'hovered'}`}
+      aria-label={`${elementType} ${isSelected ? "selected" : "hovered"}`}
     >
       {isSelected && (
         <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center">
@@ -235,12 +250,12 @@ export const SelectionToolbar: React.FC<{
   onClearSelection: () => void;
   onBulkAction?: (action: string) => void;
   availableActions?: string[];
-}> = ({ 
-  selectionCount, 
-  selectionInfo, 
+}> = ({
+  selectionCount,
+  selectionInfo,
   onClearSelection,
   onBulkAction,
-  availableActions = ['delete', 'duplicate', 'move']
+  availableActions = ["delete", "duplicate", "move"],
 }) => {
   if (selectionCount === 0) return null;
 
@@ -250,18 +265,19 @@ export const SelectionToolbar: React.FC<{
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {selectionInfo}
         </span>
-        
+
         <div className="flex items-center gap-2">
-          {onBulkAction && availableActions.map(action => (
-            <button
-              key={action}
-              onClick={() => onBulkAction(action)}
-              className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            >
-              {action.charAt(0).toUpperCase() + action.slice(1)}
-            </button>
-          ))}
-          
+          {onBulkAction &&
+            availableActions.map((action) => (
+              <button
+                key={action}
+                onClick={() => onBulkAction(action)}
+                className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                {action.charAt(0).toUpperCase() + action.slice(1)}
+              </button>
+            ))}
+
           <button
             onClick={onClearSelection}
             className="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
@@ -274,4 +290,4 @@ export const SelectionToolbar: React.FC<{
   );
 };
 
-export default SelectionManager; 
+export default SelectionManager;

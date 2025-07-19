@@ -1,29 +1,29 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from "react";
 
 export const useEditMode = (initialEditMode: boolean = false) => {
-  const [isEditMode, setIsEditMode] = useState(initialEditMode)
+  const [isEditMode, setIsEditMode] = useState(initialEditMode);
 
   // Sync with external edit mode prop
   useEffect(() => {
-    setIsEditMode(initialEditMode)
-  }, [initialEditMode])
+    setIsEditMode(initialEditMode);
+  }, [initialEditMode]);
 
   const toggleEditMode = useCallback(() => {
-    setIsEditMode(prev => !prev)
-  }, [])
+    setIsEditMode((prev) => !prev);
+  }, []);
 
   const enableEditMode = useCallback(() => {
-    setIsEditMode(true)
-  }, [])
+    setIsEditMode(true);
+  }, []);
 
   const disableEditMode = useCallback(() => {
-    setIsEditMode(false)
-  }, [])
+    setIsEditMode(false);
+  }, []);
 
   return {
     isEditMode,
     toggleEditMode,
     enableEditMode,
-    disableEditMode
-  }
-} 
+    disableEditMode,
+  };
+};

@@ -2,13 +2,13 @@
 // Comprehensive business management system for commercial farming operations
 
 // Business analytics and intelligence
-export * from './analytics';
+export * from "./analytics";
 
 // Core business operations
-export * from './business-management';
+export * from "./business-management";
 
 // Operational logistics
-export * from './operations';
+export * from "./operations";
 
 // Human resources and team management
-export * from './team-management'; 
+export * from "./team-management";

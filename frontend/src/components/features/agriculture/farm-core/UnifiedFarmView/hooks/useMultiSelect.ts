@@ -1,14 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { Row, Rack, Shelf } from '@/types/farm-layout'
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Row, Rack, Shelf } from "@/types/farm-layout";
 
-type SelectableElement = Row | Rack | Shelf
-type ElementType = 'row' | 'rack' | 'shelf'
+type SelectableElement = Row | Rack | Shelf;
+type ElementType = "row" | "rack" | "shelf";
 
 interface MultiSelectState {
-  selectedElements: Map<string, SelectableElement>
-  selectedElementTypes: Map<string, ElementType>
-  lastSelectedId: string | null
-  selectionMode: 'single' | 'multi'
+  selectedElements: Map<string, SelectableElement>;
+  selectedElementTypes: Map<string, ElementType>;
+  lastSelectedId: string | null;
+  selectionMode: "single" | "multi";
 }
 
 export const useMultiSelect = () => {
@@ -16,186 +16,214 @@ export const useMultiSelect = () => {
     selectedElements: new Map(),
     selectedElementTypes: new Map(),
     lastSelectedId: null,
-    selectionMode: 'single'
-  })
+    selectionMode: "single",
+  });
 
-  const isMultiKeyPressed = useRef(false)
+  const isMultiKeyPressed = useRef(false);
 
   // Track Ctrl/Cmd key state
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        isMultiKeyPressed.current = true
-        setState(prev => ({ ...prev, selectionMode: 'multi' }))
+        isMultiKeyPressed.current = true;
+        setState((prev) => ({ ...prev, selectionMode: "multi" }));
       }
-    }
+    };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) {
-        isMultiKeyPressed.current = false
-        setState(prev => ({ ...prev, selectionMode: 'single' }))
+        isMultiKeyPressed.current = false;
+        setState((prev) => ({ ...prev, selectionMode: "single" }));
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [])
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
-  const selectElement = useCallback((element: SelectableElement, elementType: ElementType, event?: React.MouseEvent) => {
-    const id = element.id
-    const isMultiSelect = event ? (event.ctrlKey || event.metaKey) : isMultiKeyPressed.current
+  const selectElement = useCallback(
+    (
+      element: SelectableElement,
+      elementType: ElementType,
+      event?: React.MouseEvent,
+    ) => {
+      const id = element.id;
+      const isMultiSelect = event
+        ? event.ctrlKey || event.metaKey
+        : isMultiKeyPressed.current;
 
-    setState(prev => {
-      const newSelectedElements = new Map(prev.selectedElements)
-      const newSelectedElementTypes = new Map(prev.selectedElementTypes)
+      setState((prev) => {
+        const newSelectedElements = new Map(prev.selectedElements);
+        const newSelectedElementTypes = new Map(prev.selectedElementTypes);
 
-      if (isMultiSelect) {
-        // Multi-select mode
-        if (newSelectedElements.has(id)) {
-          // Deselect if already selected
-          newSelectedElements.delete(id)
-          newSelectedElementTypes.delete(id)
+        if (isMultiSelect) {
+          // Multi-select mode
+          if (newSelectedElements.has(id)) {
+            // Deselect if already selected
+            newSelectedElements.delete(id);
+            newSelectedElementTypes.delete(id);
+          } else {
+            // Add to selection
+            newSelectedElements.set(id, element);
+            newSelectedElementTypes.set(id, elementType);
+          }
         } else {
-          // Add to selection
-          newSelectedElements.set(id, element)
-          newSelectedElementTypes.set(id, elementType)
+          // Single select mode - clear all and select this one
+          newSelectedElements.clear();
+          newSelectedElementTypes.clear();
+          newSelectedElements.set(id, element);
+          newSelectedElementTypes.set(id, elementType);
         }
-      } else {
-        // Single select mode - clear all and select this one
-        newSelectedElements.clear()
-        newSelectedElementTypes.clear()
-        newSelectedElements.set(id, element)
-        newSelectedElementTypes.set(id, elementType)
-      }
 
-      return {
-        ...prev,
-        selectedElements: newSelectedElements,
-        selectedElementTypes: newSelectedElementTypes,
-        lastSelectedId: id,
-        selectionMode: isMultiSelect ? 'multi' : 'single'
-      }
-    })
-  }, [])
+        return {
+          ...prev,
+          selectedElements: newSelectedElements,
+          selectedElementTypes: newSelectedElementTypes,
+          lastSelectedId: id,
+          selectionMode: isMultiSelect ? "multi" : "single",
+        };
+      });
+    },
+    [],
+  );
 
-  const selectRange = useCallback((fromElement: SelectableElement, toElement: SelectableElement, allElements: SelectableElement[], elementType: ElementType) => {
-    const fromIndex = allElements.findIndex(el => el.id === fromElement.id)
-    const toIndex = allElements.findIndex(el => el.id === toElement.id)
-    
-    if (fromIndex === -1 || toIndex === -1) return
+  const selectRange = useCallback(
+    (
+      fromElement: SelectableElement,
+      toElement: SelectableElement,
+      allElements: SelectableElement[],
+      elementType: ElementType,
+    ) => {
+      const fromIndex = allElements.findIndex((el) => el.id === fromElement.id);
+      const toIndex = allElements.findIndex((el) => el.id === toElement.id);
 
-    const startIndex = Math.min(fromIndex, toIndex)
-    const endIndex = Math.max(fromIndex, toIndex)
-    const rangeElements = allElements.slice(startIndex, endIndex + 1)
+      if (fromIndex === -1 || toIndex === -1) return;
 
-    setState(prev => {
-      const newSelectedElements = new Map(prev.selectedElements)
-      const newSelectedElementTypes = new Map(prev.selectedElementTypes)
+      const startIndex = Math.min(fromIndex, toIndex);
+      const endIndex = Math.max(fromIndex, toIndex);
+      const rangeElements = allElements.slice(startIndex, endIndex + 1);
 
-      rangeElements.forEach(element => {
-        newSelectedElements.set(element.id, element)
-        newSelectedElementTypes.set(element.id, elementType)
-      })
+      setState((prev) => {
+        const newSelectedElements = new Map(prev.selectedElements);
+        const newSelectedElementTypes = new Map(prev.selectedElementTypes);
 
-      return {
-        ...prev,
-        selectedElements: newSelectedElements,
-        selectedElementTypes: newSelectedElementTypes,
-        lastSelectedId: toElement.id
-      }
-    })
-  }, [])
+        rangeElements.forEach((element) => {
+          newSelectedElements.set(element.id, element);
+          newSelectedElementTypes.set(element.id, elementType);
+        });
 
-  const selectAll = useCallback((elements: SelectableElement[], elementType: ElementType) => {
-    setState(prev => {
-      const newSelectedElements = new Map()
-      const newSelectedElementTypes = new Map()
+        return {
+          ...prev,
+          selectedElements: newSelectedElements,
+          selectedElementTypes: newSelectedElementTypes,
+          lastSelectedId: toElement.id,
+        };
+      });
+    },
+    [],
+  );
 
-      elements.forEach(element => {
-        newSelectedElements.set(element.id, element)
-        newSelectedElementTypes.set(element.id, elementType)
-      })
+  const selectAll = useCallback(
+    (elements: SelectableElement[], elementType: ElementType) => {
+      setState((prev) => {
+        const newSelectedElements = new Map();
+        const newSelectedElementTypes = new Map();
 
-      return {
-        ...prev,
-        selectedElements: newSelectedElements,
-        selectedElementTypes: newSelectedElementTypes,
-        lastSelectedId: elements.length > 0 ? elements[elements.length - 1].id : null,
-        selectionMode: 'multi'
-      }
-    })
-  }, [])
+        elements.forEach((element) => {
+          newSelectedElements.set(element.id, element);
+          newSelectedElementTypes.set(element.id, elementType);
+        });
+
+        return {
+          ...prev,
+          selectedElements: newSelectedElements,
+          selectedElementTypes: newSelectedElementTypes,
+          lastSelectedId:
+            elements.length > 0 ? elements[elements.length - 1].id : null,
+          selectionMode: "multi",
+        };
+      });
+    },
+    [],
+  );
 
   const deselectAll = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedElements: new Map(),
       selectedElementTypes: new Map(),
       lastSelectedId: null,
-      selectionMode: 'single'
-    }))
-  }, [])
+      selectionMode: "single",
+    }));
+  }, []);
 
   const deselectElement = useCallback((elementId: string) => {
-    setState(prev => {
-      const newSelectedElements = new Map(prev.selectedElements)
-      const newSelectedElementTypes = new Map(prev.selectedElementTypes)
-      
-      newSelectedElements.delete(elementId)
-      newSelectedElementTypes.delete(elementId)
+    setState((prev) => {
+      const newSelectedElements = new Map(prev.selectedElements);
+      const newSelectedElementTypes = new Map(prev.selectedElementTypes);
+
+      newSelectedElements.delete(elementId);
+      newSelectedElementTypes.delete(elementId);
 
       return {
         ...prev,
         selectedElements: newSelectedElements,
         selectedElementTypes: newSelectedElementTypes,
-        lastSelectedId: prev.lastSelectedId === elementId ? null : prev.lastSelectedId
-      }
-    })
-  }, [])
+        lastSelectedId:
+          prev.lastSelectedId === elementId ? null : prev.lastSelectedId,
+      };
+    });
+  }, []);
 
-  const isSelected = useCallback((elementId: string) => {
-    return state.selectedElements.has(elementId)
-  }, [state.selectedElements])
+  const isSelected = useCallback(
+    (elementId: string) => {
+      return state.selectedElements.has(elementId);
+    },
+    [state.selectedElements],
+  );
 
   const getSelectedElements = useCallback(() => {
-    return Array.from(state.selectedElements.values())
-  }, [state.selectedElements])
+    return Array.from(state.selectedElements.values());
+  }, [state.selectedElements]);
 
-  const getSelectedElementsOfType = useCallback((elementType: ElementType) => {
-    const elements: SelectableElement[] = []
-    state.selectedElementTypes.forEach((type, id) => {
-      if (type === elementType) {
-        const element = state.selectedElements.get(id)
-        if (element) elements.push(element)
-      }
-    })
-    return elements
-  }, [state.selectedElements, state.selectedElementTypes])
+  const getSelectedElementsOfType = useCallback(
+    (elementType: ElementType) => {
+      const elements: SelectableElement[] = [];
+      state.selectedElementTypes.forEach((type, id) => {
+        if (type === elementType) {
+          const element = state.selectedElements.get(id);
+          if (element) elements.push(element);
+        }
+      });
+      return elements;
+    },
+    [state.selectedElements, state.selectedElementTypes],
+  );
 
   const getSelectionCount = useCallback(() => {
-    return state.selectedElements.size
-  }, [state.selectedElements])
+    return state.selectedElements.size;
+  }, [state.selectedElements]);
 
   const getSelectionSummary = useCallback(() => {
-    const summary = { row: 0, rack: 0, shelf: 0 }
-    state.selectedElementTypes.forEach(type => {
-      summary[type]++
-    })
-    return summary
-  }, [state.selectedElementTypes])
+    const summary = { row: 0, rack: 0, shelf: 0 };
+    state.selectedElementTypes.forEach((type) => {
+      summary[type]++;
+    });
+    return summary;
+  }, [state.selectedElementTypes]);
 
   const hasSelection = useCallback(() => {
-    return state.selectedElements.size > 0
-  }, [state.selectedElements])
+    return state.selectedElements.size > 0;
+  }, [state.selectedElements]);
 
   const hasMultipleSelection = useCallback(() => {
-    return state.selectedElements.size > 1
-  }, [state.selectedElements])
+    return state.selectedElements.size > 1;
+  }, [state.selectedElements]);
 
   return {
     // State
@@ -218,6 +246,6 @@ export const useMultiSelect = () => {
     getSelectionCount,
     getSelectionSummary,
     hasSelection,
-    hasMultipleSelection
-  }
-} 
+    hasMultipleSelection,
+  };
+};

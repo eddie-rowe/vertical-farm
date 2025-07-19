@@ -1,57 +1,78 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { Card } from "@/components/ui/card"
-import { FaBrain, FaLeaf, FaBuilding, FaExclamationTriangle, FaChartLine, FaMapMarkedAlt } from '@/lib/icons'
-import { 
-  CropEnvironmentView, 
-  OperationalBusinessView, 
-  RiskIncidentView, 
-  DashboardsForecastingView, 
-  HeatmapsView 
-} from '@/components/features/intelligence';
-import { BeakerIcon, ChartBarIcon, EyeIcon, BoltIcon } from '@heroicons/react/24/outline'
-import { EmptyStateWithIntegrations, IntegrationHint } from '@/components/features/automation';
-import { AI_INTEGRATIONS, INTEGRATION_MESSAGES, INTEGRATION_CONTEXTS } from '@/lib/integrations/constants'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { FarmControlButton } from '@/components/ui/farm-control-button'
-import { usePageData } from '@/components/shared/hooks/usePageData';
-import { MetricsGrid } from '@/components/shared/metrics';
-import { LoadingCard } from '@/components/ui/loading';
-import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
+import {
+  FaBrain,
+  FaLeaf,
+  FaBuilding,
+  FaExclamationTriangle,
+  FaChartLine,
+  FaMapMarkedAlt,
+} from "@/lib/icons";
+import {
+  CropEnvironmentView,
+  OperationalBusinessView,
+  RiskIncidentView,
+  DashboardsForecastingView,
+  HeatmapsView,
+} from "@/components/features/intelligence";
+import {
+  BeakerIcon,
+  ChartBarIcon,
+  EyeIcon,
+  BoltIcon,
+} from "@heroicons/react/24/outline";
+import {
+  EmptyStateWithIntegrations,
+  IntegrationHint,
+} from "@/components/features/automation";
+import {
+  AI_INTEGRATIONS,
+  INTEGRATION_MESSAGES,
+  INTEGRATION_CONTEXTS,
+} from "@/lib/integrations/constants";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
+import { LoadingCard } from "@/components/ui/loading";
+import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
 
 const tabs = [
   {
-    id: 'crop-environment',
-    label: 'Crop & Environment Intelligence',
+    id: "crop-environment",
+    label: "Crop & Environment Intelligence",
     icon: <FaLeaf className="text-sensor-value gradient-icon" />,
-    component: CropEnvironmentView
+    component: CropEnvironmentView,
   },
   {
-    id: 'operational-business',
-    label: 'Operational & Business Intelligence',
+    id: "operational-business",
+    label: "Operational & Business Intelligence",
     icon: <FaBuilding className="text-control-label gradient-icon" />,
-    component: OperationalBusinessView
+    component: OperationalBusinessView,
   },
   {
-    id: 'risk-incident',
-    label: 'Risk & Incident Detection',
-    icon: <FaExclamationTriangle className="text-control-secondary gradient-icon" />,
-    component: RiskIncidentView
+    id: "risk-incident",
+    label: "Risk & Incident Detection",
+    icon: (
+      <FaExclamationTriangle className="text-control-secondary gradient-icon" />
+    ),
+    component: RiskIncidentView,
   },
   {
-    id: 'dashboards-forecasting',
-    label: 'Dashboards & Forecasting',
+    id: "dashboards-forecasting",
+    label: "Dashboards & Forecasting",
     icon: <FaChartLine className="text-farm-accent gradient-icon" />,
-    component: DashboardsForecastingView
+    component: DashboardsForecastingView,
   },
   {
-    id: 'heatmaps',
-    label: 'Operations Heatmaps',
+    id: "heatmaps",
+    label: "Operations Heatmaps",
     icon: <FaMapMarkedAlt className="text-control-secondary gradient-icon" />,
-    component: HeatmapsView
-  }
-]
+    component: HeatmapsView,
+  },
+];
 
 // Mock data to simulate existing AI data
 interface AIData {
@@ -62,31 +83,31 @@ interface AIData {
 }
 
 const AIPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('crop-environment')
+  const [activeTab, setActiveTab] = useState("crop-environment");
 
   // Use our standardized data loading hook
   const { data: aiData, isLoading } = usePageData<AIData>({
-    storageKey: 'ai-integrations-connected',
+    storageKey: "ai-integrations-connected",
     mockData: {
       analysisRuns: 24,
       predictions: 12,
       insights: 6,
-      hasData: true
-    }
+      hasData: true,
+    },
   });
 
-  const activeTabData = tabs.find(tab => tab.id === activeTab)
-  const ActiveComponent = activeTabData?.component
+  const activeTabData = tabs.find((tab) => tab.id === activeTab);
+  const ActiveComponent = activeTabData?.component;
 
   const handleConnectIntegration = (integrationName: string) => {
     console.log(`Connecting to ${integrationName}...`);
     // This would typically redirect to integration setup
-    window.location.href = `/integrations/${integrationName.toLowerCase().replace(/\s+/g, '-')}`;
+    window.location.href = `/integrations/${integrationName.toLowerCase().replace(/\s+/g, "-")}`;
   };
 
-  const aiIntegrationsWithHandlers = AI_INTEGRATIONS.map(integration => ({
+  const aiIntegrationsWithHandlers = AI_INTEGRATIONS.map((integration) => ({
     ...integration,
-    onConnect: () => handleConnectIntegration(integration.name)
+    onConnect: () => handleConnectIntegration(integration.name),
   }));
 
   if (isLoading) {
@@ -124,39 +145,44 @@ const AIPage: React.FC = () => {
       {/* Integration Hint */}
       <IntegrationHint
         message={INTEGRATION_MESSAGES.ai}
-        integrations={['OpenAI', 'Anthropic Claude', 'Google AI', 'Perplexity AI']}
+        integrations={[
+          "OpenAI",
+          "Anthropic Claude",
+          "Google AI",
+          "Perplexity AI",
+        ]}
         pageContext={INTEGRATION_CONTEXTS.ai}
         variant="info"
       />
 
       {/* Standardized AI Metrics using MetricsGrid */}
-      <MetricsGrid 
+      <MetricsGrid
         columns={3}
         metrics={[
           {
-            id: 'analysis-runs',
-            label: 'Analysis Runs',
+            id: "analysis-runs",
+            label: "Analysis Runs",
             value: aiData?.analysisRuns?.toString() || "0",
             icon: BeakerIcon,
-            stateClass: 'state-active',
-            iconColor: 'h-6 w-6 text-control-label gradient-icon'
+            stateClass: "state-active",
+            iconColor: "h-6 w-6 text-control-label gradient-icon",
           },
           {
-            id: 'predictions',
-            label: 'Predictions Generated',
-            value: aiData?.predictions?.toString() || "0", 
+            id: "predictions",
+            label: "Predictions Generated",
+            value: aiData?.predictions?.toString() || "0",
             icon: ChartBarIcon,
-            stateClass: 'state-active',
-            iconColor: 'h-6 w-6 text-control-label gradient-icon'
+            stateClass: "state-active",
+            iconColor: "h-6 w-6 text-control-label gradient-icon",
           },
           {
-            id: 'insights',
-            label: 'Active Insights',
+            id: "insights",
+            label: "Active Insights",
             value: aiData?.insights?.toString() || "0",
             icon: EyeIcon,
-            stateClass: 'state-active',
-            iconColor: 'h-6 w-6 text-control-label gradient-icon'
-          }
+            stateClass: "state-active",
+            iconColor: "h-6 w-6 text-control-label gradient-icon",
+          },
         ]}
       />
 
@@ -167,7 +193,7 @@ const AIPage: React.FC = () => {
             <FarmControlButton
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              variant={activeTab === tab.id ? 'primary' : 'default'}
+              variant={activeTab === tab.id ? "primary" : "default"}
               className="flex flex-col items-center gap-3 p-6 h-auto"
             >
               <div className="text-2xl">{tab.icon}</div>
@@ -181,12 +207,10 @@ const AIPage: React.FC = () => {
 
       {/* Active Intelligence Module Content */}
       <Card className="bg-farm-white card-shadow">
-        <div className="p-6">
-          {ActiveComponent && <ActiveComponent />}
-        </div>
+        <div className="p-6">{ActiveComponent && <ActiveComponent />}</div>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default AIPage 
+export default AIPage;

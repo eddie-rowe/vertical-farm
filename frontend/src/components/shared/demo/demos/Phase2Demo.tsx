@@ -1,146 +1,189 @@
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Zap, 
-  MousePointer, 
-  Menu, 
-  Bell, 
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Zap,
+  MousePointer,
+  Menu,
+  Bell,
   Thermometer,
   Activity,
   CheckCircle,
-  AlertTriangle
-} from 'lucide-react'
-import { useToastHelpers } from '@/components/ui/ToastNotification'
-import { RippleButton } from '@/components/ui/RippleButton'
-import { AdvancedTooltip } from '@/components/ui/AdvancedTooltip'
-import { 
-  ContextualMenu, 
-  getShelfActions 
-} from '@/components/ui/ContextualMenu'
+  AlertTriangle,
+} from "lucide-react";
+import { useToastHelpers } from "@/components/ui/ToastNotification";
+import { RippleButton } from "@/components/ui/RippleButton";
+import { AdvancedTooltip } from "@/components/ui/AdvancedTooltip";
+import {
+  ContextualMenu,
+  getShelfActions,
+} from "@/components/ui/ContextualMenu";
 
 export const Phase2Demo: React.FC = () => {
-  const [demoStep, setDemoStep] = useState(0)
-  const { 
-    showSuccess, 
-    showError, 
-    showWarning, 
+  const [demoStep, setDemoStep] = useState(0);
+  const {
+    showSuccess,
+    showError,
+    showWarning,
     showInfo,
     showDeviceAlert,
-    showEnvironmentalAlert 
-  } = useToastHelpers()
+    showEnvironmentalAlert,
+  } = useToastHelpers();
 
   const demoEnvironmentalData = {
     temperature: {
       current: 24,
       target: 22,
-      unit: 'C' as const,
-      status: 'warning' as const
+      unit: "C" as const,
+      status: "warning" as const,
     },
     humidity: {
       current: 68,
       target: 65,
-      status: 'optimal' as const
+      status: "optimal" as const,
     },
     lightLevel: {
       current: 750,
       target: 800,
-      unit: 'lux' as const,
-      status: 'warning' as const
+      unit: "lux" as const,
+      status: "warning" as const,
     },
     ph: {
       current: 6.3,
       target: 6.5,
-      status: 'optimal' as const
-    }
-  }
+      status: "optimal" as const,
+    },
+  };
 
   const demoDeviceStatus = {
-    connectivity: 'connected' as const,
+    connectivity: "connected" as const,
     lastUpdate: new Date().toISOString(),
-    batteryLevel: 85
-  }
+    batteryLevel: 85,
+  };
 
   const demoAlerts = [
     {
-      id: 'demo-alert-1',
-      message: 'Temperature slightly above target range',
-      severity: 'medium' as const,
-      timestamp: new Date().toISOString()
+      id: "demo-alert-1",
+      message: "Temperature slightly above target range",
+      severity: "medium" as const,
+      timestamp: new Date().toISOString(),
     },
     {
-      id: 'demo-alert-2',
-      message: 'Light sensor calibration recommended',
-      severity: 'low' as const,
-      timestamp: new Date(Date.now() - 3600000).toISOString()
-    }
-  ]
+      id: "demo-alert-2",
+      message: "Light sensor calibration recommended",
+      severity: "low" as const,
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+    },
+  ];
 
   const demoActions = getShelfActions(
-    () => showInfo('Edit Action', 'Edit functionality would open here'),
-    () => showInfo('View Details', 'Detailed shelf information modal would open'),
-    () => showSuccess('Device Added', 'New device assignment created'),
-    () => showInfo('Clone Shelf', 'Shelf cloning functionality activated'),
-    () => showWarning('Delete Shelf', 'Are you sure? This action cannot be undone'),
-    () => showInfo('Manage Devices', 'Device management interface would open'),
-    () => showInfo('View Metrics', 'Analytics dashboard would open'),
-    () => showSuccess('New Grow Started', 'Grow wizard would open here'),
-    () => showInfo('Grow Details', 'Current grow status and details would open'),
-    () => showWarning('Grow Paused', 'Current grow has been paused'),
-    () => showSuccess('Grow Resumed', 'Current grow has been resumed'),
-    () => showSuccess('Harvest Complete', 'Grow harvest process initiated'),
-    false // hasActiveGrow - demo shelf has no active grow
-  )
+    () => showInfo("Edit Action", "Edit functionality would open here"),
+    () =>
+      showInfo("View Details", "Detailed shelf information modal would open"),
+    () => showSuccess("Device Added", "New device assignment created"),
+    () => showInfo("Clone Shelf", "Shelf cloning functionality activated"),
+    () =>
+      showWarning("Delete Shelf", "Are you sure? This action cannot be undone"),
+    () => showInfo("Manage Devices", "Device management interface would open"),
+    () => showInfo("View Metrics", "Analytics dashboard would open"),
+    () => showSuccess("New Grow Started", "Grow wizard would open here"),
+    () =>
+      showInfo("Grow Details", "Current grow status and details would open"),
+    () => showWarning("Grow Paused", "Current grow has been paused"),
+    () => showSuccess("Grow Resumed", "Current grow has been resumed"),
+    () => showSuccess("Harvest Complete", "Grow harvest process initiated"),
+    false, // hasActiveGrow - demo shelf has no active grow
+  );
 
   const demoFeatures = [
     {
-      title: 'Ripple Effects',
-      description: 'Click any interactive element to see smooth ripple animations',
+      title: "Ripple Effects",
+      description:
+        "Click any interactive element to see smooth ripple animations",
       icon: <MousePointer className="w-5 h-5" />,
       action: () => {
-        showInfo('Ripple Demo', 'Try clicking the demo elements below to see ripple effects!')
-        setDemoStep(1)
-      }
+        showInfo(
+          "Ripple Demo",
+          "Try clicking the demo elements below to see ripple effects!",
+        );
+        setDemoStep(1);
+      },
     },
     {
-      title: 'Advanced Tooltips',
-      description: 'Hover over farm elements to see detailed environmental data',
+      title: "Advanced Tooltips",
+      description:
+        "Hover over farm elements to see detailed environmental data",
       icon: <Activity className="w-5 h-5" />,
       action: () => {
-        showInfo('Tooltip Demo', 'Hover over the demo shelf element below to see rich tooltip data!')
-        setDemoStep(2)
-      }
+        showInfo(
+          "Tooltip Demo",
+          "Hover over the demo shelf element below to see rich tooltip data!",
+        );
+        setDemoStep(2);
+      },
     },
     {
-      title: 'Contextual Menus',
-      description: 'Right-click farm elements for quick action menus',
+      title: "Contextual Menus",
+      description: "Right-click farm elements for quick action menus",
       icon: <Menu className="w-5 h-5" />,
       action: () => {
-        showInfo('Context Menu Demo', 'Right-click the demo element below to see the action menu!')
-        setDemoStep(3)
-      }
+        showInfo(
+          "Context Menu Demo",
+          "Right-click the demo element below to see the action menu!",
+        );
+        setDemoStep(3);
+      },
     },
     {
-      title: 'Smart Notifications',
-      description: 'Real-time alerts and feedback system',
+      title: "Smart Notifications",
+      description: "Real-time alerts and feedback system",
       icon: <Bell className="w-5 h-5" />,
       action: () => {
-        showInfo('Toast Demo', 'Demonstrating various notification types!')
-        setDemoStep(4)
-        
+        showInfo("Toast Demo", "Demonstrating various notification types!");
+        setDemoStep(4);
+
         // Demo different toast types
-        setTimeout(() => showSuccess('Success!', 'Operation completed successfully'), 500)
-        setTimeout(() => showWarning('Warning', 'Temperature approaching limits'), 1000)
-        setTimeout(() => showError('Error', 'Sensor connection lost', {
-          label: 'Retry',
-          onClick: () => showSuccess('Reconnected', 'Sensor is back online')
-        }), 1500)
-        setTimeout(() => showDeviceAlert('Humidity Sensor #1', 'connected'), 2000)
-        setTimeout(() => showEnvironmentalAlert('Shelf A1', 'Temperature', '28°C', 'warning'), 2500)
-      }
-    }
-  ]
+        setTimeout(
+          () => showSuccess("Success!", "Operation completed successfully"),
+          500,
+        );
+        setTimeout(
+          () => showWarning("Warning", "Temperature approaching limits"),
+          1000,
+        );
+        setTimeout(
+          () =>
+            showError("Error", "Sensor connection lost", {
+              label: "Retry",
+              onClick: () =>
+                showSuccess("Reconnected", "Sensor is back online"),
+            }),
+          1500,
+        );
+        setTimeout(
+          () => showDeviceAlert("Humidity Sensor #1", "connected"),
+          2000,
+        );
+        setTimeout(
+          () =>
+            showEnvironmentalAlert(
+              "Shelf A1",
+              "Temperature",
+              "28°C",
+              "warning",
+            ),
+          2500,
+        );
+      },
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -151,7 +194,8 @@ export const Phase2Demo: React.FC = () => {
             <div>
               <CardTitle>Phase 2: Interactive Farm Elements</CardTitle>
               <CardDescription>
-                Enhanced user experience with ripple effects, advanced tooltips, contextual menus, and smart notifications
+                Enhanced user experience with ripple effects, advanced tooltips,
+                contextual menus, and smart notifications
               </CardDescription>
             </div>
           </div>
@@ -160,10 +204,12 @@ export const Phase2Demo: React.FC = () => {
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {demoFeatures.map((feature, index) => (
-              <Card 
+              <Card
                 key={feature.title}
                 className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                  demoStep === index + 1 ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+                  demoStep === index + 1
+                    ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : ""
                 }`}
               >
                 <CardContent className="p-4">
@@ -198,13 +244,17 @@ export const Phase2Demo: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Interactive Demo Elements
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Ripple Demo */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">Ripple Effects</Badge>
-                  {demoStep === 1 && <Badge className="text-xs animate-pulse">Active Demo</Badge>}
+                  <Badge variant="outline" className="text-xs">
+                    Ripple Effects
+                  </Badge>
+                  {demoStep === 1 && (
+                    <Badge className="text-xs animate-pulse">Active Demo</Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <RippleButton
@@ -229,8 +279,12 @@ export const Phase2Demo: React.FC = () => {
               {/* Tooltip Demo */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">Advanced Tooltips</Badge>
-                  {demoStep === 2 && <Badge className="text-xs animate-pulse">Active Demo</Badge>}
+                  <Badge variant="outline" className="text-xs">
+                    Advanced Tooltips
+                  </Badge>
+                  {demoStep === 2 && (
+                    <Badge className="text-xs animate-pulse">Active Demo</Badge>
+                  )}
                 </div>
                 <AdvancedTooltip
                   title="Demo Shelf A1"
@@ -261,8 +315,12 @@ export const Phase2Demo: React.FC = () => {
               {/* Context Menu Demo */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">Contextual Menus</Badge>
-                  {demoStep === 3 && <Badge className="text-xs animate-pulse">Active Demo</Badge>}
+                  <Badge variant="outline" className="text-xs">
+                    Contextual Menus
+                  </Badge>
+                  {demoStep === 3 && (
+                    <Badge className="text-xs animate-pulse">Active Demo</Badge>
+                  )}
                 </div>
                 <ContextualMenu
                   trigger={
@@ -287,12 +345,16 @@ export const Phase2Demo: React.FC = () => {
               {/* Notification Demo */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">Smart Notifications</Badge>
-                  {demoStep === 4 && <Badge className="text-xs animate-pulse">Active Demo</Badge>}
+                  <Badge variant="outline" className="text-xs">
+                    Smart Notifications
+                  </Badge>
+                  {demoStep === 4 && (
+                    <Badge className="text-xs animate-pulse">Active Demo</Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Button
-                    onClick={() => showDeviceAlert('Sensor #42', 'connected')}
+                    onClick={() => showDeviceAlert("Sensor #42", "connected")}
                     size="sm"
                     variant="outline"
                     className="text-xs"
@@ -301,7 +363,14 @@ export const Phase2Demo: React.FC = () => {
                     Device Alert
                   </Button>
                   <Button
-                    onClick={() => showEnvironmentalAlert('Test Area', 'pH Level', '7.2', 'critical')}
+                    onClick={() =>
+                      showEnvironmentalAlert(
+                        "Test Area",
+                        "pH Level",
+                        "7.2",
+                        "critical",
+                      )
+                    }
                     size="sm"
                     variant="outline"
                     className="text-xs"
@@ -347,5 +416,5 @@ export const Phase2Demo: React.FC = () => {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+};

@@ -4,29 +4,29 @@ import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  DollarSign, 
-  User, 
+import {
+  Plus,
+  DollarSign,
+  User,
   Clock,
   CreditCard,
   CheckCircle,
   AlertCircle,
   Calendar,
   Download,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
-import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
 
 // Mock data for payroll
 const payrollData = {
   summary: {
-    totalPayroll: 28750.00,
+    totalPayroll: 28750.0,
     employeeCount: 8,
     avgSalary: 3593.75,
-    pendingPayments: 2
+    pendingPayments: 2,
   },
   employees: [
     {
@@ -34,7 +34,7 @@ const payrollData = {
       name: "Sarah Johnson",
       role: "Farm Manager",
       employeeId: "EMP001",
-      payRate: 28.50,
+      payRate: 28.5,
       hoursWorked: 40.0,
       overtimeHours: 2.5,
       grossPay: 1247.25,
@@ -43,55 +43,55 @@ const payrollData = {
       payPeriod: "2024-01-01 to 2024-01-14",
       status: "processed",
       lastPaid: "2024-01-15",
-      benefits: ["Health Insurance", "401k", "PTO"]
+      benefits: ["Health Insurance", "401k", "PTO"],
     },
     {
       id: "P002",
       name: "Mike Chen",
       role: "Growth Technician",
       employeeId: "EMP002",
-      payRate: 24.00,
+      payRate: 24.0,
       hoursWorked: 38.5,
       overtimeHours: 0,
-      grossPay: 924.00,
+      grossPay: 924.0,
       deductions: 198.75,
       netPay: 725.25,
       payPeriod: "2024-01-01 to 2024-01-14",
       status: "processed",
       lastPaid: "2024-01-15",
-      benefits: ["Health Insurance", "PTO"]
+      benefits: ["Health Insurance", "PTO"],
     },
     {
       id: "P003",
       name: "Emily Davis",
       role: "Harvest Specialist",
       employeeId: "EMP003",
-      payRate: 22.50,
+      payRate: 22.5,
       hoursWorked: 40.0,
       overtimeHours: 4.0,
-      grossPay: 1035.00,
+      grossPay: 1035.0,
       deductions: 223.54,
       netPay: 811.46,
       payPeriod: "2024-01-01 to 2024-01-14",
       status: "pending",
       lastPaid: "2024-01-01",
-      benefits: ["Health Insurance", "PTO"]
+      benefits: ["Health Insurance", "PTO"],
     },
     {
       id: "P004",
       name: "James Wilson",
       role: "Maintenance Tech",
       employeeId: "EMP004",
-      payRate: 26.00,
+      payRate: 26.0,
       hoursWorked: 42.0,
       overtimeHours: 2.0,
-      grossPay: 1144.00,
+      grossPay: 1144.0,
       deductions: 256.34,
       netPay: 887.66,
       payPeriod: "2024-01-01 to 2024-01-14",
       status: "processed",
       lastPaid: "2024-01-15",
-      benefits: ["Health Insurance", "401k"]
+      benefits: ["Health Insurance", "401k"],
     },
     {
       id: "P005",
@@ -101,26 +101,32 @@ const payrollData = {
       payRate: 23.75,
       hoursWorked: 36.0,
       overtimeHours: 0,
-      grossPay: 855.00,
-      deductions: 187.50,
-      netPay: 667.50,
+      grossPay: 855.0,
+      deductions: 187.5,
+      netPay: 667.5,
       payPeriod: "2024-01-01 to 2024-01-14",
       status: "pending",
       lastPaid: "2024-01-01",
-      benefits: ["Health Insurance"]
-    }
-  ]
+      benefits: ["Health Insurance"],
+    },
+  ],
 };
 
-type PayrollEmployee = typeof payrollData.employees[0];
+type PayrollEmployee = (typeof payrollData.employees)[0];
 
 export default function PayrollView() {
   // Standardized search and filter hooks
-  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<PayrollEmployee>({
-    searchFields: ['name', 'role', 'employeeId'],
-    caseSensitive: false
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    hasSearch,
+    filterItems: searchFilterItems,
+  } = useFarmSearch<PayrollEmployee>({
+    searchFields: ["name", "role", "employeeId"],
+    caseSensitive: false,
   });
-  
+
   const {
     filters,
     setFilter,
@@ -128,64 +134,78 @@ export default function PayrollView() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<PayrollEmployee>();
 
   // Filter definitions
   const filterDefinitions: FilterDefinition[] = [
     {
-      id: 'status',
-      label: 'Payment Status',
-      placeholder: 'Filter by status...',
+      id: "status",
+      label: "Payment Status",
+      placeholder: "Filter by status...",
       options: [
-        { value: 'processed', label: 'Processed' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'failed', label: 'Failed' }
-      ]
-    }
+        { value: "processed", label: "Processed" },
+        { value: "pending", label: "Pending" },
+        { value: "failed", label: "Failed" },
+      ],
+    },
   ];
 
   // Filter change handlers
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    setFilter(filterId, value);
-  }, [setFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      setFilter(filterId, value);
+    },
+    [setFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // Combined filtering
   const filteredEmployees = useMemo(() => {
     let result = payrollData.employees;
-    
+
     // Apply search filter
     if (hasSearch) {
       result = searchFilterItems(result);
     }
-    
+
     // Apply other filters
     if (hasActiveFilters) {
       result = filterFilterItems(result);
     }
-    
+
     return result;
   }, [hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "processed": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "pending": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "failed": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "processed":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "failed":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "processed": return <CheckCircle className="h-4 w-4" />;
-      case "pending": return <Clock className="h-4 w-4" />;
-      case "failed": return <AlertCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "processed":
+        return <CheckCircle className="h-4 w-4" />;
+      case "pending":
+        return <Clock className="h-4 w-4" />;
+      case "failed":
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -198,8 +218,12 @@ export default function PayrollView() {
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Payroll</p>
-                <p className="text-2xl font-bold">${payrollData.summary.totalPayroll.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Payroll
+                </p>
+                <p className="text-2xl font-bold">
+                  ${payrollData.summary.totalPayroll.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -210,8 +234,12 @@ export default function PayrollView() {
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Employees</p>
-                <p className="text-2xl font-bold">{payrollData.summary.employeeCount}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Employees
+                </p>
+                <p className="text-2xl font-bold">
+                  {payrollData.summary.employeeCount}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -222,8 +250,12 @@ export default function PayrollView() {
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Avg Salary</p>
-                <p className="text-2xl font-bold">${payrollData.summary.avgSalary.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Avg Salary
+                </p>
+                <p className="text-2xl font-bold">
+                  ${payrollData.summary.avgSalary.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -234,8 +266,12 @@ export default function PayrollView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-yellow-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-                <p className="text-2xl font-bold">{payrollData.summary.pendingPayments}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Pending
+                </p>
+                <p className="text-2xl font-bold">
+                  {payrollData.summary.pendingPayments}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -276,12 +312,13 @@ export default function PayrollView() {
       {/* Results Summary */}
       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
         <span>
-          Showing {filteredEmployees.length} of {payrollData.employees.length} employees
+          Showing {filteredEmployees.length} of {payrollData.employees.length}{" "}
+          employees
         </span>
         {(hasSearch || hasActiveFilters) && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
               clearSearch();
               clearAllFilters();
@@ -302,15 +339,18 @@ export default function PayrollView() {
                 No Employees Found
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                {payrollData.employees.length === 0 
-                  ? "No employees in payroll system." 
+                {payrollData.employees.length === 0
+                  ? "No employees in payroll system."
                   : "No employees match your current search and filters."}
               </p>
             </CardContent>
           </Card>
         ) : (
           filteredEmployees.map((employee) => (
-            <Card key={employee.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={employee.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -322,57 +362,90 @@ export default function PayrollView() {
                       </Badge>
                       <Badge variant="outline">{employee.role}</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Employee ID</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Employee ID
+                        </p>
                         <p className="font-medium">{employee.employeeId}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Pay Rate</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Pay Rate
+                        </p>
                         <p className="font-medium">${employee.payRate}/hr</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Hours Worked</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Hours Worked
+                        </p>
                         <p className="font-medium">
                           {employee.hoursWorked}h
                           {employee.overtimeHours > 0 && (
-                            <span className="text-orange-600"> (+{employee.overtimeHours}h OT)</span>
+                            <span className="text-orange-600">
+                              {" "}
+                              (+{employee.overtimeHours}h OT)
+                            </span>
                           )}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Gross Pay</p>
-                        <p className="font-semibold text-lg text-green-600">${employee.grossPay.toLocaleString()}</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Gross Pay
+                        </p>
+                        <p className="font-semibold text-lg text-green-600">
+                          ${employee.grossPay.toLocaleString()}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Net Pay</p>
-                        <p className="font-semibold text-lg">${employee.netPay.toLocaleString()}</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Net Pay
+                        </p>
+                        <p className="font-semibold text-lg">
+                          ${employee.netPay.toLocaleString()}
+                        </p>
                       </div>
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600 dark:text-gray-400">Pay Period</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Pay Period
+                          </p>
                           <p className="font-medium">{employee.payPeriod}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600 dark:text-gray-400">Deductions</p>
-                          <p className="font-medium text-red-600">-${employee.deductions.toFixed(2)}</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Deductions
+                          </p>
+                          <p className="font-medium text-red-600">
+                            -${employee.deductions.toFixed(2)}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-gray-600 dark:text-gray-400">Last Paid</p>
-                          <p className="font-medium">{new Date(employee.lastPaid).toLocaleDateString()}</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Last Paid
+                          </p>
+                          <p className="font-medium">
+                            {new Date(employee.lastPaid).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
 
                       {employee.benefits && employee.benefits.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Benefits</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            Benefits
+                          </p>
                           <div className="flex gap-1 flex-wrap">
                             {employee.benefits.map((benefit, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {benefit}
                               </Badge>
                             ))}
@@ -398,4 +471,4 @@ export default function PayrollView() {
       </div>
     </div>
   );
-} 
+}

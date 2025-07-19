@@ -1,16 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Settings, TestTube, Check, AlertCircle, Shield } from 'lucide-react';
-import { HomeAssistantWebSocketService } from '@/services/domain/integrations/HomeAssistantWebSocketService';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Trash2,
+  Plus,
+  Settings,
+  TestTube,
+  Check,
+  AlertCircle,
+  Shield,
+} from "lucide-react";
+import { HomeAssistantWebSocketService } from "@/services/domain/integrations/HomeAssistantWebSocketService";
+import { supabase } from "@/lib/supabaseClient";
 
 interface HAUserConfig {
   id: string;
@@ -22,7 +36,7 @@ interface HAUserConfig {
   enabled: boolean;
   last_tested?: string;
   last_successful_connection?: string;
-  test_result?: 'success' | 'failed' | 'pending';
+  test_result?: "success" | "failed" | "pending";
   created_at: string;
   updated_at: string;
 }
@@ -37,14 +51,14 @@ const HomeAssistantConfigManager: React.FC = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    url: '',
-    access_token: '',
-    local_url: '',
+    name: "",
+    url: "",
+    access_token: "",
+    local_url: "",
     cloudflare_enabled: false,
-    cloudflare_client_id: '',
-    cloudflare_client_secret: '',
-    is_default: false
+    cloudflare_client_id: "",
+    cloudflare_client_secret: "",
+    is_default: false,
   });
 
   useEffect(() => {
@@ -54,7 +68,7 @@ const HomeAssistantConfigManager: React.FC = () => {
   const loadConfigs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/home-assistant/config', {
+      const response = await fetch("/api/v1/home-assistant/config", {
         headers: await getAuthHeaders(),
       });
 
@@ -62,11 +76,11 @@ const HomeAssistantConfigManager: React.FC = () => {
         const configData = await response.json();
         setConfigs(configData);
       } else {
-        setError('Failed to load configurations');
+        setError("Failed to load configurations");
       }
     } catch (err) {
-      setError('Error loading configurations');
-      console.error('Error loading configs:', err);
+      setError("Error loading configurations");
+      console.error("Error loading configs:", err);
     } finally {
       setLoading(false);
     }
@@ -75,8 +89,8 @@ const HomeAssistantConfigManager: React.FC = () => {
   const getAuthHeaders = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     return {
-      'Authorization': `Bearer ${sessionData.session?.access_token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionData.session?.access_token}`,
+      "Content-Type": "application/json",
     };
   };
 
@@ -86,65 +100,70 @@ const HomeAssistantConfigManager: React.FC = () => {
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/v1/home-assistant/config', {
-        method: 'POST',
+      const response = await fetch("/api/v1/home-assistant/config", {
+        method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        setSuccess('Configuration saved successfully');
+        setSuccess("Configuration saved successfully");
         setShowAddForm(false);
         setFormData({
-          name: '',
-          url: '',
-          access_token: '',
-          local_url: '',
+          name: "",
+          url: "",
+          access_token: "",
+          local_url: "",
           cloudflare_enabled: false,
-          cloudflare_client_id: '',
-          cloudflare_client_secret: '',
-          is_default: false
+          cloudflare_client_id: "",
+          cloudflare_client_secret: "",
+          is_default: false,
         });
         loadConfigs();
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to save configuration');
+        setError(errorData.detail || "Failed to save configuration");
       }
     } catch (err) {
-      setError('Error saving configuration');
-      console.error('Error saving config:', err);
+      setError("Error saving configuration");
+      console.error("Error saving config:", err);
     }
   };
 
   const testConnection = async (config: HAUserConfig) => {
-    setTestingConfigs(prev => new Set(prev).add(config.id));
+    setTestingConfigs((prev) => new Set(prev).add(config.id));
     setError(null);
 
     try {
       // Get the access token from the backend for this configuration
-      const response = await fetch(`/api/v1/home-assistant/config/${config.id}/token`, {
-        headers: await getAuthHeaders(),
-      });
+      const response = await fetch(
+        `/api/v1/home-assistant/config/${config.id}/token`,
+        {
+          headers: await getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to retrieve access token');
+        throw new Error("Failed to retrieve access token");
       }
 
       const tokenData = await response.json();
-      
+
       // Create a new service instance for testing
       const testService = HomeAssistantWebSocketService.getInstance();
-      
+
       // Configure the service with the test configuration
       await testService.initialize({
         url: config.url,
         token: tokenData.access_token,
-        ssl: config.url.startsWith('https://'),
-        port: config.url.includes(':') ? parseInt(config.url.split(':')[2]) : 8123
+        ssl: config.url.startsWith("https://"),
+        port: config.url.includes(":")
+          ? parseInt(config.url.split(":")[2])
+          : 8123,
       });
 
       // Wait a moment for connection to establish
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Test the connection by checking if it's connected and authenticated
       const isConnected = testService.isConnected();
@@ -154,77 +173,82 @@ const HomeAssistantConfigManager: React.FC = () => {
         // Try to get states to verify the connection works
         const states = await testService.getStates();
         const deviceCount = states.length;
-        
-        setSuccess(`Connection test successful! Found ${deviceCount} entities.`);
-        
+
+        setSuccess(
+          `Connection test successful! Found ${deviceCount} entities.`,
+        );
+
         // Update the config with successful test result
         await fetch(`/api/v1/home-assistant/config/${config.id}`, {
-          method: 'PATCH',
+          method: "PATCH",
           headers: await getAuthHeaders(),
           body: JSON.stringify({
-            test_result: 'success',
+            test_result: "success",
             last_tested: new Date().toISOString(),
-            last_successful_connection: new Date().toISOString()
+            last_successful_connection: new Date().toISOString(),
           }),
         });
       } else {
-        throw new Error('Connection established but authentication failed');
+        throw new Error("Connection established but authentication failed");
       }
     } catch (err) {
       setError(`Connection test failed: ${err}`);
-      console.error('Connection test error:', err);
-      
+      console.error("Connection test error:", err);
+
       // Update the config with failed test result
       try {
         await fetch(`/api/v1/home-assistant/config/${config.id}`, {
-          method: 'PATCH',
+          method: "PATCH",
           headers: await getAuthHeaders(),
           body: JSON.stringify({
-            test_result: 'failed',
-            last_tested: new Date().toISOString()
+            test_result: "failed",
+            last_tested: new Date().toISOString(),
           }),
         });
       } catch (updateErr) {
-        console.error('Failed to update test result:', updateErr);
+        console.error("Failed to update test result:", updateErr);
       }
     } finally {
-      setTestingConfigs(prev => {
+      setTestingConfigs((prev) => {
         const newSet = new Set(prev);
         newSet.delete(config.id);
         return newSet;
       });
-      
+
       // Reload configs to show updated test results
       loadConfigs();
     }
   };
 
   const deleteConfig = async (configId: string) => {
-    if (!confirm('Are you sure you want to delete this configuration?')) return;
+    if (!confirm("Are you sure you want to delete this configuration?")) return;
 
     try {
-      const response = await fetch(`/api/v1/home-assistant/config/${configId}`, {
-        method: 'DELETE',
-        headers: await getAuthHeaders(),
-      });
+      const response = await fetch(
+        `/api/v1/home-assistant/config/${configId}`,
+        {
+          method: "DELETE",
+          headers: await getAuthHeaders(),
+        },
+      );
 
       if (response.ok) {
-        setSuccess('Configuration deleted successfully');
+        setSuccess("Configuration deleted successfully");
         loadConfigs();
       } else {
-        setError('Failed to delete configuration');
+        setError("Failed to delete configuration");
       }
     } catch (err) {
-      setError('Error deleting configuration');
-      console.error('Error deleting config:', err);
+      setError("Error deleting configuration");
+      console.error("Error deleting config:", err);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -247,9 +271,14 @@ const HomeAssistantConfigManager: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Home Assistant Configurations</h2>
-          <p className="text-gray-600">Manage your Home Assistant integrations</p>
+          <p className="text-gray-600">
+            Manage your Home Assistant integrations
+          </p>
         </div>
-        <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+        <Button
+          onClick={() => setShowAddForm(true)}
+          className="flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Configuration
         </Button>
@@ -339,11 +368,16 @@ const HomeAssistantConfigManager: React.FC = () => {
                   <Switch
                     id="cloudflare_enabled"
                     checked={formData.cloudflare_enabled}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, cloudflare_enabled: checked }))
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        cloudflare_enabled: checked,
+                      }))
                     }
                   />
-                  <Label htmlFor="cloudflare_enabled">Cloudflare Access Protection</Label>
+                  <Label htmlFor="cloudflare_enabled">
+                    Cloudflare Access Protection
+                  </Label>
                 </div>
 
                 {formData.cloudflare_enabled && (
@@ -359,7 +393,9 @@ const HomeAssistantConfigManager: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cloudflare_client_secret">Client Secret</Label>
+                      <Label htmlFor="cloudflare_client_secret">
+                        Client Secret
+                      </Label>
                       <Input
                         id="cloudflare_client_secret"
                         name="cloudflare_client_secret"
@@ -376,17 +412,23 @@ const HomeAssistantConfigManager: React.FC = () => {
                   <Switch
                     id="is_default"
                     checked={formData.is_default}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, is_default: checked }))
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, is_default: checked }))
                     }
                   />
-                  <Label htmlFor="is_default">Set as Default Configuration</Label>
+                  <Label htmlFor="is_default">
+                    Set as Default Configuration
+                  </Label>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button type="submit">Save Configuration</Button>
-                <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddForm(false)}
+                >
                   Cancel
                 </Button>
               </div>
@@ -401,7 +443,9 @@ const HomeAssistantConfigManager: React.FC = () => {
           <Card>
             <CardContent className="p-6 text-center">
               <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Configurations Found</h3>
+              <h3 className="text-lg font-medium mb-2">
+                No Configurations Found
+              </h3>
               <p className="text-gray-600 mb-4">
                 Add your first Home Assistant configuration to get started.
               </p>
@@ -439,7 +483,10 @@ const HomeAssistantConfigManager: React.FC = () => {
                       )}
                       {config.last_successful_connection && (
                         <span>
-                          Last connected: {new Date(config.last_successful_connection).toLocaleDateString()}
+                          Last connected:{" "}
+                          {new Date(
+                            config.last_successful_connection,
+                          ).toLocaleDateString()}
                         </span>
                       )}
                     </div>
@@ -477,4 +524,4 @@ const HomeAssistantConfigManager: React.FC = () => {
   );
 };
 
-export default HomeAssistantConfigManager; 
+export default HomeAssistantConfigManager;

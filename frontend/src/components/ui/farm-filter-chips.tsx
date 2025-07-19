@@ -35,7 +35,7 @@ export const FarmFilterChips: React.FC<FarmFilterChipsProps> = ({
   onClearAll,
   showClearAll = true,
   label = "Active Filters:",
-  className
+  className,
 }) => {
   if (filters.length === 0) {
     return null;
@@ -48,11 +48,11 @@ export const FarmFilterChips: React.FC<FarmFilterChipsProps> = ({
           {label}
         </span>
       )}
-      
+
       {filters.map((filter) => (
-        <Badge 
-          key={filter.id} 
-          variant="secondary" 
+        <Badge
+          key={filter.id}
+          variant="secondary"
           className="flex items-center gap-1 pr-1"
         >
           <span>{filter.label}</span>
@@ -70,7 +70,7 @@ export const FarmFilterChips: React.FC<FarmFilterChipsProps> = ({
           )}
         </Badge>
       ))}
-      
+
       {showClearAll && filters.length > 1 && onClearAll && (
         <Button
           type="button"
@@ -84,4 +84,4 @@ export const FarmFilterChips: React.FC<FarmFilterChipsProps> = ({
       )}
     </div>
   );
-}; 
+};

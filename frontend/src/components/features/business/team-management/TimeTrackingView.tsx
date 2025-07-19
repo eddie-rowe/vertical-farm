@@ -4,22 +4,25 @@ import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  User, 
-  Clock, 
+import {
+  Plus,
+  User,
+  Clock,
   Play,
   Pause,
   Square,
   TrendingUp,
   Calendar,
   BarChart3,
-  Download
+  Download,
 } from "lucide-react";
 
 // ✅ NEW: Import standardized search and filter components
-import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 // ❌ OLD: Manual search and filter imports
 // import { Input } from "@/components/ui/input";
@@ -31,7 +34,7 @@ const timeData = {
     totalHours: 312,
     activeEmployees: 6,
     avgProductivity: 87,
-    overtime: 18
+    overtime: 18,
   },
   employees: [
     {
@@ -45,10 +48,10 @@ const timeData = {
       currentTask: "Team Coordination",
       checkIn: "06:00",
       breaks: 2,
-      efficiency: "high"
+      efficiency: "high",
     },
     {
-      id: "E002", 
+      id: "E002",
       name: "Mike Chen",
       role: "Growth Technician",
       todayHours: 6.2,
@@ -58,12 +61,12 @@ const timeData = {
       currentTask: "Nutrient System Check",
       checkIn: "07:00",
       breaks: 3,
-      efficiency: "high"
+      efficiency: "high",
     },
     {
       id: "E003",
       name: "Emily Davis",
-      role: "Harvest Specialist", 
+      role: "Harvest Specialist",
       todayHours: 8.0,
       weekHours: 40.0,
       productivity: 95,
@@ -71,7 +74,7 @@ const timeData = {
       currentTask: "Morning Harvest Complete",
       checkIn: "05:00",
       breaks: 2,
-      efficiency: "excellent"
+      efficiency: "excellent",
     },
     {
       id: "E004",
@@ -84,7 +87,7 @@ const timeData = {
       currentTask: "HVAC Maintenance",
       checkIn: "14:00",
       breaks: 1,
-      efficiency: "medium"
+      efficiency: "medium",
     },
     {
       id: "E005",
@@ -97,8 +100,8 @@ const timeData = {
       currentTask: "Weekly Report Analysis",
       checkIn: "09:00",
       breaks: 2,
-      efficiency: "high"
-    }
+      efficiency: "high",
+    },
   ],
   timeEntries: [
     {
@@ -109,19 +112,19 @@ const timeData = {
       endTime: "11:15",
       duration: 3.75,
       date: "2024-01-15",
-      notes: "Completed calibration on towers 1-4"
+      notes: "Completed calibration on towers 1-4",
     },
     {
       id: "TE002",
-      employee: "Emily Davis", 
+      employee: "Emily Davis",
       task: "Quality Inspection",
       startTime: "05:00",
       endTime: "07:30",
       duration: 2.5,
       date: "2024-01-15",
-      notes: "Inspected lettuce batch 46"
-    }
-  ]
+      notes: "Inspected lettuce batch 46",
+    },
+  ],
 };
 
 export default function TimeTrackingView() {
@@ -131,10 +134,10 @@ export default function TimeTrackingView() {
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
-  } = useFarmSearch<typeof timeData.employees[0]>({
-    searchFields: ['name', 'role', 'currentTask'],
-    caseSensitive: false
+    hasSearch,
+  } = useFarmSearch<(typeof timeData.employees)[0]>({
+    searchFields: ["name", "role", "currentTask"],
+    caseSensitive: false,
   });
 
   const {
@@ -144,37 +147,46 @@ export default function TimeTrackingView() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
-  } = useFarmFilters<typeof timeData.employees[0]>();
+    hasActiveFilters,
+  } = useFarmFilters<(typeof timeData.employees)[0]>();
 
   // ✅ NEW: Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'status',
-      label: 'Status',
-      placeholder: 'Filter by status',
-      options: [
-        { value: 'all', label: 'All Status' },
-        { value: 'working', label: 'Working' },
-        { value: 'break', label: 'On Break' },
-        { value: 'completed', label: 'Completed' }
-      ],
-      defaultValue: 'all'
-    }
-  ], []);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "status",
+        label: "Status",
+        placeholder: "Filter by status",
+        options: [
+          { value: "all", label: "All Status" },
+          { value: "working", label: "Working" },
+          { value: "break", label: "On Break" },
+          { value: "completed", label: "Completed" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [],
+  );
 
   // ✅ NEW: Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // ✅ NEW: Combined filtering using both search and filters
   const filteredEmployees = useMemo(() => {
@@ -186,29 +198,42 @@ export default function TimeTrackingView() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "working": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "break": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "completed": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "working":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "break":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getEfficiencyColor = (efficiency: string) => {
     switch (efficiency) {
-      case "excellent": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "high": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "medium": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "low": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "excellent":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "high":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "low":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "working": return <Play className="h-4 w-4" />;
-      case "break": return <Pause className="h-4 w-4" />;
-      case "completed": return <Square className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "working":
+        return <Play className="h-4 w-4" />;
+      case "break":
+        return <Pause className="h-4 w-4" />;
+      case "completed":
+        return <Square className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -221,8 +246,12 @@ export default function TimeTrackingView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Hours</p>
-                <p className="text-2xl font-bold">{timeData.summary.totalHours}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Hours
+                </p>
+                <p className="text-2xl font-bold">
+                  {timeData.summary.totalHours}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -233,8 +262,12 @@ export default function TimeTrackingView() {
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active Employees</p>
-                <p className="text-2xl font-bold">{timeData.summary.activeEmployees}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Active Employees
+                </p>
+                <p className="text-2xl font-bold">
+                  {timeData.summary.activeEmployees}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -245,8 +278,12 @@ export default function TimeTrackingView() {
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Avg Productivity</p>
-                <p className="text-2xl font-bold">{timeData.summary.avgProductivity}%</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Avg Productivity
+                </p>
+                <p className="text-2xl font-bold">
+                  {timeData.summary.avgProductivity}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -257,8 +294,12 @@ export default function TimeTrackingView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-red-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Overtime Hours</p>
-                <p className="text-2xl font-bold">{timeData.summary.overtime}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Overtime Hours
+                </p>
+                <p className="text-2xl font-bold">
+                  {timeData.summary.overtime}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -302,15 +343,23 @@ export default function TimeTrackingView() {
             orientation="horizontal"
             showFilterChips={true}
           />
-          
+
           {/* Results summary */}
           {(hasSearch || hasActiveFilters) && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-gray-600">
-                Showing {filteredEmployees.length} of {timeData.employees.length} employees
+                Showing {filteredEmployees.length} of{" "}
+                {timeData.employees.length} employees
               </p>
               {(hasSearch || hasActiveFilters) && (
-                <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    clearSearch();
+                    clearAllFilters();
+                  }}
+                >
                   Clear all filters
                 </Button>
               )}
@@ -329,7 +378,9 @@ export default function TimeTrackingView() {
                   <div className="flex items-center gap-3">
                     <h4 className="font-semibold text-lg">{employee.name}</h4>
                     <Badge variant="outline">{employee.role}</Badge>
-                    <Badge className={`${getStatusColor(employee.status)} flex items-center gap-1`}>
+                    <Badge
+                      className={`${getStatusColor(employee.status)} flex items-center gap-1`}
+                    >
                       {getStatusIcon(employee.status)}
                       {employee.status}
                     </Badge>
@@ -337,14 +388,17 @@ export default function TimeTrackingView() {
                       {employee.efficiency} efficiency
                     </Badge>
                   </div>
-                  
+
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Current Task: <span className="font-medium">{employee.currentTask}</span>
+                    Current Task:{" "}
+                    <span className="font-medium">{employee.currentTask}</span>
                   </p>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Check-in</p>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Check-in
+                      </p>
                       <p className="font-medium">{employee.checkIn}</p>
                     </div>
                     <div>
@@ -352,11 +406,15 @@ export default function TimeTrackingView() {
                       <p className="font-medium">{employee.todayHours}h</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">This Week</p>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        This Week
+                      </p>
                       <p className="font-medium">{employee.weekHours}h</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Productivity</p>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Productivity
+                      </p>
                       <p className="font-medium">{employee.productivity}%</p>
                     </div>
                     <div>
@@ -372,8 +430,8 @@ export default function TimeTrackingView() {
                       <span>{employee.productivity}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${employee.productivity}%` }}
                       ></div>
                     </div>
@@ -408,11 +466,16 @@ export default function TimeTrackingView() {
           <h4 className="font-semibold text-lg mb-4">Recent Time Entries</h4>
           <div className="space-y-3">
             {timeData.timeEntries.map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div
+                key={entry.id}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="font-medium">{entry.employee}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{entry.task}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {entry.task}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -428,4 +491,4 @@ export default function TimeTrackingView() {
       </Card>
     </div>
   );
-} 
+}

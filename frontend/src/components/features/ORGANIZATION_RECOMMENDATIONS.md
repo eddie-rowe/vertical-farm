@@ -30,7 +30,7 @@
 features/
 ├── agriculture/                    # Core farming operations
 │   ├── index.ts                   # Main barrel export
-│   ├── farm-management/           # Farm layout and visualization  
+│   ├── farm-management/           # Farm layout and visualization
 │   │   ├── components/           # FarmAreaRenderer, layouts, etc.
 │   │   ├── configurations/       # Area configs (grow, germination)
 │   │   └── index.ts
@@ -98,64 +98,70 @@ features/
 ## Index.ts Standardization
 
 ### Pattern 1: Domain Root Files
+
 ```typescript
 // Domain name - Brief description of domain purpose
 // Main exports for external consumption
 
 // Core functionality
-export * from './sub-domain-1';
-export * from './sub-domain-2';
+export * from "./sub-domain-1";
+export * from "./sub-domain-2";
 
 // Utilities and types
-export * from './shared';
-export * from './types';
+export * from "./shared";
+export * from "./types";
 
 // Hooks and services (if applicable)
-export * from './hooks';
+export * from "./hooks";
 ```
 
 ### Pattern 2: Sub-domain Files
+
 ```typescript
 // Sub-domain name - Specific functionality description
 
 // Components
-export { ComponentA } from './ComponentA';
-export { ComponentB } from './ComponentB';
+export { ComponentA } from "./ComponentA";
+export { ComponentB } from "./ComponentB";
 
 // Hooks
-export { useCustomHook } from './hooks/useCustomHook';
+export { useCustomHook } from "./hooks/useCustomHook";
 
 // Types (if needed for external consumption)
-export type { CustomType } from './types';
+export type { CustomType } from "./types";
 ```
 
 ### Pattern 3: Component Collections
+
 ```typescript
 // Component collection name - Collection purpose
 
 // Main components
-export { default as ComponentA } from './ComponentA';
-export { default as ComponentB } from './ComponentB';
+export { default as ComponentA } from "./ComponentA";
+export { default as ComponentB } from "./ComponentB";
 
 // Utility components
-export { UtilityComponent } from './shared/UtilityComponent';
+export { UtilityComponent } from "./shared/UtilityComponent";
 ```
 
 ## Implementation Priority
 
 ### Phase 1: Fix Critical Issues (Immediate)
+
 1. ✅ Complete missing index.ts files
 2. ✅ Standardize main features/index.ts
 3. Resolve integration directory duplication
 4. Fix broken import paths
 
 ### Phase 2: Structural Improvements (Short-term)
+
 1. Consolidate agriculture sub-domains
 2. Restructure integrations directory
 3. Standardize all index.ts files
 4. Add comprehensive documentation
 
 ### Phase 3: Advanced Organization (Medium-term)
+
 1. Implement consistent naming conventions
 2. Add automated linting for import organization
 3. Create domain-specific type exports
@@ -180,32 +186,37 @@ export { UtilityComponent } from './shared/UtilityComponent';
 ## Automated Tooling
 
 Consider adding ESLint rules for:
+
 - Import organization (group by domain, then alphabetical)
 - Consistent index.js patterns
 - Barrel export validation
 - Path depth limits
 
 Example ESLint configuration:
+
 ```json
 {
   "rules": {
-    "import/order": ["error", {
-      "groups": [
-        "builtin",
-        "external", 
-        "internal",
-        "parent",
-        "sibling",
-        "index"
-      ],
-      "pathGroups": [
-        {
-          "pattern": "@/components/features/**",
-          "group": "internal",
-          "position": "before"
-        }
-      ]
-    }]
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@/components/features/**",
+            "group": "internal",
+            "position": "before"
+          }
+        ]
+      }
+    ]
   }
 }
-``` 
+```

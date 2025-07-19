@@ -54,30 +54,30 @@
   --spacing-rack: 2rem;
   --spacing-shelf: 1rem;
   --spacing-sensor: 0.5rem;
-  
+
   --size-plant-icon: 1.5rem;
   --size-sensor-icon: 1.25rem;
   --size-control-btn: 2.5rem;
   --size-status-indicator: 0.5rem;
-  
+
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 350ms;
   --duration-pulse: 2s;
-  
+
   --ease-farm: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-gentle: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
+
   --font-size-plant-label: 0.75rem;
   --font-size-sensor-value: 1.125rem;
   --font-size-farm-title: 1.5rem;
   --font-size-control-label: 0.875rem;
-  
+
   --line-height-tight: 1.2;
   --line-height-farm: 1.25;
   --line-height-sensor: 1.1;
-  
+
   --z-index-farm-overlay: 10;
   --z-index-sensor-popup: 20;
   --z-index-control-panel: 30;
@@ -89,22 +89,22 @@
   --input-height-lg: 3rem;
   --input-padding-x: 0.75rem;
   --input-padding-y: 0.5rem;
-  
+
   --form-label-size: 0.875rem;
   --form-help-size: 0.75rem;
   --form-error-size: 0.75rem;
-  
+
   --validation-success: #10b981;
   --validation-warning: #f59e0b;
   --validation-error: #ef4444;
   --validation-info: #3b82f6;
-  
+
   /* Phase 2: Mobile Touch Targets */
   --touch-target-min: 44px;
   --touch-spacing: 12px;
   --mobile-padding: 1rem;
   --mobile-margin: 0.75rem;
-  
+
   /* Phase 2: Data Visualization */
   --chart-green: #22c55e;
   --chart-blue: #3b82f6;
@@ -112,7 +112,7 @@
   --chart-orange: #f97316;
   --chart-red: #ef4444;
   --chart-yellow: #eab308;
-  
+
   --progress-track: #e5e7eb;
   --progress-fill: var(--chart-green);
   --gauge-background: #f3f4f6;
@@ -218,7 +218,7 @@
 /* Farm Hierarchy Gradients */
 @utility gradient-farm {
   background: linear-gradient(135deg, #c3dafe 0%, #e0e7ff 100%);
-  
+
   .dark & {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   }
@@ -226,7 +226,7 @@
 
 @utility gradient-row {
   background: linear-gradient(135deg, #bbf7d0 0%, #d1fae5 100%);
-  
+
   .dark & {
     background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
   }
@@ -234,7 +234,7 @@
 
 @utility gradient-rack {
   background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
-  
+
   .dark & {
     background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
   }
@@ -242,7 +242,7 @@
 
 @utility gradient-shelf {
   background: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 100%);
-  
+
   .dark & {
     background: linear-gradient(135deg, #6d28d9 0%, #a21caf 100%);
   }
@@ -250,29 +250,35 @@
 
 /* Glass Morphism Effect */
 @utility glass {
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-radius: 1rem;
-  border: 1px solid rgba(255,255,255,0.18);
-  
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
   .dark & {
-    background: rgba(30,41,59,0.7);
-    border: 1px solid rgba(51,65,85,0.18);
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.18);
   }
 }
 
 /* Enhanced Shadow System */
 @utility card-shadow {
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+  box-shadow:
+    0 4px 24px 0 rgba(0, 0, 0, 0.1),
+    0 1.5px 6px 0 rgba(0, 0, 0, 0.08);
 }
 
 @utility sensor-shadow {
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06), 0 1px 4px 0 rgba(0,0,0,0.04);
+  box-shadow:
+    0 2px 8px 0 rgba(0, 0, 0, 0.06),
+    0 1px 4px 0 rgba(0, 0, 0, 0.04);
 }
 
 @utility control-shadow {
-  box-shadow: 0 6px 32px 0 rgba(0,0,0,0.12), 0 2px 8px 0 rgba(0,0,0,0.08);
+  box-shadow:
+    0 6px 32px 0 rgba(0, 0, 0, 0.12),
+    0 2px 8px 0 rgba(0, 0, 0, 0.08);
 }
 
 /* Animation Utilities */
@@ -289,18 +295,36 @@
 }
 
 @keyframes pop-in {
-  0% { transform: scale(0.95) translateY(20px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0% {
+    transform: scale(0.95) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
-  50% { opacity: 0.8; box-shadow: 0 0 16px rgba(34, 197, 94, 0.6); }
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.6);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* Typography Utilities */
@@ -344,12 +368,12 @@
   justify-content: center;
   transition: all var(--duration-fast) var(--ease-farm);
   cursor: pointer;
-  
+
   &:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: var(--control-shadow);
   }
-  
+
   &:focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
@@ -370,7 +394,7 @@
   padding: var(--spacing-plant);
   border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--ease-gentle);
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--control-shadow);
@@ -405,7 +429,7 @@
   @apply ring-2;
   ring-color: rgb(34 197 94);
   background-color: rgb(34 197 94 / 0.05);
-  
+
   .dark & {
     background-color: rgb(34 197 94 / 0.1);
   }
@@ -415,7 +439,7 @@
   @apply ring-2;
   ring-color: rgb(245 158 11);
   background-color: rgb(245 158 11 / 0.05);
-  
+
   .dark & {
     background-color: rgb(245 158 11 / 0.1);
   }
@@ -426,7 +450,7 @@
   ring-color: rgb(239 68 68);
   background-color: rgb(239 68 68 / 0.05);
   opacity: 0.7;
-  
+
   .dark & {
     background-color: rgb(239 68 68 / 0.1);
   }
@@ -438,14 +462,15 @@
 
 /* Enhanced Interactive Patterns */
 @utility btn-animated {
-  transition: transform var(--duration-fast) var(--ease-farm), 
-              box-shadow var(--duration-fast) var(--ease-farm);
-  
+  transition:
+    transform var(--duration-fast) var(--ease-farm),
+    box-shadow var(--duration-fast) var(--ease-farm);
+
   &:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 16px 0 rgba(59,130,246,0.15);
+    box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.15);
   }
-  
+
   &:focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
@@ -462,7 +487,8 @@
 }
 
 /* Global Focus Styles */
-a:focus-visible, button:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
 }
@@ -482,17 +508,17 @@ a:focus-visible, button:focus-visible {
   color: hsl(var(--foreground));
   font-size: 0.875rem;
   transition: all var(--duration-fast) var(--ease-farm);
-  
+
   &:focus {
     outline: none;
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
   }
-  
+
   &::placeholder {
     color: hsl(var(--muted-foreground));
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -501,35 +527,41 @@ a:focus-visible, button:focus-visible {
 
 @utility farm-input-sm {
   height: var(--input-height-sm);
-  padding: calc(var(--input-padding-y) * 0.75) calc(var(--input-padding-x) * 0.75);
+  padding: calc(var(--input-padding-y) * 0.75)
+    calc(var(--input-padding-x) * 0.75);
   font-size: 0.75rem;
 }
 
 @utility farm-input-lg {
   height: var(--input-height-lg);
-  padding: calc(var(--input-padding-y) * 1.25) calc(var(--input-padding-x) * 1.25);
+  padding: calc(var(--input-padding-y) * 1.25)
+    calc(var(--input-padding-x) * 1.25);
   font-size: 1rem;
 }
 
 /* Form Validation States */
 @utility input-success {
   border-color: var(--validation-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--validation-success) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--validation-success) 10%, transparent);
 }
 
 @utility input-warning {
   border-color: var(--validation-warning);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--validation-warning) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--validation-warning) 10%, transparent);
 }
 
 @utility input-error {
   border-color: var(--validation-error);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--validation-error) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--validation-error) 10%, transparent);
 }
 
 @utility input-info {
   border-color: var(--validation-info);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--validation-info) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--validation-info) 10%, transparent);
 }
 
 /* Form Labels and Help Text */
@@ -582,11 +614,11 @@ a:focus-visible, button:focus-visible {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--mobile-margin);
-  
+
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (min-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -674,7 +706,8 @@ a:focus-visible, button:focus-visible {
 
 @utility status-online {
   background: var(--validation-success);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--validation-success) 20%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--validation-success) 20%, transparent);
 }
 
 @utility status-offline {
@@ -683,12 +716,14 @@ a:focus-visible, button:focus-visible {
 
 @utility status-warning {
   background: var(--validation-warning);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--validation-warning) 20%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--validation-warning) 20%, transparent);
 }
 
 @utility status-error {
   background: var(--validation-error);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--validation-error) 20%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--validation-error) 20%, transparent);
 }
 
 /* 
@@ -799,7 +834,11 @@ a:focus-visible, button:focus-visible {
 }
 
 @utility gradient-icon {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;

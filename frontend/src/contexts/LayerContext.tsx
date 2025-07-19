@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
-export type LayerType = 'devices' | 'automation' | 'monitoring' | 'grows';
+export type LayerType = "devices" | "automation" | "monitoring" | "grows";
 
 interface LayerState {
   isActive: boolean;
@@ -28,26 +28,26 @@ interface LayerProviderProps {
   exclusiveMode?: boolean;
 }
 
-export function LayerProvider({ 
-  children, 
-  defaultActiveLayers = [], 
-  exclusiveMode = true 
+export function LayerProvider({
+  children,
+  defaultActiveLayers = [],
+  exclusiveMode = true,
 }: LayerProviderProps) {
   const [layers, setLayers] = useState<Record<LayerType, LayerState>>({
     devices: {
-      isActive: defaultActiveLayers.includes('devices'),
+      isActive: defaultActiveLayers.includes("devices"),
       alertCount: 0,
     },
     automation: {
-      isActive: defaultActiveLayers.includes('automation'),
+      isActive: defaultActiveLayers.includes("automation"),
       alertCount: 0,
     },
     monitoring: {
-      isActive: defaultActiveLayers.includes('monitoring'),
+      isActive: defaultActiveLayers.includes("monitoring"),
       alertCount: 3, // Demo alert count
     },
     grows: {
-      isActive: defaultActiveLayers.includes('grows'),
+      isActive: defaultActiveLayers.includes("grows"),
       alertCount: 0,
     },
   });
@@ -56,50 +56,50 @@ export function LayerProvider({
     if (exclusiveMode) {
       activateExclusiveLayer(layer);
     } else {
-      setLayers(prev => ({
+      setLayers((prev) => ({
         ...prev,
         [layer]: {
           ...prev[layer],
-          isActive: !prev[layer].isActive
-        }
+          isActive: !prev[layer].isActive,
+        },
       }));
     }
   };
 
   const activateExclusiveLayer = (layer: LayerType) => {
-    setLayers(prev => {
+    setLayers((prev) => {
       const newLayers = { ...prev };
-      
+
       if (newLayers[layer].isActive) {
         newLayers[layer] = {
           ...newLayers[layer],
-          isActive: false
+          isActive: false,
         };
       } else {
-        Object.keys(newLayers).forEach(key => {
+        Object.keys(newLayers).forEach((key) => {
           newLayers[key as LayerType] = {
             ...newLayers[key as LayerType],
-            isActive: false
+            isActive: false,
           };
         });
-        
+
         newLayers[layer] = {
           ...newLayers[layer],
-          isActive: true
+          isActive: true,
         };
       }
-      
+
       return newLayers;
     });
   };
 
   const clearAllLayers = () => {
-    setLayers(prev => {
+    setLayers((prev) => {
       const newLayers = { ...prev };
-      Object.keys(newLayers).forEach(key => {
+      Object.keys(newLayers).forEach((key) => {
         newLayers[key as LayerType] = {
           ...newLayers[key as LayerType],
-          isActive: false
+          isActive: false,
         };
       });
       return newLayers;
@@ -107,22 +107,24 @@ export function LayerProvider({
   };
 
   const getActiveLayer = (): LayerType | null => {
-    const activeLayer = Object.entries(layers).find(([_, state]) => state.isActive);
+    const activeLayer = Object.entries(layers).find(
+      ([_, state]) => state.isActive,
+    );
     return activeLayer ? (activeLayer[0] as LayerType) : null;
   };
 
   const setLayerAlertCount = (layer: LayerType, count: number) => {
-    setLayers(prev => ({
+    setLayers((prev) => ({
       ...prev,
       [layer]: {
         ...prev[layer],
-        alertCount: count
-      }
+        alertCount: count,
+      },
     }));
   };
 
   const getActiveLayerCount = () => {
-    return Object.values(layers).filter(layer => layer.isActive).length;
+    return Object.values(layers).filter((layer) => layer.isActive).length;
   };
 
   const isLayerActive = (layer: LayerType) => {
@@ -141,16 +143,14 @@ export function LayerProvider({
   };
 
   return (
-    <LayerContext.Provider value={value}>
-      {children}
-    </LayerContext.Provider>
+    <LayerContext.Provider value={value}>{children}</LayerContext.Provider>
   );
 }
 
 export function useLayer() {
   const context = useContext(LayerContext);
   if (context === undefined) {
-    throw new Error('useLayer must be used within a LayerProvider');
+    throw new Error("useLayer must be used within a LayerProvider");
   }
   return context;
-} 
+}

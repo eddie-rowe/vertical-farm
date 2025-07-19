@@ -1,2 +1,6 @@
 // Re-export all error components
-export { ErrorBoundary, DefaultErrorFallback, ComponentErrorBoundary } from './ErrorBoundary'; 
+export {
+  ErrorBoundary,
+  DefaultErrorFallback,
+  ComponentErrorBoundary,
+} from "./ErrorBoundary";

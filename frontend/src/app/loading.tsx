@@ -1,6 +1,6 @@
-import { LoadingPage } from '@/components/ui/loading';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { LoadingPage } from "@/components/ui/loading";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function Loading() {
   return <LoadingPage />;
@@ -70,19 +70,32 @@ export function DashboardSkeleton() {
 }
 
 // Table skeleton loader
-export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
+export function TableSkeleton({
+  rows = 5,
+  columns = 4,
+}: {
+  rows?: number;
+  columns?: number;
+}) {
   return (
     <div className="space-y-4" role="status" aria-label="Loading table data">
       {/* Table header */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+      >
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 w-20" />
         ))}
       </div>
-      
+
       {/* Table rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        <div
+          key={rowIndex}
+          className="grid gap-4"
+          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+        >
           {Array.from({ length: columns }).map((_, colIndex) => (
             <Skeleton key={colIndex} className="h-4 w-full" />
           ))}
@@ -104,7 +117,7 @@ export function FormSkeleton() {
           <Skeleton className="h-10 w-full" />
         </div>
       ))}
-      
+
       <div className="flex gap-4 pt-4">
         <Skeleton className="h-10 w-24" />
         <Skeleton className="h-10 w-24" />
@@ -113,4 +126,4 @@ export function FormSkeleton() {
       <span className="sr-only">Loading form...</span>
     </div>
   );
-} 
+}

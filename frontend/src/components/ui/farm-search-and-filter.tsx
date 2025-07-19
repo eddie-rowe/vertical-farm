@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { FarmSearchInput, type FarmSearchInputProps } from "./farm-search-input";
+import {
+  FarmSearchInput,
+  type FarmSearchInputProps,
+} from "./farm-search-input";
 import { FarmSelect, type FarmSelectOption } from "./farm-select";
 import { FarmFilterChips, type FilterChip } from "./farm-filter-chips";
 import { cn } from "@/lib/utils";
@@ -20,23 +23,23 @@ export interface FarmSearchAndFilterProps {
   onSearchChange: (value: string) => void;
   searchContext?: string;
   searchPlaceholder?: string;
-  
+
   /** Filter definitions */
   filters?: FilterDefinition[];
-  
+
   /** Active filter chips */
   activeFilters?: FilterChip[];
   onRemoveFilter?: (filterId: string) => void;
   onClearAllFilters?: () => void;
-  
+
   /** Filter change handlers */
   onFilterChange?: (filterId: string, value: string) => void;
-  
+
   /** Layout options */
   orientation?: "horizontal" | "vertical";
   showFilterChips?: boolean;
   className?: string;
-  
+
   /** Additional search input props */
   searchInputProps?: Partial<FarmSearchInputProps>;
 }
@@ -54,11 +57,12 @@ export const FarmSearchAndFilter: React.FC<FarmSearchAndFilterProps> = ({
   orientation = "horizontal",
   showFilterChips = true,
   className,
-  searchInputProps = {}
+  searchInputProps = {},
 }) => {
-  const handleFilterChange = (filterId: string) => (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onFilterChange?.(filterId, event.target.value);
-  };
+  const handleFilterChange =
+    (filterId: string) => (event: React.ChangeEvent<HTMLSelectElement>) => {
+      onFilterChange?.(filterId, event.target.value);
+    };
 
   const searchComponent = (
     <FarmSearchInput
@@ -86,29 +90,31 @@ export const FarmSearchAndFilter: React.FC<FarmSearchAndFilterProps> = ({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Search and Filters */}
-      <div className={cn(
-        "flex gap-4",
-        isHorizontal ? "flex-col lg:flex-row lg:items-center" : "flex-col",
-        isHorizontal && "lg:flex-wrap"
-      )}>
+      <div
+        className={cn(
+          "flex gap-4",
+          isHorizontal ? "flex-col lg:flex-row lg:items-center" : "flex-col",
+          isHorizontal && "lg:flex-wrap",
+        )}
+      >
         {/* Search Input */}
-        <div className={cn(
-          isHorizontal ? "flex-1 min-w-0" : "w-full"
-        )}>
+        <div className={cn(isHorizontal ? "flex-1 min-w-0" : "w-full")}>
           {searchComponent}
         </div>
-        
+
         {/* Filter Selects */}
         {filters.length > 0 && (
-          <div className={cn(
-            "flex gap-2",
-            isHorizontal ? "flex-wrap" : "flex-col"
-          )}>
+          <div
+            className={cn(
+              "flex gap-2",
+              isHorizontal ? "flex-wrap" : "flex-col",
+            )}
+          >
             {filterComponents}
           </div>
         )}
       </div>
-      
+
       {/* Active Filter Chips */}
       {showFilterChips && activeFilters.length > 0 && (
         <FarmFilterChips
@@ -120,4 +126,4 @@ export const FarmSearchAndFilter: React.FC<FarmSearchAndFilterProps> = ({
       )}
     </div>
   );
-}; 
+};

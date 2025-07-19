@@ -1,194 +1,234 @@
-"use client"
+"use client";
 
-import React, { useState, useMemo, useCallback } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FarmControlButton } from '@/components/ui/farm-control-button'
-import { FarmInput } from '@/components/ui/farm-input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { StatusBadge } from '@/components/ui/status-badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { 
-  BookOpen, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Copy, 
-  Clock, 
-  Thermometer, 
+import React, { useState, useMemo, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmInput } from "@/components/ui/farm-input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  BookOpen,
+  Plus,
+  Edit,
+  Trash2,
+  Copy,
+  Clock,
+  Thermometer,
   Droplets,
   Sun,
   FlaskConical,
   Search,
   Star,
-  Leaf
-} from 'lucide-react'
+  Leaf,
+} from "lucide-react";
 
 // ✅ NEW: Import standardized search/filter components and hooks
-import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface Recipe {
-  id: string
-  name: string
-  description: string
-  cropType: string
-  variety: string
-  duration: number
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  isPublic: boolean
-  rating: number
-  usageCount: number
-  stages: RecipeStage[]
-  nutrients: NutrientSchedule[]
-  creator: string
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  name: string;
+  description: string;
+  cropType: string;
+  variety: string;
+  duration: number;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  isPublic: boolean;
+  rating: number;
+  usageCount: number;
+  stages: RecipeStage[];
+  nutrients: NutrientSchedule[];
+  creator: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface RecipeStage {
-  id: string
-  name: string
-  duration: number
-  lightHours: number
-  lightIntensity: number
-  temperature: number
-  humidity: number
-  description: string
+  id: string;
+  name: string;
+  duration: number;
+  lightHours: number;
+  lightIntensity: number;
+  temperature: number;
+  humidity: number;
+  description: string;
 }
 
 interface NutrientSchedule {
-  day: number
-  nutrientType: string
-  concentration: number
-  ph: number
-  ec: number
+  day: number;
+  nutrientType: string;
+  concentration: number;
+  ph: number;
+  ec: number;
 }
 
 const SAMPLE_RECIPES: Recipe[] = [
   {
-    id: '1',
-    name: 'Basic Lettuce Growth',
-    description: 'A simple and reliable recipe for growing crisp lettuce varieties',
-    cropType: 'lettuce',
-    variety: 'Buttercrunch',
+    id: "1",
+    name: "Basic Lettuce Growth",
+    description:
+      "A simple and reliable recipe for growing crisp lettuce varieties",
+    cropType: "lettuce",
+    variety: "Buttercrunch",
     duration: 30,
-    difficulty: 'beginner',
+    difficulty: "beginner",
     isPublic: true,
     rating: 4.8,
     usageCount: 156,
-    creator: 'FarmBot Admin',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-12-20'),
+    creator: "FarmBot Admin",
+    createdAt: new Date("2024-01-15"),
+    updatedAt: new Date("2024-12-20"),
     stages: [
       {
-        id: '1',
-        name: 'Germination',
+        id: "1",
+        name: "Germination",
         duration: 7,
         lightHours: 14,
         lightIntensity: 150,
         temperature: 20,
         humidity: 85,
-        description: 'Initial germination phase with high humidity'
+        description: "Initial germination phase with high humidity",
       },
       {
-        id: '2',
-        name: 'Vegetative Growth',
+        id: "2",
+        name: "Vegetative Growth",
         duration: 18,
         lightHours: 16,
         lightIntensity: 200,
         temperature: 22,
         humidity: 75,
-        description: 'Main growth phase with increased light'
+        description: "Main growth phase with increased light",
       },
       {
-        id: '3',
-        name: 'Harvest Ready',
+        id: "3",
+        name: "Harvest Ready",
         duration: 5,
         lightHours: 14,
         lightIntensity: 180,
         temperature: 18,
         humidity: 70,
-        description: 'Final phase before harvest'
-      }
+        description: "Final phase before harvest",
+      },
     ],
     nutrients: [
-      { day: 1, nutrientType: 'Starter', concentration: 0.8, ph: 6.0, ec: 1.2 },
-      { day: 7, nutrientType: 'Growth', concentration: 1.2, ph: 6.2, ec: 1.6 },
-      { day: 21, nutrientType: 'Finish', concentration: 1.0, ph: 6.0, ec: 1.4 }
-    ]
+      { day: 1, nutrientType: "Starter", concentration: 0.8, ph: 6.0, ec: 1.2 },
+      { day: 7, nutrientType: "Growth", concentration: 1.2, ph: 6.2, ec: 1.6 },
+      { day: 21, nutrientType: "Finish", concentration: 1.0, ph: 6.0, ec: 1.4 },
+    ],
   },
   {
-    id: '2',
-    name: 'High-Yield Basil',
-    description: 'Intensive basil recipe optimized for maximum yield and flavor',
-    cropType: 'basil',
-    variety: 'Genovese',
+    id: "2",
+    name: "High-Yield Basil",
+    description:
+      "Intensive basil recipe optimized for maximum yield and flavor",
+    cropType: "basil",
+    variety: "Genovese",
     duration: 35,
-    difficulty: 'intermediate',
+    difficulty: "intermediate",
     isPublic: true,
     rating: 4.6,
     usageCount: 89,
-    creator: 'Chef Gardens',
-    createdAt: new Date('2024-02-10'),
-    updatedAt: new Date('2024-12-18'),
+    creator: "Chef Gardens",
+    createdAt: new Date("2024-02-10"),
+    updatedAt: new Date("2024-12-18"),
     stages: [
       {
-        id: '1',
-        name: 'Germination',
+        id: "1",
+        name: "Germination",
         duration: 5,
         lightHours: 16,
         lightIntensity: 180,
         temperature: 24,
         humidity: 80,
-        description: 'Quick germination with warm conditions'
+        description: "Quick germination with warm conditions",
       },
       {
-        id: '2',
-        name: 'Vegetative',
+        id: "2",
+        name: "Vegetative",
         duration: 25,
         lightHours: 18,
         lightIntensity: 250,
         temperature: 26,
         humidity: 70,
-        description: 'Extended growth with high light intensity'
+        description: "Extended growth with high light intensity",
       },
       {
-        id: '3',
-        name: 'Harvest Cycle',
+        id: "3",
+        name: "Harvest Cycle",
         duration: 5,
         lightHours: 16,
         lightIntensity: 200,
         temperature: 24,
         humidity: 65,
-        description: 'Continuous harvest phase'
-      }
+        description: "Continuous harvest phase",
+      },
     ],
     nutrients: [
-      { day: 1, nutrientType: 'Herb Starter', concentration: 0.6, ph: 6.3, ec: 1.0 },
-      { day: 5, nutrientType: 'Herb Growth', concentration: 1.4, ph: 6.5, ec: 1.8 },
-      { day: 20, nutrientType: 'Herb Boost', concentration: 1.6, ph: 6.4, ec: 2.0 }
-    ]
-  }
-]
+      {
+        day: 1,
+        nutrientType: "Herb Starter",
+        concentration: 0.6,
+        ph: 6.3,
+        ec: 1.0,
+      },
+      {
+        day: 5,
+        nutrientType: "Herb Growth",
+        concentration: 1.4,
+        ph: 6.5,
+        ec: 1.8,
+      },
+      {
+        day: 20,
+        nutrientType: "Herb Boost",
+        concentration: 1.6,
+        ph: 6.4,
+        ec: 2.0,
+      },
+    ],
+  },
+];
 
 export default function RecipesPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>(SAMPLE_RECIPES)
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
-  
+  const [recipes, setRecipes] = useState<Recipe[]>(SAMPLE_RECIPES);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
   // ✅ NEW: Replace manual search/filter state with standardized hooks
   const {
     searchTerm,
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
+    hasSearch,
   } = useFarmSearch<Recipe>({
-    searchFields: ['name', 'description', 'cropType'],
-    caseSensitive: false
+    searchFields: ["name", "description", "cropType"],
+    caseSensitive: false,
   });
 
   const {
@@ -198,103 +238,119 @@ export default function RecipesPage() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<Recipe>();
 
   // Keep sorting separate from search/filter
-  const [sortBy, setSortBy] = useState<string>('name')
+  const [sortBy, setSortBy] = useState<string>("name");
 
   // ✅ NEW: Dynamic crop types for filter options
-  const cropTypes = useMemo(() => 
-    [...new Set(recipes.map(r => r.cropType))], 
-    [recipes]
+  const cropTypes = useMemo(
+    () => [...new Set(recipes.map((r) => r.cropType))],
+    [recipes],
   );
 
   // ✅ NEW: Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'cropType',
-      label: 'Crop Type',
-      placeholder: 'Filter by crop type',
-      options: [
-        { value: 'all', label: 'All Crops' },
-        ...cropTypes.map(crop => ({
-          value: crop,
-          label: crop.charAt(0).toUpperCase() + crop.slice(1)
-        }))
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'difficulty',
-      label: 'Difficulty',
-      placeholder: 'Filter by difficulty',
-      options: [
-        { value: 'all', label: 'All Levels' },
-        { value: 'beginner', label: 'Beginner' },
-        { value: 'intermediate', label: 'Intermediate' },
-        { value: 'advanced', label: 'Advanced' }
-      ],
-      defaultValue: 'all'
-    }
-  ], [cropTypes]);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "cropType",
+        label: "Crop Type",
+        placeholder: "Filter by crop type",
+        options: [
+          { value: "all", label: "All Crops" },
+          ...cropTypes.map((crop) => ({
+            value: crop,
+            label: crop.charAt(0).toUpperCase() + crop.slice(1),
+          })),
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "difficulty",
+        label: "Difficulty",
+        placeholder: "Filter by difficulty",
+        options: [
+          { value: "all", label: "All Levels" },
+          { value: "beginner", label: "Beginner" },
+          { value: "intermediate", label: "Intermediate" },
+          { value: "advanced", label: "Advanced" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [cropTypes],
+  );
 
   // ✅ NEW: Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // ✅ NEW: Apply combined filtering and sorting
   const filteredRecipes = useMemo(() => {
     let result = recipes;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     // Apply sorting (kept separate from search/filter)
     result = result.sort((a, b) => {
       switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name)
-        case 'rating':
-          return b.rating - a.rating
-        case 'usage':
-          return b.usageCount - a.usageCount
-        case 'duration':
-          return a.duration - b.duration
-        case 'created':
-          return b.createdAt.getTime() - a.createdAt.getTime()
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "rating":
+          return b.rating - a.rating;
+        case "usage":
+          return b.usageCount - a.usageCount;
+        case "duration":
+          return a.duration - b.duration;
+        case "created":
+          return b.createdAt.getTime() - a.createdAt.getTime();
         default:
-          return 0
+          return 0;
       }
     });
-    
+
     return result;
   }, [recipes, searchFilterItems, filterFilterItems, sortBy]);
 
   // Helper function to map recipe difficulty to status type
-  const getDifficultyStatus = (difficulty: Recipe['difficulty']) => {
+  const getDifficultyStatus = (difficulty: Recipe["difficulty"]) => {
     switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'info'; 
-      case 'advanced': return 'warning';
-      default: return 'info';
+      case "beginner":
+        return "success";
+      case "intermediate":
+        return "info";
+      case "advanced":
+        return "warning";
+      default:
+        return "info";
     }
   };
 
   const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer card-shadow bg-farm-white" onClick={() => setSelectedRecipe(recipe)}>
+    <Card
+      className="hover:shadow-lg transition-shadow cursor-pointer card-shadow bg-farm-white"
+      onClick={() => setSelectedRecipe(recipe)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -302,21 +358,28 @@ export default function RecipesPage() {
               <Leaf className="w-5 h-5 text-accent-primary" />
               {recipe.name}
             </CardTitle>
-            <CardDescription className="mt-1 text-control-secondary">{recipe.description}</CardDescription>
+            <CardDescription className="mt-1 text-control-secondary">
+              {recipe.description}
+            </CardDescription>
           </div>
           <div className="flex items-center gap-1 ml-3">
             <Star className="w-4 h-4 text-accent-primary fill-current" />
-            <span className="text-sensor-reading font-medium">{recipe.rating}</span>
+            <span className="text-sensor-reading font-medium">
+              {recipe.rating}
+            </span>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <div className="flex flex-wrap gap-2 mb-3">
           <Badge variant="outline" className="capitalize">
             {recipe.cropType} - {recipe.variety}
           </Badge>
-          <StatusBadge status={getDifficultyStatus(recipe.difficulty)} size="sm">
+          <StatusBadge
+            status={getDifficultyStatus(recipe.difficulty)}
+            size="sm"
+          >
             {recipe.difficulty}
           </StatusBadge>
           {recipe.isPublic && (
@@ -325,7 +388,7 @@ export default function RecipesPage() {
             </Badge>
           )}
         </div>
-        
+
         <div className="grid grid-cols-3 gap-4 text-sensor-reading text-control-secondary">
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4 text-accent-primary" />
@@ -342,13 +405,13 @@ export default function RecipesPage() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <PageHeader 
+        <PageHeader
           title="Recipe Management"
           description="Create, manage, and share growing recipes for optimal crop yields"
           size="lg"
@@ -375,7 +438,7 @@ export default function RecipesPage() {
               orientation="horizontal"
               showFilterChips={true}
             />
-            
+
             {/* Keep sorting separate */}
             <div className="flex items-center justify-between mt-4">
               {/* Results summary */}
@@ -384,9 +447,11 @@ export default function RecipesPage() {
                   Showing {filteredRecipes.length} of {recipes.length} recipes
                 </p>
               )}
-              
+
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Sort by:</span>
+                <span className="text-sm font-medium text-gray-700">
+                  Sort by:
+                </span>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Sort By" />
@@ -407,7 +472,7 @@ export default function RecipesPage() {
 
       {/* Recipe Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {filteredRecipes.map(recipe => (
+        {filteredRecipes.map((recipe) => (
           <RecipeCard key={recipe.id} recipe={recipe} />
         ))}
       </div>
@@ -431,7 +496,10 @@ export default function RecipesPage() {
 
       {/* Recipe Detail Modal - keeping existing implementation */}
       {selectedRecipe && (
-        <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
+        <Dialog
+          open={!!selectedRecipe}
+          onOpenChange={() => setSelectedRecipe(null)}
+        >
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
             <DialogHeader>
               <DialogTitle className="text-farm-title flex items-center gap-2">
@@ -439,7 +507,7 @@ export default function RecipesPage() {
                 {selectedRecipe.name}
               </DialogTitle>
             </DialogHeader>
-            
+
             <Tabs defaultValue="overview" className="mt-4">
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -447,52 +515,72 @@ export default function RecipesPage() {
                 <TabsTrigger value="nutrients">Nutrients</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview" className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <Clock className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
-                    <div className="text-sensor-value text-control-content">{selectedRecipe.duration} days</div>
+                    <div className="text-sensor-value text-control-content">
+                      {selectedRecipe.duration} days
+                    </div>
                     <div className="text-control-label">Duration</div>
                   </div>
                   <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <Star className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
-                    <div className="text-sensor-value text-control-content">{selectedRecipe.rating}</div>
+                    <div className="text-sensor-value text-control-content">
+                      {selectedRecipe.rating}
+                    </div>
                     <div className="text-control-label">Rating</div>
                   </div>
                   <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <FlaskConical className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
-                    <div className="text-sensor-value text-control-content">{selectedRecipe.usageCount}</div>
+                    <div className="text-sensor-value text-control-content">
+                      {selectedRecipe.usageCount}
+                    </div>
                     <div className="text-control-label">Uses</div>
                   </div>
                   <div className="text-center p-3 bg-accent-primary/5 dark:bg-accent-primary/10 rounded-lg card-shadow">
                     <BookOpen className="w-6 h-6 mx-auto mb-2 text-accent-primary" />
-                    <div className="text-sensor-value text-control-content">{selectedRecipe.stages.length}</div>
+                    <div className="text-sensor-value text-control-content">
+                      {selectedRecipe.stages.length}
+                    </div>
                     <div className="text-control-label">Stages</div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="text-control-label mb-2">Description</h4>
-                  <p className="text-control-secondary">{selectedRecipe.description}</p>
+                  <p className="text-control-secondary">
+                    {selectedRecipe.description}
+                  </p>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="capitalize">
                     {selectedRecipe.cropType} - {selectedRecipe.variety}
                   </Badge>
-                  <Badge variant={selectedRecipe.difficulty === 'beginner' ? 'secondary' : 
-                               selectedRecipe.difficulty === 'intermediate' ? 'default' : 'destructive'}>
+                  <Badge
+                    variant={
+                      selectedRecipe.difficulty === "beginner"
+                        ? "secondary"
+                        : selectedRecipe.difficulty === "intermediate"
+                          ? "default"
+                          : "destructive"
+                    }
+                  >
                     {selectedRecipe.difficulty}
                   </Badge>
                   {selectedRecipe.isPublic && (
-                    <Badge variant="outline" className="text-blue-600 border-blue-300">
+                    <Badge
+                      variant="outline"
+                      className="text-blue-600 border-blue-300"
+                    >
                       Public Recipe
                     </Badge>
                   )}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="stages" className="space-y-4">
                 {selectedRecipe.stages.map((stage, index) => (
                   <Card key={stage.id}>
@@ -529,7 +617,7 @@ export default function RecipesPage() {
                   </Card>
                 ))}
               </TabsContent>
-              
+
               <TabsContent value="nutrients" className="space-y-4">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -556,7 +644,7 @@ export default function RecipesPage() {
                   </table>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="settings" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -584,7 +672,7 @@ export default function RecipesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 pt-4">
                   <FarmControlButton variant="default" className="gap-2">
                     <Copy className="w-4 h-4" />
@@ -605,5 +693,5 @@ export default function RecipesPage() {
         </Dialog>
       )}
     </div>
-  )
-} 
+  );
+}

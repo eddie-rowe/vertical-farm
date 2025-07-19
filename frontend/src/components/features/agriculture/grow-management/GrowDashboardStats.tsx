@@ -4,19 +4,19 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
-  Calendar, 
-  Target, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Calendar,
+  Target,
   AlertTriangle,
   CheckCircle,
   Clock,
   Leaf,
   Zap,
   Droplets,
-  Thermometer
+  Thermometer,
 } from "lucide-react";
 
 interface GrowStats {
@@ -43,14 +43,14 @@ interface GrowStats {
 
 interface GrowDashboardStatsProps {
   selectedGrowId?: string;
-  timeRange?: '24h' | '7d' | '30d' | '90d';
+  timeRange?: "24h" | "7d" | "30d" | "90d";
   onStatClick?: (statType: string) => void;
 }
 
-export default function GrowDashboardStats({ 
-  selectedGrowId, 
-  timeRange = '30d',
-  onStatClick 
+export default function GrowDashboardStats({
+  selectedGrowId,
+  timeRange = "30d",
+  onStatClick,
 }: GrowDashboardStatsProps) {
   const [stats, setStats] = useState<GrowStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,12 +71,12 @@ export default function GrowDashboardStats({
       trends: {
         growsChange: 12.5,
         yieldChange: 8.3,
-        efficiencyChange: -2.1
+        efficiencyChange: -2.1,
       },
       upcomingHarvests: 6,
       energyUsage: 1247,
       waterUsage: 892,
-      avgTemperature: 22.5
+      avgTemperature: 22.5,
     };
 
     setTimeout(() => {
@@ -124,18 +124,24 @@ export default function GrowDashboardStats({
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
       {/* Active Grows */}
-      <Card 
+      <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500"
-        onClick={() => onStatClick?.('active-grows')}
+        onClick={() => onStatClick?.("active-grows")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Grows</p>
-              <p className="text-2xl font-bold text-green-600">{stats.totalActiveGrows}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Active Grows
+              </p>
+              <p className="text-2xl font-bold text-green-600">
+                {stats.totalActiveGrows}
+              </p>
               <div className="flex items-center gap-1 mt-1">
                 {getTrendIcon(stats.trends.growsChange)}
-                <span className={`text-xs ${getTrendColor(stats.trends.growsChange)}`}>
+                <span
+                  className={`text-xs ${getTrendColor(stats.trends.growsChange)}`}
+                >
                   {Math.abs(stats.trends.growsChange)}%
                 </span>
               </div>
@@ -146,15 +152,19 @@ export default function GrowDashboardStats({
       </Card>
 
       {/* Completion Rate */}
-      <Card 
+      <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
-        onClick={() => onStatClick?.('completion-rate')}
+        onClick={() => onStatClick?.("completion-rate")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.avgCompletionRate}%</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Success Rate
+              </p>
+              <p className="text-2xl font-bold text-blue-600">
+                {stats.avgCompletionRate}%
+              </p>
               <Progress value={stats.avgCompletionRate} className="h-2 mt-2" />
             </div>
             <Target className="h-8 w-8 text-blue-500 opacity-80" />
@@ -163,18 +173,24 @@ export default function GrowDashboardStats({
       </Card>
 
       {/* Total Yield */}
-      <Card 
+      <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-yellow-500"
-        onClick={() => onStatClick?.('yield')}
+        onClick={() => onStatClick?.("yield")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Yield</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.totalYieldThisMonth} kg</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Monthly Yield
+              </p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {stats.totalYieldThisMonth} kg
+              </p>
               <div className="flex items-center gap-1 mt-1">
                 {getTrendIcon(stats.trends.yieldChange)}
-                <span className={`text-xs ${getTrendColor(stats.trends.yieldChange)}`}>
+                <span
+                  className={`text-xs ${getTrendColor(stats.trends.yieldChange)}`}
+                >
                   {Math.abs(stats.trends.yieldChange)}%
                 </span>
               </div>
@@ -185,18 +201,24 @@ export default function GrowDashboardStats({
       </Card>
 
       {/* Automation Efficiency */}
-      <Card 
+      <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-purple-500"
-        onClick={() => onStatClick?.('automation')}
+        onClick={() => onStatClick?.("automation")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Automation</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.automationEfficiency}%</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Automation
+              </p>
+              <p className="text-2xl font-bold text-purple-600">
+                {stats.automationEfficiency}%
+              </p>
               <div className="flex items-center gap-1 mt-1">
                 {getTrendIcon(stats.trends.efficiencyChange)}
-                <span className={`text-xs ${getTrendColor(stats.trends.efficiencyChange)}`}>
+                <span
+                  className={`text-xs ${getTrendColor(stats.trends.efficiencyChange)}`}
+                >
                   {Math.abs(stats.trends.efficiencyChange)}%
                 </span>
               </div>
@@ -207,24 +229,28 @@ export default function GrowDashboardStats({
       </Card>
 
       {/* Critical Alerts */}
-      <Card 
+      <Card
         className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 ${
-          stats.criticalAlerts > 0 ? 'border-l-red-500' : 'border-l-green-500'
+          stats.criticalAlerts > 0 ? "border-l-red-500" : "border-l-green-500"
         }`}
-        onClick={() => onStatClick?.('alerts')}
+        onClick={() => onStatClick?.("alerts")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Alerts</p>
-              <p className={`text-2xl font-bold ${stats.criticalAlerts > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Alerts
+              </p>
+              <p
+                className={`text-2xl font-bold ${stats.criticalAlerts > 0 ? "text-red-600" : "text-green-600"}`}
+              >
                 {stats.criticalAlerts}
               </p>
-              <Badge 
+              <Badge
                 variant={stats.criticalAlerts > 0 ? "destructive" : "default"}
                 className="text-xs mt-1"
               >
-                {stats.criticalAlerts > 0 ? 'Critical' : 'All Clear'}
+                {stats.criticalAlerts > 0 ? "Critical" : "All Clear"}
               </Badge>
             </div>
             {stats.criticalAlerts > 0 ? (
@@ -237,15 +263,19 @@ export default function GrowDashboardStats({
       </Card>
 
       {/* Upcoming Harvests */}
-      <Card 
+      <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-orange-500"
-        onClick={() => onStatClick?.('harvests')}
+        onClick={() => onStatClick?.("harvests")}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Next 7 Days</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.upcomingHarvests}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Next 7 Days
+              </p>
+              <p className="text-2xl font-bold text-orange-600">
+                {stats.upcomingHarvests}
+              </p>
               <p className="text-xs text-gray-500 mt-1">Harvests due</p>
             </div>
             <Calendar className="h-8 w-8 text-orange-500 opacity-80" />
@@ -254,4 +284,4 @@ export default function GrowDashboardStats({
       </Card>
     </div>
   );
-} 
+}

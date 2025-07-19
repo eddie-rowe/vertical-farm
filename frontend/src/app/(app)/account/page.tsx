@@ -1,21 +1,23 @@
-'use client';
-import { useState, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import Image from 'next/image';
-import { FarmSelect } from '@/components/ui/farm-select';
-import { FarmInput } from '@/components/ui/farm-input';
-import { FarmCheckbox } from '@/components/ui/farm-checkbox';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { PageHeader } from '@/components/ui/PageHeader';
+"use client";
+import { useState, useRef } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
+import { FarmSelect } from "@/components/ui/farm-select";
+import { FarmInput } from "@/components/ui/farm-input";
+import { FarmCheckbox } from "@/components/ui/farm-checkbox";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function AccountPage() {
   const { user } = useAuth();
-  const [email, setEmail] = useState(user?.email || '');
-  const [name, setName] = useState(user?.user_metadata?.name || '');
-  const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || '');
+  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState(user?.user_metadata?.name || "");
+  const [avatarUrl, setAvatarUrl] = useState(
+    user?.user_metadata?.avatar_url || "",
+  );
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -25,7 +27,11 @@ export default function AccountPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   if (!user) {
-    return <div className="flex items-center justify-center min-h-screen text-control-label">Loading user data...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-control-label">
+        Loading user data...
+      </div>
+    );
   }
 
   // Profile update handler
@@ -45,7 +51,7 @@ export default function AccountPage() {
     }
     const { error } = await supabase.auth.updateUser(updates);
     if (error) setError(error.message);
-    else setMessage('Profile updated!');
+    else setMessage("Profile updated!");
     setUpdating(false);
   };
 
@@ -56,14 +62,14 @@ export default function AccountPage() {
     setError(null);
     setUpdating(true);
     if (password.length < 12) {
-      setError('Password must be at least 12 characters.');
+      setError("Password must be at least 12 characters.");
       setUpdating(false);
       return;
     }
     const { error } = await supabase.auth.updateUser({ password });
     if (error) setError(error.message);
-    else setMessage('Password updated!');
-    setPassword('');
+    else setMessage("Password updated!");
+    setPassword("");
     setUpdating(false);
   };
 
@@ -75,7 +81,7 @@ export default function AccountPage() {
     // In a real app, call a backend endpoint to delete the user
     setTimeout(() => {
       setDeleting(false);
-      setMessage('Account deletion is not implemented in this demo.');
+      setMessage("Account deletion is not implemented in this demo.");
     }, 1500);
   };
 
@@ -91,16 +97,20 @@ export default function AccountPage() {
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     // In a real app, you would persist this to user preferences and update the app's theme context
-    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(newTheme);
-    setMessage(`Theme set to ${newTheme} (UI updated, persistence not implemented).`);
+    setMessage(
+      `Theme set to ${newTheme} (UI updated, persistence not implemented).`,
+    );
   };
 
   // Placeholder for notification settings change handler
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
     // In a real app, persist this to user preferences
-    setMessage(`Notifications ${enabled ? 'enabled' : 'disabled'} (preference not saved).`);
+    setMessage(
+      `Notifications ${enabled ? "enabled" : "disabled"} (preference not saved).`,
+    );
   };
 
   return (
@@ -113,9 +123,16 @@ export default function AccountPage() {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 card-shadow">
             {avatarUrl ? (
-              <Image src={avatarUrl} alt={name || 'User Avatar'} fill className="object-cover" />
+              <Image
+                src={avatarUrl}
+                alt={name || "User Avatar"}
+                fill
+                className="object-cover"
+              />
             ) : (
-              <span className="w-full h-full flex items-center justify-center text-3xl text-gray-400">{(name?.[0] || user?.email?.[0] || "?").toUpperCase()}</span>
+              <span className="w-full h-full flex items-center justify-center text-3xl text-gray-400">
+                {(name?.[0] || user?.email?.[0] || "?").toUpperCase()}
+              </span>
             )}
           </div>
           <div>
@@ -137,7 +154,7 @@ export default function AccountPage() {
             />
           </div>
         </div>
-        
+
         <FarmInput
           label="Name"
           inputSize="default"
@@ -147,7 +164,7 @@ export default function AccountPage() {
           placeholder="Your name"
           helpText="Your display name for the farming platform"
         />
-        
+
         <FarmInput
           label="Email"
           inputSize="default"
@@ -155,12 +172,16 @@ export default function AccountPage() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          helpText={email !== user?.email ? "Email change will require verification" : "Your account email address"}
+          helpText={
+            email !== user?.email
+              ? "Email change will require verification"
+              : "Your account email address"
+          }
           required
         />
-        
-        <FarmControlButton 
-          type="submit" 
+
+        <FarmControlButton
+          type="submit"
           disabled={updating}
           variant="primary"
           animation="pop"
@@ -169,27 +190,33 @@ export default function AccountPage() {
           {updating ? "Updating..." : "Update Profile"}
         </FarmControlButton>
       </form>
-      
+
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-      
+
       <form onSubmit={handlePasswordChange} className="mb-8 space-y-4">
         <h2 className="text-farm-title mb-2">Change Password</h2>
-        
+
         <FarmInput
           label="New Password"
           inputSize="default"
-          validation={password.length > 0 && password.length < 12 ? "error" : "default"}
+          validation={
+            password.length > 0 && password.length < 12 ? "error" : "default"
+          }
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter new password"
           helpText="Password must be at least 12 characters"
-          errorText={password.length > 0 && password.length < 12 ? "Password too short" : undefined}
+          errorText={
+            password.length > 0 && password.length < 12
+              ? "Password too short"
+              : undefined
+          }
           required
         />
-        
-        <FarmControlButton 
-          type="submit" 
+
+        <FarmControlButton
+          type="submit"
           disabled={updating || password.length < 12}
           variant="primary"
           animation="pop"
@@ -198,30 +225,32 @@ export default function AccountPage() {
           {updating ? "Updating..." : "Change Password"}
         </FarmControlButton>
       </form>
-      
+
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-      
+
       <div className="mb-8 space-y-4">
         <h2 className="text-farm-title mb-2">Preferences</h2>
-        
+
         <FarmSelect
           label="Theme"
           inputSize="default"
           validation="default"
           options={[
             { value: "light", label: "Light" },
-            { value: "dark", label: "Dark" }
+            { value: "dark", label: "Dark" },
           ]}
           value={theme}
           onChange={(e) => handleThemeChange(e.target.value)}
           helpText="Choose your preferred interface theme"
           className="w-[180px]"
         />
-        
+
         <div className="flex items-center space-x-2 pt-2">
           <FarmCheckbox
             checked={notificationsEnabled}
-            onCheckedChange={(checked) => handleNotificationToggle(Boolean(checked))}
+            onCheckedChange={(checked) =>
+              handleNotificationToggle(Boolean(checked))
+            }
             id="notifications"
           />
           <label htmlFor="notifications" className="form-label">
@@ -229,9 +258,9 @@ export default function AccountPage() {
           </label>
         </div>
       </div>
-      
+
       <hr className="my-8 border-t-2 border-gray-200 dark:border-gray-700" />
-      
+
       <div className="mb-8">
         <h2 className="text-farm-title mb-2 state-offline">Danger Zone</h2>
         <FarmControlButton
@@ -244,14 +273,20 @@ export default function AccountPage() {
           {deleting ? "Deleting..." : "Delete Account"}
         </FarmControlButton>
       </div>
-      
+
       {error && (
-        <div className="form-error mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20" role="alert">
+        <div
+          className="form-error mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20"
+          role="alert"
+        >
           {error}
         </div>
       )}
       {message && (
-        <div className="text-control-label state-growing mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20" role="status">
+        <div
+          className="text-control-label state-growing mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20"
+          role="status"
+        >
           {message}
         </div>
       )}

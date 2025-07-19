@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { BaseEntity } from '../../core/base/BaseCRUDService';
+import { BaseEntity } from "../../core/base/BaseCRUDService";
 
 export interface Farm extends BaseEntity {
   name: string;
@@ -30,9 +30,9 @@ export interface Shelf extends BaseEntity {
 }
 
 export enum PermissionLevel {
-  VIEWER = 'viewer',
-  EDITOR = 'editor',
-  MANAGER = 'manager',
+  VIEWER = "viewer",
+  EDITOR = "editor",
+  MANAGER = "manager",
 }
 
 export interface UserPermission extends BaseEntity {
@@ -68,4 +68,4 @@ export interface FarmStatistics {
   totalShelves: number;
   totalDevices?: number;
   lastUpdated: string;
-} 
+}

@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Thermometer, 
-  Droplets, 
-  Wind, 
-  Sun, 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Thermometer,
+  Droplets,
+  Wind,
+  Sun,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
   TrendingUp,
   TrendingDown,
   Minus,
   RefreshCw,
   Bell,
-  Settings
-} from 'lucide-react';
+  Settings,
+} from "lucide-react";
 import { FarmPageData } from "@/types/farm-layout";
 
 interface EnvironmentMonitoringViewProps {
@@ -33,108 +33,132 @@ const mockEnvironmentalData = {
     target: 24.0,
     min: 20.0,
     max: 28.0,
-    trend: 'stable',
-    status: 'optimal'
+    trend: "stable",
+    status: "optimal",
   },
   humidity: {
     current: 68,
     target: 70,
     min: 60,
     max: 80,
-    trend: 'down',
-    status: 'optimal'
+    trend: "down",
+    status: "optimal",
   },
   airflow: {
     current: 1200,
     target: 1150,
     min: 800,
     max: 1500,
-    trend: 'up',
-    status: 'optimal'
+    trend: "up",
+    status: "optimal",
   },
   lightIntensity: {
     current: 850,
     target: 900,
     min: 600,
     max: 1200,
-    trend: 'stable',
-    status: 'optimal'
+    trend: "stable",
+    status: "optimal",
   },
   co2Level: {
     current: 1200,
     target: 1400,
     min: 800,
     max: 1600,
-    trend: 'up',
-    status: 'warning'
+    trend: "up",
+    status: "warning",
   },
   phLevel: {
     current: 6.2,
     target: 6.5,
     min: 5.5,
     max: 7.0,
-    trend: 'stable',
-    status: 'optimal'
-  }
+    trend: "stable",
+    status: "optimal",
+  },
 };
 
 const mockAlerts = [
   {
-    id: '1',
-    type: 'warning',
-    message: 'CO2 levels below optimal range in Row 2',
-    location: 'Row 2, Rack B',
-    timestamp: '5 min ago',
-    priority: 'medium'
+    id: "1",
+    type: "warning",
+    message: "CO2 levels below optimal range in Row 2",
+    location: "Row 2, Rack B",
+    timestamp: "5 min ago",
+    priority: "medium",
   },
   {
-    id: '2',
-    type: 'info',
-    message: 'Scheduled nutrient solution refill due in 2 hours',
-    location: 'Nutrient System',
-    timestamp: '10 min ago',
-    priority: 'low'
+    id: "2",
+    type: "info",
+    message: "Scheduled nutrient solution refill due in 2 hours",
+    location: "Nutrient System",
+    timestamp: "10 min ago",
+    priority: "low",
   },
   {
-    id: '3',
-    type: 'success',
-    message: 'Temperature stabilized after adjustment',
-    location: 'Row 1, Rack A',
-    timestamp: '15 min ago',
-    priority: 'low'
-  }
+    id: "3",
+    type: "success",
+    message: "Temperature stabilized after adjustment",
+    location: "Row 1, Rack A",
+    timestamp: "15 min ago",
+    priority: "low",
+  },
 ];
 
-export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentMonitoringViewProps) {
+export default function EnvironmentMonitoringView({
+  farmPageData,
+}: EnvironmentMonitoringViewProps) {
   const [environmentalData] = useState(mockEnvironmentalData);
   const [alerts] = useState(mockAlerts);
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'down': return <TrendingDown className="h-4 w-4 text-red-600" />;
-      case 'stable': return <Minus className="h-4 w-4 text-gray-600" />;
-      default: return <Minus className="h-4 w-4 text-gray-600" />;
+      case "up":
+        return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case "down":
+        return <TrendingDown className="h-4 w-4 text-red-600" />;
+      case "stable":
+        return <Minus className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Minus className="h-4 w-4 text-gray-600" />;
     }
   };
 
-
-
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'optimal': return <Badge className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">Optimal</Badge>;
-      case 'warning': return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">Warning</Badge>;
-      case 'critical': return <Badge className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">Critical</Badge>;
-      default: return <Badge variant="secondary">Unknown</Badge>;
+      case "optimal":
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+            Optimal
+          </Badge>
+        );
+      case "warning":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+            Warning
+          </Badge>
+        );
+      case "critical":
+        return (
+          <Badge className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+            Critical
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      case 'success': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      default: return <Activity className="h-4 w-4 text-blue-600" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      case "error":
+        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+      case "success":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      default:
+        return <Activity className="h-4 w-4 text-blue-600" />;
     }
   };
 
@@ -148,7 +172,9 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
         <div className="max-w-md mx-auto">
           <Activity className="h-16 w-16 mx-auto mb-4 text-gray-400" />
           <h2 className="text-xl font-semibold mb-4">No Farm Selected</h2>
-          <p className="mb-6">Select a farm to view environmental monitoring data.</p>
+          <p className="mb-6">
+            Select a farm to view environmental monitoring data.
+          </p>
         </div>
       </div>
     );
@@ -179,11 +205,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   / {environmentalData.temperature.target}°C
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.temperature.current, environmentalData.temperature.min, environmentalData.temperature.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.temperature.current,
+                  environmentalData.temperature.min,
+                  environmentalData.temperature.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.temperature.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.temperature.min}°C - {environmentalData.temperature.max}°C
+                  {environmentalData.temperature.min}°C -{" "}
+                  {environmentalData.temperature.max}°C
                 </span>
               </div>
             </div>
@@ -211,11 +245,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   / {environmentalData.humidity.target}%
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.humidity.current, environmentalData.humidity.min, environmentalData.humidity.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.humidity.current,
+                  environmentalData.humidity.min,
+                  environmentalData.humidity.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.humidity.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.humidity.min}% - {environmentalData.humidity.max}%
+                  {environmentalData.humidity.min}% -{" "}
+                  {environmentalData.humidity.max}%
                 </span>
               </div>
             </div>
@@ -243,11 +285,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   RPM / {environmentalData.airflow.target}
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.airflow.current, environmentalData.airflow.min, environmentalData.airflow.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.airflow.current,
+                  environmentalData.airflow.min,
+                  environmentalData.airflow.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.airflow.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.airflow.min} - {environmentalData.airflow.max} RPM
+                  {environmentalData.airflow.min} -{" "}
+                  {environmentalData.airflow.max} RPM
                 </span>
               </div>
             </div>
@@ -275,11 +325,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   PPFD / {environmentalData.lightIntensity.target}
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.lightIntensity.current, environmentalData.lightIntensity.min, environmentalData.lightIntensity.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.lightIntensity.current,
+                  environmentalData.lightIntensity.min,
+                  environmentalData.lightIntensity.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.lightIntensity.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.lightIntensity.min} - {environmentalData.lightIntensity.max} PPFD
+                  {environmentalData.lightIntensity.min} -{" "}
+                  {environmentalData.lightIntensity.max} PPFD
                 </span>
               </div>
             </div>
@@ -307,11 +365,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   ppm / {environmentalData.co2Level.target}
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.co2Level.current, environmentalData.co2Level.min, environmentalData.co2Level.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.co2Level.current,
+                  environmentalData.co2Level.min,
+                  environmentalData.co2Level.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.co2Level.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.co2Level.min} - {environmentalData.co2Level.max} ppm
+                  {environmentalData.co2Level.min} -{" "}
+                  {environmentalData.co2Level.max} ppm
                 </span>
               </div>
             </div>
@@ -339,11 +405,19 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                   / {environmentalData.phLevel.target}
                 </span>
               </div>
-              <Progress value={calculateProgress(environmentalData.phLevel.current, environmentalData.phLevel.min, environmentalData.phLevel.max)} className="h-2" />
+              <Progress
+                value={calculateProgress(
+                  environmentalData.phLevel.current,
+                  environmentalData.phLevel.min,
+                  environmentalData.phLevel.max,
+                )}
+                className="h-2"
+              />
               <div className="flex justify-between items-center">
                 {getStatusBadge(environmentalData.phLevel.status)}
                 <span className="text-xs text-gray-500">
-                  {environmentalData.phLevel.min} - {environmentalData.phLevel.max}
+                  {environmentalData.phLevel.min} -{" "}
+                  {environmentalData.phLevel.max}
                 </span>
               </div>
             </div>
@@ -358,9 +432,11 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
-              {alerts.filter(alert => alert.type !== 'success').length > 0 && (
+              {alerts.filter((alert) => alert.type !== "success").length >
+                0 && (
                 <Badge className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                  {alerts.filter(alert => alert.type !== 'success').length} Active
+                  {alerts.filter((alert) => alert.type !== "success").length}{" "}
+                  Active
                 </Badge>
               )}
             </div>
@@ -379,19 +455,28 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
         <CardContent className="p-6">
           <div className="space-y-4">
             {alerts.map((alert) => (
-              <Card key={alert.id} className="border-l-4 border-l-yellow-400 hover:shadow-sm transition-shadow">
+              <Card
+                key={alert.id}
+                className="border-l-4 border-l-yellow-400 hover:shadow-sm transition-shadow"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3">
                       {getAlertIcon(alert.type)}
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{alert.message}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{alert.location}</p>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                          {alert.message}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {alert.location}
+                        </p>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">
                             {alert.priority} priority
                           </Badge>
-                          <span className="text-xs text-gray-500">{alert.timestamp}</span>
+                          <span className="text-xs text-gray-500">
+                            {alert.timestamp}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -402,11 +487,13 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
                 </CardContent>
               </Card>
             ))}
-            
+
             {alerts.length === 0 && (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No alerts at this time. All systems are operating normally.</p>
+                <p>
+                  No alerts at this time. All systems are operating normally.
+                </p>
               </div>
             )}
           </div>
@@ -414,4 +501,4 @@ export default function EnvironmentMonitoringView({ farmPageData }: EnvironmentM
       </Card>
     </div>
   );
-} 
+}

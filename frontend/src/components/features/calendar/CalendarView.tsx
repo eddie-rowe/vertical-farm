@@ -1,131 +1,129 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EventOverlayControls } from './EventOverlayControls';
-import type { 
-  CalendarEvent, 
-  EventType, 
+import React, { useState, useMemo, useCallback } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EventOverlayControls } from "./EventOverlayControls";
+import type {
+  CalendarEvent,
+  EventType,
   CalendarView as CalendarViewType,
-  EventOverlay 
-} from '@/types/calendar';
+  EventOverlay,
+} from "@/types/calendar";
 
 // Default overlay configuration
 const DEFAULT_OVERLAYS: EventOverlay[] = [
   {
-    id: 'operations',
-    label: 'Operations',
+    id: "operations",
+    label: "Operations",
     enabled: true,
-    color: '#10b981', // green
-    icon: 'FaSeedling',
-    description: 'Germination, moving, harvesting, and other farm operations'
+    color: "#10b981", // green
+    icon: "FaSeedling",
+    description: "Germination, moving, harvesting, and other farm operations",
   },
   {
-    id: 'devices',
-    label: 'Devices',
+    id: "devices",
+    label: "Devices",
     enabled: true,
-    color: '#3b82f6', // blue
-    icon: 'FaCog',
-    description: 'Lights, irrigation, fans, and device automation'
+    color: "#3b82f6", // blue
+    icon: "FaCog",
+    description: "Lights, irrigation, fans, and device automation",
   },
   {
-    id: 'team',
-    label: 'Team',
+    id: "team",
+    label: "Team",
     enabled: true,
-    color: '#f59e0b', // amber
-    icon: 'FaUsers',
-    description: 'Work schedules, maintenance windows, and team activities'
+    color: "#f59e0b", // amber
+    icon: "FaUsers",
+    description: "Work schedules, maintenance windows, and team activities",
   },
   {
-    id: 'customer',
-    label: 'Customer',
+    id: "customer",
+    label: "Customer",
     enabled: true,
-    color: '#ef4444', // red
-    icon: 'FaTruck',
-    description: 'Delivery windows, pickups, and customer interactions'
-  }
+    color: "#ef4444", // red
+    icon: "FaTruck",
+    description: "Delivery windows, pickups, and customer interactions",
+  },
 ];
 
 // Mock data for initial development
 const MOCK_EVENTS: CalendarEvent[] = [
   {
-    id: '1',
-    title: 'Lettuce Germination Start',
-    description: 'Begin germination for 100 lettuce seeds',
+    id: "1",
+    title: "Lettuce Germination Start",
+    description: "Begin germination for 100 lettuce seeds",
     start: new Date(2025, 0, 20, 8, 0),
     end: new Date(2025, 0, 20, 9, 0),
-    eventType: 'operations',
-    priority: 'high',
-    status: 'scheduled',
+    eventType: "operations",
+    priority: "high",
+    status: "scheduled",
     createdAt: new Date(),
     updatedAt: new Date(),
-    relatedEntityId: 'row-1'
+    relatedEntityId: "row-1",
   },
   {
-    id: '2',
-    title: 'LED Lights Schedule',
-    description: 'Turn on grow lights for vegetative growth',
+    id: "2",
+    title: "LED Lights Schedule",
+    description: "Turn on grow lights for vegetative growth",
     start: new Date(2025, 0, 20, 6, 0),
     end: new Date(2025, 0, 20, 22, 0),
-    eventType: 'devices',
-    priority: 'medium',
-    status: 'scheduled',
+    eventType: "devices",
+    priority: "medium",
+    status: "scheduled",
     createdAt: new Date(),
     updatedAt: new Date(),
-    relatedEntityId: 'device-led-1'
+    relatedEntityId: "device-led-1",
   },
   {
-    id: '3',
-    title: 'Morning Shift - Eddie',
-    description: 'Daily maintenance and monitoring',
+    id: "3",
+    title: "Morning Shift - Eddie",
+    description: "Daily maintenance and monitoring",
     start: new Date(2025, 0, 20, 8, 0),
     end: new Date(2025, 0, 20, 11, 0),
-    eventType: 'team',
-    priority: 'medium',
-    status: 'scheduled',
+    eventType: "team",
+    priority: "medium",
+    status: "scheduled",
     createdAt: new Date(),
     updatedAt: new Date(),
-    relatedEntityId: 'user-eddie'
+    relatedEntityId: "user-eddie",
   },
   {
-    id: '4',
-    title: 'Restaurant A Delivery',
-    description: 'Fresh microgreens delivery',
+    id: "4",
+    title: "Restaurant A Delivery",
+    description: "Fresh microgreens delivery",
     start: new Date(2025, 0, 21, 14, 0),
     end: new Date(2025, 0, 21, 15, 0),
-    eventType: 'customer',
-    priority: 'high',
-    status: 'scheduled',
+    eventType: "customer",
+    priority: "high",
+    status: "scheduled",
     createdAt: new Date(),
     updatedAt: new Date(),
-    relatedEntityId: 'customer-restaurant-a'
-  }
+    relatedEntityId: "customer-restaurant-a",
+  },
 ];
 
 export function CalendarView() {
-  const [currentView, setCurrentView] = useState<CalendarViewType>('month');
+  const [currentView, setCurrentView] = useState<CalendarViewType>("month");
   const [overlays, setOverlays] = useState<EventOverlay[]>(DEFAULT_OVERLAYS);
   const [events] = useState<CalendarEvent[]>(MOCK_EVENTS);
 
   return (
     <div className="h-full space-y-6">
-      <EventOverlayControls 
-        overlays={overlays} 
+      <EventOverlayControls
+        overlays={overlays}
         onToggle={(overlayId: EventType, enabled: boolean) => {
-          setOverlays(prev => 
-            prev.map(overlay => 
-              overlay.id === overlayId 
-                ? { ...overlay, enabled }
-                : overlay
-            )
+          setOverlays((prev) =>
+            prev.map((overlay) =>
+              overlay.id === overlayId ? { ...overlay, enabled } : overlay,
+            ),
           );
-        }} 
+        }}
       />
-      
+
       <Card className="flex-1 flex flex-col h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xl font-bold">
@@ -141,9 +139,9 @@ export function CalendarView() {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
               headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
               }}
               height="100%"
             />
@@ -152,4 +150,4 @@ export function CalendarView() {
       </Card>
     </div>
   );
-} 
+}

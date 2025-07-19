@@ -1,21 +1,21 @@
-import React from 'react'
-import { 
-  StatusBadge, 
-  StatusIndicator, 
+import React from "react";
+import {
+  StatusBadge,
+  StatusIndicator,
   DeviceStatus,
-  Badge // Legacy badge for comparison
-} from '@/components/ui'
-import { 
-  Lightbulb, 
-  Wifi, 
-  WifiOff, 
-  CheckCircle, 
-  AlertTriangle 
-} from 'lucide-react'
+  Badge, // Legacy badge for comparison
+} from "@/components/ui";
+import {
+  Lightbulb,
+  Wifi,
+  WifiOff,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 
 /**
  * Status Component Examples & Migration Guide
- * 
+ *
  * This file demonstrates how to replace scattered status implementations
  * with the new standardized status components.
  */
@@ -23,7 +23,6 @@ import {
 export function StatusExamples() {
   return (
     <div className="space-y-8 p-6">
-      
       {/* Basic Status Badges */}
       <section>
         <h3 className="text-lg font-semibold mb-4">Basic Status Badges</h3>
@@ -42,10 +41,18 @@ export function StatusExamples() {
       <section>
         <h3 className="text-lg font-semibold mb-4">Status Badges with Icons</h3>
         <div className="flex flex-wrap gap-4">
-          <StatusBadge status="connected" icon={<Wifi />}>Connected</StatusBadge>
-          <StatusBadge status="disconnected" icon={<WifiOff />}>Disconnected</StatusBadge>
-          <StatusBadge status="success" icon={<CheckCircle />}>Success</StatusBadge>
-          <StatusBadge status="warning" icon={<AlertTriangle />}>Warning</StatusBadge>
+          <StatusBadge status="connected" icon={<Wifi />}>
+            Connected
+          </StatusBadge>
+          <StatusBadge status="disconnected" icon={<WifiOff />}>
+            Disconnected
+          </StatusBadge>
+          <StatusBadge status="success" icon={<CheckCircle />}>
+            Success
+          </StatusBadge>
+          <StatusBadge status="warning" icon={<AlertTriangle />}>
+            Warning
+          </StatusBadge>
         </div>
       </section>
 
@@ -53,9 +60,15 @@ export function StatusExamples() {
       <section>
         <h3 className="text-lg font-semibold mb-4">Size Variants</h3>
         <div className="flex items-center gap-4">
-          <StatusBadge status="active" size="sm">Small</StatusBadge>
-          <StatusBadge status="active" size="md">Medium</StatusBadge>
-          <StatusBadge status="active" size="lg">Large</StatusBadge>
+          <StatusBadge status="active" size="sm">
+            Small
+          </StatusBadge>
+          <StatusBadge status="active" size="md">
+            Medium
+          </StatusBadge>
+          <StatusBadge status="active" size="lg">
+            Large
+          </StatusBadge>
         </div>
       </section>
 
@@ -85,30 +98,32 @@ export function StatusExamples() {
       {/* Device Status Examples */}
       <section>
         <h3 className="text-lg font-semibold mb-4">Device Status Components</h3>
-        
+
         {/* Icon variant (matches DeviceOverlay pattern) */}
         <div className="mb-4">
-          <h4 className="text-md font-medium mb-2">Icon Variant (for DeviceOverlay)</h4>
+          <h4 className="text-md font-medium mb-2">
+            Icon Variant (for DeviceOverlay)
+          </h4>
           <div className="flex gap-4">
-            <DeviceStatus 
+            <DeviceStatus
               isOnline={true}
               deviceState="on"
               deviceType="light"
               deviceName="LED Light 1"
             />
-            <DeviceStatus 
+            <DeviceStatus
               isOnline={true}
               deviceState="off"
               deviceType="pump"
               deviceName="Water Pump"
             />
-            <DeviceStatus 
+            <DeviceStatus
               isOnline={false}
               deviceState="unavailable"
               deviceType="sensor"
               deviceName="Temperature Sensor"
             />
-            <DeviceStatus 
+            <DeviceStatus
               isOnline={true}
               deviceState="on"
               deviceType="fan"
@@ -119,9 +134,11 @@ export function StatusExamples() {
 
         {/* Badge variant (for device cards) */}
         <div className="mb-4">
-          <h4 className="text-md font-medium mb-2">Badge Variant (for Device Cards)</h4>
+          <h4 className="text-md font-medium mb-2">
+            Badge Variant (for Device Cards)
+          </h4>
           <div className="space-y-2">
-            <DeviceStatus 
+            <DeviceStatus
               variant="badge"
               isOnline={true}
               deviceState="on"
@@ -129,7 +146,7 @@ export function StatusExamples() {
               deviceName="LED Light 1"
               showStatusText
             />
-            <DeviceStatus 
+            <DeviceStatus
               variant="badge"
               isOnline={true}
               deviceState="off"
@@ -137,7 +154,7 @@ export function StatusExamples() {
               deviceName="Water Pump"
               showConnectivityIcon
             />
-            <DeviceStatus 
+            <DeviceStatus
               variant="badge"
               isOnline={false}
               deviceState="unavailable"
@@ -151,23 +168,25 @@ export function StatusExamples() {
 
         {/* Compact variant (for lists) */}
         <div>
-          <h4 className="text-md font-medium mb-2">Compact Variant (for Lists)</h4>
+          <h4 className="text-md font-medium mb-2">
+            Compact Variant (for Lists)
+          </h4>
           <div className="space-y-1">
-            <DeviceStatus 
+            <DeviceStatus
               variant="compact"
               isOnline={true}
               deviceState="on"
               deviceType="light"
               showStatusText
             />
-            <DeviceStatus 
+            <DeviceStatus
               variant="compact"
               isOnline={true}
               deviceState="off"
               deviceType="pump"
               showStatusText
             />
-            <DeviceStatus 
+            <DeviceStatus
               variant="compact"
               isOnline={false}
               deviceState="unavailable"
@@ -181,11 +200,13 @@ export function StatusExamples() {
       {/* Migration Examples */}
       <section>
         <h3 className="text-lg font-semibold mb-4">Migration Examples</h3>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Before: Manual implementation */}
           <div>
-            <h4 className="text-md font-medium mb-2 text-red-600">❌ Before (Manual)</h4>
+            <h4 className="text-md font-medium mb-2 text-red-600">
+              ❌ Before (Manual)
+            </h4>
             <div className="p-4 bg-red-50 rounded-lg">
               <Badge className="bg-green-100 text-green-800">Active</Badge>
               <div className="mt-2 flex items-center gap-2">
@@ -197,7 +218,9 @@ export function StatusExamples() {
 
           {/* After: Standardized implementation */}
           <div>
-            <h4 className="text-md font-medium mb-2 text-green-600">✅ After (Standardized)</h4>
+            <h4 className="text-md font-medium mb-2 text-green-600">
+              ✅ After (Standardized)
+            </h4>
             <div className="p-4 bg-green-50 rounded-lg">
               <StatusBadge status="active">Active</StatusBadge>
               <div className="mt-2 flex items-center gap-2">
@@ -219,34 +242,33 @@ export function StatusExamples() {
           <StatusBadge status="outline-info">Info</StatusBadge>
         </div>
       </section>
-
     </div>
-  )
+  );
 }
 
 /**
  * Migration Guidelines:
- * 
+ *
  * 1. Replace manual Badge implementations:
  *    Old: <Badge className="bg-green-100 text-green-800">Online</Badge>
  *    New: <StatusBadge status="online">Online</StatusBadge>
- * 
+ *
  * 2. Replace manual dot indicators:
  *    Old: <div className="w-2 h-2 bg-green-500 rounded-full"></div>
  *    New: <StatusIndicator status="online" />
- * 
+ *
  * 3. Replace device status implementations:
  *    Old: Complex DeviceStatusIndicator with manual color logic
  *    New: <DeviceStatus isOnline={true} deviceState="on" deviceType="light" />
- * 
+ *
  * 4. Use consistent status values:
  *    - online, offline, active, inactive
  *    - success, warning, error, info
  *    - pending, processing, failed
  *    - connected, disconnected, unavailable
- * 
+ *
  * 5. Leverage built-in accessibility:
  *    - All components include proper ARIA labels
  *    - Screen reader support is built-in
  *    - Focus management is handled automatically
- */ 
+ */

@@ -3,19 +3,25 @@
  * Defines plant species and their growing requirements/recipes
  */
 
-import { UUID, BaseEntity, NamedEntity, PaginatedResponse, Priority } from '../common';
+import {
+  UUID,
+  BaseEntity,
+  NamedEntity,
+  PaginatedResponse,
+  Priority,
+} from "../common";
 
 /** Risk levels for pythium (root rot) */
-export type PythiumRisk = 'Low' | 'Medium' | 'High';
+export type PythiumRisk = "Low" | "Medium" | "High";
 
 /** Difficulty levels for growing */
-export type GrowDifficulty = 'Easy' | 'Medium' | 'Hard';
+export type GrowDifficulty = "Easy" | "Medium" | "Hard";
 
 /**
  * Plant species definition
  * Represents different types of plants that can be grown
  */
-export interface Species extends Omit<NamedEntity, 'description'> {
+export interface Species extends Omit<NamedEntity, "description"> {
   /** Optional detailed description of the species */
   description?: string | null;
   /** Scientific name of the species */
@@ -121,7 +127,7 @@ export interface GrowRecipe extends BaseEntity {
   species_id: UUID;
   /** Human-readable name for this recipe */
   name: string;
-  
+
   // Basic growth parameters
   /** Total days from seed to harvest */
   grow_days?: number | null;
@@ -129,7 +135,7 @@ export interface GrowRecipe extends BaseEntity {
   light_hours_per_day?: number | null;
   /** How often to water (in hours) */
   watering_frequency_hours?: number | null;
-  
+
   // Environmental parameters
   /** Target temperature range (°C) */
   target_temperature_min?: number | null;
@@ -143,13 +149,13 @@ export interface GrowRecipe extends BaseEntity {
   /** Target electrical conductivity range (mS/cm) */
   target_ec_min?: number | null;
   target_ec_max?: number | null;
-  
+
   // Yield and seeding parameters
   /** Average yield per tray/unit */
   average_yield?: number | null;
   /** Seed density for sowing */
   sowing_rate?: number | null;
-  
+
   // Advanced parameters
   /** Source or reference for this recipe */
   recipe_source?: string | null;
@@ -173,7 +179,7 @@ export interface GrowRecipe extends BaseEntity {
   fridge_storage_temp?: number | null;
   /** Difficulty level for growing this recipe */
   difficulty?: GrowDifficulty | null;
-  
+
   // Metadata
   /** Custom parameters for specialized requirements */
   custom_parameters?: Record<string, unknown> | null;
@@ -293,4 +299,4 @@ export interface RecipeRecommendation {
   reasons: string[];
   /** Potential issues or warnings */
   warnings?: string[];
-} 
+}

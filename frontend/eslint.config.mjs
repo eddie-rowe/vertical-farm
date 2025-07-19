@@ -10,7 +10,24 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Global ignores - must be first
+  {
+    ignores: [
+      "test-results/**/*",
+      "playwright-report/**/*",
+      "**/*.json",
+      "next-env.d.ts",
+      ".next/**/*",
+      "out/**/*",
+      "dist/**/*",
+      "node_modules/**/*",
+      "jest.config.js",
+      "*.config.js",
+    ],
+  },
+  // Extend Next.js configurations
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Custom rules
   {
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",

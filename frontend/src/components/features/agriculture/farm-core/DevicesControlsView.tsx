@@ -1,27 +1,30 @@
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Lightbulb, 
-  Waves, 
-  Fan, 
-  Thermometer, 
-  Zap, 
-  Power, 
-  Settings, 
+import {
+  Lightbulb,
+  Waves,
+  Fan,
+  Thermometer,
+  Zap,
+  Power,
+  Settings,
   MoreVertical,
   Play,
   Pause,
-  RotateCcw
-} from 'lucide-react';
+  RotateCcw,
+} from "lucide-react";
 import { FarmPageData } from "@/types/farm-layout";
 
 // ✅ NEW: Import standardized search/filter components and hooks
-import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface DevicesControlsViewProps {
   farmPageData: FarmPageData | null;
@@ -30,81 +33,99 @@ interface DevicesControlsViewProps {
 // Mock device data - replace with actual data fetching
 const mockDevices = [
   {
-    id: '1',
-    name: 'LED Light Panel A1',
-    type: 'lighting',
-    status: 'online',
-    value: '85%',
-    location: 'Row 1, Rack A',
-    lastUpdated: '2 min ago',
+    id: "1",
+    name: "LED Light Panel A1",
+    type: "lighting",
+    status: "online",
+    value: "85%",
+    location: "Row 1, Rack A",
+    lastUpdated: "2 min ago",
     automation: true,
-    schedule: 'Growth Cycle A'
+    schedule: "Growth Cycle A",
   },
   {
-    id: '2',
-    name: 'Water Pump 1',
-    type: 'irrigation',
-    status: 'online',
-    value: '45 L/h',
-    location: 'Row 1, Rack A',
-    lastUpdated: '1 min ago',
+    id: "2",
+    name: "Water Pump 1",
+    type: "irrigation",
+    status: "online",
+    value: "45 L/h",
+    location: "Row 1, Rack A",
+    lastUpdated: "1 min ago",
     automation: true,
-    schedule: 'Irrigation Cycle 1'
+    schedule: "Irrigation Cycle 1",
   },
   {
-    id: '3',
-    name: 'Exhaust Fan E1',
-    type: 'ventilation',
-    status: 'online',
-    value: '1200 RPM',
-    location: 'Row 1',
-    lastUpdated: '30 sec ago',
+    id: "3",
+    name: "Exhaust Fan E1",
+    type: "ventilation",
+    status: "online",
+    value: "1200 RPM",
+    location: "Row 1",
+    lastUpdated: "30 sec ago",
     automation: false,
-    schedule: null
+    schedule: null,
   },
   {
-    id: '4',
-    name: 'Temp Sensor T1',
-    type: 'sensors',
-    status: 'online',
-    value: '24.5°C',
-    location: 'Row 1, Rack A',
-    lastUpdated: '10 sec ago',
+    id: "4",
+    name: "Temp Sensor T1",
+    type: "sensors",
+    status: "online",
+    value: "24.5°C",
+    location: "Row 1, Rack A",
+    lastUpdated: "10 sec ago",
     automation: false,
-    schedule: null
+    schedule: null,
   },
   {
-    id: '5',
-    name: 'Humidity Sensor H1',
-    type: 'sensors',
-    status: 'online',
-    value: '68%',
-    location: 'Row 1, Rack A',
-    lastUpdated: '15 sec ago',
+    id: "5",
+    name: "Humidity Sensor H1",
+    type: "sensors",
+    status: "online",
+    value: "68%",
+    location: "Row 1, Rack A",
+    lastUpdated: "15 sec ago",
     automation: false,
-    schedule: null
+    schedule: null,
   },
   {
-    id: '6',
-    name: 'LED Light Panel B2',
-    type: 'lighting',
-    status: 'offline',
-    value: '0%',
-    location: 'Row 2, Rack B',
-    lastUpdated: '5 min ago',
+    id: "6",
+    name: "LED Light Panel B2",
+    type: "lighting",
+    status: "offline",
+    value: "0%",
+    location: "Row 2, Rack B",
+    lastUpdated: "5 min ago",
     automation: true,
-    schedule: 'Growth Cycle B'
-  }
+    schedule: "Growth Cycle B",
+  },
 ];
 
 const deviceTypeConfig = {
-  lighting: { icon: Lightbulb, color: 'yellow', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20' },
-  irrigation: { icon: Waves, color: 'blue', bgColor: 'bg-blue-50 dark:bg-blue-900/20' },
-  ventilation: { icon: Fan, color: 'green', bgColor: 'bg-green-50 dark:bg-green-900/20' },
-  sensors: { icon: Thermometer, color: 'purple', bgColor: 'bg-purple-50 dark:bg-purple-900/20' }
+  lighting: {
+    icon: Lightbulb,
+    color: "yellow",
+    bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+  },
+  irrigation: {
+    icon: Waves,
+    color: "blue",
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
+  },
+  ventilation: {
+    icon: Fan,
+    color: "green",
+    bgColor: "bg-green-50 dark:bg-green-900/20",
+  },
+  sensors: {
+    icon: Thermometer,
+    color: "purple",
+    bgColor: "bg-purple-50 dark:bg-purple-900/20",
+  },
 };
 
-export default function DevicesControlsView({ farmPageData }: DevicesControlsViewProps) {
+export default function DevicesControlsView({
+  farmPageData,
+}: DevicesControlsViewProps) {
   const [devices] = useState(mockDevices);
 
   // ✅ NEW: Replace manual search/filter state with standardized hooks
@@ -113,10 +134,10 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
-  } = useFarmSearch<typeof mockDevices[0]>({
-    searchFields: ['name', 'location', 'type'],
-    caseSensitive: false
+    hasSearch,
+  } = useFarmSearch<(typeof mockDevices)[0]>({
+    searchFields: ["name", "location", "type"],
+    caseSensitive: false,
   });
 
   const {
@@ -126,49 +147,58 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
-  } = useFarmFilters<typeof mockDevices[0]>();
+    hasActiveFilters,
+  } = useFarmFilters<(typeof mockDevices)[0]>();
 
   // ✅ NEW: Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'type',
-      label: 'Device Type',
-      placeholder: 'Filter by type',
-      options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'lighting', label: 'Lighting' },
-        { value: 'irrigation', label: 'Irrigation' },
-        { value: 'ventilation', label: 'Ventilation' },
-        { value: 'sensors', label: 'Sensors' }
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'status',
-      label: 'Status',
-      placeholder: 'Filter by status',
-      options: [
-        { value: 'all', label: 'All Status' },
-        { value: 'online', label: 'Online' },
-        { value: 'offline', label: 'Offline' }
-      ],
-      defaultValue: 'all'
-    }
-  ], []);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "type",
+        label: "Device Type",
+        placeholder: "Filter by type",
+        options: [
+          { value: "all", label: "All Types" },
+          { value: "lighting", label: "Lighting" },
+          { value: "irrigation", label: "Irrigation" },
+          { value: "ventilation", label: "Ventilation" },
+          { value: "sensors", label: "Sensors" },
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "status",
+        label: "Status",
+        placeholder: "Filter by status",
+        options: [
+          { value: "all", label: "All Status" },
+          { value: "online", label: "Online" },
+          { value: "offline", label: "Offline" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [],
+  );
 
   // ✅ NEW: Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // ✅ NEW: Apply search and filters using standardized system
   const filteredDevices = useMemo(() => {
@@ -181,9 +211,9 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
   // Device statistics
   const deviceStats = {
     total: devices.length,
-    online: devices.filter(d => d.status === 'online').length,
-    offline: devices.filter(d => d.status === 'offline').length,
-    automated: devices.filter(d => d.automation).length
+    online: devices.filter((d) => d.status === "online").length,
+    offline: devices.filter((d) => d.status === "offline").length,
+    automated: devices.filter((d) => d.automation).length,
   };
 
   const getDeviceIcon = (type: string) => {
@@ -193,10 +223,14 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100';
-      case 'offline': return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
-      case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+      case "online":
+        return "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100";
+      case "offline":
+        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100";
+      case "warning":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100";
     }
   };
 
@@ -224,8 +258,13 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{deviceStats.total}</div>
-            <Badge variant="secondary" className="mt-1 bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              {deviceStats.total}
+            </div>
+            <Badge
+              variant="secondary"
+              className="mt-1 bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100"
+            >
               Registered
             </Badge>
           </CardContent>
@@ -239,9 +278,12 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900 dark:text-green-100">{deviceStats.online}</div>
+            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+              {deviceStats.online}
+            </div>
             <div className="text-xs text-green-600 dark:text-green-400">
-              {Math.round((deviceStats.online / deviceStats.total) * 100)}% availability
+              {Math.round((deviceStats.online / deviceStats.total) * 100)}%
+              availability
             </div>
           </CardContent>
         </Card>
@@ -254,7 +296,9 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-900 dark:text-red-100">{deviceStats.offline}</div>
+            <div className="text-2xl font-bold text-red-900 dark:text-red-100">
+              {deviceStats.offline}
+            </div>
             <Badge variant="destructive" className="mt-1">
               Needs Attention
             </Badge>
@@ -269,8 +313,13 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">{deviceStats.automated}</div>
-            <Badge variant="secondary" className="mt-1 bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100">
+            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+              {deviceStats.automated}
+            </div>
+            <Badge
+              variant="secondary"
+              className="mt-1 bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100"
+            >
               Active Schedules
             </Badge>
           </CardContent>
@@ -283,7 +332,9 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Zap className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <CardTitle className="text-lg">Device Management & Control</CardTitle>
+              <CardTitle className="text-lg">
+                Device Management & Control
+              </CardTitle>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm">
@@ -313,7 +364,7 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
               orientation="horizontal"
               showFilterChips={true}
             />
-            
+
             {/* Results summary */}
             {(hasSearch || hasActiveFilters) && (
               <div className="flex items-center justify-between">
@@ -321,7 +372,14 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
                   Showing {filteredDevices.length} of {devices.length} devices
                 </p>
                 {(hasSearch || hasActiveFilters) && (
-                  <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      clearSearch();
+                      clearAllFilters();
+                    }}
+                  >
                     Clear all filters
                   </Button>
                 )}
@@ -333,19 +391,31 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
           <div className="space-y-4">
             {filteredDevices.map((device) => {
               const DeviceIcon = getDeviceIcon(device.type);
-              const typeConfig = deviceTypeConfig[device.type as keyof typeof deviceTypeConfig];
-              
+              const typeConfig =
+                deviceTypeConfig[device.type as keyof typeof deviceTypeConfig];
+
               return (
-                <Card key={device.id} className={`border ${typeConfig?.bgColor} hover:shadow-md transition-shadow`}>
+                <Card
+                  key={device.id}
+                  className={`border ${typeConfig?.bgColor} hover:shadow-md transition-shadow`}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-full bg-${typeConfig?.color}-100 dark:bg-${typeConfig?.color}-900/20`}>
-                          <DeviceIcon className={`h-5 w-5 text-${typeConfig?.color}-600 dark:text-${typeConfig?.color}-400`} />
+                        <div
+                          className={`p-2 rounded-full bg-${typeConfig?.color}-100 dark:bg-${typeConfig?.color}-900/20`}
+                        >
+                          <DeviceIcon
+                            className={`h-5 w-5 text-${typeConfig?.color}-600 dark:text-${typeConfig?.color}-400`}
+                          />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{device.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{device.location}</p>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {device.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {device.location}
+                          </p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge className={getStatusColor(device.status)}>
                               {device.status}
@@ -358,15 +428,19 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{device.value}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{device.lastUpdated}</div>
+                          <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {device.value}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {device.lastUpdated}
+                          </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2">
-                          {device.status === 'online' ? (
+                          {device.status === "online" ? (
                             <>
                               <Button variant="outline" size="sm">
                                 <Pause className="h-4 w-4" />
@@ -390,7 +464,7 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
                 </Card>
               );
             })}
-            
+
             {filteredDevices.length === 0 && (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -402,4 +476,4 @@ export default function DevicesControlsView({ farmPageData }: DevicesControlsVie
       </Card>
     </div>
   );
-} 
+}

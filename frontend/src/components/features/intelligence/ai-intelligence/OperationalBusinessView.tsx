@@ -1,200 +1,223 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { FaChartLine, FaArrowUp, FaArrowDown, FaDollarSign, FaUsers, FaBoxes, FaTruck } from 'react-icons/fa'
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  FaChartLine,
+  FaArrowUp,
+  FaArrowDown,
+  FaDollarSign,
+  FaUsers,
+  FaBoxes,
+  FaTruck,
+} from "react-icons/fa";
 
 interface OperationalMetric {
-  id: string
-  name: string
-  value: string
-  change: number
-  trend: 'up' | 'down' | 'stable'
-  category: 'production' | 'efficiency' | 'cost' | 'quality'
-  aiInsight: string
+  id: string;
+  name: string;
+  value: string;
+  change: number;
+  trend: "up" | "down" | "stable";
+  category: "production" | "efficiency" | "cost" | "quality";
+  aiInsight: string;
 }
 
 const mockOperationalMetrics: OperationalMetric[] = [
   {
-    id: '1',
-    name: 'Daily Production',
-    value: '145 kg',
+    id: "1",
+    name: "Daily Production",
+    value: "145 kg",
     change: 8.2,
-    trend: 'up',
-    category: 'production',
-    aiInsight: 'Production 8.2% above target due to optimized light cycles'
+    trend: "up",
+    category: "production",
+    aiInsight: "Production 8.2% above target due to optimized light cycles",
   },
   {
-    id: '2',
-    name: 'Resource Efficiency',
-    value: '94.2%',
+    id: "2",
+    name: "Resource Efficiency",
+    value: "94.2%",
     change: 2.1,
-    trend: 'up',
-    category: 'efficiency',
-    aiInsight: 'Water usage optimization improved efficiency by 2.1%'
+    trend: "up",
+    category: "efficiency",
+    aiInsight: "Water usage optimization improved efficiency by 2.1%",
   },
   {
-    id: '3',
-    name: 'Operating Cost/kg',
-    value: '$3.42',
+    id: "3",
+    name: "Operating Cost/kg",
+    value: "$3.42",
     change: -5.8,
-    trend: 'down',
-    category: 'cost',
-    aiInsight: 'Cost reduction achieved through energy optimization'
+    trend: "down",
+    category: "cost",
+    aiInsight: "Cost reduction achieved through energy optimization",
   },
   {
-    id: '4',
-    name: 'Quality Score',
-    value: '96.8%',
+    id: "4",
+    name: "Quality Score",
+    value: "96.8%",
     change: 1.2,
-    trend: 'up',
-    category: 'quality',
-    aiInsight: 'Consistent environmental control improved quality metrics'
+    trend: "up",
+    category: "quality",
+    aiInsight: "Consistent environmental control improved quality metrics",
   },
   {
-    id: '5',
-    name: 'Equipment Uptime',
-    value: '99.1%',
+    id: "5",
+    name: "Equipment Uptime",
+    value: "99.1%",
     change: 0.3,
-    trend: 'up',
-    category: 'efficiency',
-    aiInsight: 'Predictive maintenance reduced unexpected downtime'
+    trend: "up",
+    category: "efficiency",
+    aiInsight: "Predictive maintenance reduced unexpected downtime",
   },
   {
-    id: '6',
-    name: 'Labor Productivity',
-    value: '18.2 kg/hr',
+    id: "6",
+    name: "Labor Productivity",
+    value: "18.2 kg/hr",
     change: 4.7,
-    trend: 'up',
-    category: 'efficiency',
-    aiInsight: 'Task optimization increased worker productivity'
-  }
-]
+    trend: "up",
+    category: "efficiency",
+    aiInsight: "Task optimization increased worker productivity",
+  },
+];
 
 interface BusinessKPI {
-  name: string
-  current: string
-  target: string
-  progress: number
-  status: 'on-track' | 'ahead' | 'behind'
-  timeframe: string
+  name: string;
+  current: string;
+  target: string;
+  progress: number;
+  status: "on-track" | "ahead" | "behind";
+  timeframe: string;
 }
 
 const mockBusinessKPIs: BusinessKPI[] = [
   {
-    name: 'Monthly Revenue',
-    current: '$42,850',
-    target: '$45,000',
+    name: "Monthly Revenue",
+    current: "$42,850",
+    target: "$45,000",
     progress: 95.2,
-    status: 'on-track',
-    timeframe: 'MTD'
+    status: "on-track",
+    timeframe: "MTD",
   },
   {
-    name: 'Profit Margin',
-    current: '34.2%',
-    target: '30%',
+    name: "Profit Margin",
+    current: "34.2%",
+    target: "30%",
     progress: 114.0,
-    status: 'ahead',
-    timeframe: 'Current'
+    status: "ahead",
+    timeframe: "Current",
   },
   {
-    name: 'Customer Orders',
-    current: '287',
-    target: '300',
+    name: "Customer Orders",
+    current: "287",
+    target: "300",
     progress: 95.7,
-    status: 'on-track',
-    timeframe: 'This Month'
+    status: "on-track",
+    timeframe: "This Month",
   },
   {
-    name: 'Inventory Turnover',
-    current: '12.4x',
-    target: '10x',
+    name: "Inventory Turnover",
+    current: "12.4x",
+    target: "10x",
     progress: 124.0,
-    status: 'ahead',
-    timeframe: 'Annual'
-  }
-]
+    status: "ahead",
+    timeframe: "Annual",
+  },
+];
 
 interface ResourceUsage {
-  resource: string
-  current: number
-  optimal: number
-  cost: string
-  trend: 'increasing' | 'decreasing' | 'stable'
-  icon: React.ReactNode
+  resource: string;
+  current: number;
+  optimal: number;
+  cost: string;
+  trend: "increasing" | "decreasing" | "stable";
+  icon: React.ReactNode;
 }
 
 const mockResourceUsage: ResourceUsage[] = [
   {
-    resource: 'Energy Consumption',
+    resource: "Energy Consumption",
     current: 2840,
     optimal: 2650,
-    cost: '$340/day',
-    trend: 'decreasing',
-    icon: <FaTruck className="text-yellow-500" />
+    cost: "$340/day",
+    trend: "decreasing",
+    icon: <FaTruck className="text-yellow-500" />,
   },
   {
-    resource: 'Water Usage',
+    resource: "Water Usage",
     current: 850,
     optimal: 820,
-    cost: '$25/day',
-    trend: 'stable',
-    icon: <FaTruck className="text-blue-500" />
+    cost: "$25/day",
+    trend: "stable",
+    icon: <FaTruck className="text-blue-500" />,
   },
   {
-    resource: 'Labor Hours',
+    resource: "Labor Hours",
     current: 48,
     optimal: 45,
-    cost: '$720/day',
-    trend: 'decreasing',
-    icon: <FaUsers className="text-green-500" />
+    cost: "$720/day",
+    trend: "decreasing",
+    icon: <FaUsers className="text-green-500" />,
   },
   {
-    resource: 'Nutrient Solutions',
+    resource: "Nutrient Solutions",
     current: 125,
     optimal: 120,
-    cost: '$45/day',
-    trend: 'stable',
-    icon: <FaBoxes className="text-purple-500" />
-  }
-]
+    cost: "$45/day",
+    trend: "stable",
+    icon: <FaBoxes className="text-purple-500" />,
+  },
+];
 
 export default function OperationalBusinessView() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState('24h')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedTimeframe, setSelectedTimeframe] = useState("24h");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'production': return <FaBoxes className="text-blue-600" />
-      case 'efficiency': return <FaChartLine className="text-green-600" />
-      case 'cost': return <FaDollarSign className="text-yellow-600" />
-      case 'quality': return <FaBoxes className="text-purple-600" />
-      default: return <FaChartLine className="text-gray-600" />
+      case "production":
+        return <FaBoxes className="text-blue-600" />;
+      case "efficiency":
+        return <FaChartLine className="text-green-600" />;
+      case "cost":
+        return <FaDollarSign className="text-yellow-600" />;
+      case "quality":
+        return <FaBoxes className="text-purple-600" />;
+      default:
+        return <FaChartLine className="text-gray-600" />;
     }
-  }
+  };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <FaArrowUp className="text-green-500" />
-      case 'down': return <FaArrowDown className="text-red-500" />
-      default: return <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+      case "up":
+        return <FaArrowUp className="text-green-500" />;
+      case "down":
+        return <FaArrowDown className="text-red-500" />;
+      default:
+        return <div className="w-3 h-3 bg-gray-400 rounded-full"></div>;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ahead': return 'bg-green-100 text-green-800'
-      case 'on-track': return 'bg-blue-100 text-blue-800'
-      case 'behind': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "ahead":
+        return "bg-green-100 text-green-800";
+      case "on-track":
+        return "bg-blue-100 text-blue-800";
+      case "behind":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
-  const filteredMetrics = selectedCategory === 'all' 
-    ? mockOperationalMetrics 
-    : mockOperationalMetrics.filter(metric => metric.category === selectedCategory)
+  const filteredMetrics =
+    selectedCategory === "all"
+      ? mockOperationalMetrics
+      : mockOperationalMetrics.filter(
+          (metric) => metric.category === selectedCategory,
+        );
 
   return (
     <div className="space-y-6">
@@ -206,10 +229,10 @@ export default function OperationalBusinessView() {
             Business Performance KPIs
           </h3>
           <div className="flex gap-2">
-            {['24h', '7d', '30d', '90d'].map((period) => (
+            {["24h", "7d", "30d", "90d"].map((period) => (
               <Button
                 key={period}
-                variant={selectedTimeframe === period ? 'default' : 'outline'}
+                variant={selectedTimeframe === period ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedTimeframe(period)}
               >
@@ -221,7 +244,10 @@ export default function OperationalBusinessView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {mockBusinessKPIs.map((kpi, index) => (
-            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div
+              key={index}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-sm">{kpi.name}</h4>
                 <Badge className={getStatusColor(kpi.status)}>
@@ -234,15 +260,20 @@ export default function OperationalBusinessView() {
                   <span className="text-sm text-gray-600">/ {kpi.target}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${
-                      kpi.status === 'ahead' ? 'bg-green-500' :
-                      kpi.status === 'on-track' ? 'bg-blue-500' : 'bg-red-500'
+                      kpi.status === "ahead"
+                        ? "bg-green-500"
+                        : kpi.status === "on-track"
+                          ? "bg-blue-500"
+                          : "bg-red-500"
                     }`}
                     style={{ width: `${Math.min(kpi.progress, 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-600">{kpi.timeframe} • {kpi.progress.toFixed(1)}%</p>
+                <p className="text-xs text-gray-600">
+                  {kpi.timeframe} • {kpi.progress.toFixed(1)}%
+                </p>
               </div>
             </div>
           ))}
@@ -258,15 +289,17 @@ export default function OperationalBusinessView() {
           </h3>
           <div className="flex gap-2">
             {[
-              { id: 'all', label: 'All', icon: <FaChartLine /> },
-              { id: 'production', label: 'Production', icon: <FaBoxes /> },
-              { id: 'efficiency', label: 'Efficiency', icon: <FaChartLine /> },
-              { id: 'cost', label: 'Cost', icon: <FaDollarSign /> },
-              { id: 'quality', label: 'Quality', icon: <FaBoxes /> }
+              { id: "all", label: "All", icon: <FaChartLine /> },
+              { id: "production", label: "Production", icon: <FaBoxes /> },
+              { id: "efficiency", label: "Efficiency", icon: <FaChartLine /> },
+              { id: "cost", label: "Cost", icon: <FaDollarSign /> },
+              { id: "quality", label: "Quality", icon: <FaBoxes /> },
             ].map((category) => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                variant={
+                  selectedCategory === category.id ? "default" : "outline"
+                }
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
                 className="flex items-center gap-1"
@@ -280,7 +313,10 @@ export default function OperationalBusinessView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMetrics.map((metric) => (
-            <div key={metric.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div
+              key={metric.id}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {getCategoryIcon(metric.category)}
@@ -298,7 +334,9 @@ export default function OperationalBusinessView() {
                     ) : (
                       <FaArrowDown className="text-red-500 text-xs" />
                     )}
-                    <span className={`text-sm ${metric.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span
+                      className={`text-sm ${metric.change > 0 ? "text-green-600" : "text-red-600"}`}
+                    >
                       {Math.abs(metric.change)}%
                     </span>
                   </div>
@@ -325,9 +363,14 @@ export default function OperationalBusinessView() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-700 dark:text-gray-300">Current vs Optimal Usage</h4>
+            <h4 className="font-medium text-gray-700 dark:text-gray-300">
+              Current vs Optimal Usage
+            </h4>
             {mockResourceUsage.map((resource, index) => (
-              <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div
+                key={index}
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     {resource.icon}
@@ -341,20 +384,32 @@ export default function OperationalBusinessView() {
                     <span>Current: {resource.current}</span>
                     <span>Optimal: {resource.optimal}</span>
                   </div>
-                  
+
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className={`h-2 rounded-full ${
-                        resource.current <= resource.optimal ? 'bg-green-500' : 'bg-orange-500'
+                        resource.current <= resource.optimal
+                          ? "bg-green-500"
+                          : "bg-orange-500"
                       }`}
-                      style={{ width: `${(resource.current / resource.optimal) * 100}%` }}
+                      style={{
+                        width: `${(resource.current / resource.optimal) * 100}%`,
+                      }}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-xs text-gray-600">
-                    <span>Efficiency: {((resource.optimal / resource.current) * 100).toFixed(1)}%</span>
-                    <Badge 
-                      variant={resource.trend === 'decreasing' ? 'default' : 'secondary'}
+                    <span>
+                      Efficiency:{" "}
+                      {((resource.optimal / resource.current) * 100).toFixed(1)}
+                      %
+                    </span>
+                    <Badge
+                      variant={
+                        resource.trend === "decreasing"
+                          ? "default"
+                          : "secondary"
+                      }
                       className="text-xs"
                     >
                       {resource.trend}
@@ -367,16 +422,20 @@ export default function OperationalBusinessView() {
 
           {/* AI Recommendations */}
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-700 dark:text-gray-300">AI Optimization Recommendations</h4>
+            <h4 className="font-medium text-gray-700 dark:text-gray-300">
+              AI Optimization Recommendations
+            </h4>
             <div className="space-y-3">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <div className="flex items-start gap-2">
                   <FaTruck className="text-blue-600 mt-1" />
                   <div>
-                    <h5 className="font-medium text-blue-800 dark:text-blue-200">Energy Optimization</h5>
+                    <h5 className="font-medium text-blue-800 dark:text-blue-200">
+                      Energy Optimization
+                    </h5>
                     <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                      Adjust lighting schedule to reduce peak-hour consumption by 12%. 
-                      Estimated savings: $45/day
+                      Adjust lighting schedule to reduce peak-hour consumption
+                      by 12%. Estimated savings: $45/day
                     </p>
                   </div>
                 </div>
@@ -386,10 +445,12 @@ export default function OperationalBusinessView() {
                 <div className="flex items-start gap-2">
                   <FaTruck className="text-green-600 mt-1" />
                   <div>
-                    <h5 className="font-medium text-green-800 dark:text-green-200">Production Scheduling</h5>
+                    <h5 className="font-medium text-green-800 dark:text-green-200">
+                      Production Scheduling
+                    </h5>
                     <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      Optimize harvest timing across racks to reduce labor peaks. 
-                      Potential 15% improvement in productivity.
+                      Optimize harvest timing across racks to reduce labor
+                      peaks. Potential 15% improvement in productivity.
                     </p>
                   </div>
                 </div>
@@ -399,10 +460,12 @@ export default function OperationalBusinessView() {
                 <div className="flex items-start gap-2">
                   <FaTruck className="text-purple-600 mt-1" />
                   <div>
-                    <h5 className="font-medium text-purple-800 dark:text-purple-200">Quality Enhancement</h5>
+                    <h5 className="font-medium text-purple-800 dark:text-purple-200">
+                      Quality Enhancement
+                    </h5>
                     <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                      Fine-tune nutrient delivery timing to improve crop quality scores. 
-                      Expected 3% increase in premium grade yield.
+                      Fine-tune nutrient delivery timing to improve crop quality
+                      scores. Expected 3% increase in premium grade yield.
                     </p>
                   </div>
                 </div>
@@ -412,10 +475,12 @@ export default function OperationalBusinessView() {
                 <div className="flex items-start gap-2">
                   <FaTruck className="text-orange-600 mt-1" />
                   <div>
-                    <h5 className="font-medium text-orange-800 dark:text-orange-200">Predictive Maintenance</h5>
+                    <h5 className="font-medium text-orange-800 dark:text-orange-200">
+                      Predictive Maintenance
+                    </h5>
                     <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                      Schedule pump maintenance in 5 days based on performance patterns. 
-                      Prevent potential 2-day downtime.
+                      Schedule pump maintenance in 5 days based on performance
+                      patterns. Prevent potential 2-day downtime.
                     </p>
                   </div>
                 </div>
@@ -434,7 +499,9 @@ export default function OperationalBusinessView() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-            <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">Revenue Metrics</h4>
+            <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+              Revenue Metrics
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Daily Revenue</span>
@@ -452,7 +519,9 @@ export default function OperationalBusinessView() {
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-            <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Cost Analysis</h4>
+            <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+              Cost Analysis
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Operating Costs</span>
@@ -470,7 +539,9 @@ export default function OperationalBusinessView() {
           </div>
 
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-            <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-2">Profitability</h4>
+            <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-2">
+              Profitability
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Gross Profit</span>
@@ -489,5 +560,5 @@ export default function OperationalBusinessView() {
         </div>
       </Card>
     </div>
-  )
-} 
+  );
+}

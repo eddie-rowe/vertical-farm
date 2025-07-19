@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { FC } from 'react';
-import { 
-  FaMapPin, FaEdit, FaSearch, FaPlug, FaLightbulb, FaToggleOn, FaThermometerHalf
-} from 'react-icons/fa';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { HAAssignment } from '@/types/integrations/homeassistant';
+import { FC } from "react";
+import {
+  FaMapPin,
+  FaEdit,
+  FaSearch,
+  FaPlug,
+  FaLightbulb,
+  FaToggleOn,
+  FaThermometerHalf,
+} from "react-icons/fa";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { HAAssignment } from "@/types/integrations/homeassistant";
 
 interface AssignmentManagementProps {
   assignments: HAAssignment[];
@@ -22,10 +28,14 @@ export const AssignmentManagement: FC<AssignmentManagementProps> = ({
 }) => {
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType) {
-      case 'light': return <FaLightbulb className="h-4 w-4 text-yellow-500" />;
-      case 'switch': return <FaToggleOn className="h-4 w-4 text-blue-500" />;
-      case 'sensor': return <FaThermometerHalf className="h-4 w-4 text-green-500" />;
-      default: return <FaPlug className="h-4 w-4 text-gray-500" />;
+      case "light":
+        return <FaLightbulb className="h-4 w-4 text-yellow-500" />;
+      case "switch":
+        return <FaToggleOn className="h-4 w-4 text-blue-500" />;
+      case "sensor":
+        return <FaThermometerHalf className="h-4 w-4 text-green-500" />;
+      default:
+        return <FaPlug className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -45,20 +55,21 @@ export const AssignmentManagement: FC<AssignmentManagementProps> = ({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {getDeviceIcon(assignment.entity_type || 'switch')}
+                  {getDeviceIcon(assignment.entity_type || "switch")}
                   <div>
-                    <h3 className="font-medium">{assignment.friendly_name || assignment.entity_id}</h3>
+                    <h3 className="font-medium">
+                      {assignment.friendly_name || assignment.entity_id}
+                    </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {assignment.farm_name} → {assignment.row_name} → {assignment.rack_name} → {assignment.shelf_name}
+                      {assignment.farm_name} → {assignment.row_name} →{" "}
+                      {assignment.rack_name} → {assignment.shelf_name}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="default">
-                    {assignment.entity_type}
-                  </Badge>
-                  <FarmControlButton 
-                    size="sm" 
+                  <Badge variant="default">{assignment.entity_type}</Badge>
+                  <FarmControlButton
+                    size="sm"
                     variant="default"
                     onClick={() => onEditAssignment(assignment)}
                   >
@@ -76,7 +87,9 @@ export const AssignmentManagement: FC<AssignmentManagementProps> = ({
         <Card>
           <CardContent className="p-8 text-center">
             <FaMapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="font-semibold text-content mb-2">No assignments yet</h3>
+            <h3 className="font-semibold text-content mb-2">
+              No assignments yet
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Start by discovering devices and assigning them to farm locations
             </p>
@@ -89,4 +102,4 @@ export const AssignmentManagement: FC<AssignmentManagementProps> = ({
       )}
     </div>
   );
-}; 
+};

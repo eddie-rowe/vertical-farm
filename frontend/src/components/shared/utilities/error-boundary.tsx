@@ -1,53 +1,60 @@
-"use client"
+"use client";
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
-  resetOnPropsChange?: boolean
-  resetKeys?: Array<string | number>
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  resetOnPropsChange?: boolean;
+  resetKeys?: Array<string | number>;
 }
 
 interface State {
-  hasError: boolean
-  error?: Error
-  errorInfo?: ErrorInfo
-  eventId?: string
-  retryCount: number
+  hasError: boolean;
+  error?: Error;
+  errorInfo?: ErrorInfo;
+  eventId?: string;
+  retryCount: number;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  private resetTimeoutId: number | null = null
+  private resetTimeoutId: number | null = null;
 
   constructor(props: Props) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       retryCount: 0,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.group('🚨 Error Boundary Caught Error')
-      console.error('Error:', error)
-      console.error('Error Info:', errorInfo)
-      console.error('Component Stack:', errorInfo.componentStack)
-      console.groupEnd()
+    if (process.env.NODE_ENV === "development") {
+      console.group("🚨 Error Boundary Caught Error");
+      console.error("Error:", error);
+      console.error("Error Info:", errorInfo);
+      console.error("Component Stack:", errorInfo.componentStack);
+      console.groupEnd();
     }
 
     // Update state with error info
@@ -55,29 +62,29 @@ class ErrorBoundary extends Component<Props, State> {
       error,
       errorInfo,
       eventId: this.generateEventId(),
-    })
+    });
 
     // Call custom error handler
-    this.props.onError?.(error, errorInfo)
+    this.props.onError?.(error, errorInfo);
 
     // Report to error monitoring service (replace with your service)
-    this.reportError(error, errorInfo)
+    this.reportError(error, errorInfo);
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { resetKeys } = this.props
-    const { hasError } = this.state
+    const { resetKeys } = this.props;
+    const { hasError } = this.state;
 
     if (hasError && prevProps.resetKeys !== resetKeys) {
       if (resetKeys?.some((key, idx) => key !== prevProps.resetKeys?.[idx])) {
-        this.resetErrorBoundary()
+        this.resetErrorBoundary();
       }
     }
   }
 
   generateEventId = (): string => {
-    return `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  }
+    return `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
 
   reportError = (error: Error, errorInfo: ErrorInfo) => {
     // Replace with your error monitoring service (Sentry, LogRocket, etc.)
@@ -88,19 +95,19 @@ class ErrorBoundary extends Component<Props, State> {
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href,
-      userId: 'user-id', // Replace with actual user ID
-    }
+      userId: "user-id", // Replace with actual user ID
+    };
 
     // Log to service
-    console.log('Error Report:', errorReport)
-    
+    console.log("Error Report:", errorReport);
+
     // Example: Send to monitoring service
     // fetch('/api/errors', {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify(errorReport),
     // })
-  }
+  };
 
   resetErrorBoundary = () => {
     this.setState({
@@ -109,34 +116,34 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo: undefined,
       eventId: undefined,
       retryCount: 0,
-    })
-  }
+    });
+  };
 
   handleRetry = () => {
-    const newRetryCount = this.state.retryCount + 1
-    
+    const newRetryCount = this.state.retryCount + 1;
+
     this.setState({
       hasError: false,
       error: undefined,
       errorInfo: undefined,
       retryCount: newRetryCount,
-    })
+    });
 
     // Auto-reset after a delay to prevent infinite retry loops
     if (newRetryCount >= 3) {
       this.resetTimeoutId = window.setTimeout(() => {
-        this.setState({ retryCount: 0 })
-      }, 30000) // Reset after 30 seconds
+        this.setState({ retryCount: 0 });
+      }, 30000); // Reset after 30 seconds
     }
-  }
+  };
 
   handleReload = () => {
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   handleGoHome = () => {
-    window.location.href = '/'
-  }
+    window.location.href = "/";
+  };
 
   copyErrorToClipboard = () => {
     const errorText = `
@@ -146,23 +153,23 @@ Component Stack: ${this.state.errorInfo?.componentStack}
 Event ID: ${this.state.eventId}
 Timestamp: ${new Date().toISOString()}
 URL: ${window.location.href}
-    `.trim()
+    `.trim();
 
     navigator.clipboard.writeText(errorText).then(() => {
       // Could show a toast here
-      console.log('Error details copied to clipboard')
-    })
-  }
+      console.log("Error details copied to clipboard");
+    });
+  };
 
   render() {
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
-      const isProduction = process.env.NODE_ENV === 'production'
-      const { error, eventId, retryCount } = this.state
+      const isProduction = process.env.NODE_ENV === "production";
+      const { error, eventId, retryCount } = this.state;
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -173,8 +180,10 @@ URL: ${window.location.href}
               </div>
               <CardTitle className="text-xl">Something went wrong</CardTitle>
               <CardDescription>
-                We&apos;re sorry, but something unexpected happened. 
-                {retryCount < 3 ? ' You can try again or reload the page.' : ' Please reload the page or contact support.'}
+                We&apos;re sorry, but something unexpected happened.
+                {retryCount < 3
+                  ? " You can try again or reload the page."
+                  : " Please reload the page or contact support."}
               </CardDescription>
             </CardHeader>
 
@@ -204,8 +213,8 @@ URL: ${window.location.href}
             <CardFooter className="flex flex-col gap-2">
               <div className="flex gap-2 w-full">
                 {retryCount < 3 && (
-                  <Button 
-                    onClick={this.handleRetry} 
+                  <Button
+                    onClick={this.handleRetry}
                     className="flex-1"
                     variant="outline"
                   >
@@ -213,9 +222,9 @@ URL: ${window.location.href}
                     Try Again
                   </Button>
                 )}
-                
-                <Button 
-                  onClick={this.handleReload} 
+
+                <Button
+                  onClick={this.handleReload}
                   className="flex-1"
                   variant={retryCount >= 3 ? "default" : "outline"}
                 >
@@ -223,10 +232,10 @@ URL: ${window.location.href}
                   Reload Page
                 </Button>
               </div>
-              
-              <Button 
-                onClick={this.handleGoHome} 
-                variant="ghost" 
+
+              <Button
+                onClick={this.handleGoHome}
+                variant="ghost"
                 className="w-full"
               >
                 <Home className="h-4 w-4 mr-2" />
@@ -234,9 +243,9 @@ URL: ${window.location.href}
               </Button>
 
               {!isProduction && (
-                <Button 
-                  onClick={this.copyErrorToClipboard} 
-                  variant="ghost" 
+                <Button
+                  onClick={this.copyErrorToClipboard}
+                  variant="ghost"
                   size="sm"
                   className="w-full text-xs"
                 >
@@ -246,41 +255,41 @@ URL: ${window.location.href}
             </CardFooter>
           </Card>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 
   componentWillUnmount() {
     if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId)
+      clearTimeout(this.resetTimeoutId);
     }
   }
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;
 
 // Higher-order component for easy wrapping
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<Props, 'children'>
+  errorBoundaryProps?: Omit<Props, "children">,
 ) => {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
       <Component {...props} />
     </ErrorBoundary>
-  )
+  );
 
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
-  
-  return WrappedComponent
-}
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+
+  return WrappedComponent;
+};
 
 // Hook for error boundary integration
 export const useErrorHandler = () => {
   return (error: Error) => {
     // Re-throw error to be caught by nearest error boundary
-    throw error
-  }
-} 
+    throw error;
+  };
+};

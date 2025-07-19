@@ -1,59 +1,67 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FaChartLine, FaThermometerHalf, FaTint, FaWind } from 'react-icons/fa';
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FaChartLine, FaThermometerHalf, FaTint, FaWind } from "react-icons/fa";
 
 export default function CropEnvironmentView() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState('24h');
+  const [selectedTimeframe, setSelectedTimeframe] = useState("24h");
 
   // Mock data for demonstration
   const environmentalData = [
     {
       id: 1,
-      location: 'Row 1, Rack A',
+      location: "Row 1, Rack A",
       temperature: 22.5,
       humidity: 65,
-      airflow: 'Normal',
-      status: 'optimal',
-      trend: 'stable'
+      airflow: "Normal",
+      status: "optimal",
+      trend: "stable",
     },
     {
       id: 2,
-      location: 'Row 2, Rack B',
+      location: "Row 2, Rack B",
       temperature: 24.1,
       humidity: 58,
-      airflow: 'Low',
-      status: 'warning',
-      trend: 'increasing'
+      airflow: "Low",
+      status: "warning",
+      trend: "increasing",
     },
     {
       id: 3,
-      location: 'Row 3, Rack C',
+      location: "Row 3, Rack C",
       temperature: 21.8,
       humidity: 72,
-      airflow: 'High',
-      status: 'optimal',
-      trend: 'decreasing'
-    }
+      airflow: "High",
+      status: "optimal",
+      trend: "decreasing",
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'optimal': return 'bg-green-100 text-green-800';
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "optimal":
+        return "bg-green-100 text-green-800";
+      case "warning":
+        return "bg-yellow-100 text-yellow-800";
+      case "critical":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'increasing': return '↗️';
-      case 'decreasing': return '↘️';
-      case 'stable': return '➡️';
-      default: return '➡️';
+      case "increasing":
+        return "↗️";
+      case "decreasing":
+        return "↘️";
+      case "stable":
+        return "➡️";
+      default:
+        return "➡️";
     }
   };
 
@@ -70,14 +78,14 @@ export default function CropEnvironmentView() {
           </p>
         </div>
         <div className="flex gap-2">
-          {['1h', '6h', '24h', '7d'].map((timeframe) => (
+          {["1h", "6h", "24h", "7d"].map((timeframe) => (
             <button
               key={timeframe}
               onClick={() => setSelectedTimeframe(timeframe)}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 selectedTimeframe === timeframe
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
               }`}
             >
               {timeframe}
@@ -165,9 +173,7 @@ export default function CropEnvironmentView() {
                 <FaThermometerHalf className="text-green-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-content">
-                  22.8°C
-                </div>
+                <div className="text-2xl font-bold text-content">22.8°C</div>
                 <div className="text-sm text-content-secondary">
                   Average Temperature
                 </div>
@@ -183,9 +189,7 @@ export default function CropEnvironmentView() {
                 <FaTint className="text-blue-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-content">
-                  65%
-                </div>
+                <div className="text-2xl font-bold text-content">65%</div>
                 <div className="text-sm text-content-secondary">
                   Average Humidity
                 </div>
@@ -201,9 +205,7 @@ export default function CropEnvironmentView() {
                 <FaWind className="text-green-600 text-xl" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-content">
-                  Normal
-                </div>
+                <div className="text-2xl font-bold text-content">Normal</div>
                 <div className="text-sm text-content-secondary">
                   Airflow Status
                 </div>
@@ -214,4 +216,4 @@ export default function CropEnvironmentView() {
       </div>
     </div>
   );
-} 
+}

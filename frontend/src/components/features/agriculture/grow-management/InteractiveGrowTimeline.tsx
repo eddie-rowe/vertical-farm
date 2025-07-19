@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
+import {
   InteractiveGrowTimelineProps,
   ViewMode,
   useGrowTimeline,
@@ -9,17 +9,18 @@ import {
   TimelineView,
   SpatialView,
   StatusView,
-  ManagementView
+  ManagementView,
 } from "@/components/features/agriculture/grow-timeline";
 
 export default function InteractiveGrowTimeline({
   selectedGrowId,
   onGrowSelect,
   onGrowAction,
-  viewMode: initialViewMode = 'timeline',
-  timeRange = 90
+  viewMode: initialViewMode = "timeline",
+  timeRange = 90,
 }: InteractiveGrowTimelineProps) {
-  const [currentViewMode, setCurrentViewMode] = useState<ViewMode>(initialViewMode);
+  const [currentViewMode, setCurrentViewMode] =
+    useState<ViewMode>(initialViewMode);
 
   const timeline = useGrowTimeline({
     selectedGrowId,
@@ -40,7 +41,7 @@ export default function InteractiveGrowTimeline({
     };
 
     switch (currentViewMode) {
-      case 'timeline':
+      case "timeline":
         return (
           <TimelineView
             {...commonProps}
@@ -49,14 +50,21 @@ export default function InteractiveGrowTimeline({
             currentDate={timeline.currentDate}
           />
         );
-      case 'spatial':
+      case "spatial":
         return <SpatialView {...commonProps} />;
-      case 'status':
+      case "status":
         return <StatusView {...commonProps} />;
-      case 'management':
+      case "management":
         return <ManagementView {...commonProps} />;
       default:
-        return <TimelineView {...commonProps} zoomLevel={timeline.zoomLevel} timeRange={timeRange} currentDate={timeline.currentDate} />;
+        return (
+          <TimelineView
+            {...commonProps}
+            zoomLevel={timeline.zoomLevel}
+            timeRange={timeRange}
+            currentDate={timeline.currentDate}
+          />
+        );
     }
   };
 
@@ -69,7 +77,9 @@ export default function InteractiveGrowTimeline({
   }
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 ${timeline.isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div
+      className={`bg-white rounded-lg border border-gray-200 ${timeline.isFullscreen ? "fixed inset-0 z-50" : ""}`}
+    >
       <TimelineControls
         viewMode={currentViewMode}
         searchTerm={timeline.searchTerm}
@@ -89,8 +99,8 @@ export default function InteractiveGrowTimeline({
         onRefresh={timeline.refreshData}
         onClearSelection={timeline.clearSelection}
       />
-      
+
       {renderCurrentView()}
     </div>
   );
-} 
+}
