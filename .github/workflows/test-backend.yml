@@ -63,13 +63,15 @@ jobs:
       - name: Check import sorting (isort)
         working-directory: ./backend
         run: |
-          isort --check-only --diff app/ || {
+          # Ensure isort uses pyproject.toml configuration
+          isort --check-only --diff --settings-file=pyproject.toml app/ || {
             echo "## ❌ Import Sorting Issues Found" >> $GITHUB_STEP_SUMMARY
             echo "Run \`isort app/\` to fix import ordering" >> $GITHUB_STEP_SUMMARY
+            echo "Local config uses: profile=black, multi_line_output=3" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
           echo "## ✅ Import Sorting (isort)" >> $GITHUB_STEP_SUMMARY
-          echo "All imports are properly sorted" >> $GITHUB_STEP_SUMMARY
+          echo "All imports are properly sorted using pyproject.toml config" >> $GITHUB_STEP_SUMMARY
       
       - name: Linting (flake8)
         working-directory: ./backend
