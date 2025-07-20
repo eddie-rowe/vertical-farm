@@ -334,8 +334,8 @@ class GrowAutomationService:
         try:
             hour, minute = time_str.split(":")
             return f"{minute} {hour} * * *"
-        except:
-            return "0 8 * * *"  # Default to 8 AM
+        except (ValueError, AttributeError):
+            return "0 8 * * *"  # Default to 8 AM if invalid time format
 
     # TODO: Replace with Supabase-native queue processing
     # The following methods were implementing in-memory task queuing

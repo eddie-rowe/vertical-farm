@@ -58,8 +58,8 @@ class DeviceMonitoringService:
             for ws in websockets.copy():
                 try:
                     await ws.close()
-                except:
-                    pass
+                except Exception:
+                    pass  # WebSocket already closed
         self.active_connections.clear()
         logger.info("Device monitoring service stopped")
 
@@ -130,8 +130,8 @@ class DeviceMonitoringService:
         if user_id in self.ha_clients:
             try:
                 await self.ha_clients[user_id].close()
-            except:
-                pass
+            except Exception:
+                pass  # Client already closed
             del self.ha_clients[user_id]
 
         logger.info(f"Stopped device monitoring for user {user_id}")

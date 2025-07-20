@@ -1080,8 +1080,8 @@ class SquareService:
                         error_data = response.json()
                         if "errors" in error_data:
                             error_msg = error_data["errors"][0].get("detail", error_msg)
-                    except:
-                        pass
+                    except (ValueError, KeyError, IndexError):
+                        pass  # JSON parsing or key access failed
 
                     return SquareConnectionStatus(
                         connected=False,

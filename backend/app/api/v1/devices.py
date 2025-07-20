@@ -73,8 +73,8 @@ async def websocket_endpoint(
         logger.error(f"WebSocket error: {e}")
         try:
             await websocket.close(code=4000, reason="Internal error")
-        except:
-            pass
+        except Exception:
+            pass  # WebSocket already closed or connection broken
 
 
 @router.get("/assignments", response_model=List[DeviceAssignmentResponse])

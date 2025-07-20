@@ -325,8 +325,8 @@ class UserHomeAssistantService:
         try:
             config = await self.get_user_config(user_id)
             health_info["config_exists"] = config is not None
-        except:
-            pass
+        except Exception:
+            pass  # Config check failed
 
         # Check connection health
         if user_id in self._connections:

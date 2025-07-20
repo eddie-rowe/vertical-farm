@@ -447,8 +447,8 @@ def validate_cron_expression(cron_expr: str) -> bool:
                 return False
 
         return True
-    except:
-        return False
+    except (AttributeError, TypeError, ValueError):
+        return False  # Invalid cron expression format
 
 
 def validate_device_action(action: Dict[str, Any], device_type: str) -> List[str]:
