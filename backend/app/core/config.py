@@ -22,13 +22,14 @@ def parse_cors(v: Union[str, List[str]]) -> List[str]:
                 import json
 
                 print(f"DEBUG parse_cors: Attempting to parse JSON string: {v}")
-                # Attempt to parse it as JSON, handle if it contains escaped quotes like "[\"http://host\"]"
-                # A more robust way might be needed if formats are very diverse
-                # For now, assume if it starts with [ and is a string, it *should* be valid JSON or the escaped format
+                # Attempt to parse it as JSON, handle if it contains escaped quotes
+                # like "[\"http://host\"]". A more robust way might be needed if
+                # formats are very diverse. For now, assume if it starts with [ and
+                # is a string, it *should* be valid JSON or the escaped format
                 if (
                     '\\"' in v
                 ):  # crude check for escaped quotes from some env var setters
-                    print(f"DEBUG parse_cors: Found escaped quotes, replacing...")
+                    print("DEBUG parse_cors: Found escaped quotes, replacing...")
                     v = v.replace('\\"', '"')  # replace \" with "
                     print(f"DEBUG parse_cors: After escape replacement: {v}")
                 result = json.loads(v)
@@ -42,7 +43,7 @@ def parse_cors(v: Union[str, List[str]]) -> List[str]:
         print(f"DEBUG parse_cors: Returning as-is (list): {v}")
         return v  # If it's already a list (e.g., from direct Python usage, not env var)
 
-    print(f"DEBUG parse_cors: Invalid input type")
+    print("DEBUG parse_cors: Invalid input type")
     raise ValueError("BACKEND_CORS_ORIGINS must be a string or a list of strings")
 
 

@@ -397,7 +397,7 @@ class SquareService:
             }
 
             # Upsert the cache entry
-            response = (
+            _ = (
                 await supabase.table(table_name)
                 .upsert(cache_entry, on_conflict="user_id,cache_key")
                 .execute()
@@ -897,7 +897,7 @@ class SquareService:
                         webhook_url=webhook_url, event_types=event_types
                     )
 
-                    webhook_config = await self.create_webhook_config(
+                    _ = await self.create_webhook_config(
                         user_id, webhook_config_data, supabase
                     )
 
@@ -2357,7 +2357,7 @@ async def register_webhook(
             event_types=webhook_data.event_types,
         )
 
-        webhook_config = await service.create_webhook_config(
+        _ = await service.create_webhook_config(
             current_user.id, webhook_config_data, db
         )
 

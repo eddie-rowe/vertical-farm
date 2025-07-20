@@ -186,66 +186,67 @@ jobs:
           fail_on: "test failures"
 
   # E2E Tests (separate due to special requirements)
-  e2e-tests:
-    name: E2E Tests (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: ['22']  # Latest Node.js version
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Install dependencies and build
-        working-directory: ./frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: |
-          npm ci
-          npm run build
-      
-      - name: Install Playwright browsers
-        working-directory: ./frontend
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
-        run: npx playwright install --with-deps chromium firefox webkit
-      
-      - name: Run E2E tests
-        working-directory: ./frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: |
-          # Start the application using pre-built artifacts
-          npm start &
-          sleep 20
-          
-          # Run E2E tests
-          npm run test:e2e -- \
-            --reporter=html \
-            --reporter=junit \
-            --output-dir=test-results/e2e
-      
-      - name: Upload E2E results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-results-${{ matrix.node-version }}
-          path: |
-            frontend/test-results/
-            frontend/playwright-report/
-          retention-days: 30 
+  # TODO: Uncomment when E2E tests are developed
+  # e2e-tests:
+  #   name: E2E Tests (Node ${{ matrix.node-version }})
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 25
+  #   
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node-version: ['22']  # Latest Node.js version
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     
+  #     - name: Set up Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'npm'
+  #         cache-dependency-path: frontend/package-lock.json
+  #     
+  #     - name: Install dependencies and build
+  #       working-directory: ./frontend
+  #       env:
+  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #       run: |
+  #         npm ci
+  #         npm run build
+  #     
+  #     - name: Install Playwright browsers
+  #       working-directory: ./frontend
+  #       env:
+  #         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+  #       run: npx playwright install --with-deps chromium firefox webkit
+  #     
+  #     - name: Run E2E tests
+  #       working-directory: ./frontend
+  #       env:
+  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #       run: |
+  #         # Start the application using pre-built artifacts
+  #         npm start &
+  #         sleep 20
+  #         
+  #         # Run E2E tests
+  #         npm run test:e2e -- \
+  #           --reporter=html \
+  #           --reporter=junit \
+  #           --output=test-results/e2e
+  #     
+  #     - name: Upload E2E results
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: e2e-results-${{ matrix.node-version }}
+  #         path: |
+  #           frontend/test-results/
+  #           frontend/playwright-report/
+  #         retention-days: 30 

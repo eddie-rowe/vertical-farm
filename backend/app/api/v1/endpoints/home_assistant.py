@@ -49,7 +49,10 @@ router = APIRouter()
     "/status",
     response_model=HomeAssistantStatusResponse,
     summary="Get Home Assistant Integration Status",
-    description="Get the current status and health of the Home Assistant integration for the current user",
+    description=(
+        "Get the current status and health of the Home Assistant "
+        "integration for the current user"
+    ),
 )
 async def get_integration_status(
     current_user=Depends(get_current_user),
@@ -76,7 +79,10 @@ async def get_integration_status(
     "/health",
     response_model=HealthCheckResponse,
     summary="Health Check",
-    description="Perform a detailed health check of Home Assistant connections for the current user",
+    description=(
+        "Perform a detailed health check of Home Assistant connections "
+        "for the current user"
+    ),
 )
 async def health_check(
     current_user=Depends(get_current_user),

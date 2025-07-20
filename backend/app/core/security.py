@@ -682,16 +682,16 @@ async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
         raise AuthenticationError(f"Invalid token format: {str(e)}")
 
 
-from supabase import (
+from supabase import (  # noqa: E402
     AClient as SupabaseAsyncClient,  # acreate_client removed as not used here directly
 )
 
 # --- Imports that might cause cycles if loaded before token validation functions are defined ---
 # from app.models.user import User as UserModel # Remove this import
-from app.crud import crud_user
+from app.crud import crud_user  # noqa: E402
 
 # from app.db.supabase_client import get_async_supabase_client # Remove this top-level import
-from app.db.supabase_client import get_async_rls_client
+from app.db.supabase_client import get_async_rls_client  # noqa: E402
 
 # from app.schemas.user import User # Remove this top-level import, will use string literal or local import
 

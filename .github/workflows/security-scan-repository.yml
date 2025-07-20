@@ -19,7 +19,7 @@ jobs:
   repository-security:
     name: Repository Security Scanning
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     
     outputs:
       status: ${{ steps.security-assessment.outputs.status }}
@@ -147,7 +147,92 @@ jobs:
           path: |
             repository-secrets.json
             recent-secrets.json
+            semgrep-results.json
+            checkov-results.json
           retention-days: 30
+      
+      # =============================================================================
+      # ADVANCED STATIC APPLICATION SECURITY TESTING (SEMGREP)
+      # =============================================================================
+      
+      - name: Advanced SAST with Semgrep
+        run: |
+          echo "## 🛡️ Advanced SAST Analysis (Semgrep)" >> $GITHUB_STEP_SUMMARY
+          
+          # Install Semgrep
+          pip install semgrep
+          
+          # Run Semgrep with comprehensive security rulesets
+          semgrep \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --config=p/javascript \
+            --config=p/python \
+            --json \
+            --output=semgrep-results.json \
+            . || true
+          
+          # Analyze Semgrep results
+          if [ -f semgrep-results.json ]; then
+            SEMGREP_CRITICAL=$(jq '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep-results.json 2>/dev/null || echo "0")
+            SEMGREP_HIGH=$(jq '[.results[] | select(.extra.severity == "WARNING")] | length' semgrep-results.json 2>/dev/null || echo "0")
+            SEMGREP_TOTAL=$(jq '.results | length' semgrep-results.json 2>/dev/null || echo "0")
+            
+            echo "- **Semgrep Critical findings**: $SEMGREP_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Semgrep High findings**: $SEMGREP_HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- **Semgrep Total findings**: $SEMGREP_TOTAL" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$SEMGREP_CRITICAL" -gt 0 ]; then
+              echo "⚠️ Critical SAST findings detected:" >> $GITHUB_STEP_SUMMARY
+              jq -r '.results[] | select(.extra.severity == "ERROR") | "- \(.path):\(.start.line): \(.extra.message)"' semgrep-results.json | head -5 >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Store results for assessment
+            echo "SEMGREP_CRITICAL=$SEMGREP_CRITICAL" >> $GITHUB_ENV
+            echo "SEMGREP_HIGH=$SEMGREP_HIGH" >> $GITHUB_ENV
+          fi
+      
+      # =============================================================================
+      # INFRASTRUCTURE AS CODE SECURITY (CHECKOV)
+      # =============================================================================
+      
+      - name: Infrastructure as Code Security (Checkov)
+        run: |
+          echo "## 🏗️ Infrastructure as Code Security" >> $GITHUB_STEP_SUMMARY
+          
+          # Install Checkov
+          pip install checkov
+          
+          # Scan infrastructure files (Dockerfile, docker-compose, terraform, etc.)
+          checkov \
+            --framework dockerfile \
+            --framework docker_compose \
+            --framework terraform \
+            --framework kubernetes \
+            --output json \
+            --output-file checkov-results.json \
+            . || true
+          
+          # Analyze Checkov results
+          if [ -f checkov-results.json ]; then
+            IAC_CRITICAL=$(jq '.results.failed_checks | map(select(.severity == "CRITICAL")) | length' checkov-results.json 2>/dev/null || echo "0")
+            IAC_HIGH=$(jq '.results.failed_checks | map(select(.severity == "HIGH")) | length' checkov-results.json 2>/dev/null || echo "0")
+            IAC_TOTAL=$(jq '.results.failed_checks | length' checkov-results.json 2>/dev/null || echo "0")
+            
+            echo "- **IaC Critical issues**: $IAC_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **IaC High issues**: $IAC_HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- **IaC Total issues**: $IAC_TOTAL" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$IAC_CRITICAL" -gt 0 ]; then
+              echo "⚠️ Critical Infrastructure issues found:" >> $GITHUB_STEP_SUMMARY
+              jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "- \(.file_path): \(.check_name)"' checkov-results.json | head -5 >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Store results for assessment
+            echo "IAC_CRITICAL=$IAC_CRITICAL" >> $GITHUB_ENV
+            echo "IAC_HIGH=$IAC_HIGH" >> $GITHUB_ENV
+          fi
       
       # =============================================================================
       # REPOSITORY SECURITY ASSESSMENT & GATING
@@ -162,29 +247,38 @@ jobs:
           VERIFIED_SECRETS=${VERIFIED_SECRETS:-0}
           TOTAL_FINDINGS=${TOTAL_FINDINGS:-0}
           SECURITY_ISSUES=${SECURITY_ISSUES:-0}
+          SEMGREP_CRITICAL=${SEMGREP_CRITICAL:-0}
+          SEMGREP_HIGH=${SEMGREP_HIGH:-0}
+          IAC_CRITICAL=${IAC_CRITICAL:-0}
+          IAC_HIGH=${IAC_HIGH:-0}
           
           # Create summary table
-          echo "| Security Category | Issues | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Verified Secrets | $VERIFIED_SECRETS | $([ $VERIFIED_SECRETS -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
-          echo "| Secret Findings | $TOTAL_FINDINGS | $([ $TOTAL_FINDINGS -lt 5 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
-          echo "| Config Issues | $SECURITY_ISSUES | $([ $SECURITY_ISSUES -lt 3 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Category | Critical | High | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------------|----------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Verified Secrets | $VERIFIED_SECRETS | - | $([ $VERIFIED_SECRETS -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Findings | - | $TOTAL_FINDINGS | $([ $TOTAL_FINDINGS -lt 5 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Config Issues | - | $SECURITY_ISSUES | $([ $SECURITY_ISSUES -lt 3 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Advanced SAST | $SEMGREP_CRITICAL | $SEMGREP_HIGH | $([ $SEMGREP_CRITICAL -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Infrastructure | $IAC_CRITICAL | $IAC_HIGH | $([ $IAC_CRITICAL -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
           
           # Set outputs for main pipeline
           echo "secrets_found=$VERIFIED_SECRETS" >> $GITHUB_OUTPUT
           
-          # Determine overall status
-          if [ "$VERIFIED_SECRETS" -gt 0 ]; then
+          # Determine overall status (enhanced logic)
+          TOTAL_CRITICAL=$((VERIFIED_SECRETS + SEMGREP_CRITICAL + IAC_CRITICAL))
+          TOTAL_HIGH=$((TOTAL_FINDINGS + SECURITY_ISSUES + SEMGREP_HIGH + IAC_HIGH))
+          
+          if [ "$TOTAL_CRITICAL" -gt 0 ]; then
             echo "status=critical" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **REPOSITORY SECURITY: CRITICAL**" >> $GITHUB_STEP_SUMMARY
-            echo "Verified secrets found in repository. Immediate action required." >> $GITHUB_STEP_SUMMARY
+            echo "Critical security issues found ($TOTAL_CRITICAL critical). Immediate action required." >> $GITHUB_STEP_SUMMARY
             exit 1
-          elif [ "$TOTAL_FINDINGS" -gt 10 ] || [ "$SECURITY_ISSUES" -gt 5 ]; then
+          elif [ "$TOTAL_HIGH" -gt 15 ]; then
             echo "status=warning" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ **REPOSITORY SECURITY: WARNING**" >> $GITHUB_STEP_SUMMARY
-            echo "Multiple security findings detected. Review recommended." >> $GITHUB_STEP_SUMMARY
+            echo "High number of security findings detected ($TOTAL_HIGH high). Review recommended." >> $GITHUB_STEP_SUMMARY
           else
             echo "status=passed" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
