@@ -46,7 +46,7 @@ class SquareWebhookCreate(BaseModel):
     """Schema for creating a new webhook configuration."""
 
     webhook_url: str = Field(..., description="URL where Square will send webhooks")
-    event_types: List[str] = Field(
+    event_types: list[str] = Field(
         default=[], description="List of event types to subscribe to"
     )
 
@@ -72,13 +72,13 @@ class SquareWebhookCreate(BaseModel):
 class SquareWebhookUpdate(BaseModel):
     """Schema for updating webhook configuration."""
 
-    webhook_url: Optional[str] = Field(
+    webhook_url: str | None = Field(
         None, description="URL where Square will send webhooks"
     )
-    event_types: Optional[List[str]] = Field(
+    event_types: list[str] | None = Field(
         None, description="List of event types to subscribe to"
     )
-    status: Optional[WebhookStatus] = Field(None, description="Webhook status")
+    status: WebhookStatus | None = Field(None, description="Webhook status")
 
     @field_validator("webhook_url")
     @classmethod
@@ -94,12 +94,12 @@ class SquareWebhookResponse(BaseModel):
 
     id: str
     user_id: str
-    webhook_id: Optional[str]
+    webhook_id: str | None
     webhook_url: str
-    event_types: List[str]
+    event_types: list[str]
     status: WebhookStatus
-    last_verified_at: Optional[datetime]
-    error_message: Optional[str]
+    last_verified_at: datetime | None
+    error_message: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -115,7 +115,7 @@ class SquareWebhookPayload(BaseModel):
     type: str = Field(..., description="Event type")
     event_id: str = Field(..., description="Unique event ID")
     created_at: str = Field(..., description="Event creation timestamp")
-    data: Dict[str, Any] = Field(..., description="Event data payload")
+    data: dict[str, Any] = Field(..., description="Event data payload")
 
 
 class SquareWebhookEventCreate(BaseModel):
@@ -125,7 +125,7 @@ class SquareWebhookEventCreate(BaseModel):
     event_id: str
     event_type: str
     merchant_id: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     signature_header: str
 
 
@@ -137,12 +137,12 @@ class SquareWebhookEventResponse(BaseModel):
     event_id: str
     event_type: str
     merchant_id: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     signature_header: str
-    processed_at: Optional[datetime]
+    processed_at: datetime | None
     status: WebhookEventStatus
     cache_invalidated: bool
-    error_message: Optional[str]
+    error_message: str | None
     created_at: datetime
 
     class Config:
@@ -153,8 +153,8 @@ class SquareWebhookEventResponse(BaseModel):
 class CacheInvalidationRequest(BaseModel):
     """Schema for manual cache invalidation request."""
 
-    cache_types: List[str] = Field(..., description="Types of cache to invalidate")
-    reason: Optional[str] = Field(None, description="Reason for invalidation")
+    cache_types: list[str] = Field(..., description="Types of cache to invalidate")
+    reason: str | None = Field(None, description="Reason for invalidation")
 
     @field_validator("cache_types")
     @classmethod
@@ -178,7 +178,7 @@ class CacheInvalidationResponse(BaseModel):
     """Schema for cache invalidation response."""
 
     success: bool
-    invalidated_caches: List[str]
+    invalidated_caches: list[str]
     message: str
     timestamp: datetime
 
@@ -188,7 +188,7 @@ class WebhookRegistrationRequest(BaseModel):
     """Schema for registering webhook with Square."""
 
     notification_url: str = Field(..., description="URL for webhook notifications")
-    event_types: List[str] = Field(..., description="Event types to subscribe to")
+    event_types: list[str] = Field(..., description="Event types to subscribe to")
 
 
 class WebhookRegistrationResponse(BaseModel):
@@ -196,7 +196,7 @@ class WebhookRegistrationResponse(BaseModel):
 
     webhook_id: str
     notification_url: str
-    event_types: List[str]
+    event_types: list[str]
     signature_key: str
     status: str
     created_at: datetime
@@ -206,10 +206,10 @@ class WebhookRegistrationResponse(BaseModel):
 class WebhookHealthResponse(BaseModel):
     """Schema for webhook health check response."""
 
-    webhook_id: Optional[str]
+    webhook_id: str | None
     status: WebhookStatus
-    last_event_received: Optional[datetime]
+    last_event_received: datetime | None
     total_events_received: int
     failed_events: int
     success_rate: float
-    last_error: Optional[str]
+    last_error: str | None

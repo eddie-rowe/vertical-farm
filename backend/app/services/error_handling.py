@@ -14,7 +14,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
 
 import aiohttp
 from websockets.exceptions import ConnectionClosed, WebSocketException
@@ -64,7 +65,7 @@ class RetryConfig:
     max_delay: float = 60.0
     exponential_base: float = 2.0
     jitter: bool = True
-    retryable_errors: List[ErrorType] = field(
+    retryable_errors: list[ErrorType] = field(
         default_factory=lambda: [
             ErrorType.CONNECTION_ERROR,
             ErrorType.TIMEOUT_ERROR,
@@ -106,11 +107,11 @@ class HomeAssistantError(Exception):
         message: str,
         error_type: ErrorType = ErrorType.UNKNOWN_ERROR,
         retryable: bool = False,
-        context: Optional[Dict[str, Any]] = None,
-        original_error: Optional[Exception] = None,
-        service_name: Optional[str] = None,
-        recovery_suggestions: Optional[List[str]] = None,
-    ):
+        context: dict[str, Any] | None = None,
+        original_error: Exception | None = None,
+        service_name: str | None = None,
+        recovery_suggestions: list[str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.error_type = error_type
         self.retryable = retryable
@@ -120,7 +121,7 @@ class HomeAssistantError(Exception):
         self.recovery_suggestions = recovery_suggestions or []
         self.timestamp = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for JSON serialization"""
         return {
             "message": str(self),
@@ -148,8 +149,8 @@ class ErrorMetrics:
 
     total_errors: int = 0
     consecutive_failures: int = 0
-    error_types: Dict[ErrorType, int] = field(default_factory=dict)
-    last_error_time: Optional[datetime] = None
+    error_types: dict[ErrorType, int] = field(default_factory=dict)
+    last_error_time: datetime | None = None
     recovery_count: int = 0
     circuit_breaker_triggers: int = 0
     average_recovery_time: float = 0.0
@@ -164,8 +165,8 @@ class CircuitBreaker:
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
     success_count: int = 0
-    last_failure_time: Optional[datetime] = None
-    next_attempt_time: Optional[datetime] = None
+    last_failure_time: datetime | None = None
+    next_attempt_time: datetime | None = None
     config: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
 
     def should_attempt(self) -> bool:
@@ -181,7 +182,7 @@ class CircuitBreaker:
             return self.success_count < self.config.half_open_max_attempts
         return False
 
-    def record_success(self):
+    def record_success(self) -> None:
         """Record a successful operation"""
         if self.state == CircuitState.HALF_OPEN:
             self.success_count += 1
@@ -193,7 +194,7 @@ class CircuitBreaker:
         elif self.state == CircuitState.CLOSED:
             self.failure_count = 0
 
-    def record_failure(self):
+    def record_failure(self) -> None:
         """Record a failed operation"""
         self.failure_count += 1
         self.last_failure_time = datetime.now()
@@ -219,23 +220,23 @@ class CircuitBreaker:
 class ErrorHandler:
     """Enhanced error handler with comprehensive recovery mechanisms"""
 
-    def __init__(self):
-        self.retry_configs: Dict[str, RetryConfig] = {}
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
-        self.metrics: Dict[str, ErrorMetrics] = {}
-        self.health_checks: Dict[str, HealthCheckConfig] = {}
-        self.error_callbacks: List[Callable[[HomeAssistantError], None]] = []
-        self.recovery_callbacks: Dict[str, Callable[[], Any]] = {}
-        self.background_tasks: List[asyncio.Task] = []
+    def __init__(self) -> None:
+        self.retry_configs: dict[str, RetryConfig] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
+        self.metrics: dict[str, ErrorMetrics] = {}
+        self.health_checks: dict[str, HealthCheckConfig] = {}
+        self.error_callbacks: list[Callable[[HomeAssistantError], None]] = []
+        self.recovery_callbacks: dict[str, Callable[[], Any]] = {}
+        self.background_tasks: list[asyncio.Task] = []
         self._health_check_running = False
 
     def register_service(
         self,
         service_name: str,
         retry_config: RetryConfig,
-        circuit_config: Optional[CircuitBreakerConfig] = None,
-        health_config: Optional[HealthCheckConfig] = None,
-    ):
+        circuit_config: CircuitBreakerConfig | None = None,
+        health_config: HealthCheckConfig | None = None,
+    ) -> None:
         """Register a service with error handling configuration"""
         self.retry_configs[service_name] = retry_config
         self.circuit_breakers[service_name] = CircuitBreaker(
@@ -249,16 +250,16 @@ class ErrorHandler:
 
     def register_recovery_callback(
         self, service_name: str, callback: Callable[[], Any]
-    ):
+    ) -> None:
         """Register a recovery callback for automatic service recovery"""
         self.recovery_callbacks[service_name] = callback
         logger.info(f"Registered recovery callback for service '{service_name}'")
 
-    def add_error_callback(self, callback: Callable[[HomeAssistantError], None]):
+    def add_error_callback(self, callback: Callable[[HomeAssistantError], None]) -> None:
         """Add a callback to be called when errors occur"""
         self.error_callbacks.append(callback)
 
-    def start_health_monitoring(self):
+    def start_health_monitoring(self) -> None:
         """Start background health monitoring"""
         if not self._health_check_running:
             self._health_check_running = True
@@ -266,7 +267,7 @@ class ErrorHandler:
             self.background_tasks.append(task)
             logger.info("Started health monitoring")
 
-    async def stop_health_monitoring(self):
+    async def stop_health_monitoring(self) -> None:
         """Stop background health monitoring"""
         self._health_check_running = False
         for task in self.background_tasks:
@@ -278,7 +279,7 @@ class ErrorHandler:
         self.background_tasks.clear()
         logger.info("Stopped health monitoring")
 
-    async def _health_monitor_loop(self):
+    async def _health_monitor_loop(self) -> None:
         """Background health monitoring loop"""
         while self._health_check_running:
             try:
@@ -299,7 +300,7 @@ class ErrorHandler:
 
     async def _perform_health_check(
         self, service_name: str, health_config: HealthCheckConfig
-    ):
+    ) -> bool | None:
         """Perform health check for a specific service"""
         try:
             metrics = self.metrics.get(service_name, ErrorMetrics())
@@ -358,16 +359,16 @@ class ErrorHandler:
                 return ErrorType.VALIDATION_ERROR
         elif isinstance(error, asyncio.TimeoutError):
             return ErrorType.TIMEOUT_ERROR
-        elif isinstance(error, (ConnectionClosed, WebSocketException)):
+        elif isinstance(error, ConnectionClosed | WebSocketException):
             return ErrorType.CONNECTION_ERROR
-        elif isinstance(error, (OSError, ConnectionError)):
+        elif isinstance(error, OSError | ConnectionError):
             return ErrorType.NETWORK_ERROR
         else:
             return ErrorType.UNKNOWN_ERROR
 
     def get_recovery_suggestions(
-        self, error_type: ErrorType, context: Dict[str, Any]
-    ) -> List[str]:
+        self, error_type: ErrorType, context: dict[str, Any]
+    ) -> list[str]:
         """Get recovery suggestions based on error type"""
         suggestions = {
             ErrorType.CONNECTION_ERROR: [
@@ -422,8 +423,8 @@ class ErrorHandler:
     def create_enhanced_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        service_name: Optional[str] = None,
+        context: dict[str, Any] | None = None,
+        service_name: str | None = None,
     ) -> HomeAssistantError:
         """Create an enhanced error with classification and context"""
         error_type = self.classify_error(error)
@@ -443,7 +444,7 @@ class ErrorHandler:
 
         return enhanced_error
 
-    def record_error(self, service_name: str, error: HomeAssistantError):
+    def record_error(self, service_name: str, error: HomeAssistantError) -> None:
         """Record an error in metrics and update circuit breaker"""
         metrics = self.metrics.get(service_name, ErrorMetrics())
         circuit = self.circuit_breakers.get(service_name)
@@ -470,7 +471,7 @@ class ErrorHandler:
             except Exception as e:
                 logger.error(f"Error in error callback: {e}")
 
-    def record_success(self, service_name: str):
+    def record_success(self, service_name: str) -> None:
         """Record a successful operation"""
         metrics = self.metrics.get(service_name, ErrorMetrics())
         circuit = self.circuit_breakers.get(service_name)
@@ -540,7 +541,7 @@ class ErrorHandler:
         self,
         service_name: str,
         operation: Callable[[], Any],
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> Any:
         """Execute an operation with retry logic and circuit breaker"""
         if not self.can_execute(service_name):
@@ -599,7 +600,7 @@ class ErrorHandler:
             self.record_error(service_name, error)
             raise error
 
-    def get_service_health(self, service_name: str) -> Dict[str, Any]:
+    def get_service_health(self, service_name: str) -> dict[str, Any]:
         """Get comprehensive health status for a service"""
         metrics = self.metrics.get(service_name)
         circuit_breaker = self.circuit_breakers.get(service_name)
@@ -649,7 +650,7 @@ class ErrorHandler:
             "health_check_successes": metrics.health_check_successes,
         }
 
-    def get_overall_health(self) -> Dict[str, Any]:
+    def get_overall_health(self) -> dict[str, Any]:
         """Get overall health status across all services"""
         service_healths = {}
         overall_healthy = True
@@ -676,7 +677,7 @@ class ErrorHandler:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def export_metrics(self, file_path: Optional[str] = None) -> Dict[str, Any]:
+    def export_metrics(self, file_path: str | None = None) -> dict[str, Any]:
         """Export metrics to file or return as dict"""
         metrics_data = self.get_overall_health()
 
@@ -691,8 +692,8 @@ class ErrorHandler:
 
 def with_error_handling(
     service_name: str,
-    retry_config: Optional[RetryConfig] = None,
-    context: Optional[Dict[str, Any]] = None,
+    retry_config: RetryConfig | None = None,
+    context: dict[str, Any] | None = None,
 ):
     """Decorator for adding error handling to functions"""
 

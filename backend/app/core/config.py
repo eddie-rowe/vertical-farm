@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # Helper function to parse CORS origins from a string
-def parse_cors(v: Union[str, List[str]]) -> List[str]:
+def parse_cors(v: str | list[str]) -> list[str]:
     print(f"DEBUG parse_cors: Input value: {v}, Type: {type(v)}")
 
     if isinstance(v, str) and not v.startswith("["):
@@ -14,7 +14,7 @@ def parse_cors(v: Union[str, List[str]]) -> List[str]:
         print(f"DEBUG parse_cors: Comma-separated string result: {result}")
         return result
     elif isinstance(
-        v, (list, str)
+        v, list | str
     ):  # str for case when it's already a JSON list string
         # If it's a string that starts with '[', it might be a JSON list string
         if isinstance(v, str) and v.startswith("["):
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Vertical Farm API"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
-    FRONTEND_HOST: Optional[AnyUrl] = None
+    FRONTEND_HOST: AnyUrl | None = None
 
     # Supabase Configuration (required)
     SUPABASE_URL: str
@@ -72,12 +72,12 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str  # Public anonymous key for RLS operations
 
     # Optional Supabase JWT Configuration
-    SUPABASE_JWT_SECRET: Optional[str] = None
+    SUPABASE_JWT_SECRET: str | None = None
     # SUPABASE_JWKS_URI will be dynamically generated if not set
-    SUPABASE_JWKS_URI_OVERRIDE: Optional[str] = None
+    SUPABASE_JWKS_URI_OVERRIDE: str | None = None
     SUPABASE_AUDIENCE: str = "authenticated"
     # SUPABASE_ISSUER will be dynamically generated if not set
-    SUPABASE_ISSUER_OVERRIDE: Optional[str] = None
+    SUPABASE_ISSUER_OVERRIDE: str | None = None
 
     # Database table names (configurable via env vars)
     SUPABASE_TABLE_FARMS: str = "farms"
@@ -94,16 +94,16 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[AnyUrl] = []
+    BACKEND_CORS_ORIGINS: list[AnyUrl] = []
 
     # Home Assistant Integration settings
-    HOME_ASSISTANT_URL: Optional[str] = None
-    HOME_ASSISTANT_TOKEN: Optional[str] = None
+    HOME_ASSISTANT_URL: str | None = None
+    HOME_ASSISTANT_TOKEN: str | None = None
     HOME_ASSISTANT_ENABLED: bool = False
 
     # Cloudflare Access settings (for protected Home Assistant instances)
-    CLOUDFLARE_SERVICE_CLIENT_ID: Optional[str] = None
-    CLOUDFLARE_SERVICE_CLIENT_SECRET: Optional[str] = None
+    CLOUDFLARE_SERVICE_CLIENT_ID: str | None = None
+    CLOUDFLARE_SERVICE_CLIENT_SECRET: str | None = None
     CLOUDFLARE_ACCESS_PROTECTED: bool = False
 
     # Configure Pydantic to load from .env files and other settings
@@ -142,7 +142,7 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
         """Parse CORS origins from environment variable string or list."""
         return parse_cors(v)
 

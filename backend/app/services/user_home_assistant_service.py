@@ -8,10 +8,9 @@ user-isolated integration with the vertical farm system.
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from fastapi import HTTPException, status
-from supabase import AClient as SupabaseAsyncClient
 
 from app.core.config import get_settings
 from app.core.security import (
@@ -24,6 +23,9 @@ from app.db.supabase_client import get_async_supabase_client
 from app.services.error_handling import global_error_handler
 from app.services.home_assistant_client import HomeAssistantClient
 
+if TYPE_CHECKING:
+    from supabase import AClient as SupabaseAsyncClient
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,19 +35,19 @@ class UserHomeAssistantService:
     Leverages Supabase's built-in security features for credential storage and user isolation.
     """
 
-    def __init__(self):
-        self._connections: Dict[str, HomeAssistantClient] = {}
-        self._connection_health: Dict[str, Dict[str, Any]] = {}
+    def __init__(self) -> None:
+        self._connections: dict[str, HomeAssistantClient] = {}
+        self._connection_health: dict[str, dict[str, Any]] = {}
         self.settings = get_settings()
-        self.user_device_subscriptions: Dict[str, Set[str]] = {}
-        self.user_device_cache: Dict[str, Dict[str, Dict]] = {}
+        self.user_device_subscriptions: dict[str, set[str]] = {}
+        self.user_device_cache: dict[str, dict[str, dict]] = {}
 
         # Register recovery callbacks with the global error handler
         global_error_handler.register_recovery_callback(
             "user_home_assistant", self._attempt_connection_recovery
         )
 
-    async def _attempt_connection_recovery(self):
+    async def _attempt_connection_recovery(self) -> None:
         """Automatic recovery for failing Home Assistant connections"""
         try:
             logger.info("Attempting automatic recovery of Home Assistant connections")
@@ -81,7 +83,7 @@ class UserHomeAssistantService:
             logger.error(f"Error during connection recovery: {e}")
             raise
 
-    async def get_user_config(self, user_id: str) -> Optional[Dict[str, Any]]:
+    async def get_user_config(self, user_id: str) -> dict[str, Any] | None:
         """
         Get user's Home Assistant configuration from Supabase with RLS enforcement.
 
@@ -118,8 +120,8 @@ class UserHomeAssistantService:
             )
 
     async def save_user_config(
-        self, user_id: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, user_id: str, config: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Save user's Home Assistant configuration to Supabase with encryption.
         Leverages Supabase's built-in encryption at rest.
@@ -184,7 +186,7 @@ class UserHomeAssistantService:
             )
 
     async def get_or_create_connection(
-        self, user_id: str, session_token: Optional[str] = None
+        self, user_id: str, session_token: str | None = None
     ) -> HomeAssistantClient:
         """
         Get or create a Home Assistant connection for the user with session validation.
@@ -274,7 +276,7 @@ class UserHomeAssistantService:
 
     async def validate_websocket_session(
         self, token: str
-    ) -> Tuple[str, Dict[str, Any]]:
+    ) -> tuple[str, dict[str, Any]]:
         """
         Validate WebSocket session and return user info with session health.
 
@@ -299,7 +301,7 @@ class UserHomeAssistantService:
             logger.error(f"WebSocket session validation failed: {e}")
             raise AuthenticationError(f"Session validation failed: {str(e)}")
 
-    async def get_connection_health(self, user_id: str) -> Dict[str, Any]:
+    async def get_connection_health(self, user_id: str) -> dict[str, Any]:
         """
         Get health status of user's Home Assistant connection.
 
@@ -355,7 +357,7 @@ class UserHomeAssistantService:
         # Create new connection
         return await self.get_or_create_connection(user_id)
 
-    async def cleanup_expired_connections(self):
+    async def cleanup_expired_connections(self) -> None:
         """
         Clean up expired or unhealthy connections.
         This method can be called periodically to maintain connection health.
@@ -376,8 +378,8 @@ class UserHomeAssistantService:
                 del self._connection_health[user_id]
 
     async def get_user_devices(
-        self, user_id: str, session_token: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, session_token: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         Get all devices/entities for a user with session validation and enhanced error handling.
 
@@ -395,8 +397,8 @@ class UserHomeAssistantService:
         )
 
     async def _get_user_devices_impl(
-        self, user_id: str, session_token: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, session_token: str | None = None
+    ) -> list[dict[str, Any]]:
         """Implementation of get_user_devices with error handling"""
         # Check cache first
         cache_key = f"{user_id}_devices"
@@ -447,8 +449,8 @@ class UserHomeAssistantService:
         return devices
 
     async def get_user_device(
-        self, user_id: str, entity_id: str, session_token: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, user_id: str, entity_id: str, session_token: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Get a specific device/entity for a user with session validation.
 
@@ -497,9 +499,9 @@ class UserHomeAssistantService:
         user_id: str,
         entity_id: str,
         action: str,
-        session_token: Optional[str] = None,
+        session_token: str | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Control a specific device with session validation and enhanced error handling.
 
@@ -526,9 +528,9 @@ class UserHomeAssistantService:
         user_id: str,
         entity_id: str,
         action: str,
-        session_token: Optional[str] = None,
+        session_token: str | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Implementation of control_device with error handling"""
         client = await self.get_or_create_connection(user_id, session_token)
 
@@ -552,7 +554,7 @@ class UserHomeAssistantService:
             "result": result,
         }
 
-    async def get_user_integration_status(self, user_id: str) -> Dict:
+    async def get_user_integration_status(self, user_id: str) -> dict:
         """Get integration status for a specific user"""
         cache_key = f"{user_id}:default"
 
@@ -649,7 +651,7 @@ class UserHomeAssistantService:
 
 
 # Global instance
-_user_ha_service: Optional[UserHomeAssistantService] = None
+_user_ha_service: UserHomeAssistantService | None = None
 
 
 async def get_user_home_assistant_service() -> UserHomeAssistantService:
@@ -660,14 +662,14 @@ async def get_user_home_assistant_service() -> UserHomeAssistantService:
     return _user_ha_service
 
 
-async def startup_user_home_assistant_service():
+async def startup_user_home_assistant_service() -> None:
     """Initialize the user Home Assistant service on startup"""
     global _user_ha_service
     _user_ha_service = UserHomeAssistantService()
     logger.info("User Home Assistant service started")
 
 
-async def shutdown_user_home_assistant_service():
+async def shutdown_user_home_assistant_service() -> None:
     """Cleanup the user Home Assistant service on shutdown"""
     global _user_ha_service
     if _user_ha_service:

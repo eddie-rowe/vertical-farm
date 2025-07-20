@@ -9,7 +9,8 @@ from collections import defaultdict, deque
 # Removed httpx import
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from collections.abc import Callable
 
 from fastapi import Depends, HTTPException, Request, status
 from jose import jwt
@@ -64,8 +65,8 @@ class DeviceControlRateLimiter:
     Tracks requests per user per endpoint with sliding time windows.
     """
 
-    def __init__(self):
-        self._requests: Dict[str, deque] = defaultdict(deque)
+    def __init__(self) -> None:
+        self._requests: dict[str, deque] = defaultdict(deque)
         self._lock = asyncio.Lock()
 
     async def is_allowed(
@@ -105,7 +106,7 @@ class DeviceControlRateLimiter:
             request_times.append(now)
             return True
 
-    async def cleanup_expired(self, max_age_hours: int = 1):
+    async def cleanup_expired(self, max_age_hours: int = 1) -> None:
         """Clean up old rate limit data to prevent memory leaks."""
         async with self._lock:
             cutoff = time.time() - (max_age_hours * 3600)
@@ -247,7 +248,7 @@ def validate_device_state(state: Any, entity_domain: str) -> Any:
                 # Validate brightness if present
                 if "brightness" in state:
                     brightness = state["brightness"]
-                    if not isinstance(brightness, (int, float)) or not (
+                    if not isinstance(brightness, int | float) or not (
                         0 <= brightness <= 255
                     ):
                         raise DeviceControlError(
@@ -263,7 +264,7 @@ def validate_device_state(state: Any, entity_domain: str) -> Any:
             if isinstance(state, dict):
                 if "speed" in state:
                     speed = state["speed"]
-                    if not isinstance(speed, (int, float)) or not (0 <= speed <= 100):
+                    if not isinstance(speed, int | float) or not (0 <= speed <= 100):
                         raise DeviceControlError(
                             "Fan speed must be a number between 0 and 100"
                         )
@@ -273,7 +274,7 @@ def validate_device_state(state: Any, entity_domain: str) -> Any:
 
         else:
             # For unknown domains, accept string or boolean
-            if isinstance(state, (str, bool, int, float)):
+            if isinstance(state, str | bool | int | float):
                 return state
             else:
                 raise DeviceControlError(
@@ -287,7 +288,7 @@ def validate_device_state(state: Any, entity_domain: str) -> Any:
             raise DeviceControlError(f"State validation failed: {str(e)}")
 
 
-def validate_device_control_request(entity_id: str, state: Any) -> Tuple[str, Any]:
+def validate_device_control_request(entity_id: str, state: Any) -> tuple[str, Any]:
     """
     Validate complete device control request.
 
@@ -321,11 +322,11 @@ async def log_device_action(
     user_id: str,
     entity_id: str,
     action: str,
-    old_state: Optional[Dict[str, Any]] = None,
-    new_state: Optional[Dict[str, Any]] = None,
-    farm_location: Optional[str] = None,
-    error: Optional[str] = None,
-    db: Optional[Any] = None,
+    old_state: dict[str, Any] | None = None,
+    new_state: dict[str, Any] | None = None,
+    farm_location: str | None = None,
+    error: str | None = None,
+    db: Any | None = None,
 ) -> bool:
     """
     Log device control action to database for audit trail.
@@ -385,12 +386,12 @@ async def log_device_action(
 class FarmAccessCache:
     """Cache for farm access permissions to reduce database queries."""
 
-    def __init__(self, ttl_minutes: int = 5):
-        self._cache: Dict[str, Tuple[List[str], float]] = {}
+    def __init__(self, ttl_minutes: int = 5) -> None:
+        self._cache: dict[str, tuple[list[str], float]] = {}
         self._ttl = ttl_minutes * 60
         self._lock = asyncio.Lock()
 
-    async def get_user_farms(self, user_id: str) -> Optional[List[str]]:
+    async def get_user_farms(self, user_id: str) -> list[str] | None:
         """Get cached farm access list for user."""
         async with self._lock:
             if user_id in self._cache:
@@ -401,12 +402,12 @@ class FarmAccessCache:
                     del self._cache[user_id]
             return None
 
-    async def set_user_farms(self, user_id: str, farms: List[str]):
+    async def set_user_farms(self, user_id: str, farms: list[str]) -> None:
         """Cache farm access list for user."""
         async with self._lock:
             self._cache[user_id] = (farms, time.time())
 
-    async def clear_user_cache(self, user_id: str):
+    async def clear_user_cache(self, user_id: str) -> None:
         """Clear cache for specific user (call when permissions change)."""
         async with self._lock:
             if user_id in self._cache:
@@ -417,7 +418,7 @@ class FarmAccessCache:
 _farm_cache = FarmAccessCache()
 
 
-async def get_user_accessible_farms(user_id: str, db: Any) -> List[str]:
+async def get_user_accessible_farms(user_id: str, db: Any) -> list[str]:
     """
     Get list of farm IDs that user has access to.
 
@@ -496,7 +497,7 @@ async def verify_farm_access(user_id: str, farm_location: str, db: Any) -> bool:
 # --- Session Management and Token Utilities ---
 
 
-def get_token_expiration(token: str) -> Optional[datetime]:
+def get_token_expiration(token: str) -> datetime | None:
     """
     Extract expiration time from JWT token without validation.
 
@@ -536,7 +537,7 @@ def is_token_expired(token: str, buffer_minutes: int = 5) -> bool:
     return expiration <= buffer_time
 
 
-def validate_session_health(payload: dict) -> Dict[str, Any]:
+def validate_session_health(payload: dict) -> dict[str, Any]:
     """
     Validate session health and return status information.
 
@@ -610,7 +611,7 @@ async def get_raw_supabase_token(request: Request) -> str:
 
 
 # Keep the old function for backward compatibility but mark as deprecated
-async def get_validated_supabase_token_payload(request: Request) -> Tuple[dict, str]:
+async def get_validated_supabase_token_payload(request: Request) -> tuple[dict, str]:
     """
     DEPRECATED: Use get_raw_supabase_token() instead.
     Supabase recommends not validating JWTs on the server side.
@@ -622,7 +623,7 @@ async def get_validated_supabase_token_payload(request: Request) -> Tuple[dict, 
 
 async def get_validated_supabase_token_with_refresh_check(
     request: Request,
-) -> Tuple[dict, str, Dict[str, Any]]:
+) -> tuple[dict, str, dict[str, Any]]:
     """
     Enhanced token validation that includes refresh recommendations.
 
@@ -644,7 +645,7 @@ async def get_validated_supabase_token_with_refresh_check(
 # --- WebSocket Session Management ---
 
 
-async def validate_websocket_token(token: str) -> Tuple[dict, Dict[str, Any]]:
+async def validate_websocket_token(token: str) -> tuple[dict, dict[str, Any]]:
     """
     Validate WebSocket token and return payload with session health.
 
@@ -770,7 +771,7 @@ async def get_current_active_user(
 async def get_current_active_user_with_session_health(
     raw_token: str = Depends(get_raw_supabase_token),
     db: SupabaseAsyncClient = Depends(get_async_rls_client),
-) -> Tuple["User", Dict[str, Any]]:
+) -> tuple["User", dict[str, Any]]:
     """
     Get current user with session health information.
 
@@ -822,7 +823,7 @@ async def get_current_active_user_with_session_health(
     return User(**user_data), session_health
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -841,7 +842,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 # --- Session Health Monitoring ---
 
 
-async def get_session_health(raw_token: str) -> Dict[str, Any]:
+async def get_session_health(raw_token: str) -> dict[str, Any]:
     """
     Get detailed session health information.
 
@@ -943,9 +944,9 @@ async def secure_device_control(
     state: Any,
     user: "User",
     db: Any,
-    farm_location: Optional[str] = None,
+    farm_location: str | None = None,
     require_farm_access: bool = True,
-) -> Tuple[str, Any]:
+) -> tuple[str, Any]:
     """
     Comprehensive device control security check.
 
@@ -992,12 +993,12 @@ async def secure_device_control(
 async def log_device_control_result(
     user_id: str,
     entity_id: str,
-    old_state: Optional[Dict[str, Any]],
-    new_state: Dict[str, Any],
+    old_state: dict[str, Any] | None,
+    new_state: dict[str, Any],
     success: bool,
-    error_message: Optional[str] = None,
-    farm_location: Optional[str] = None,
-    db: Optional[Any] = None,
+    error_message: str | None = None,
+    farm_location: str | None = None,
+    db: Any | None = None,
 ) -> bool:
     """
     Log the result of a device control operation.
@@ -1032,7 +1033,7 @@ async def log_device_control_result(
 # --- Periodic Maintenance ---
 
 
-async def cleanup_security_caches():
+async def cleanup_security_caches() -> None:
     """
     Cleanup expired data from security caches.
     Should be called periodically (e.g., every hour).
@@ -1048,7 +1049,7 @@ async def cleanup_security_caches():
 # --- Exception Handlers ---
 
 
-def create_security_exception_handler(app):
+def create_security_exception_handler(app) -> None:
     """
     Create exception handlers for security-related errors.
 

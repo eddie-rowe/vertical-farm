@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class FarmAutomationService:
     """Service for managing farm automation background tasks using Supabase queues"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.bg_service = SupabaseBackgroundService()
 
     async def schedule_irrigation_cycle(
@@ -43,7 +43,7 @@ class FarmAutomationService:
         shelf_id: str,
         light_hours: float,
         farm_id: str,
-        start_time: Optional[datetime] = None,
+        start_time: datetime | None = None,
     ) -> str:
         """Schedule light cycle for a specific shelf"""
 
@@ -134,7 +134,7 @@ class FarmAutomationService:
         rule_id: str,
         trigger_value: float,
         current_value: float,
-        sensor_reading_id: Optional[str] = None,
+        sensor_reading_id: str | None = None,
     ) -> str:
         """Trigger evaluation of an automation rule"""
 
@@ -163,9 +163,9 @@ class FarmAutomationService:
         alert_type: str,
         farm_id: str,
         user_id: str,
-        device_id: Optional[str] = None,
-        schedule_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        device_id: str | None = None,
+        schedule_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Schedule a maintenance alert"""
 
@@ -190,7 +190,7 @@ class FarmAutomationService:
         )
 
     async def schedule_yield_analytics(
-        self, farm_id: str, schedule_id: Optional[str] = None, time_range_days: int = 30
+        self, farm_id: str, schedule_id: str | None = None, time_range_days: int = 30
     ) -> str:
         """Schedule yield analytics calculation"""
 
@@ -214,9 +214,9 @@ class FarmAutomationService:
     async def schedule_climate_control(
         self,
         farm_id: str,
-        target_temperature: Optional[float] = None,
-        target_humidity: Optional[float] = None,
-        shelf_id: Optional[str] = None,
+        target_temperature: float | None = None,
+        target_humidity: float | None = None,
+        shelf_id: str | None = None,
     ) -> str:
         """Schedule climate control adjustment"""
 
@@ -240,7 +240,7 @@ class FarmAutomationService:
 
     async def schedule_all_farm_tasks(
         self, farm_id: str, user_id: str
-    ) -> Dict[str, List[str]]:
+    ) -> dict[str, list[str]]:
         """Schedule all recurring tasks for a farm"""
 
         scheduled_tasks = {
@@ -273,7 +273,7 @@ class FarmAutomationService:
 
     async def process_sensor_reading_triggers(
         self, device_assignment_id: str, reading_type: str, value: float, farm_id: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Process sensor reading and trigger any applicable automation rules"""
 
         triggered_tasks = []
@@ -313,7 +313,7 @@ class FarmAutomationService:
             logger.error(f"Failed to process sensor triggers: {e}")
             return []
 
-    async def get_task_status(self, task_id: str) -> Dict[str, Any]:
+    async def get_task_status(self, task_id: str) -> dict[str, Any]:
         """Get the status of a background task"""
 
         try:
@@ -342,7 +342,7 @@ class FarmAutomationService:
             logger.error(f"Failed to cancel task {task_id}: {e}")
             return False
 
-    async def get_farm_task_summary(self, farm_id: str) -> Dict[str, Any]:
+    async def get_farm_task_summary(self, farm_id: str) -> dict[str, Any]:
         """Get summary of all tasks for a farm"""
 
         try:
@@ -367,9 +367,9 @@ async def setup_new_grow_schedule_automation(
     schedule_id: str,
     shelf_id: str,
     farm_id: str,
-    grow_recipe: Dict[str, Any],
+    grow_recipe: dict[str, Any],
     start_date: datetime,
-) -> Dict[str, List[str]]:
+) -> dict[str, list[str]]:
     """Set up all automation tasks for a new grow schedule"""
 
     automation_service = FarmAutomationService()
@@ -422,7 +422,7 @@ async def handle_sensor_alert_threshold(
     threshold_value: float,
     condition: str,
     farm_id: str,
-) -> Optional[str]:
+) -> str | None:
     """Handle sensor reading that crosses alert threshold"""
 
     automation_service = FarmAutomationService()

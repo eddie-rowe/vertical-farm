@@ -16,7 +16,7 @@ from .crud_rack import rack  # Added import for rack CRUD
 class CRUDRow:
     table_name = "rows"
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -42,7 +42,7 @@ class CRUDRow:
         farm_id: UUID,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -64,7 +64,7 @@ class CRUDRow:
         farm_id: UUID,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[RowResponse]:
+    ) -> list[RowResponse]:
         rows_data = await self.get_multi_by_farm(
             supabase, farm_id=farm_id, skip=skip, limit=limit
         )
@@ -93,7 +93,7 @@ class CRUDRow:
         farm_id: UUID,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -112,7 +112,7 @@ class CRUDRow:
 
     async def create_with_farm(
         self, supabase: SupabaseClient, *, obj_in: RowCreate, farm_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             row_data = obj_in.model_dump()
             row_data["farm_id"] = str(farm_id)
@@ -132,7 +132,7 @@ class CRUDRow:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: RowUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             if not update_data:
@@ -158,7 +158,7 @@ class CRUDRow:
 
     async def remove(
         self, supabase: SupabaseClient, *, id: UUID
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)

@@ -44,7 +44,7 @@ async def get_current_user(
     # without the active/superuser checks.
     token_payload: TokenPayload = Depends(get_current_user_payload),
     db: AClient = Depends(get_async_supabase_client),
-) -> Optional[User]:
+) -> User | None:
     """Fetches a user based on token payload. Does not check for active status."""
     # raise NotImplementedError("get_current_user dependency is a placeholder and not fully implemented.")
     # Basic implementation:

@@ -23,7 +23,7 @@ class CacheService:
     for the application.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.cache_manager = CacheManager()
         self._stats = {
             "hits": 0,
@@ -34,7 +34,7 @@ class CacheService:
             "start_time": time.time(),
         }
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Get a value from the cache.
 
@@ -58,7 +58,7 @@ class CacheService:
             self._stats["misses"] += 1
             return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Set a value in the cache.
 
@@ -114,7 +114,7 @@ class CacheService:
             logger.error(f"Error clearing cache: {e}")
             return False
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
 
@@ -144,7 +144,7 @@ class CacheService:
             "start_time": datetime.fromtimestamp(self._stats["start_time"]).isoformat(),
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform a health check on the cache service.
 
@@ -204,7 +204,7 @@ class CacheService:
 
 
 # Global cache service instance
-_cache_service: Optional[CacheService] = None
+_cache_service: CacheService | None = None
 
 
 async def get_cache_service() -> CacheService:

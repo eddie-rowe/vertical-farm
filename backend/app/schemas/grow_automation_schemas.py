@@ -59,9 +59,9 @@ class DeviceType(str, Enum):
 # Device Action Schema
 class DeviceActionSchema(BaseModel):
     action_type: DeviceActionType
-    parameters: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    duration_seconds: Optional[int] = Field(None, ge=1, le=86400)  # Max 24 hours
-    delay_seconds: Optional[int] = Field(None, ge=0, le=3600)  # Max 1 hour
+    parameters: dict[str, Any] | None = Field(default_factory=dict)
+    duration_seconds: int | None = Field(None, ge=1, le=86400)  # Max 24 hours
+    delay_seconds: int | None = Field(None, ge=0, le=3600)  # Max 1 hour
 
     class Config:
         schema_extra = {
@@ -79,9 +79,9 @@ class CreateAutomationScheduleRequest(BaseModel):
     schedule_name: str = Field(..., min_length=1, max_length=100)
     schedule_type: ScheduleType
     device_action: DeviceActionSchema
-    cron_expression: Optional[str] = Field(None, max_length=100)
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
+    cron_expression: str | None = Field(None, max_length=100)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
     is_active: bool = True
 
     @field_validator("cron_expression")
@@ -115,13 +115,13 @@ class CreateAutomationScheduleRequest(BaseModel):
 
 
 class UpdateAutomationScheduleRequest(BaseModel):
-    schedule_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    schedule_type: Optional[ScheduleType] = None
-    device_action: Optional[DeviceActionSchema] = None
-    cron_expression: Optional[str] = Field(None, max_length=100)
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
-    is_active: Optional[bool] = None
+    schedule_name: str | None = Field(None, min_length=1, max_length=100)
+    schedule_type: ScheduleType | None = None
+    device_action: DeviceActionSchema | None = None
+    cron_expression: str | None = Field(None, max_length=100)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool | None = None
 
 
 class CreateAutomationConditionRequest(BaseModel):
@@ -129,9 +129,9 @@ class CreateAutomationConditionRequest(BaseModel):
     condition_name: str = Field(..., min_length=1, max_length=100)
     sensor_entity_id: str = Field(..., min_length=1, max_length=255)
     condition_type: ConditionType
-    threshold_value: Optional[float] = None
-    threshold_min: Optional[float] = None
-    threshold_max: Optional[float] = None
+    threshold_value: float | None = None
+    threshold_min: float | None = None
+    threshold_max: float | None = None
     device_action: DeviceActionSchema
     cooldown_minutes: int = Field(0, ge=0, le=1440)  # Max 24 hours
     is_active: bool = True
@@ -187,21 +187,21 @@ class CreateAutomationConditionRequest(BaseModel):
 
 
 class UpdateAutomationConditionRequest(BaseModel):
-    condition_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    sensor_entity_id: Optional[str] = Field(None, min_length=1, max_length=255)
-    condition_type: Optional[ConditionType] = None
-    threshold_value: Optional[float] = None
-    threshold_min: Optional[float] = None
-    threshold_max: Optional[float] = None
-    device_action: Optional[DeviceActionSchema] = None
-    cooldown_minutes: Optional[int] = Field(None, ge=0, le=1440)
-    is_active: Optional[bool] = None
+    condition_name: str | None = Field(None, min_length=1, max_length=100)
+    sensor_entity_id: str | None = Field(None, min_length=1, max_length=255)
+    condition_type: ConditionType | None = None
+    threshold_value: float | None = None
+    threshold_min: float | None = None
+    threshold_max: float | None = None
+    device_action: DeviceActionSchema | None = None
+    cooldown_minutes: int | None = Field(None, ge=0, le=1440)
+    is_active: bool | None = None
 
 
 class CreateAutomationRuleRequest(BaseModel):
     device_assignment_id: str
     rule_type: str = Field(..., min_length=1, max_length=50)
-    rule_config: Dict[str, Any]
+    rule_config: dict[str, Any]
     priority: int = Field(0, ge=0, le=100)
     is_active: bool = True
 
@@ -226,14 +226,14 @@ class CreateAutomationRuleRequest(BaseModel):
 class GrowAutomationConfigRequest(BaseModel):
     enabled: bool = True
     use_device_profile: bool = False
-    device_profile_id: Optional[str] = None
-    custom_schedules: List[CreateAutomationScheduleRequest] = Field(
+    device_profile_id: str | None = None
+    custom_schedules: list[CreateAutomationScheduleRequest] = Field(
         default_factory=list
     )
-    custom_conditions: List[CreateAutomationConditionRequest] = Field(
+    custom_conditions: list[CreateAutomationConditionRequest] = Field(
         default_factory=list
     )
-    custom_rules: List[CreateAutomationRuleRequest] = Field(default_factory=list)
+    custom_rules: list[CreateAutomationRuleRequest] = Field(default_factory=list)
 
     @field_validator("device_profile_id")
     @classmethod
@@ -251,10 +251,10 @@ class GrowAutomationRuleResponse(BaseModel):
     grow_id: str
     device_assignment_id: str
     rule_type: str
-    rule_config: Dict[str, Any]
+    rule_config: dict[str, Any]
     is_active: bool
     priority: int
-    created_by: Optional[str] = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -265,12 +265,12 @@ class GrowAutomationScheduleResponse(BaseModel):
     device_assignment_id: str
     schedule_name: str
     schedule_type: ScheduleType
-    cron_expression: Optional[str] = None
-    device_action: Dict[str, Any]
+    cron_expression: str | None = None
+    device_action: dict[str, Any]
     is_active: bool
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
-    created_by: Optional[str] = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -282,14 +282,14 @@ class GrowAutomationConditionResponse(BaseModel):
     condition_name: str
     sensor_entity_id: str
     condition_type: ConditionType
-    threshold_value: Optional[float] = None
-    threshold_min: Optional[float] = None
-    threshold_max: Optional[float] = None
-    device_action: Dict[str, Any]
+    threshold_value: float | None = None
+    threshold_min: float | None = None
+    threshold_max: float | None = None
+    device_action: dict[str, Any]
     cooldown_minutes: int
     is_active: bool
-    last_triggered_at: Optional[datetime] = None
-    created_by: Optional[str] = None
+    last_triggered_at: datetime | None = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -298,14 +298,14 @@ class AutomationExecutionResponse(BaseModel):
     id: str
     grow_id: str
     automation_type: AutomationType
-    automation_id: Optional[str] = None
+    automation_id: str | None = None
     device_assignment_id: str
-    action_taken: Dict[str, Any]
+    action_taken: dict[str, Any]
     execution_status: ExecutionStatus
-    execution_result: Optional[Dict[str, Any]] = None
-    error_message: Optional[str] = None
+    execution_result: dict[str, Any] | None = None
+    error_message: str | None = None
     executed_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
 
 
 class GrowDeviceAssignmentResponse(BaseModel):
@@ -322,18 +322,18 @@ class AutomationStatusResponse(BaseModel):
     active_schedules: int
     active_conditions: int
     active_rules: int
-    recent_executions: List[AutomationExecutionResponse]
+    recent_executions: list[AutomationExecutionResponse]
     efficiency_score: float = Field(..., ge=0, le=100)
     monitoring_active: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class GrowAutomationResponse(BaseModel):
-    rules: List[GrowAutomationRuleResponse]
-    schedules: List[GrowAutomationScheduleResponse]
-    conditions: List[GrowAutomationConditionResponse]
-    executions: List[AutomationExecutionResponse]
-    device_assignments: List[GrowDeviceAssignmentResponse]
+    rules: list[GrowAutomationRuleResponse]
+    schedules: list[GrowAutomationScheduleResponse]
+    conditions: list[GrowAutomationConditionResponse]
+    executions: list[AutomationExecutionResponse]
+    device_assignments: list[GrowDeviceAssignmentResponse]
     status: AutomationStatusResponse
 
 
@@ -341,24 +341,24 @@ class GrowAutomationResponse(BaseModel):
 class GrowDeviceProfileResponse(BaseModel):
     id: str
     profile_name: str
-    crop_id: Optional[str] = None
-    grow_stage_id: Optional[str] = None
+    crop_id: str | None = None
+    grow_stage_id: str | None = None
     device_type: DeviceType
-    profile_config: Dict[str, Any]
-    description: Optional[str] = None
+    profile_config: dict[str, Any]
+    description: str | None = None
     is_template: bool
-    created_by: Optional[str] = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
 
 
 class CreateDeviceProfileRequest(BaseModel):
     profile_name: str = Field(..., min_length=1, max_length=100)
-    crop_id: Optional[str] = None
-    grow_stage_id: Optional[str] = None
+    crop_id: str | None = None
+    grow_stage_id: str | None = None
     device_type: DeviceType
-    profile_config: Dict[str, Any]
-    description: Optional[str] = Field(None, max_length=500)
+    profile_config: dict[str, Any]
+    description: str | None = Field(None, max_length=500)
     is_template: bool = False
 
     class Config:
@@ -381,7 +381,7 @@ class CreateDeviceProfileRequest(BaseModel):
 class ManualExecutionRequest(BaseModel):
     device_assignment_id: str
     action: DeviceActionSchema
-    reason: Optional[str] = Field(None, max_length=200)
+    reason: str | None = Field(None, max_length=200)
 
     class Config:
         schema_extra = {
@@ -399,28 +399,28 @@ class ManualExecutionRequest(BaseModel):
 
 # Bulk Operations
 class BulkScheduleCreateRequest(BaseModel):
-    schedules: List[CreateAutomationScheduleRequest] = Field(
+    schedules: list[CreateAutomationScheduleRequest] = Field(
         ..., min_items=1, max_items=50
     )
 
 
 class BulkConditionCreateRequest(BaseModel):
-    conditions: List[CreateAutomationConditionRequest] = Field(
+    conditions: list[CreateAutomationConditionRequest] = Field(
         ..., min_items=1, max_items=50
     )
 
 
 class BulkAutomationToggleRequest(BaseModel):
-    grow_ids: List[str] = Field(..., min_items=1, max_items=100)
+    grow_ids: list[str] = Field(..., min_items=1, max_items=100)
     enabled: bool
 
 
 # Error Responses
 class AutomationErrorResponse(BaseModel):
     error: str
-    details: Optional[Dict[str, Any]] = None
-    grow_id: Optional[str] = None
-    automation_id: Optional[str] = None
+    details: dict[str, Any] | None = None
+    grow_id: str | None = None
+    automation_id: str | None = None
 
 
 # Validation Functions
@@ -451,7 +451,7 @@ def validate_cron_expression(cron_expr: str) -> bool:
         return False  # Invalid cron expression format
 
 
-def validate_device_action(action: Dict[str, Any], device_type: str) -> List[str]:
+def validate_device_action(action: dict[str, Any], device_type: str) -> list[str]:
     """Validate device action against device capabilities"""
     errors = []
 

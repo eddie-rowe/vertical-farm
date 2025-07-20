@@ -38,7 +38,7 @@ class TestFarmCRUD:
         return CRUDFarm()
 
     @pytest.mark.asyncio
-    async def test_create_farm_success(self, farm_crud, mock_supabase_client):
+    async def test_create_farm_success(self, farm_crud, mock_supabase_client) -> None:
         """Test successful farm creation."""
         mock_client, mock_table = mock_supabase_client
 
@@ -65,7 +65,7 @@ class TestFarmCRUD:
             mock_client.table.assert_called_with("farms")
 
     @pytest.mark.asyncio
-    async def test_get_farm_by_id(self, farm_crud, mock_supabase_client):
+    async def test_get_farm_by_id(self, farm_crud, mock_supabase_client) -> None:
         """Test retrieving farm by ID."""
         mock_client, mock_table = mock_supabase_client
 
@@ -90,7 +90,7 @@ class TestFarmCRUD:
             mock_table.eq.assert_called_with("id", farm_id)
 
     @pytest.mark.asyncio
-    async def test_get_farm_not_found(self, farm_crud, mock_supabase_client):
+    async def test_get_farm_not_found(self, farm_crud, mock_supabase_client) -> None:
         """Test retrieving non-existent farm."""
         mock_client, mock_table = mock_supabase_client
 
@@ -103,7 +103,7 @@ class TestFarmCRUD:
             assert result is None
 
     @pytest.mark.asyncio
-    async def test_update_farm_success(self, farm_crud, mock_supabase_client):
+    async def test_update_farm_success(self, farm_crud, mock_supabase_client) -> None:
         """Test successful farm update."""
         mock_client, mock_table = mock_supabase_client
 
@@ -129,7 +129,7 @@ class TestFarmCRUD:
             mock_table.eq.assert_called_with("id", farm_id)
 
     @pytest.mark.asyncio
-    async def test_delete_farm_success(self, farm_crud, mock_supabase_client):
+    async def test_delete_farm_success(self, farm_crud, mock_supabase_client) -> None:
         """Test successful farm deletion."""
         mock_client, mock_table = mock_supabase_client
 
@@ -148,7 +148,7 @@ class TestFarmCRUD:
             mock_table.eq.assert_called_with("id", farm_id)
 
     @pytest.mark.asyncio
-    async def test_get_user_farms(self, farm_crud, mock_supabase_client):
+    async def test_get_user_farms(self, farm_crud, mock_supabase_client) -> None:
         """Test retrieving farms for a specific user."""
         mock_client, mock_table = mock_supabase_client
 
@@ -193,7 +193,7 @@ class TestUserCRUD:
         return CRUDUser()
 
     @pytest.mark.asyncio
-    async def test_get_user_by_email(self, user_crud, mock_supabase_client):
+    async def test_get_user_by_email(self, user_crud, mock_supabase_client) -> None:
         """Test retrieving user by email."""
         mock_client, mock_table = mock_supabase_client
 
@@ -211,7 +211,7 @@ class TestUserCRUD:
             mock_table.eq.assert_called_with("email", "test@example.com")
 
     @pytest.mark.asyncio
-    async def test_create_user_success(self, user_crud, mock_supabase_client):
+    async def test_create_user_success(self, user_crud, mock_supabase_client) -> None:
         """Test successful user creation."""
         mock_client, mock_table = mock_supabase_client
 
@@ -232,7 +232,7 @@ class TestUserCRUD:
             assert result["is_active"] is True
 
     @pytest.mark.asyncio
-    async def test_update_user_activity_status(self, user_crud, mock_supabase_client):
+    async def test_update_user_activity_status(self, user_crud, mock_supabase_client) -> None:
         """Test updating user activity status."""
         mock_client, mock_table = mock_supabase_client
 

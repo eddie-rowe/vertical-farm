@@ -40,19 +40,19 @@ router = APIRouter()
 
 # Pydantic Models
 class SquareConfig(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     name: str
     application_id: str
     access_token: str
     environment: str = Field(default="sandbox", description="sandbox or production")
     is_active: bool = True
-    last_sync_at: Optional[datetime] = None
+    last_sync_at: datetime | None = None
     sync_status: str = "pending"
-    sync_error: Optional[str] = None
-    webhook_status: Optional[str] = None  # "active", "inactive", "failed", "pending"
-    webhook_registered_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    sync_error: str | None = None
+    webhook_status: str | None = None  # "active", "inactive", "failed", "pending"
+    webhook_registered_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareConfigCreate(BaseModel):
@@ -63,76 +63,76 @@ class SquareConfigCreate(BaseModel):
 
 
 class SquareConfigUpdate(BaseModel):
-    name: Optional[str] = None
-    application_id: Optional[str] = None
-    access_token: Optional[str] = None
-    environment: Optional[str] = None
-    is_active: Optional[bool] = None
+    name: str | None = None
+    application_id: str | None = None
+    access_token: str | None = None
+    environment: str | None = None
+    is_active: bool | None = None
 
 
 class SquareConnectionStatus(BaseModel):
     connected: bool
     environment: str
-    application_id: Optional[str] = None
-    last_test_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    webhook_status: Optional[str] = None
+    application_id: str | None = None
+    last_test_at: datetime | None = None
+    error_message: str | None = None
+    webhook_status: str | None = None
     webhook_registered: bool = False
-    webhook_events_received: Optional[int] = None
-    webhook_last_event: Optional[datetime] = None
+    webhook_events_received: int | None = None
+    webhook_last_event: datetime | None = None
 
 
 class SquareLocation(BaseModel):
     id: str
     name: str
-    address: Optional[str] = None
-    phone_number: Optional[str] = None
-    business_name: Optional[str] = None
-    type: Optional[str] = None
-    website_url: Optional[str] = None
+    address: str | None = None
+    phone_number: str | None = None
+    business_name: str | None = None
+    type: str | None = None
+    website_url: str | None = None
     status: str
 
 
 class SquareProduct(BaseModel):
     id: str
     name: str
-    description: Optional[str] = None
-    category_id: Optional[str] = None
-    price_money: Optional[Dict[str, Any]] = None
-    variations: List[Dict[str, Any]] = []
-    image_url: Optional[str] = None
+    description: str | None = None
+    category_id: str | None = None
+    price_money: dict[str, Any] | None = None
+    variations: list[dict[str, Any]] = []
+    image_url: str | None = None
     is_deleted: bool = False
 
 
 class SquareCustomer(BaseModel):
     id: str
-    given_name: Optional[str] = None
-    family_name: Optional[str] = None
-    email_address: Optional[str] = None
-    phone_number: Optional[str] = None
-    company_name: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    given_name: str | None = None
+    family_name: str | None = None
+    email_address: str | None = None
+    phone_number: str | None = None
+    company_name: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareOrder(BaseModel):
     id: str
     location_id: str
     state: str
-    total_money: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    line_items: List[Dict[str, Any]] = []
+    total_money: dict[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    line_items: list[dict[str, Any]] = []
 
 
 class SquarePayment(BaseModel):
     id: str
-    order_id: Optional[str] = None
-    amount_money: Dict[str, Any]
+    order_id: str | None = None
+    amount_money: dict[str, Any]
     status: str
-    source_type: Optional[str] = None
-    card_details: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    source_type: str | None = None
+    card_details: dict[str, Any] | None = None
+    created_at: datetime | None = None
 
 
 class SquareInventoryCount(BaseModel):
@@ -140,20 +140,20 @@ class SquareInventoryCount(BaseModel):
     catalog_object_type: str
     state: str
     location_id: str
-    quantity: Optional[str] = None
-    calculated_at: Optional[datetime] = None
+    quantity: str | None = None
+    calculated_at: datetime | None = None
 
 
 class SquareLoyaltyProgram(BaseModel):
     id: str
     status: str
-    reward_tiers: List[Dict[str, Any]] = []
-    expiration_policy: Optional[Dict[str, Any]] = None
-    terminology: Optional[Dict[str, Any]] = None
-    location_ids: List[str] = []
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    accrual_rules: List[Dict[str, Any]] = []
+    reward_tiers: list[dict[str, Any]] = []
+    expiration_policy: dict[str, Any] | None = None
+    terminology: dict[str, Any] | None = None
+    location_ids: list[str] = []
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    accrual_rules: list[dict[str, Any]] = []
 
 
 class SquareGiftCard(BaseModel):
@@ -161,35 +161,35 @@ class SquareGiftCard(BaseModel):
     type: str
     gan_source: str
     state: str
-    balance_money: Optional[Dict[str, Any]] = None
+    balance_money: dict[str, Any] | None = None
     gan: str
-    created_at: Optional[datetime] = None
-    customer_ids: List[str] = []
+    created_at: datetime | None = None
+    customer_ids: list[str] = []
 
 
 class SquareCategory(BaseModel):
     id: str
     name: str
-    image_ids: List[str] = []
-    category_data: Optional[Dict[str, Any]] = None
+    image_ids: list[str] = []
+    category_data: dict[str, Any] | None = None
     is_deleted: bool = False
     present_at_all_locations: bool = True
-    present_at_location_ids: List[str] = []
-    absent_at_location_ids: List[str] = []
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    present_at_location_ids: list[str] = []
+    absent_at_location_ids: list[str] = []
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareBusinessProfile(BaseModel):
     merchant_id: str
-    business_name: Optional[str] = None
+    business_name: str | None = None
     country: str
     language_code: str
     currency: str
-    business_type: Optional[str] = None
-    business_hours: Optional[Dict[str, Any]] = None
-    business_appointment_settings: Optional[Dict[str, Any]] = None
-    support_seller_id: Optional[str] = None
+    business_type: str | None = None
+    business_hours: dict[str, Any] | None = None
+    business_appointment_settings: dict[str, Any] | None = None
+    support_seller_id: str | None = None
     status: str
 
 
@@ -197,27 +197,27 @@ class SquareBusinessProfile(BaseModel):
 class SquareRefund(BaseModel):
     id: str
     location_id: str
-    amount_money: Dict[str, Any]
-    reason: Optional[str] = None
+    amount_money: dict[str, Any]
+    reason: str | None = None
     status: str
-    processing_fee: Optional[List[Dict[str, Any]]] = None
+    processing_fee: list[dict[str, Any]] | None = None
     payment_id: str
-    order_id: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    order_id: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareDispute(BaseModel):
     id: str
-    amount_money: Optional[Dict[str, Any]] = None
+    amount_money: dict[str, Any] | None = None
     reason: str
     state: str
-    due_at: Optional[datetime] = None
-    disputed_payment: Optional[Dict[str, Any]] = None
-    evidence_ids: List[str] = []
-    card_brand: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    due_at: datetime | None = None
+    disputed_payment: dict[str, Any] | None = None
+    evidence_ids: list[str] = []
+    card_brand: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareSubscription(BaseModel):
@@ -227,13 +227,13 @@ class SquareSubscription(BaseModel):
     customer_id: str
     start_date: str
     status: str
-    tax_percentage: Optional[str] = None
-    invoice_request_method: Optional[str] = None
-    charge_through_date: Optional[str] = None
-    charged_through_date: Optional[str] = None
-    paid_until_date: Optional[str] = None
-    created_at: Optional[datetime] = None
-    timezone: Optional[str] = None
+    tax_percentage: str | None = None
+    invoice_request_method: str | None = None
+    charge_through_date: str | None = None
+    charged_through_date: str | None = None
+    paid_until_date: str | None = None
+    created_at: datetime | None = None
+    timezone: str | None = None
 
 
 class SquareInvoice(BaseModel):
@@ -241,90 +241,90 @@ class SquareInvoice(BaseModel):
     version: int
     location_id: str
     order_id: str
-    primary_recipient: Dict[str, Any]
-    payment_requests: List[Dict[str, Any]] = []
+    primary_recipient: dict[str, Any]
+    payment_requests: list[dict[str, Any]] = []
     delivery_method: str
-    invoice_number: Optional[str] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
-    scheduled_at: Optional[datetime] = None
-    public_url: Optional[str] = None
+    invoice_number: str | None = None
+    title: str | None = None
+    description: str | None = None
+    scheduled_at: datetime | None = None
+    public_url: str | None = None
     status: str
-    timezone: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    timezone: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareTeamMember(BaseModel):
     id: str
-    reference_id: Optional[str] = None
+    reference_id: str | None = None
     is_owner: bool
     status: str
-    given_name: Optional[str] = None
-    family_name: Optional[str] = None
-    email_address: Optional[str] = None
-    phone_number: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    assigned_locations: Optional[Dict[str, Any]] = None
+    given_name: str | None = None
+    family_name: str | None = None
+    email_address: str | None = None
+    phone_number: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    assigned_locations: dict[str, Any] | None = None
 
 
 class SquareWage(BaseModel):
-    title: Optional[str] = None
-    hourly_rate: Optional[Dict[str, Any]] = None
-    job_id: Optional[str] = None
+    title: str | None = None
+    hourly_rate: dict[str, Any] | None = None
+    job_id: str | None = None
 
 
 class SquareLabor(BaseModel):
     id: str
     employee_id: str
-    location_id: Optional[str] = None
-    start_at: Optional[datetime] = None
-    end_at: Optional[datetime] = None
-    wage: Optional[SquareWage] = None
-    teamMember_id: Optional[str] = None
-    declared_cash_tip_money: Optional[Dict[str, Any]] = None
-    version: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    location_id: str | None = None
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+    wage: SquareWage | None = None
+    teamMember_id: str | None = None
+    declared_cash_tip_money: dict[str, Any] | None = None
+    version: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class SquareMerchant(BaseModel):
     id: str
-    business_name: Optional[str] = None
+    business_name: str | None = None
     country: str
     language_code: str
     currency: str
     status: str
-    main_location_id: Optional[str] = None
-    created_at: Optional[datetime] = None
+    main_location_id: str | None = None
+    created_at: datetime | None = None
 
 
 class SquarePayout(BaseModel):
     id: str
     status: str
     location_id: str
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    amount_money: Optional[Dict[str, Any]] = None
-    destination: Optional[Dict[str, Any]] = None
-    version: Optional[int] = None
-    type: Optional[str] = None
-    payout_fee: Optional[List[Dict[str, Any]]] = None
-    arrival_date: Optional[str] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    amount_money: dict[str, Any] | None = None
+    destination: dict[str, Any] | None = None
+    version: int | None = None
+    type: str | None = None
+    payout_fee: list[dict[str, Any]] | None = None
+    arrival_date: str | None = None
 
 
 class SquareService:
     """Service for interacting with Square API using real HTTP calls"""
 
-    def __init__(self, config: Optional[SquareConfig] = None):
+    def __init__(self, config: SquareConfig | None = None) -> None:
         """Initialize with optional user-specific configuration"""
         self.config = config
 
     # Cache Helper Methods
     async def _get_cache_entry(
         self, user_id: str, entity_type: str, cache_key: str, supabase
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get a cache entry from the database"""
         try:
             table_name = f"square_cache_{entity_type}"
@@ -432,7 +432,7 @@ class SquareService:
             return False
 
     async def _invalidate_cache_for_user(
-        self, user_id: str, entity_type: Optional[str] = None, supabase=None
+        self, user_id: str, entity_type: str | None = None, supabase=None
     ) -> bool:
         """Invalidate cache entries for a user (optionally for specific entity type)"""
         try:
@@ -487,7 +487,7 @@ class SquareService:
             logger.error(f"Error logging sync operation: {e}")
 
     async def _get_cache_key(
-        self, config: SquareConfig, additional_params: Optional[str] = None
+        self, config: SquareConfig, additional_params: str | None = None
     ) -> str:
         """Generate a cache key based on config and additional parameters"""
         base_key = f"{config.application_id}_{config.environment}"
@@ -565,7 +565,7 @@ class SquareService:
             )
             return False
 
-    def _get_cache_types_for_event(self, event_type: str) -> List[str]:
+    def _get_cache_types_for_event(self, event_type: str) -> list[str]:
         """Map Square webhook event types to cache types that should be invalidated."""
         event_cache_mapping = {
             "catalog.version.updated": ["products"],
@@ -619,7 +619,7 @@ class SquareService:
         event_id: str,
         status: str,
         cache_invalidated: bool = False,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
         supabase=None,
     ) -> None:
         """Update webhook event processing status."""
@@ -642,7 +642,7 @@ class SquareService:
 
     async def get_webhook_config(
         self, user_id: str, supabase
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get webhook configuration for a user."""
         try:
             result = (
@@ -662,7 +662,7 @@ class SquareService:
 
     async def create_webhook_config(
         self, user_id: str, webhook_data: SquareWebhookCreate, supabase
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create webhook configuration for a user."""
         try:
             # Generate a signature key (in production, this would come from Square)
@@ -690,7 +690,7 @@ class SquareService:
             raise
 
     async def register_webhook_with_square(
-        self, config: SquareConfig, webhook_url: str, event_types: List[str]
+        self, config: SquareConfig, webhook_url: str, event_types: list[str]
     ) -> WebhookRegistrationResponse:
         """Register webhook with Square API."""
         try:
@@ -740,8 +740,8 @@ class SquareService:
     async def invalidate_cache_manually(
         self,
         user_id: str,
-        cache_types: List[str],
-        reason: Optional[str] = None,
+        cache_types: list[str],
+        reason: str | None = None,
         supabase=None,
     ) -> CacheInvalidationResponse:
         """Manually invalidate specific cache types for a user."""
@@ -790,7 +790,7 @@ class SquareService:
                 timestamp=datetime.utcnow(),
             )
 
-    def is_configured(self, config: Optional[SquareConfig] = None) -> bool:
+    def is_configured(self, config: SquareConfig | None = None) -> bool:
         """Check if Square API is configured with user's credentials"""
         check_config = config or self.config
         return bool(
@@ -804,7 +804,7 @@ class SquareService:
         else:
             return "https://connect.squareupsandbox.com"
 
-    def _get_headers(self, access_token: str) -> Dict[str, str]:
+    def _get_headers(self, access_token: str) -> dict[str, str]:
         """Get headers for Square API requests"""
         return {
             "Authorization": f"Bearer {access_token}",
@@ -812,7 +812,7 @@ class SquareService:
             "Square-Version": "2024-12-18",  # Latest API version
         }
 
-    async def get_user_configs(self, user_id: str, supabase) -> List[SquareConfig]:
+    async def get_user_configs(self, user_id: str, supabase) -> list[SquareConfig]:
         """Get all Square configurations for a user"""
         try:
             response = (
@@ -835,7 +835,7 @@ class SquareService:
 
     async def get_config_by_id(
         self, user_id: str, config_id: str, supabase
-    ) -> Optional[SquareConfig]:
+    ) -> SquareConfig | None:
         """Get a specific Square configuration by ID"""
         try:
             response = (
@@ -960,7 +960,7 @@ class SquareService:
 
     async def update_config(
         self, user_id: str, config_id: str, config_data: SquareConfigUpdate, supabase
-    ) -> Optional[SquareConfig]:
+    ) -> SquareConfig | None:
         """Update an existing Square configuration"""
         try:
             # Only update non-None fields
@@ -1008,7 +1008,7 @@ class SquareService:
             )
 
     async def test_connection(
-        self, config: SquareConfig, user_id: Optional[str] = None, supabase=None
+        self, config: SquareConfig, user_id: str | None = None, supabase=None
     ) -> SquareConnectionStatus:
         """Test connection to Square API with given configuration"""
         try:
@@ -1102,8 +1102,8 @@ class SquareService:
             )
 
     async def get_locations(
-        self, config: SquareConfig, user_id: Optional[str] = None, supabase=None
-    ) -> List[SquareLocation]:
+        self, config: SquareConfig, user_id: str | None = None, supabase=None
+    ) -> list[SquareLocation]:
         """Get locations from Square API with caching"""
         # Try cache first if user_id and supabase are provided
         if user_id and supabase:
@@ -1202,8 +1202,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch locations")
 
     async def get_catalog_items(
-        self, config: SquareConfig, user_id: Optional[str] = None, supabase=None
-    ) -> List[SquareProduct]:
+        self, config: SquareConfig, user_id: str | None = None, supabase=None
+    ) -> list[SquareProduct]:
         """Get catalog items from Square API with caching support"""
         if not self.is_configured(config):
             logger.error("Square API not configured")
@@ -1300,8 +1300,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch products")
 
     async def get_customers(
-        self, config: SquareConfig, user_id: Optional[str] = None, supabase=None
-    ) -> List[SquareCustomer]:
+        self, config: SquareConfig, user_id: str | None = None, supabase=None
+    ) -> list[SquareCustomer]:
         """Get customers from Square API with caching support"""
         if not self.is_configured(config):
             logger.error("Square API not configured")
@@ -1410,10 +1410,10 @@ class SquareService:
     async def get_orders(
         self,
         config: SquareConfig,
-        location_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        location_id: str | None = None,
+        user_id: str | None = None,
         supabase=None,
-    ) -> List[SquareOrder]:
+    ) -> list[SquareOrder]:
         """Get orders from Square API with caching support"""
         if not self.is_configured(config):
             logger.error("Square API not configured")
@@ -1525,10 +1525,10 @@ class SquareService:
     async def get_payments(
         self,
         config: SquareConfig,
-        location_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        location_id: str | None = None,
+        user_id: str | None = None,
         supabase=None,
-    ) -> List[SquarePayment]:
+    ) -> list[SquarePayment]:
         """Get payments from Square API with caching support"""
         if not self.is_configured(config):
             logger.error("Square API not configured")
@@ -1633,8 +1633,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch payments")
 
     async def get_inventory_counts(
-        self, config: SquareConfig, location_ids: Optional[List[str]] = None
-    ) -> List[SquareInventoryCount]:
+        self, config: SquareConfig, location_ids: list[str] | None = None
+    ) -> list[SquareInventoryCount]:
         """Get inventory counts from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -1695,8 +1695,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch inventory")
 
     async def get_refunds(
-        self, config: SquareConfig, location_id: Optional[str] = None
-    ) -> List[SquareRefund]:
+        self, config: SquareConfig, location_id: str | None = None
+    ) -> list[SquareRefund]:
         """Get refunds from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -1763,7 +1763,7 @@ class SquareService:
             logger.error(f"Error fetching Square refunds: {e}")
             raise HTTPException(status_code=500, detail="Failed to fetch refunds")
 
-    async def get_disputes(self, config: SquareConfig) -> List[SquareDispute]:
+    async def get_disputes(self, config: SquareConfig) -> list[SquareDispute]:
         """Get disputes from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -1829,8 +1829,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch disputes")
 
     async def get_subscriptions(
-        self, config: SquareConfig, location_id: Optional[str] = None
-    ) -> List[SquareSubscription]:
+        self, config: SquareConfig, location_id: str | None = None
+    ) -> list[SquareSubscription]:
         """Get subscriptions from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -1902,8 +1902,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch subscriptions")
 
     async def get_invoices(
-        self, config: SquareConfig, location_id: Optional[str] = None
-    ) -> List[SquareInvoice]:
+        self, config: SquareConfig, location_id: str | None = None
+    ) -> list[SquareInvoice]:
         """Get invoices from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -1984,7 +1984,7 @@ class SquareService:
             logger.error(f"Error fetching Square invoices: {e}")
             raise HTTPException(status_code=500, detail="Failed to fetch invoices")
 
-    async def get_team_members(self, config: SquareConfig) -> List[SquareTeamMember]:
+    async def get_team_members(self, config: SquareConfig) -> list[SquareTeamMember]:
         """Get team members from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -2047,8 +2047,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch team members")
 
     async def get_labor(
-        self, config: SquareConfig, location_id: Optional[str] = None
-    ) -> List[SquareLabor]:
+        self, config: SquareConfig, location_id: str | None = None
+    ) -> list[SquareLabor]:
         """Get labor/timecard data from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -2136,7 +2136,7 @@ class SquareService:
             logger.error(f"Error fetching Square labor data: {e}")
             raise HTTPException(status_code=500, detail="Failed to fetch labor data")
 
-    async def get_merchants(self, config: SquareConfig) -> List[SquareMerchant]:
+    async def get_merchants(self, config: SquareConfig) -> list[SquareMerchant]:
         """Get merchant information from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -2188,8 +2188,8 @@ class SquareService:
             raise HTTPException(status_code=500, detail="Failed to fetch merchants")
 
     async def get_payouts(
-        self, config: SquareConfig, location_id: Optional[str] = None
-    ) -> List[SquarePayout]:
+        self, config: SquareConfig, location_id: str | None = None
+    ) -> list[SquarePayout]:
         """Get payout information from Square API"""
         try:
             base_url = self._get_base_url(config.environment)
@@ -2435,7 +2435,7 @@ async def invalidate_cache(
         raise HTTPException(status_code=500, detail="Failed to invalidate cache")
 
 
-@router.get("/webhooks/events", response_model=List[SquareWebhookEventResponse])
+@router.get("/webhooks/events", response_model=list[SquareWebhookEventResponse])
 async def get_webhook_events(
     limit: int = Query(50, ge=1, le=100, description="Number of events to retrieve"),
     offset: int = Query(0, ge=0, description="Number of events to skip"),
@@ -2533,7 +2533,7 @@ async def get_webhook_health(
         raise HTTPException(status_code=500, detail="Failed to get webhook health")
 
 
-@router.get("/configs", response_model=List[SquareConfig])
+@router.get("/configs", response_model=list[SquareConfig])
 async def get_user_square_configs(
     current_user: User = Depends(get_current_user), db=Depends(get_async_rls_client)
 ):
@@ -2607,7 +2607,7 @@ async def test_square_connection(
     return await square_service.test_connection(config, str(current_user.id), db)
 
 
-@router.get("/locations", response_model=List[SquareLocation])
+@router.get("/locations", response_model=list[SquareLocation])
 async def get_square_locations(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2621,7 +2621,7 @@ async def get_square_locations(
     return await square_service.get_locations(config, str(current_user.id), db)
 
 
-@router.get("/products", response_model=List[SquareProduct])
+@router.get("/products", response_model=list[SquareProduct])
 async def get_square_products(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2635,7 +2635,7 @@ async def get_square_products(
     return await square_service.get_catalog_items(config, str(current_user.id), db)
 
 
-@router.get("/customers", response_model=List[SquareCustomer])
+@router.get("/customers", response_model=list[SquareCustomer])
 async def get_square_customers(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2649,10 +2649,10 @@ async def get_square_customers(
     return await square_service.get_customers(config, str(current_user.id), db)
 
 
-@router.get("/orders", response_model=List[SquareOrder])
+@router.get("/orders", response_model=list[SquareOrder])
 async def get_square_orders(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2666,10 +2666,10 @@ async def get_square_orders(
     )
 
 
-@router.get("/payments", response_model=List[SquarePayment])
+@router.get("/payments", response_model=list[SquarePayment])
 async def get_square_payments(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2683,10 +2683,10 @@ async def get_square_payments(
     )
 
 
-@router.get("/inventory", response_model=List[SquareInventoryCount])
+@router.get("/inventory", response_model=list[SquareInventoryCount])
 async def get_square_inventory(
     config_id: str,
-    location_ids: Optional[str] = None,
+    location_ids: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2701,7 +2701,7 @@ async def get_square_inventory(
 
 @router.get("/status", response_model=SquareConnectionStatus)
 async def get_square_status(
-    config_id: Optional[str] = Query(
+    config_id: str | None = Query(
         None, description="Configuration ID to check status"
     ),
     current_user: User = Depends(get_current_user),
@@ -2748,10 +2748,10 @@ async def get_square_status(
 # New API endpoints for additional Square integrations
 
 
-@router.get("/refunds", response_model=List[SquareRefund])
+@router.get("/refunds", response_model=list[SquareRefund])
 async def get_square_refunds(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2763,7 +2763,7 @@ async def get_square_refunds(
     return await square_service.get_refunds(config, location_id)
 
 
-@router.get("/disputes", response_model=List[SquareDispute])
+@router.get("/disputes", response_model=list[SquareDispute])
 async def get_square_disputes(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2777,10 +2777,10 @@ async def get_square_disputes(
     return await square_service.get_disputes(config)
 
 
-@router.get("/subscriptions", response_model=List[SquareSubscription])
+@router.get("/subscriptions", response_model=list[SquareSubscription])
 async def get_square_subscriptions(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2792,10 +2792,10 @@ async def get_square_subscriptions(
     return await square_service.get_subscriptions(config, location_id)
 
 
-@router.get("/invoices", response_model=List[SquareInvoice])
+@router.get("/invoices", response_model=list[SquareInvoice])
 async def get_square_invoices(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2807,7 +2807,7 @@ async def get_square_invoices(
     return await square_service.get_invoices(config, location_id)
 
 
-@router.get("/team-members", response_model=List[SquareTeamMember])
+@router.get("/team-members", response_model=list[SquareTeamMember])
 async def get_square_team_members(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2821,10 +2821,10 @@ async def get_square_team_members(
     return await square_service.get_team_members(config)
 
 
-@router.get("/labor", response_model=List[SquareLabor])
+@router.get("/labor", response_model=list[SquareLabor])
 async def get_square_labor(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -2836,7 +2836,7 @@ async def get_square_labor(
     return await square_service.get_labor(config, location_id)
 
 
-@router.get("/merchants", response_model=List[SquareMerchant])
+@router.get("/merchants", response_model=list[SquareMerchant])
 async def get_square_merchants(
     config_id: str,
     current_user: User = Depends(get_current_user),
@@ -2850,10 +2850,10 @@ async def get_square_merchants(
     return await square_service.get_merchants(config)
 
 
-@router.get("/payouts", response_model=List[SquarePayout])
+@router.get("/payouts", response_model=list[SquarePayout])
 async def get_square_payouts(
     config_id: str,
-    location_id: Optional[str] = None,
+    location_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):

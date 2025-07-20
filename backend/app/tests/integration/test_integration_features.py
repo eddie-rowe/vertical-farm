@@ -23,7 +23,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
 
 
 class IntegrationTester:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8000") -> None:
         self.base_url = base_url
         self.session = None
         self.test_results = []
@@ -36,7 +36,7 @@ class IntegrationTester:
         if self.session:
             await self.session.close()
 
-    def log_test(self, test_name: str, success: bool, details: str = ""):
+    def log_test(self, test_name: str, success: bool, details: str = "") -> None:
         """Log test result"""
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"{status} {test_name}")
@@ -51,7 +51,7 @@ class IntegrationTester:
             }
         )
 
-    async def test_backend_health(self):
+    async def test_backend_health(self) -> bool | None:
         """Test basic backend connectivity"""
         try:
             async with self.session.get(f"{self.base_url}/health") as response:
@@ -72,7 +72,7 @@ class IntegrationTester:
             self.log_test("Backend Health Check", False, f"Connection error: {str(e)}")
             return False
 
-    async def test_database_connection(self):
+    async def test_database_connection(self) -> bool | None:
         """Test Supabase database connection with caching"""
         try:
             async with self.session.get(
@@ -160,7 +160,7 @@ class IntegrationTester:
             self.log_test("HTTP Cache Headers", False, f"Error: {str(e)}")
             return False
 
-    async def test_background_task_submission(self):
+    async def test_background_task_submission(self) -> bool | None:
         """Test Supabase background task submission"""
         try:
             task_data = {
@@ -190,7 +190,7 @@ class IntegrationTester:
             self.log_test("Background Task Submission", False, f"Error: {str(e)}")
             return False
 
-    async def test_queue_statistics(self):
+    async def test_queue_statistics(self) -> bool | None:
         """Test background queue statistics"""
         try:
             async with self.session.get(
@@ -212,7 +212,7 @@ class IntegrationTester:
             self.log_test("Queue Statistics", False, f"Error: {str(e)}")
             return False
 
-    async def test_home_assistant_error_handling(self):
+    async def test_home_assistant_error_handling(self) -> bool | None:
         """Test Home Assistant error handling and recovery"""
         try:
             # Test with invalid Home Assistant server
@@ -328,7 +328,7 @@ class IntegrationTester:
         return passed == total
 
 
-async def main():
+async def main() -> None:
     """Main test runner"""
     try:
         async with IntegrationTester() as tester:

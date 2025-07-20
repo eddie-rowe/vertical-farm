@@ -21,11 +21,11 @@ class CacheManager:
     distributed cache solution.
     """
 
-    def __init__(self):
-        self._cache: Dict[str, Dict[str, Any]] = {}
+    def __init__(self) -> None:
+        self._cache: dict[str, dict[str, Any]] = {}
         self._lock = asyncio.Lock()
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Get a value from the cache.
 
@@ -49,7 +49,7 @@ class CacheManager:
             return cache_entry["value"]
 
     async def set(
-        self, key: str, value: Any, ttl_seconds: Optional[int] = None
+        self, key: str, value: Any, ttl_seconds: int | None = None
     ) -> None:
         """
         Set a value in the cache.
@@ -103,7 +103,7 @@ class CacheManager:
         """
         return await self.get(key) is not None
 
-    async def keys(self, pattern: Optional[str] = None) -> List[str]:
+    async def keys(self, pattern: str | None = None) -> list[str]:
         """
         Get all cache keys, optionally filtered by pattern.
 
@@ -144,7 +144,7 @@ class CacheManager:
 
             return len(expired_keys)
 
-    async def stats(self) -> Dict[str, Any]:
+    async def stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
 
@@ -172,7 +172,7 @@ class CacheManager:
 
 
 # Global cache manager instance
-_cache_manager: Optional[CacheManager] = None
+_cache_manager: CacheManager | None = None
 
 
 def get_cache_manager() -> CacheManager:

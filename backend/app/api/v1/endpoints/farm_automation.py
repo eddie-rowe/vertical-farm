@@ -27,7 +27,7 @@ class LightScheduleRequest(BaseModel):
     shelf_id: str
     light_hours: float = Field(ge=0, le=24)
     farm_id: str
-    start_time: Optional[datetime] = None
+    start_time: datetime | None = None
 
 
 class SensorMonitoringRequest(BaseModel):
@@ -46,29 +46,29 @@ class AutomationRuleRequest(BaseModel):
     rule_id: str
     trigger_value: float
     current_value: float
-    sensor_reading_id: Optional[str] = None
+    sensor_reading_id: str | None = None
 
 
 class MaintenanceAlertRequest(BaseModel):
     alert_type: str
     farm_id: str
-    device_id: Optional[str] = None
-    schedule_id: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    device_id: str | None = None
+    schedule_id: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class ClimateControlRequest(BaseModel):
     farm_id: str
-    target_temperature: Optional[float] = Field(None, ge=-10, le=50)
-    target_humidity: Optional[float] = Field(None, ge=0, le=100)
-    shelf_id: Optional[str] = None
+    target_temperature: float | None = Field(None, ge=-10, le=50)
+    target_humidity: float | None = Field(None, ge=0, le=100)
+    shelf_id: str | None = None
 
 
 class GrowScheduleAutomationRequest(BaseModel):
     schedule_id: str
     shelf_id: str
     farm_id: str
-    grow_recipe: Dict[str, Any]
+    grow_recipe: dict[str, Any]
     start_date: datetime
 
 
@@ -81,8 +81,8 @@ class TaskStatusResponse(BaseModel):
     task_id: str
     status: str
     message: str
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 class FarmTaskSummaryResponse(BaseModel):
@@ -263,7 +263,7 @@ async def schedule_climate_control(
         )
 
 
-@router.post("/grow-schedule/setup-automation", response_model=Dict[str, List[str]])
+@router.post("/grow-schedule/setup-automation", response_model=dict[str, list[str]])
 async def setup_grow_schedule_automation(
     request: GrowScheduleAutomationRequest,
     current_user: dict = Depends(get_current_user),

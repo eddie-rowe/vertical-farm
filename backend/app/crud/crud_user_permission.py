@@ -41,7 +41,7 @@ async def get_user_permission(
 
 async def get_user_permissions_for_farm(
     db: AClient, farm_id: UUID, skip: int = 0, limit: int = 100
-) -> List[
+) -> list[
     "user_permission_model.UserPermissionInDB"
 ]:  # Changed return type to string literal
     response = (
@@ -66,7 +66,7 @@ async def get_user_permissions_for_farm(
 
 async def get_permissions_for_user(
     db: AClient, user_id: UUID, skip: int = 0, limit: int = 100
-) -> List[
+) -> list[
     "user_permission_model.UserPermissionInDB"
 ]:  # Changed return type to string literal
     response = (
@@ -165,7 +165,7 @@ async def delete_user_permission(
 
 
 async def can_user_perform_action(
-    db: AClient, user_id: UUID, farm_id: UUID, levels: List[PermissionLevel]
+    db: AClient, user_id: UUID, farm_id: UUID, levels: list[PermissionLevel]
 ) -> bool:
     # TODO: Re-implement platform admin check without SQLAlchemy User model
     # For example, fetch user role directly from 'users' table or auth context

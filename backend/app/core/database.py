@@ -5,7 +5,7 @@ This module provides database dependencies for the FastAPI application
 using Supabase as the backend database.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from supabase import Client, create_client
 

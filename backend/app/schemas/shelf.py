@@ -8,12 +8,12 @@ from app.schemas.sensor_device import SensorDeviceResponse
 
 # Shared properties
 class ShelfBase(BaseModel):
-    name: Optional[str] = Field(None, min_length=2, max_length=50)
-    rack_id: Optional[UUID] = None  # Made optional in base, required in Create
-    position_in_rack: Optional[int] = Field(None, gt=0)
-    width: Optional[float] = Field(None, gt=0)
-    depth: Optional[float] = Field(None, gt=0)
-    max_weight: Optional[float] = Field(None, gt=0)
+    name: str | None = Field(None, min_length=2, max_length=50)
+    rack_id: UUID | None = None  # Made optional in base, required in Create
+    position_in_rack: int | None = Field(None, gt=0)
+    width: float | None = Field(None, gt=0)
+    depth: float | None = Field(None, gt=0)
+    max_weight: float | None = Field(None, gt=0)
 
 
 # Properties to receive on item creation
@@ -28,12 +28,12 @@ class ShelfCreate(ShelfBase):
 
 # Properties to receive on item update
 class ShelfUpdate(BaseModel):  # All fields optional for update
-    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    name: str | None = Field(None, min_length=2, max_length=50)
     # rack_id: Optional[UUID] = None # Typically rack_id is not updatable for a shelf
-    position_in_rack: Optional[int] = Field(None, gt=0)
-    width: Optional[float] = Field(None, gt=0)
-    depth: Optional[float] = Field(None, gt=0)
-    max_weight: Optional[float] = Field(None, gt=0)
+    position_in_rack: int | None = Field(None, gt=0)
+    width: float | None = Field(None, gt=0)
+    depth: float | None = Field(None, gt=0)
+    max_weight: float | None = Field(None, gt=0)
 
 
 # Properties shared by models stored in DB
@@ -51,7 +51,7 @@ class ShelfInDBBase(ShelfBase):
 
 # Properties to return to client
 class ShelfResponse(ShelfInDBBase):
-    devices: Optional[List[SensorDeviceResponse]] = Field(default_factory=list)
+    devices: list[SensorDeviceResponse] | None = Field(default_factory=list)
 
 
 # Properties stored in DB

@@ -44,14 +44,14 @@ class CacheKeyType(Enum):
 class SensorReading:
     """Sensor reading data structure"""
 
-    id: Optional[int]
+    id: int | None
     device_assignment_id: str
     reading_type: str
     value: float
-    unit: Optional[str]
+    unit: str | None
     timestamp: datetime
-    device_name: Optional[str] = None
-    location: Optional[str] = None
+    device_name: str | None = None
+    location: str | None = None
 
 
 @dataclass
@@ -71,7 +71,7 @@ class SensorAggregate:
 class SensorCacheService:
     """Service for caching sensor data and related information"""
 
-    def __init__(self, cache_manager: CacheManager):
+    def __init__(self, cache_manager: CacheManager) -> None:
         self.cache = cache_manager
         self.default_ttl = {
             CacheKeyType.SENSOR_LATEST: 300,  # 5 minutes
@@ -92,9 +92,9 @@ class SensorCacheService:
     async def get_latest_sensor_readings(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
-    ) -> List[SensorReading]:
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+    ) -> list[SensorReading]:
         """
         Get latest sensor readings for user's devices
 
@@ -145,7 +145,7 @@ class SensorCacheService:
 
     async def get_sensor_history(
         self, user_id: str, device_id: str, sensor_type: str, hours: int = 24
-    ) -> List[SensorReading]:
+    ) -> list[SensorReading]:
         """
         Get sensor reading history for a specific device and sensor type
 
@@ -195,10 +195,10 @@ class SensorCacheService:
     async def get_sensor_aggregates(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
         period_hours: int = 24,
-    ) -> List[SensorAggregate]:
+    ) -> list[SensorAggregate]:
         """
         Get aggregated sensor data (averages, min, max) for dashboard charts
 
@@ -250,7 +250,7 @@ class SensorCacheService:
 
         return aggregates
 
-    async def get_static_species_data(self) -> List[Dict[str, Any]]:
+    async def get_static_species_data(self) -> list[dict[str, Any]]:
         """
         Get cached species data (static data that changes rarely)
 
@@ -280,7 +280,7 @@ class SensorCacheService:
 
         return species_data
 
-    async def get_static_plant_varieties_data(self) -> List[Dict[str, Any]]:
+    async def get_static_plant_varieties_data(self) -> list[dict[str, Any]]:
         """
         Get cached plant varieties data (static data that changes rarely)
 
@@ -310,7 +310,7 @@ class SensorCacheService:
 
         return varieties_data
 
-    async def get_static_grow_recipes_data(self) -> List[Dict[str, Any]]:
+    async def get_static_grow_recipes_data(self) -> list[dict[str, Any]]:
         """
         Get cached grow recipes data (static data that changes rarely)
 
@@ -343,9 +343,9 @@ class SensorCacheService:
     async def invalidate_sensor_cache(
         self,
         user_id: str,
-        device_id: Optional[str] = None,
-        sensor_type: Optional[str] = None,
-    ):
+        device_id: str | None = None,
+        sensor_type: str | None = None,
+    ) -> None:
         """
         Invalidate sensor-related cache entries
 
@@ -371,7 +371,7 @@ class SensorCacheService:
         for pattern in patterns:
             await self.cache.delete_pattern(pattern)
 
-    async def invalidate_static_cache(self, data_type: str):
+    async def invalidate_static_cache(self, data_type: str) -> None:
         """
         Invalidate static data cache
 
@@ -394,9 +394,9 @@ class SensorCacheService:
     async def _fetch_latest_sensor_readings_from_db(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
-    ) -> List[SensorReading]:
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+    ) -> list[SensorReading]:
         """Fetch latest sensor readings from database"""
         try:
             # Get Supabase client
@@ -417,7 +417,7 @@ class SensorCacheService:
 
     async def _fetch_sensor_history_from_db(
         self, user_id: str, device_id: str, sensor_type: str, hours: int
-    ) -> List[SensorReading]:
+    ) -> list[SensorReading]:
         """Fetch sensor history from database"""
         try:
             # Get Supabase client
@@ -439,10 +439,10 @@ class SensorCacheService:
     async def _fetch_sensor_aggregates_from_db(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
         period_hours: int = 24,
-    ) -> List[SensorAggregate]:
+    ) -> list[SensorAggregate]:
         """Fetch sensor aggregates from database"""
         try:
             # Get Supabase client
@@ -461,7 +461,7 @@ class SensorCacheService:
             logger.error(f"Error fetching sensor aggregates from DB: {e}")
             return []
 
-    async def _fetch_species_from_db(self) -> List[Dict[str, Any]]:
+    async def _fetch_species_from_db(self) -> list[dict[str, Any]]:
         """Fetch species data from database"""
         try:
             # Get Supabase client
@@ -478,7 +478,7 @@ class SensorCacheService:
             logger.error(f"Error fetching species from DB: {e}")
             return []
 
-    async def _fetch_plant_varieties_from_db(self) -> List[Dict[str, Any]]:
+    async def _fetch_plant_varieties_from_db(self) -> list[dict[str, Any]]:
         """Fetch plant varieties data from database"""
         try:
             # Get Supabase client
@@ -495,7 +495,7 @@ class SensorCacheService:
             logger.error(f"Error fetching plant varieties from DB: {e}")
             return []
 
-    async def _fetch_grow_recipes_from_db(self) -> List[Dict[str, Any]]:
+    async def _fetch_grow_recipes_from_db(self) -> list[dict[str, Any]]:
         """Fetch grow recipes data from database"""
         try:
             # Get Supabase client

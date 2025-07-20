@@ -28,13 +28,13 @@ class TaskResponse(BaseModel):
 
 
 class BulkControlRequest(BaseModel):
-    entity_ids: List[str]
+    entity_ids: list[str]
     action: str  # 'turn_on', 'turn_off'
-    value: Optional[int] = None
+    value: int | None = None
 
 
 class DataCollectionRequest(BaseModel):
-    entity_ids: List[str]
+    entity_ids: list[str]
     time_range: int = 3600  # seconds
 
 
@@ -96,7 +96,7 @@ async def get_queue_statistics():
 
 @router.get("/logs")
 async def get_task_logs(
-    limit: int = 100, task_type: Optional[str] = None, success: Optional[bool] = None
+    limit: int = 100, task_type: str | None = None, success: bool | None = None
 ):
     """Get task execution logs"""
     try:

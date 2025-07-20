@@ -39,7 +39,7 @@ async def websocket_endpoint(
     websocket: WebSocket,
     token: str = Query(...),
     device_service: DeviceMonitoringService = Depends(get_device_monitoring_service),
-):
+) -> None:
     """WebSocket endpoint for real-time device updates"""
     try:
         # Validate token and get user (you'll need to implement this)
@@ -77,10 +77,10 @@ async def websocket_endpoint(
             pass  # WebSocket already closed or connection broken
 
 
-@router.get("/assignments", response_model=List[DeviceAssignmentResponse])
+@router.get("/assignments", response_model=list[DeviceAssignmentResponse])
 async def get_device_assignments(
-    location_id: Optional[str] = Query(None, description="Filter by location ID"),
-    device_type: Optional[DeviceType] = Query(
+    location_id: str | None = Query(None, description="Filter by location ID"),
+    device_type: DeviceType | None = Query(
         None, description="Filter by device type"
     ),
     current_user: dict = Depends(get_current_user),
@@ -312,7 +312,7 @@ async def device_service_health(
 
 @router.get("/states")
 async def get_device_states(
-    entity_ids: Optional[str] = Query(None, description="Comma-separated entity IDs"),
+    entity_ids: str | None = Query(None, description="Comma-separated entity IDs"),
     current_user: dict = Depends(get_current_user),
     device_service: DeviceMonitoringService = Depends(get_device_monitoring_service),
 ):
@@ -342,7 +342,7 @@ async def get_device_states(
 
 
 # Helper function (you'll need to implement this based on your auth system)
-async def validate_websocket_token(token: str) -> Optional[str]:
+async def validate_websocket_token(token: str) -> str | None:
     """Validate WebSocket token and return user ID"""
     try:
         # Implement your token validation logic here

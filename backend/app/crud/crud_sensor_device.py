@@ -17,7 +17,7 @@ from app.schemas.sensor_device import (  # Pydantic schemas
 class CRUDSensorDevice:
     table_name = "sensor_devices"
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -42,7 +42,7 @@ class CRUDSensorDevice:
         parent_type: ParentType,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -66,7 +66,7 @@ class CRUDSensorDevice:
         parent_type: ParentType,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -91,7 +91,7 @@ class CRUDSensorDevice:
         obj_in: SensorDeviceCreate,
         parent_id: UUID,
         parent_type: ParentType,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             sensor_data = obj_in.model_dump()
             sensor_data["parent_id"] = str(parent_id)
@@ -113,7 +113,7 @@ class CRUDSensorDevice:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: SensorDeviceUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             if not update_data:
@@ -139,7 +139,7 @@ class CRUDSensorDevice:
 
     async def remove(
         self, supabase: SupabaseClient, *, id: UUID
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)

@@ -50,7 +50,7 @@ class TestHomeAssistantHealth:
 
         return mock_service
 
-    def setup_dependency_overrides(self, mock_user, mock_ha_service):
+    def setup_dependency_overrides(self, mock_user, mock_ha_service) -> None:
         """Set up FastAPI dependency overrides."""
         from app.api.v1.endpoints.home_assistant import (
             get_current_user,
@@ -62,12 +62,12 @@ class TestHomeAssistantHealth:
             lambda: mock_ha_service
         )
 
-    def cleanup_dependency_overrides(self):
+    def cleanup_dependency_overrides(self) -> None:
         """Clean up dependency overrides after test."""
         app.dependency_overrides.clear()
 
     @pytest.mark.asyncio
-    async def test_health_check_endpoint(self, client, mock_user, mock_ha_service):
+    async def test_health_check_endpoint(self, client, mock_user, mock_ha_service) -> None:
         """Test the health check endpoint returns proper status."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -85,7 +85,7 @@ class TestHomeAssistantHealth:
     @pytest.mark.asyncio
     async def test_integration_status_endpoint(
         self, client, mock_user, mock_ha_service
-    ):
+    ) -> None:
         """Test integration status endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -101,7 +101,7 @@ class TestHomeAssistantHealth:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_health_check_failure(self, client, mock_user, mock_ha_service):
+    async def test_health_check_failure(self, client, mock_user, mock_ha_service) -> None:
         """Test health check endpoint when service is unhealthy."""
         # Mock failure response
         mock_ha_service.get_user_integration_status.return_value = {
@@ -127,7 +127,7 @@ class TestHomeAssistantHealth:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_unauthorized_health_access(self, client):
+    async def test_unauthorized_health_access(self, client) -> None:
         """Test health endpoint requires authentication."""
         response = await client.get("/api/v1/home-assistant/health")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

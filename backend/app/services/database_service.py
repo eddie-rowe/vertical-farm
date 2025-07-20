@@ -1,7 +1,8 @@
 """Modern database service for connecting to PostgreSQL/Supabase with graceful degradation"""
 
 import logging
-from typing import AsyncGenerator, Optional
+from typing import Optional
+from collections.abc import AsyncGenerator
 
 import asyncpg
 
@@ -11,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.settings = get_settings()
-        self._pool: Optional[asyncpg.Pool] = None
+        self._pool: asyncpg.Pool | None = None
         self._connection_failed = False
 
     @property
@@ -59,7 +60,7 @@ class DatabaseService:
 
         return database_url
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Initialize database connection pool with validation"""
         if self._pool is not None:
             return  # Already connected
@@ -115,7 +116,7 @@ class DatabaseService:
                 "⚠️  Database service will be unavailable - continuing with degraded functionality"
             )
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Close database connection pool"""
         if self._pool:
             await self._pool.close()
@@ -168,7 +169,7 @@ class DatabaseService:
 
 
 # Global database service instance
-_database_service: Optional[DatabaseService] = None
+_database_service: DatabaseService | None = None
 
 
 async def get_database_service() -> DatabaseService:
@@ -180,7 +181,7 @@ async def get_database_service() -> DatabaseService:
     return _database_service
 
 
-async def get_database() -> Optional[DatabaseService]:
+async def get_database() -> DatabaseService | None:
     """FastAPI dependency for database service with graceful degradation"""
     try:
         return await get_database_service()

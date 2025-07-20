@@ -25,7 +25,7 @@ class User(BaseModel):
     email: EmailStr
     is_active: bool = True
     is_superuser: bool = False
-    full_name: Optional[str] = None
+    full_name: str | None = None
     role: UserRole = UserRole.OPERATOR
 
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)

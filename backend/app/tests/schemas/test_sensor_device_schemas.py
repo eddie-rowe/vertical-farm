@@ -10,7 +10,7 @@ VALID_SENSOR_ID = uuid4()
 VALID_PARENT_ID = uuid4()
 
 
-def test_sensor_device_create_valid():
+def test_sensor_device_create_valid() -> None:
     valid_data = {
         "name": "Temp Sensor A1",
         "model_number": "TS-A1-XYZ",
@@ -31,7 +31,7 @@ def test_sensor_device_create_valid():
     assert sensor.sensor_type == "temperature"
 
 
-def test_sensor_device_create_missing_required_fields():
+def test_sensor_device_create_missing_required_fields() -> None:
     invalid_data = {
         # name is missing
         "sensor_type": "humidity",
@@ -44,7 +44,7 @@ def test_sensor_device_create_missing_required_fields():
     assert "parent_id" in str(excinfo.value)
 
 
-def test_sensor_device_create_invalid_enum_value():
+def test_sensor_device_create_invalid_enum_value() -> None:
     invalid_data = {
         "name": "Test Sensor",
         "sensor_type": "invalid_sensor_type",  # Invalid enum
@@ -55,7 +55,7 @@ def test_sensor_device_create_invalid_enum_value():
         SensorDeviceCreate(**invalid_data)
 
 
-def test_sensor_device_create_invalid_data_range():
+def test_sensor_device_create_invalid_data_range() -> None:
     invalid_data = {
         "name": "Range Test Sensor",
         "sensor_type": "co2",
@@ -71,14 +71,14 @@ def test_sensor_device_create_invalid_data_range():
     )
 
 
-def test_sensor_device_update_valid_partial():
+def test_sensor_device_update_valid_partial() -> None:
     update_data = {"name": "Updated Sensor Name", "accuracy": "+/- 1%"}
     sensor_update = SensorDeviceUpdate(**update_data)
     assert sensor_update.name == update_data["name"]
     assert sensor_update.accuracy == update_data["accuracy"]
 
 
-def test_sensor_device_update_invalid_data_range():
+def test_sensor_device_update_invalid_data_range() -> None:
     update_data = {
         "data_range_min": 200.0,
         "data_range_max": 150.0,  # Max < Min
@@ -90,7 +90,7 @@ def test_sensor_device_update_invalid_data_range():
     )
 
 
-def test_sensor_device_create_data_range_only_min():
+def test_sensor_device_create_data_range_only_min() -> None:
     # Should pass as per validation logic (only triggers if both are numbers)
     data = {
         "name": "MinOnly Sensor",
@@ -104,7 +104,7 @@ def test_sensor_device_create_data_range_only_min():
     assert sensor.data_range_max is None
 
 
-def test_sensor_device_create_data_range_only_max():
+def test_sensor_device_create_data_range_only_max() -> None:
     # Should pass
     data = {
         "name": "MaxOnly Sensor",
@@ -118,7 +118,7 @@ def test_sensor_device_create_data_range_only_max():
     assert sensor.data_range_min is None
 
 
-def test_sensor_device_create_data_range_both_none():
+def test_sensor_device_create_data_range_both_none() -> None:
     # Should pass
     data = {
         "name": "NoRange Sensor",

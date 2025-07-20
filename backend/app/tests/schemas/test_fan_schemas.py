@@ -10,7 +10,7 @@ VALID_FAN_ID = uuid4()
 VALID_PARENT_ID = uuid4()
 
 
-def test_fan_create_valid():
+def test_fan_create_valid() -> None:
     valid_data = {
         "name": "Circulation Fan FX-100",
         "model_number": "FX-100-C",
@@ -31,7 +31,7 @@ def test_fan_create_valid():
     assert fan.type == "circulation"
 
 
-def test_fan_create_missing_required_fields():
+def test_fan_create_missing_required_fields() -> None:
     invalid_data = {
         # name is missing
         "parent_type": "row",
@@ -42,7 +42,7 @@ def test_fan_create_missing_required_fields():
     assert "name" in str(excinfo.value)
 
 
-def test_fan_create_invalid_type():
+def test_fan_create_invalid_type() -> None:
     invalid_data = {
         "name": "Test Fan",
         "type": "invalid_fan_type",  # Invalid enum value
@@ -53,7 +53,7 @@ def test_fan_create_invalid_type():
         FanCreate(**invalid_data)
 
 
-def test_fan_create_invalid_value_constraint():
+def test_fan_create_invalid_value_constraint() -> None:
     invalid_data = {
         "name": "F",  # Too short
         "parent_type": "rack",
@@ -66,21 +66,21 @@ def test_fan_create_invalid_value_constraint():
     assert "size_cm" in str(excinfo.value)
 
 
-def test_fan_update_valid_partial():
+def test_fan_update_valid_partial() -> None:
     update_data = {"name": "Updated Fan Name", "power_watts": 80.0}
     fan_update = FanUpdate(**update_data)
     assert fan_update.name == update_data["name"]
     assert fan_update.power_watts == update_data["power_watts"]
 
 
-def test_fan_update_invalid_value_constraint():
+def test_fan_update_invalid_value_constraint() -> None:
     update_data = {"airflow_cfm": -500}  # Not positive
     with pytest.raises(ValidationError) as excinfo:
         FanUpdate(**update_data)
     assert "airflow_cfm" in str(excinfo.value)
 
 
-def test_fan_create_optional_fields_not_provided():
+def test_fan_create_optional_fields_not_provided() -> None:
     # Only required fields for FanCreate
     required_data = {
         "name": "Minimal Fan",

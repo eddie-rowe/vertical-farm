@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class GrowAutomationService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.supabase = get_supabase_client()
         db_service = DatabaseService()
         self.device_service = DeviceMonitoringService(db_service)
@@ -29,7 +29,7 @@ class GrowAutomationService:
 
     async def initialize_grow_automation(
         self, grow_id: str, user_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Initialize automation for a new grow based on its configuration"""
         try:
             # Get grow details with device profile
@@ -88,7 +88,7 @@ class GrowAutomationService:
             logger.error(f"Error initializing automation for grow {grow_id}: {e}")
             return {"success": False, "error": str(e)}
 
-    async def _get_grow_device_assignments(self, grow_id: str) -> List[Dict[str, Any]]:
+    async def _get_grow_device_assignments(self, grow_id: str) -> list[dict[str, Any]]:
         """Get all device assignments for a grow's locations"""
         try:
             # Use the database function to get device assignments
@@ -106,9 +106,9 @@ class GrowAutomationService:
         self,
         grow_id: str,
         profile_id: str,
-        device_assignments: List[Dict[str, Any]],
+        device_assignments: list[dict[str, Any]],
         user_id: str,
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, Any]]]:
         """Apply a device profile to create automation schedules and conditions"""
         try:
             # Get device profile
@@ -177,9 +177,9 @@ class GrowAutomationService:
         self,
         grow_id: str,
         device_assignment_id: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         user_id: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Create automation schedule from device profile config"""
         try:
             schedule_type = config.get("schedule", "daily")
@@ -264,9 +264,9 @@ class GrowAutomationService:
         self,
         grow_id: str,
         device_assignment_id: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         user_id: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Create automation conditions from device profile config"""
         conditions = []
 
@@ -341,7 +341,7 @@ class GrowAutomationService:
     # The following methods were implementing in-memory task queuing
     # which should be replaced with Supabase queues and Edge Functions
 
-    async def _execute_scheduled_action(self, schedule: Dict[str, Any]):
+    async def _execute_scheduled_action(self, schedule: dict[str, Any]) -> None:
         """Execute a scheduled automation action
 
         Note: This method should be called by Supabase Edge Functions
@@ -377,7 +377,7 @@ class GrowAutomationService:
             if "execution_id" in locals():
                 await self._log_execution_complete(execution_id, "failed", None, str(e))
 
-    async def _execute_condition_action(self, condition: Dict[str, Any]):
+    async def _execute_condition_action(self, condition: dict[str, Any]) -> None:
         """Execute a condition-triggered automation action
 
         Note: This method should be called by Supabase Edge Functions
@@ -424,7 +424,7 @@ class GrowAutomationService:
         automation_type: str,
         automation_id: str,
         device_assignment_id: str,
-        action: Dict[str, Any],
+        action: dict[str, Any],
     ) -> str:
         """Log the start of an automation execution"""
         try:
@@ -455,9 +455,9 @@ class GrowAutomationService:
         self,
         execution_id: str,
         status: str,
-        result: Optional[Dict[str, Any]],
-        error: Optional[str],
-    ):
+        result: dict[str, Any] | None,
+        error: str | None,
+    ) -> None:
         """Log the completion of an automation execution"""
         try:
             update_data = {
@@ -474,7 +474,7 @@ class GrowAutomationService:
         except Exception as e:
             logger.error(f"Error logging execution completion: {e}")
 
-    async def stop_grow_automation(self, grow_id: str):
+    async def stop_grow_automation(self, grow_id: str) -> None:
         """Stop automation for a grow
 
         Note: With Supabase queues, this would involve:
@@ -503,7 +503,7 @@ class GrowAutomationService:
 
     async def get_grow_automation_status(
         self, grow_id: str, user_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get automation status for a grow"""
         try:
             # Get active schedules

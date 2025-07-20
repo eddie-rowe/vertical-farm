@@ -26,17 +26,17 @@ class DeviceState(str, Enum):
 # Device Action Schemas
 class TurnOnAction(BaseModel):
     type: str = Field("turn_on", const=True)
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 class TurnOffAction(BaseModel):
     type: str = Field("turn_off", const=True)
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 class ToggleAction(BaseModel):
     type: str = Field("toggle", const=True)
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 class SetBrightnessAction(BaseModel):
@@ -46,7 +46,7 @@ class SetBrightnessAction(BaseModel):
 
 class SetColorAction(BaseModel):
     type: str = Field("set_color", const=True)
-    rgb_color: List[int] = Field(
+    rgb_color: list[int] = Field(
         ..., min_length=3, max_length=3, description="RGB color values [R, G, B]"
     )
 
@@ -78,51 +78,51 @@ DeviceAction = Union[
 # Device Capabilities Schema
 class DeviceCapabilities(BaseModel):
     # Light capabilities
-    brightness: Optional[bool] = None
-    color_mode: Optional[bool] = None
-    rgb_color: Optional[bool] = None
-    color_temp: Optional[bool] = None
-    effect: Optional[bool] = None
+    brightness: bool | None = None
+    color_mode: bool | None = None
+    rgb_color: bool | None = None
+    color_temp: bool | None = None
+    effect: bool | None = None
 
     # Pump/Fan capabilities
-    speed_control: Optional[bool] = None
-    flow_rate: Optional[bool] = None
+    speed_control: bool | None = None
+    flow_rate: bool | None = None
 
     # Sensor capabilities
-    measurement_unit: Optional[str] = None
-    precision: Optional[int] = None
+    measurement_unit: str | None = None
+    precision: int | None = None
 
     # Common capabilities
-    power: Optional[bool] = None
-    scheduling: Optional[bool] = None
+    power: bool | None = None
+    scheduling: bool | None = None
 
 
 # Device Attributes Schema
 class DeviceAttributes(BaseModel):
     # Common attributes
-    friendly_name: Optional[str] = None
-    icon: Optional[str] = None
-    unit_of_measurement: Optional[str] = None
+    friendly_name: str | None = None
+    icon: str | None = None
+    unit_of_measurement: str | None = None
 
     # Light attributes
-    brightness: Optional[int] = Field(None, ge=0, le=255)
-    rgb_color: Optional[List[int]] = None
-    color_temp: Optional[int] = None
-    effect: Optional[str] = None
+    brightness: int | None = Field(None, ge=0, le=255)
+    rgb_color: list[int] | None = None
+    color_temp: int | None = None
+    effect: str | None = None
 
     # Sensor attributes
-    temperature: Optional[float] = None
-    humidity: Optional[float] = None
-    pressure: Optional[float] = None
+    temperature: float | None = None
+    humidity: float | None = None
+    pressure: float | None = None
 
     # Pump/Fan attributes
-    speed: Optional[int] = Field(None, ge=0, le=100)
-    flow_rate: Optional[float] = None
+    speed: int | None = Field(None, ge=0, le=100)
+    flow_rate: float | None = None
 
     # Device status
-    last_seen: Optional[str] = None
-    battery_level: Optional[int] = Field(None, ge=0, le=100)
-    signal_strength: Optional[int] = None
+    last_seen: str | None = None
+    battery_level: int | None = Field(None, ge=0, le=100)
+    signal_strength: int | None = None
 
 
 # Request Schemas
@@ -130,14 +130,14 @@ class CreateDeviceAssignmentRequest(BaseModel):
     location_id: str = Field(..., description="Location ID in format 'R1-S3'")
     home_assistant_entity_id: str = Field(..., description="Home Assistant entity ID")
     device_type: DeviceType
-    device_name: Optional[str] = None
-    capabilities: Optional[DeviceCapabilities] = None
+    device_name: str | None = None
+    capabilities: DeviceCapabilities | None = None
 
 
 class UpdateDeviceAssignmentRequest(BaseModel):
-    device_name: Optional[str] = None
-    capabilities: Optional[DeviceCapabilities] = None
-    is_active: Optional[bool] = None
+    device_name: str | None = None
+    capabilities: DeviceCapabilities | None = None
+    is_active: bool | None = None
 
 
 class ControlDeviceRequest(BaseModel):
@@ -147,9 +147,9 @@ class ControlDeviceRequest(BaseModel):
 
 class EmergencyControlRequest(BaseModel):
     type: str = Field(..., regex="^(emergency_stop|emergency_start|reset_all)$")
-    location_ids: Optional[List[str]] = None
-    device_types: Optional[List[DeviceType]] = None
-    reason: Optional[str] = None
+    location_ids: list[str] | None = None
+    device_types: list[DeviceType] | None = None
+    reason: str | None = None
 
 
 # Response Schemas
@@ -159,7 +159,7 @@ class DeviceAssignmentResponse(BaseModel):
     location_id: str
     home_assistant_entity_id: str
     device_type: DeviceType
-    device_name: Optional[str] = None
+    device_name: str | None = None
     capabilities: DeviceCapabilities
     is_active: bool
     created_at: datetime
@@ -177,15 +177,15 @@ class DeviceStateResponse(BaseModel):
 
 
 class DeviceDataResponse(DeviceAssignmentResponse):
-    current_state: Optional[DeviceState] = None
-    attributes: Optional[DeviceAttributes] = None
-    last_updated: Optional[datetime] = None
-    is_online: Optional[bool] = None
+    current_state: DeviceState | None = None
+    attributes: DeviceAttributes | None = None
+    last_updated: datetime | None = None
+    is_online: bool | None = None
 
 
 class LocationDevicesResponse(BaseModel):
     location_id: str
-    devices: List[DeviceDataResponse]
+    devices: list[DeviceDataResponse]
     last_updated: str
 
 
@@ -193,8 +193,8 @@ class ControlDeviceResponse(BaseModel):
     success: bool
     entity_id: str
     action: DeviceAction
-    new_state: Optional[DeviceState] = None
-    error: Optional[str] = None
+    new_state: DeviceState | None = None
+    error: str | None = None
 
 
 class DeviceControlHistoryResponse(BaseModel):
@@ -202,45 +202,45 @@ class DeviceControlHistoryResponse(BaseModel):
     user_id: str
     home_assistant_entity_id: str
     action_type: str
-    previous_state: Optional[str] = None
-    new_state: Optional[str] = None
+    previous_state: str | None = None
+    new_state: str | None = None
     triggered_by: str
     success: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     created_at: datetime
 
 
 # WebSocket Message Schemas
 class WebSocketMessage(BaseModel):
     type: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: str
 
 
 class DeviceStateUpdateMessage(BaseModel):
     type: str = Field("device_state_update", const=True)
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: str
 
 
 class DeviceControlResponseMessage(BaseModel):
     type: str = Field("device_control_response", const=True)
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: str
 
 
 class ConnectionStatusMessage(BaseModel):
     type: str = Field("connection_status", const=True)
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: str
 
 
 # Utility Schemas
 class DeviceFilter(BaseModel):
-    device_type: Optional[DeviceType] = None
-    state: Optional[DeviceState] = None
-    location_id: Optional[str] = None
-    is_online: Optional[bool] = None
+    device_type: DeviceType | None = None
+    state: DeviceState | None = None
+    location_id: str | None = None
+    is_online: bool | None = None
 
 
 class DeviceHealthResponse(BaseModel):
@@ -252,14 +252,14 @@ class DeviceHealthResponse(BaseModel):
 
 
 class DeviceStatesResponse(BaseModel):
-    states: Dict[str, Optional[str]]
+    states: dict[str, str | None]
     timestamp: str
 
 
 class EmergencyControlResponse(BaseModel):
     success: bool
-    affected_devices: Optional[int] = None
-    successful_stops: Optional[int] = None
-    failed_stops: Optional[int] = None
-    results: Optional[List[ControlDeviceResponse]] = None
-    error: Optional[str] = None
+    affected_devices: int | None = None
+    successful_stops: int | None = None
+    failed_stops: int | None = None
+    results: list[ControlDeviceResponse] | None = None
+    error: str | None = None

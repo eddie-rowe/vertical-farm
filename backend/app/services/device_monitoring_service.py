@@ -38,19 +38,19 @@ class DeviceState(str, Enum):
 class DeviceMonitoringService:
     """Service for managing device monitoring, control, and WebSocket connections"""
 
-    def __init__(self, db_service: DatabaseService):
+    def __init__(self, db_service: DatabaseService) -> None:
         self.db_service = db_service
         # TODO: Replace with Supabase Realtime subscriptions for real-time state updates
-        self.active_connections: Dict[str, Set[WebSocket]] = {}  # user_id -> websockets
-        self.ha_clients: Dict[str, HomeAssistantClient] = {}  # user_id -> HA client
+        self.active_connections: dict[str, set[WebSocket]] = {}  # user_id -> websockets
+        self.ha_clients: dict[str, HomeAssistantClient] = {}  # user_id -> HA client
         self.running = False
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the device monitoring service"""
         self.running = True
         logger.info("Device monitoring service started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the device monitoring service"""
         self.running = False
         # Close all WebSocket connections
@@ -63,7 +63,7 @@ class DeviceMonitoringService:
         self.active_connections.clear()
         logger.info("Device monitoring service stopped")
 
-    async def connect_websocket(self, websocket: WebSocket, user_id: str):
+    async def connect_websocket(self, websocket: WebSocket, user_id: str) -> None:
         """Connect a WebSocket for a user"""
         await websocket.accept()
 
@@ -87,7 +87,7 @@ class DeviceMonitoringService:
         if user_id not in self.ha_clients:
             await self.start_user_monitoring(user_id)
 
-    async def disconnect_websocket(self, websocket: WebSocket, user_id: str):
+    async def disconnect_websocket(self, websocket: WebSocket, user_id: str) -> None:
         """Disconnect a WebSocket for a user"""
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
@@ -98,7 +98,7 @@ class DeviceMonitoringService:
 
         logger.info(f"WebSocket disconnected for user {user_id}")
 
-    async def start_user_monitoring(self, user_id: str):
+    async def start_user_monitoring(self, user_id: str) -> None:
         """Start monitoring devices for a specific user"""
         try:
             # Get user's Home Assistant config
@@ -125,7 +125,7 @@ class DeviceMonitoringService:
         except Exception as e:
             logger.error(f"Error starting monitoring for user {user_id}: {e}")
 
-    async def stop_user_monitoring(self, user_id: str):
+    async def stop_user_monitoring(self, user_id: str) -> None:
         """Stop monitoring devices for a specific user"""
         if user_id in self.ha_clients:
             try:
@@ -136,7 +136,7 @@ class DeviceMonitoringService:
 
         logger.info(f"Stopped device monitoring for user {user_id}")
 
-    async def monitor_user_devices(self, user_id: str):
+    async def monitor_user_devices(self, user_id: str) -> None:
         """Monitor devices for a specific user"""
         try:
             ha_client = self.ha_clients.get(user_id)
@@ -169,7 +169,7 @@ class DeviceMonitoringService:
 
     async def handle_device_state_change(
         self, user_id: str, entity_id: str, old_state: dict, new_state: dict
-    ):
+    ) -> None:
         """Handle device state changes from Home Assistant"""
         try:
             # Extract state and attributes
@@ -203,7 +203,7 @@ class DeviceMonitoringService:
 
     async def update_device_state_db(
         self, user_id: str, entity_id: str, state: str, attributes: dict
-    ):
+    ) -> None:
         """Update device state in database"""
         try:
             supabase = self.db_service.get_supabase_client()
@@ -222,7 +222,7 @@ class DeviceMonitoringService:
         except Exception as e:
             logger.error(f"Error updating device state in database: {e}")
 
-    async def send_to_user(self, user_id: str, message: dict):
+    async def send_to_user(self, user_id: str, message: dict) -> None:
         """Send message to all WebSocket connections for a user"""
         if user_id not in self.active_connections:
             return
@@ -241,7 +241,7 @@ class DeviceMonitoringService:
         for ws in disconnected_websockets:
             self.active_connections[user_id].discard(ws)
 
-    async def get_user_device_assignments(self, user_id: str) -> List[Dict]:
+    async def get_user_device_assignments(self, user_id: str) -> list[dict]:
         """Get all device assignments for a user"""
         try:
             supabase = self.db_service.get_supabase_client()
@@ -260,7 +260,7 @@ class DeviceMonitoringService:
             logger.error(f"Error getting device assignments: {e}")
             return []
 
-    async def get_location_devices(self, user_id: str, location_id: str) -> List[Dict]:
+    async def get_location_devices(self, user_id: str, location_id: str) -> list[dict]:
         """Get devices assigned to a specific location"""
         try:
             supabase = self.db_service.get_supabase_client()
@@ -276,7 +276,7 @@ class DeviceMonitoringService:
             logger.error(f"Error getting location devices: {e}")
             return []
 
-    async def control_device(self, user_id: str, entity_id: str, action: Dict) -> Dict:
+    async def control_device(self, user_id: str, entity_id: str, action: dict) -> dict:
         """Control a device through Home Assistant"""
         try:
             ha_client = self.ha_clients.get(user_id)
@@ -366,7 +366,7 @@ class DeviceMonitoringService:
 
     async def get_device_current_state(
         self, user_id: str, entity_id: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get current state of a device"""
         try:
             # Get from database directly (no caching layer)
@@ -394,11 +394,11 @@ class DeviceMonitoringService:
         user_id: str,
         entity_id: str,
         action_type: str,
-        previous_state: Optional[str],
-        new_state: Optional[str],
+        previous_state: str | None,
+        new_state: str | None,
         success: bool,
-        error_message: Optional[str] = None,
-    ):
+        error_message: str | None = None,
+    ) -> None:
         """Log device control action"""
         try:
             supabase = self.db_service.get_supabase_client()
@@ -425,9 +425,9 @@ class DeviceMonitoringService:
         location_id: str,
         entity_id: str,
         device_type: DeviceType,
-        device_name: Optional[str] = None,
-        capabilities: Optional[Dict] = None,
-    ) -> Dict:
+        device_name: str | None = None,
+        capabilities: dict | None = None,
+    ) -> dict:
         """Create a new device assignment"""
         try:
             supabase = self.db_service.get_supabase_client()
@@ -479,9 +479,9 @@ class DeviceMonitoringService:
     async def emergency_stop(
         self,
         user_id: str,
-        location_ids: Optional[List[str]] = None,
-        device_types: Optional[List[DeviceType]] = None,
-    ) -> Dict:
+        location_ids: list[str] | None = None,
+        device_types: list[DeviceType] | None = None,
+    ) -> dict:
         """Emergency stop for devices"""
         try:
             # Get affected devices

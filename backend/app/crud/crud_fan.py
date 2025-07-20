@@ -14,7 +14,7 @@ from app.schemas.fan import FanCreate, FanUpdate  # Pydantic schemas
 class CRUDFan:
     table_name = "fans"
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -39,7 +39,7 @@ class CRUDFan:
         parent_type: ParentType,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -63,7 +63,7 @@ class CRUDFan:
         parent_type: ParentType,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -88,7 +88,7 @@ class CRUDFan:
         obj_in: FanCreate,
         parent_id: UUID,
         parent_type: ParentType,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             fan_data = obj_in.model_dump()
             fan_data["parent_id"] = str(parent_id)
@@ -107,7 +107,7 @@ class CRUDFan:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: FanUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             if not update_data:
@@ -134,7 +134,7 @@ class CRUDFan:
 
     async def remove(
         self, supabase: SupabaseClient, *, id: UUID
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)

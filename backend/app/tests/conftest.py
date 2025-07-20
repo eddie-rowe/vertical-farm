@@ -7,7 +7,7 @@ import os
 import sys
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -61,7 +61,7 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
 
 @pytest.fixture(autouse=True)
-def mock_environment_variables(monkeypatch):
+def mock_environment_variables(monkeypatch) -> None:
     """Mock environment variables for testing."""
     test_env_vars = {
         "SUPABASE_URL": "https://test.supabase.co",

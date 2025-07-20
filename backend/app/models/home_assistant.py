@@ -23,15 +23,15 @@ class HomeAssistantDeviceBase(BaseModel):
     entity_id: str = Field(
         ..., description="Home Assistant entity ID (e.g., 'light.kitchen')"
     )
-    friendly_name: Optional[str] = Field(None, description="Human-readable device name")
+    friendly_name: str | None = Field(None, description="Human-readable device name")
     state: str = Field(..., description="Current device state")
-    attributes: Dict[str, Any] = Field(
+    attributes: dict[str, Any] = Field(
         default_factory=dict, description="Device attributes"
     )
-    last_changed: Optional[datetime] = Field(
+    last_changed: datetime | None = Field(
         None, description="When the state was last changed"
     )
-    last_updated: Optional[datetime] = Field(
+    last_updated: datetime | None = Field(
         None, description="When the entity was last updated"
     )
 
@@ -40,10 +40,10 @@ class HomeAssistantDevice(HomeAssistantDeviceBase):
     """Full Home Assistant device/entity model"""
 
     domain: str = Field(..., description="Device domain (light, switch, sensor, etc.)")
-    device_class: Optional[str] = Field(
+    device_class: str | None = Field(
         None, description="Device class for categorization"
     )
-    unit_of_measurement: Optional[str] = Field(
+    unit_of_measurement: str | None = Field(
         None, description="Unit of measurement for sensors"
     )
 
@@ -78,19 +78,19 @@ class DeviceControlRequest(BaseModel):
 class LightControlRequest(DeviceControlRequest):
     """Extended request model for light control with additional parameters"""
 
-    brightness: Optional[int] = Field(
+    brightness: int | None = Field(
         None, ge=0, le=255, description="Brightness level (0-255)"
     )
-    color_temp: Optional[int] = Field(
+    color_temp: int | None = Field(
         None, ge=1000, le=10000, description="Color temperature in Kelvin"
     )
-    rgb_color: Optional[List[int]] = Field(
+    rgb_color: list[int] | None = Field(
         None, description="RGB color values [R, G, B]"
     )
 
     @field_validator("rgb_color")
     @classmethod
-    def validate_rgb_color(cls, v: Optional[List[int]]) -> Optional[List[int]]:
+    def validate_rgb_color(cls, v: list[int] | None) -> list[int] | None:
         if v is not None:
             if len(v) != 3:
                 raise ValueError("RGB color must have exactly 3 values")
@@ -106,7 +106,7 @@ class IrrigationControlRequest(BaseModel):
 
     entity_id: str = Field(..., description="Solenoid valve entity ID")
     action: str = Field(..., description="Action (open, close, pulse)")
-    duration_seconds: Optional[int] = Field(
+    duration_seconds: int | None = Field(
         None, ge=1, le=3600, description="Duration for pulse action (1-3600 seconds)"
     )
 
@@ -141,8 +141,8 @@ class HomeAssistantServiceCall(BaseModel):
 
     domain: str = Field(..., description="Service domain (e.g., 'light', 'switch')")
     service: str = Field(..., description="Service name (e.g., 'turn_on', 'turn_off')")
-    entity_id: Optional[str] = Field(None, description="Target entity ID")
-    data: Optional[Dict[str, Any]] = Field(
+    entity_id: str | None = Field(None, description="Target entity ID")
+    data: dict[str, Any] | None = Field(
         default_factory=dict, description="Additional service data"
     )
 
@@ -158,7 +158,7 @@ class DeviceControlResponse(BaseModel):
     timestamp: datetime = Field(
         default_factory=datetime.now, description="When the action was performed"
     )
-    message: Optional[str] = Field(None, description="Additional response message")
+    message: str | None = Field(None, description="Additional response message")
 
 
 class HomeAssistantStatusResponse(BaseModel):
@@ -181,9 +181,9 @@ class HomeAssistantStatusResponse(BaseModel):
     subscribed_devices: int = Field(
         default=0, description="Number of subscribed devices"
     )
-    home_assistant_url: Optional[str] = Field(None, description="Home Assistant URL")
-    message: Optional[str] = Field(None, description="Status message or error")
-    error: Optional[str] = Field(None, description="Error details if unhealthy")
+    home_assistant_url: str | None = Field(None, description="Home Assistant URL")
+    message: str | None = Field(None, description="Status message or error")
+    error: str | None = Field(None, description="Error details if unhealthy")
 
 
 class DeviceListResponse(BaseModel):
@@ -191,9 +191,9 @@ class DeviceListResponse(BaseModel):
 
     model_config = ConfigDict()
 
-    devices: List[HomeAssistantDevice] = Field(..., description="List of devices")
+    devices: list[HomeAssistantDevice] = Field(..., description="List of devices")
     total_count: int = Field(..., description="Total number of devices")
-    device_type: Optional[str] = Field(None, description="Device type filter applied")
+    device_type: str | None = Field(None, description="Device type filter applied")
 
 
 class DeviceDetailsResponse(BaseModel):
@@ -201,7 +201,7 @@ class DeviceDetailsResponse(BaseModel):
 
     model_config = ConfigDict()
 
-    device: Optional[HomeAssistantDevice] = Field(None, description="Device details")
+    device: HomeAssistantDevice | None = Field(None, description="Device details")
     found: bool = Field(..., description="Whether the device was found")
     cached: bool = Field(
         default=False, description="Whether data was served from cache"
@@ -213,7 +213,7 @@ class ServiceListResponse(BaseModel):
 
     model_config = ConfigDict()
 
-    services: Dict[str, Dict] = Field(..., description="Available services by domain")
+    services: dict[str, dict] = Field(..., description="Available services by domain")
     total_domains: int = Field(..., description="Number of service domains")
 
 
@@ -222,14 +222,14 @@ class DeviceTypeFilter(BaseModel):
 
     model_config = ConfigDict()
 
-    device_types: List[str] = Field(
+    device_types: list[str] = Field(
         default=["light", "switch", "sensor", "fan", "cover", "climate"],
         description="Device types to include",
     )
 
     @field_validator("device_types")
     @classmethod
-    def validate_device_types(cls, v: List[str]) -> List[str]:
+    def validate_device_types(cls, v: list[str]) -> list[str]:
         valid_types = [
             "light",
             "switch",
@@ -254,12 +254,12 @@ class SensorData(BaseModel):
     model_config = ConfigDict()
 
     entity_id: str = Field(..., description="Sensor entity ID")
-    state: Union[str, float, int] = Field(..., description="Current sensor value")
-    unit_of_measurement: Optional[str] = Field(None, description="Unit of measurement")
-    device_class: Optional[str] = Field(None, description="Sensor device class")
-    friendly_name: Optional[str] = Field(None, description="Human-readable sensor name")
+    state: str | float | int = Field(..., description="Current sensor value")
+    unit_of_measurement: str | None = Field(None, description="Unit of measurement")
+    device_class: str | None = Field(None, description="Sensor device class")
+    friendly_name: str | None = Field(None, description="Human-readable sensor name")
     last_updated: datetime = Field(..., description="When the sensor was last updated")
-    attributes: Dict[str, Any] = Field(
+    attributes: dict[str, Any] = Field(
         default_factory=dict, description="Additional sensor attributes"
     )
 
@@ -269,7 +269,7 @@ class SensorDataResponse(BaseModel):
 
     model_config = ConfigDict()
 
-    sensors: List[SensorData] = Field(..., description="List of sensor data")
+    sensors: list[SensorData] = Field(..., description="List of sensor data")
     total_count: int = Field(..., description="Total number of sensors")
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Response timestamp"
@@ -282,11 +282,11 @@ class HealthCheckResponse(BaseModel):
     model_config = ConfigDict()
 
     healthy: bool = Field(..., description="Overall health status")
-    services: Dict[str, bool] = Field(
+    services: dict[str, bool] = Field(
         ..., description="Individual service health statuses"
     )
-    uptime: Optional[float] = Field(None, description="Service uptime in seconds")
-    version: Optional[str] = Field(None, description="Home Assistant version")
+    uptime: float | None = Field(None, description="Service uptime in seconds")
+    version: str | None = Field(None, description="Home Assistant version")
     last_check: datetime = Field(
         default_factory=datetime.now, description="When health check was performed"
     )
@@ -299,10 +299,10 @@ class WebSocketEventData(BaseModel):
 
     event_type: str = Field(..., description="Type of event")
     entity_id: str = Field(..., description="Entity that triggered the event")
-    old_state: Optional[Dict[str, Any]] = Field(
+    old_state: dict[str, Any] | None = Field(
         None, description="Previous entity state"
     )
-    new_state: Dict[str, Any] = Field(..., description="New entity state")
+    new_state: dict[str, Any] = Field(..., description="New entity state")
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Event timestamp"
     )
@@ -314,11 +314,11 @@ class ErrorResponse(BaseModel):
     model_config = ConfigDict()
 
     error: str = Field(..., description="Error message")
-    detail: Optional[str] = Field(None, description="Detailed error description")
+    detail: str | None = Field(None, description="Detailed error description")
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Error timestamp"
     )
-    request_id: Optional[str] = Field(None, description="Request ID for tracking")
+    request_id: str | None = Field(None, description="Request ID for tracking")
 
 
 class DeviceAssignmentRequest(BaseModel):
@@ -326,12 +326,12 @@ class DeviceAssignmentRequest(BaseModel):
 
     model_config = ConfigDict()
 
-    shelf_id: Optional[str] = None
-    rack_id: Optional[str] = None
-    row_id: Optional[str] = None
-    farm_id: Optional[str] = None
-    friendly_name: Optional[str] = None
-    assigned_by: Optional[str] = None
+    shelf_id: str | None = None
+    rack_id: str | None = None
+    row_id: str | None = None
+    farm_id: str | None = None
+    friendly_name: str | None = None
+    assigned_by: str | None = None
 
     @model_validator(mode="after")
     def validate_assignment_level(self) -> "DeviceAssignmentRequest":
@@ -356,16 +356,16 @@ class HomeAssistantConfigRequest(BaseModel):
     name: str = Field(..., description="User-defined name for this configuration")
     url: str = Field(..., description="Home Assistant URL")
     access_token: str = Field(..., description="Home Assistant long-lived access token")
-    local_url: Optional[str] = Field(
+    local_url: str | None = Field(
         None, description="Optional local URL for WebSocket connections"
     )
     cloudflare_enabled: bool = Field(
         default=False, description="Whether Cloudflare Access is enabled"
     )
-    cloudflare_client_id: Optional[str] = Field(
+    cloudflare_client_id: str | None = Field(
         None, description="Cloudflare Access client ID"
     )
-    cloudflare_client_secret: Optional[str] = Field(
+    cloudflare_client_secret: str | None = Field(
         None, description="Cloudflare Access client secret"
     )
     is_default: bool = Field(
@@ -383,7 +383,7 @@ class HomeAssistantConfigRequest(BaseModel):
 
     @field_validator("local_url")
     @classmethod
-    def validate_local_url(cls, v: Optional[str]) -> Optional[str]:
+    def validate_local_url(cls, v: str | None) -> str | None:
         """Validate local URL format if provided"""
         if v is not None:
             if not v.startswith(("http://", "https://", "ws://", "wss://")):
@@ -402,7 +402,7 @@ class HomeAssistantConfigResponse(BaseModel):
     id: str = Field(..., description="Configuration ID")
     name: str = Field(..., description="Configuration name")
     url: str = Field(..., description="Home Assistant URL")
-    local_url: Optional[str] = Field(
+    local_url: str | None = Field(
         None, description="Local URL for WebSocket connections"
     )
     cloudflare_enabled: bool = Field(
@@ -412,13 +412,13 @@ class HomeAssistantConfigResponse(BaseModel):
         ..., description="Whether this is the default configuration"
     )
     enabled: bool = Field(..., description="Whether this configuration is enabled")
-    last_tested: Optional[datetime] = Field(
+    last_tested: datetime | None = Field(
         None, description="When connection was last tested"
     )
-    last_successful_connection: Optional[datetime] = Field(
+    last_successful_connection: datetime | None = Field(
         None, description="When last successful connection occurred"
     )
-    test_result: Optional[Dict[str, Any]] = Field(None, description="Last test results")
+    test_result: dict[str, Any] | None = Field(None, description="Last test results")
     created_at: datetime = Field(..., description="When configuration was created")
     updated_at: datetime = Field(..., description="When configuration was last updated")
 
@@ -432,16 +432,16 @@ class HomeAssistantTestConnectionRequest(BaseModel):
 
     url: str = Field(..., description="Home Assistant URL to test")
     access_token: str = Field(..., description="Access token to test")
-    local_url: Optional[str] = Field(
+    local_url: str | None = Field(
         None, description="Optional local URL for WebSocket testing"
     )
     cloudflare_enabled: bool = Field(
         default=False, description="Whether to test with Cloudflare Access"
     )
-    cloudflare_client_id: Optional[str] = Field(
+    cloudflare_client_id: str | None = Field(
         None, description="Cloudflare Access client ID"
     )
-    cloudflare_client_secret: Optional[str] = Field(
+    cloudflare_client_secret: str | None = Field(
         None, description="Cloudflare Access client secret"
     )
 
@@ -463,23 +463,23 @@ class HomeAssistantTestConnectionResponse(BaseModel):
     url: str = Field(..., description="URL that was tested")
     status: str = Field(..., description="Connection status")
     message: str = Field(..., description="Test result message")
-    home_assistant_version: Optional[str] = Field(
+    home_assistant_version: str | None = Field(
         None, description="Home Assistant version if connected"
     )
-    device_count: Optional[int] = Field(None, description="Number of devices found")
+    device_count: int | None = Field(None, description="Number of devices found")
     websocket_supported: bool = Field(
         default=False, description="Whether WebSocket connection works"
     )
     rest_api_working: bool = Field(
         default=False, description="Whether REST API is working"
     )
-    cloudflare_working: Optional[bool] = Field(
+    cloudflare_working: bool | None = Field(
         None, description="Whether Cloudflare Access is working"
     )
     test_timestamp: datetime = Field(
         default_factory=datetime.now, description="When the test was performed"
     )
-    error_details: Optional[str] = Field(
+    error_details: str | None = Field(
         None, description="Detailed error information if test failed"
     )
 
@@ -490,12 +490,12 @@ class UserDeviceConfigRequest(BaseModel):
     model_config = ConfigDict()
 
     entity_id: str = Field(..., description="Home Assistant entity ID")
-    friendly_name: Optional[str] = Field(None, description="User-defined friendly name")
-    room: Optional[str] = Field(None, description="Room/area assignment")
+    friendly_name: str | None = Field(None, description="User-defined friendly name")
+    room: str | None = Field(None, description="Room/area assignment")
     is_favorite: bool = Field(
         default=False, description="Whether this is a favorite device"
     )
-    custom_settings: Optional[Dict[str, Any]] = Field(
+    custom_settings: dict[str, Any] | None = Field(
         default_factory=dict, description="Custom device settings"
     )
 
@@ -507,11 +507,11 @@ class UserDeviceConfigResponse(BaseModel):
 
     id: str = Field(..., description="Device config ID")
     entity_id: str = Field(..., description="Home Assistant entity ID")
-    friendly_name: Optional[str] = Field(None, description="User-defined friendly name")
+    friendly_name: str | None = Field(None, description="User-defined friendly name")
     device_type: str = Field(..., description="Device type")
-    room: Optional[str] = Field(None, description="Room/area assignment")
+    room: str | None = Field(None, description="Room/area assignment")
     is_favorite: bool = Field(..., description="Whether this is a favorite device")
-    custom_settings: Dict[str, Any] = Field(..., description="Custom device settings")
+    custom_settings: dict[str, Any] = Field(..., description="Custom device settings")
     created_at: datetime = Field(..., description="When device config was created")
     updated_at: datetime = Field(..., description="When device config was last updated")
 
@@ -521,7 +521,7 @@ class DeviceImportRequest(BaseModel):
 
     model_config = ConfigDict()
 
-    entity_ids: List[str] = Field(..., description="List of entity IDs to import")
+    entity_ids: list[str] = Field(..., description="List of entity IDs to import")
     update_existing: bool = Field(
         default=True, description="Whether to update existing imported devices"
     )
@@ -538,8 +538,8 @@ class ImportedDeviceResponse(BaseModel):
     device_type: str = Field(
         ..., description="Device type (light, switch, sensor, etc.)"
     )
-    state: Optional[str] = Field(None, description="Current device state")
-    attributes: Dict[str, Any] = Field(
+    state: str | None = Field(None, description="Current device state")
+    attributes: dict[str, Any] = Field(
         default_factory=dict, description="Device attributes"
     )
     is_assigned: bool = Field(
@@ -559,10 +559,10 @@ class ImportDevicesResponse(BaseModel):
     imported_count: int = Field(..., description="Number of devices imported")
     updated_count: int = Field(..., description="Number of existing devices updated")
     skipped_count: int = Field(..., description="Number of devices skipped")
-    errors: List[str] = Field(
+    errors: list[str] = Field(
         default_factory=list, description="Any errors that occurred"
     )
-    imported_devices: List[ImportedDeviceResponse] = Field(
+    imported_devices: list[ImportedDeviceResponse] = Field(
         default_factory=list, description="Details of imported devices"
     )
 
@@ -572,7 +572,7 @@ class ImportedDeviceListResponse(BaseModel):
 
     model_config = ConfigDict()
 
-    devices: List[ImportedDeviceResponse] = Field(
+    devices: list[ImportedDeviceResponse] = Field(
         ..., description="List of imported devices"
     )
     total_count: int = Field(..., description="Total number of imported devices")
@@ -585,5 +585,5 @@ class ImportedDeviceUpdateRequest(BaseModel):
 
     model_config = ConfigDict()
 
-    name: Optional[str] = Field(None, description="Updated device name")
-    device_type: Optional[str] = Field(None, description="Updated device type")
+    name: str | None = Field(None, description="Updated device name")
+    device_type: str | None = Field(None, description="Updated device type")

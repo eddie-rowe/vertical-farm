@@ -15,8 +15,8 @@ supabase_bg_service = SupabaseBackgroundService()
 
 # Task definitions - these will be processed by Supabase Edge Functions
 async def discover_home_assistant_devices(
-    user_id: str, ha_config: Dict[str, Any]
-) -> Dict[str, Any]:
+    user_id: str, ha_config: dict[str, Any]
+) -> dict[str, Any]:
     """
     Background task to discover all Home Assistant devices for a user
 
@@ -76,8 +76,8 @@ async def discover_home_assistant_devices(
 
 
 async def sync_device_states(
-    user_id: str, ha_config: Dict[str, Any], entity_ids: List[str]
-) -> Dict[str, Any]:
+    user_id: str, ha_config: dict[str, Any], entity_ids: list[str]
+) -> dict[str, Any]:
     """
     Background task to synchronize device states from Home Assistant
 
@@ -127,8 +127,8 @@ async def sync_device_states(
 
 
 async def health_check_home_assistant(
-    user_id: str, ha_config: Dict[str, Any]
-) -> Dict[str, Any]:
+    user_id: str, ha_config: dict[str, Any]
+) -> dict[str, Any]:
     """
     Background task to perform health check on Home Assistant connection
 
@@ -182,8 +182,8 @@ async def health_check_home_assistant(
 
 
 async def bulk_device_control(
-    user_id: str, ha_config: Dict[str, Any], device_commands: List[Dict[str, Any]]
-) -> Dict[str, Any]:
+    user_id: str, ha_config: dict[str, Any], device_commands: list[dict[str, Any]]
+) -> dict[str, Any]:
     """
     Background task to control multiple devices simultaneously
 
@@ -203,7 +203,7 @@ async def bulk_device_control(
         ha_service = UserHomeAssistantService(user_id, ha_config)
 
         # Execute commands concurrently with error handling
-        async def execute_command(command: Dict[str, Any]) -> Dict[str, Any]:
+        async def execute_command(command: dict[str, Any]) -> dict[str, Any]:
             try:
                 entity_id = command["entity_id"]
                 service = command["service"]
@@ -273,12 +273,12 @@ async def bulk_device_control(
 
 async def scheduled_device_action(
     user_id: str,
-    ha_config: Dict[str, Any],
+    ha_config: dict[str, Any],
     entity_id: str,
     service: str,
-    service_data: Dict[str, Any],
+    service_data: dict[str, Any],
     schedule_name: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Background task to execute a scheduled device action
 
@@ -342,8 +342,8 @@ async def scheduled_device_action(
 
 
 async def collect_device_history(
-    user_id: str, ha_config: Dict[str, Any], entity_ids: List[str], hours_back: int = 24
-) -> Dict[str, Any]:
+    user_id: str, ha_config: dict[str, Any], entity_ids: list[str], hours_back: int = 24
+) -> dict[str, Any]:
     """
     Background task to collect historical data for devices
 
@@ -408,7 +408,7 @@ async def collect_device_history(
 
 # Scheduling functions - now use Supabase queues
 async def schedule_device_discovery(
-    user_id: str, ha_config: Dict[str, Any], delay_minutes: int = 0
+    user_id: str, ha_config: dict[str, Any], delay_minutes: int = 0
 ) -> str:
     """Schedule a device discovery task"""
     task_data = {
@@ -428,7 +428,7 @@ async def schedule_device_discovery(
 
 
 async def schedule_state_sync(
-    user_id: str, ha_config: Dict[str, Any], entity_ids: List[str]
+    user_id: str, ha_config: dict[str, Any], entity_ids: list[str]
 ) -> str:
     """Schedule a state synchronization task"""
     task_data = {
@@ -442,7 +442,7 @@ async def schedule_state_sync(
 
 
 async def schedule_health_check(
-    user_id: str, ha_config: Dict[str, Any], delay_minutes: int = 0
+    user_id: str, ha_config: dict[str, Any], delay_minutes: int = 0
 ) -> str:
     """Schedule a health check task"""
     task_data = {
@@ -462,7 +462,7 @@ async def schedule_health_check(
 
 
 async def schedule_bulk_control(
-    user_id: str, ha_config: Dict[str, Any], device_commands: List[Dict[str, Any]]
+    user_id: str, ha_config: dict[str, Any], device_commands: list[dict[str, Any]]
 ) -> str:
     """Schedule a bulk device control task"""
     task_data = {
@@ -476,7 +476,7 @@ async def schedule_bulk_control(
 
 
 async def schedule_recurring_health_checks(
-    user_id: str, ha_config: Dict[str, Any], interval_minutes: int = 30
+    user_id: str, ha_config: dict[str, Any], interval_minutes: int = 30
 ):
     """Schedule recurring health checks"""
     task_data = {

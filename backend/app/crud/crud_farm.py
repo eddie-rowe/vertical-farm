@@ -22,7 +22,7 @@ class CRUDFarm:
 
     async def get(
         self, supabase: SupabaseClient, id: UUID
-    ) -> Optional[farm_schema.FarmResponse]:
+    ) -> farm_schema.FarmResponse | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -65,7 +65,7 @@ class CRUDFarm:
         owner_id: UUID,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -84,10 +84,10 @@ class CRUDFarm:
         self,
         supabase: SupabaseClient,
         *,
-        owner_id: Optional[UUID] = None,
+        owner_id: UUID | None = None,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         try:
             query = supabase.table(self.table_name).select("*", count="exact")
             if owner_id:
@@ -114,7 +114,7 @@ class CRUDFarm:
         *,
         obj_in: farm_schema.FarmCreate,
         owner_id: UUID,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             farm_data = obj_in.model_dump()
             # Remove fields that don't exist in the database schema
@@ -134,7 +134,7 @@ class CRUDFarm:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: farm_schema.FarmUpdate
-    ) -> Optional[farm_schema.FarmResponse]:
+    ) -> farm_schema.FarmResponse | None:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             # Remove fields that don't exist in the database schema
@@ -166,7 +166,7 @@ class CRUDFarm:
 
     async def remove(
         self, supabase: SupabaseClient, *, id: UUID
-    ) -> Optional[farm_schema.FarmResponse]:
+    ) -> farm_schema.FarmResponse | None:
         try:
             # First fetch the object to return it, since we need the full FarmResponse
             item_to_delete = await self.get(supabase, id)

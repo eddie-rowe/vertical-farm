@@ -28,12 +28,12 @@ class HomeAssistantService:
     and handles integration with the vertical farm's device management system.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.settings = get_settings()
-        self.client: Optional[HomeAssistantClient] = None
+        self.client: HomeAssistantClient | None = None
         self.initialized = False
-        self.device_subscriptions: Set[str] = set()
-        self.device_cache: Dict[str, Dict] = {}
+        self.device_subscriptions: set[str] = set()
+        self.device_cache: dict[str, dict] = {}
 
     async def initialize(self) -> bool:
         """
@@ -104,7 +104,7 @@ class HomeAssistantService:
             logger.error(f"Failed to initialize Home Assistant service: {e}")
             return False
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the Home Assistant service and cleanup resources"""
         if self.client:
             await self.client.close()
@@ -119,7 +119,7 @@ class HomeAssistantService:
         """Check if Home Assistant integration is enabled"""
         return self.settings.HOME_ASSISTANT_ENABLED and self.initialized
 
-    def _ensure_initialized(self):
+    def _ensure_initialized(self) -> None:
         """Ensure the service is initialized, raise error if not"""
         if not self.is_enabled():
             raise HTTPException(
@@ -129,7 +129,7 @@ class HomeAssistantService:
 
     # Device Discovery and Management
 
-    async def get_all_devices(self) -> List[Dict]:
+    async def get_all_devices(self) -> list[dict]:
         """Get all Home Assistant devices/entities"""
         self._ensure_initialized()
 
@@ -154,7 +154,7 @@ class HomeAssistantService:
             logger.error(f"Failed to get devices: {e}")
             raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
 
-    async def get_devices_by_type(self, device_type: str) -> List[Dict]:
+    async def get_devices_by_type(self, device_type: str) -> list[dict]:
         """
         Get devices of a specific type.
 
@@ -172,7 +172,7 @@ class HomeAssistantService:
             logger.error(f"Failed to get {device_type} devices: {e}")
             raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
 
-    async def get_device(self, entity_id: str) -> Optional[Dict]:
+    async def get_device(self, entity_id: str) -> dict | None:
         """
         Get a specific device by entity ID.
 
@@ -193,7 +193,7 @@ class HomeAssistantService:
 
     # Device Control Methods
 
-    async def turn_on_device(self, entity_id: str, **kwargs) -> Dict:
+    async def turn_on_device(self, entity_id: str, **kwargs) -> dict:
         """
         Turn on a device (light, switch, etc.).
 
@@ -222,7 +222,7 @@ class HomeAssistantService:
             logger.error(f"Failed to turn on device {entity_id}: {e}")
             raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
 
-    async def turn_off_device(self, entity_id: str) -> Dict:
+    async def turn_off_device(self, entity_id: str) -> dict:
         """
         Turn off a device (light, switch, etc.).
 
@@ -250,7 +250,7 @@ class HomeAssistantService:
             logger.error(f"Failed to turn off device {entity_id}: {e}")
             raise HTTPException(status_code=502, detail=f"Home Assistant error: {e}")
 
-    async def toggle_device(self, entity_id: str) -> Dict:
+    async def toggle_device(self, entity_id: str) -> dict:
         """
         Toggle a device state.
 
@@ -281,8 +281,8 @@ class HomeAssistantService:
     # Specialized Device Control for Vertical Farm
 
     async def control_irrigation_solenoid(
-        self, entity_id: str, action: str, duration_seconds: Optional[int] = None
-    ) -> Dict:
+        self, entity_id: str, action: str, duration_seconds: int | None = None
+    ) -> dict:
         """
         Control irrigation solenoid valves.
 
@@ -317,9 +317,9 @@ class HomeAssistantService:
         self,
         entity_id: str,
         action: str,
-        brightness: Optional[int] = None,
-        color_temp: Optional[int] = None,
-    ) -> Dict:
+        brightness: int | None = None,
+        color_temp: int | None = None,
+    ) -> dict:
         """
         Control grow lights with advanced settings.
 
@@ -348,13 +348,13 @@ class HomeAssistantService:
 
     # Real-time Monitoring
 
-    async def subscribe_to_device_updates(self, entity_id: str):
+    async def subscribe_to_device_updates(self, entity_id: str) -> None:
         """Subscribe to real-time updates for a specific device"""
         self._ensure_initialized()
 
         if entity_id not in self.device_subscriptions:
 
-            def callback(eid: str, state: Dict):
+            def callback(eid: str, state: dict) -> None:
                 self.device_cache[eid] = state
                 logger.debug(f"Updated cached state for {eid}")
 
@@ -362,7 +362,7 @@ class HomeAssistantService:
             self.device_subscriptions.add(entity_id)
             logger.info(f"Subscribed to updates for {entity_id}")
 
-    async def unsubscribe_from_device_updates(self, entity_id: str):
+    async def unsubscribe_from_device_updates(self, entity_id: str) -> None:
         """Unsubscribe from real-time updates for a specific device"""
         if entity_id in self.device_subscriptions:
             # Note: This would need callback reference to properly unsubscribe
@@ -372,7 +372,7 @@ class HomeAssistantService:
 
     # Integration Status and Health
 
-    async def get_integration_status(self) -> Dict:
+    async def get_integration_status(self) -> dict:
         """Get current integration status and health information"""
         if not self.is_enabled():
             return {
@@ -403,7 +403,7 @@ class HomeAssistantService:
                 "error": str(e),
             }
 
-    async def get_available_services(self) -> Dict:
+    async def get_available_services(self) -> dict:
         """Get all available Home Assistant services"""
         self._ensure_initialized()
 

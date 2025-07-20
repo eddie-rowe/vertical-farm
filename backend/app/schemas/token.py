@@ -14,5 +14,5 @@ class Token(BaseModel):
 class TokenPayload(BaseModel):
     model_config = ConfigDict()
 
-    sub: Optional[uuid.UUID] = None
+    sub: uuid.UUID | None = None
     # exp: Optional[int] = None # If you handle token expiration checks

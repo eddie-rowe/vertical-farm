@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class BackgroundQueueTester:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8000") -> None:
         self.base_url = base_url
         self.session = None
         self.metrics = {
@@ -40,7 +40,7 @@ class BackgroundQueueTester:
         if self.session:
             await self.session.close()
 
-    async def submit_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def submit_task(self, task_data: dict[str, Any]) -> dict[str, Any]:
         """Submit a task to the background queue"""
         try:
             async with self.session.post(
@@ -60,7 +60,7 @@ class BackgroundQueueTester:
             logger.error(error)
             return {"error": error}
 
-    async def get_queue_stats(self) -> Dict[str, Any]:
+    async def get_queue_stats(self) -> dict[str, Any]:
         """Get current queue statistics"""
         try:
             async with self.session.get(
@@ -78,7 +78,7 @@ class BackgroundQueueTester:
             logger.error(error)
             return {"error": error}
 
-    async def test_real_tasks(self, num_tasks: int = 100):
+    async def test_real_tasks(self, num_tasks: int = 100) -> None:
         """Test with realistic production tasks"""
         logger.info(f"🚀 Starting real task test with {num_tasks} tasks")
 
@@ -147,7 +147,7 @@ class BackgroundQueueTester:
             f"📈 Submission rate: {num_tasks / submission_time:.2f} tasks/second"
         )
 
-    async def test_queue_performance(self, duration_minutes: int = 5):
+    async def test_queue_performance(self, duration_minutes: int = 5) -> None:
         """Monitor queue performance over time"""
         logger.info(f"📊 Monitoring queue performance for {duration_minutes} minutes")
 
@@ -168,7 +168,7 @@ class BackgroundQueueTester:
 
             await asyncio.sleep(sample_interval)
 
-    async def test_failure_scenarios(self):
+    async def test_failure_scenarios(self) -> None:
         """Test how the system handles task failures"""
         logger.info("🧪 Testing failure scenarios")
 
@@ -192,7 +192,7 @@ class BackgroundQueueTester:
             logger.info(f"🔍 Failure test result: {result}")
             await asyncio.sleep(2)
 
-    async def test_load_burst(self, burst_size: int = 500):
+    async def test_load_burst(self, burst_size: int = 500) -> None:
         """Test system behavior under sudden load burst"""
         logger.info(f"💥 Testing load burst with {burst_size} tasks")
 
@@ -288,7 +288,7 @@ class BackgroundQueueTester:
         return report
 
 
-async def main():
+async def main() -> None:
     """Run comprehensive background queue production tests"""
     async with BackgroundQueueTester() as tester:
         try:

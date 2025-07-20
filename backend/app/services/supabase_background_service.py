@@ -19,8 +19,8 @@ class TaskMessage:
     id: str
     type: str
     priority: str  # 'critical', 'high', 'normal', 'low'
-    payload: Dict[str, Any]
-    metadata: Dict[str, Any]
+    payload: dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -33,7 +33,7 @@ class QueueStats:
 class SupabaseBackgroundService:
     """Service for managing background tasks using Supabase queues and Edge Functions"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.supabase: Client = create_client(
             settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY
         )
@@ -42,9 +42,9 @@ class SupabaseBackgroundService:
     async def queue_task(
         self,
         task_type: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         priority: str = "normal",
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         max_retries: int = 3,
     ) -> str:
         """Queue a background task for processing"""
@@ -80,7 +80,7 @@ class SupabaseBackgroundService:
         else:
             raise Exception(f"Failed to queue task: {result}")
 
-    async def get_queue_stats(self) -> List[QueueStats]:
+    async def get_queue_stats(self) -> list[QueueStats]:
         """Get statistics for all queues"""
 
         result = self.supabase.rpc("get_queue_stats").execute()
@@ -100,9 +100,9 @@ class SupabaseBackgroundService:
     async def get_task_logs(
         self,
         limit: int = 100,
-        task_type: Optional[str] = None,
-        success: Optional[bool] = None,
-    ) -> List[Dict[str, Any]]:
+        task_type: str | None = None,
+        success: bool | None = None,
+    ) -> list[dict[str, Any]]:
         """Get task execution logs"""
 
         query = (
@@ -121,7 +121,7 @@ class SupabaseBackgroundService:
         result = query.execute()
         return result.data or []
 
-    async def trigger_queue_processing(self) -> Dict[str, Any]:
+    async def trigger_queue_processing(self) -> dict[str, Any]:
         """Manually trigger queue processing via Edge Function"""
 
         try:
@@ -142,7 +142,7 @@ class SupabaseBackgroundService:
         except Exception as e:
             raise Exception(f"Error triggering queue processing: {str(e)}")
 
-    async def schedule_recurring_tasks(self) -> Dict[str, Any]:
+    async def schedule_recurring_tasks(self) -> dict[str, Any]:
         """Trigger scheduling of recurring tasks"""
 
         try:
@@ -163,7 +163,7 @@ class SupabaseBackgroundService:
         except Exception as e:
             raise Exception(f"Error scheduling recurring tasks: {str(e)}")
 
-    async def cleanup_old_tasks(self) -> Dict[str, Any]:
+    async def cleanup_old_tasks(self) -> dict[str, Any]:
         """Trigger cleanup of old task logs and data"""
 
         try:
@@ -215,9 +215,9 @@ class SupabaseBackgroundService:
     async def schedule_bulk_control(
         self,
         user_id: str,
-        entity_ids: List[str],
+        entity_ids: list[str],
         action: str,
-        value: Optional[int] = None,
+        value: int | None = None,
     ) -> str:
         """Schedule a bulk device control task"""
         return await self.queue_task(
@@ -233,7 +233,7 @@ class SupabaseBackgroundService:
         )
 
     async def schedule_data_collection(
-        self, user_id: str, entity_ids: List[str], time_range: int = 3600
+        self, user_id: str, entity_ids: list[str], time_range: int = 3600
     ) -> str:
         """Schedule a data collection task"""
         return await self.queue_task(
@@ -247,7 +247,7 @@ class SupabaseBackgroundService:
             user_id=user_id,
         )
 
-    async def get_system_health(self) -> Dict[str, Any]:
+    async def get_system_health(self) -> dict[str, Any]:
         """Get overall system health status"""
 
         # Get queue stats
@@ -293,7 +293,7 @@ class SupabaseBackgroundService:
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def get_registered_functions(self) -> List[Dict[str, Any]]:
+    async def get_registered_functions(self) -> list[dict[str, Any]]:
         """Get list of available background task types"""
 
         return [
@@ -335,7 +335,7 @@ class SupabaseBackgroundService:
             },
         ]
 
-    async def close(self):
+    async def close(self) -> None:
         """Clean up resources"""
         await self.http_client.aclose()
 

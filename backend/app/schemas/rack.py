@@ -8,13 +8,13 @@ from app.schemas.shelf import ShelfResponse
 
 # Shared properties
 class RackBase(BaseModel):
-    name: Optional[str] = Field(None, min_length=2, max_length=50)
-    row_id: Optional[UUID] = None  # Made optional in base, required in Create
-    position_in_row: Optional[int] = Field(None, gt=0)
-    width: Optional[float] = Field(None, gt=0)
-    depth: Optional[float] = Field(None, gt=0)
-    height: Optional[float] = Field(None, gt=0)
-    max_shelves: Optional[int] = Field(None, gt=0)
+    name: str | None = Field(None, min_length=2, max_length=50)
+    row_id: UUID | None = None  # Made optional in base, required in Create
+    position_in_row: int | None = Field(None, gt=0)
+    width: float | None = Field(None, gt=0)
+    depth: float | None = Field(None, gt=0)
+    height: float | None = Field(None, gt=0)
+    max_shelves: int | None = Field(None, gt=0)
 
 
 # Properties to receive on item creation
@@ -30,13 +30,13 @@ class RackCreate(RackBase):
 
 # Properties to receive on item update
 class RackUpdate(BaseModel):  # All fields optional for update
-    name: Optional[str] = Field(None, min_length=2, max_length=50)
+    name: str | None = Field(None, min_length=2, max_length=50)
     # row_id: Optional[UUID] = None # Typically row_id is not updatable for a rack
-    position_in_row: Optional[int] = Field(None, gt=0)
-    width: Optional[float] = Field(None, gt=0)
-    depth: Optional[float] = Field(None, gt=0)
-    height: Optional[float] = Field(None, gt=0)
-    max_shelves: Optional[int] = Field(None, gt=0)
+    position_in_row: int | None = Field(None, gt=0)
+    width: float | None = Field(None, gt=0)
+    depth: float | None = Field(None, gt=0)
+    height: float | None = Field(None, gt=0)
+    max_shelves: int | None = Field(None, gt=0)
 
 
 # Properties shared by models stored in DB
@@ -55,7 +55,7 @@ class RackInDBBase(RackBase):
 
 # Properties to return to client
 class RackResponse(RackInDBBase):
-    shelves: Optional[List[ShelfResponse]] = Field(default_factory=list)
+    shelves: list[ShelfResponse] | None = Field(default_factory=list)
 
 
 # Properties stored in DB

@@ -17,7 +17,7 @@ class CRUDUser:
     # Note: User operations are often handled by Supabase Auth.
     # These CRUD methods might interact with the 'users' table for custom data or act as wrappers.
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> dict[str, Any] | None:
         """Fetches a user directly from the 'users' table. Useful if Supabase Auth user object is not sufficient."""
         try:
             response = (
@@ -44,7 +44,7 @@ class CRUDUser:
 
     async def get_by_email(
         self, supabase: SupabaseClient, *, email: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Fetches a user by email directly from the 'users' table."""
         try:
             response = (
@@ -66,7 +66,7 @@ class CRUDUser:
 
     async def create(
         self, supabase: SupabaseClient, obj_in: Any
-    ) -> Dict[str, Any]:  # Use Any for obj_in type hint
+    ) -> dict[str, Any]:  # Use Any for obj_in type hint
         from app.schemas import user as user_schema  # Import locally
 
         """Creates a new user using Supabase Auth and then potentially updates the users table with additional info."""
@@ -164,7 +164,7 @@ class CRUDUser:
         *,
         user_id: UUID,
         obj_in: Any,  # Use Any for obj_in type hint
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         from app.schemas import user as user_schema  # Import locally
 
         """Updates user attributes using Supabase Auth and/or direct table update."""
@@ -224,7 +224,7 @@ class CRUDUser:
 
     async def authenticate(
         self, supabase: SupabaseClient, *, email: str, password: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Authenticates a user using Supabase Auth."""
         try:
             auth_response = await supabase.auth.sign_in_with_password(

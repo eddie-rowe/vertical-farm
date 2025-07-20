@@ -29,10 +29,10 @@ from app.services.sensor_cache_service import (
 router = APIRouter()
 
 
-@router.get("/latest", response_model=List[SensorReadingResponse])
+@router.get("/latest", response_model=list[SensorReadingResponse])
 async def get_latest_sensor_readings(
-    device_ids: Optional[str] = Query(None, description="Comma-separated device IDs"),
-    sensor_types: Optional[str] = Query(
+    device_ids: str | None = Query(None, description="Comma-separated device IDs"),
+    sensor_types: str | None = Query(
         None, description="Comma-separated sensor types"
     ),
     current_user: User = Depends(get_current_user),
@@ -166,10 +166,10 @@ async def get_sensor_history(
         )
 
 
-@router.get("/aggregates", response_model=List[SensorAggregateResponse])
+@router.get("/aggregates", response_model=list[SensorAggregateResponse])
 async def get_sensor_aggregates(
-    device_ids: Optional[str] = Query(None, description="Comma-separated device IDs"),
-    sensor_types: Optional[str] = Query(
+    device_ids: str | None = Query(None, description="Comma-separated device IDs"),
+    sensor_types: str | None = Query(
         None, description="Comma-separated sensor types"
     ),
     period_hours: int = Query(
@@ -329,13 +329,13 @@ async def get_grow_recipes_data(
 
 @router.post("/cache/invalidate")
 async def invalidate_sensor_cache(
-    device_id: Optional[str] = Query(
+    device_id: str | None = Query(
         None, description="Specific device ID to invalidate"
     ),
-    sensor_type: Optional[str] = Query(
+    sensor_type: str | None = Query(
         None, description="Specific sensor type to invalidate"
     ),
-    static_data_type: Optional[str] = Query(
+    static_data_type: str | None = Query(
         None, description="Static data type to invalidate (species, varieties, recipes)"
     ),
     current_user: User = Depends(get_current_user),

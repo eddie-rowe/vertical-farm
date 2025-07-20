@@ -8,9 +8,9 @@ from app.models.enums import PermissionLevel
 
 
 class UserPermissionBase(BaseModel):
-    user_id: Optional[uuid.UUID] = None
-    farm_id: Optional[uuid.UUID] = None
-    permission: Optional[PermissionLevel] = None
+    user_id: uuid.UUID | None = None
+    farm_id: uuid.UUID | None = None
+    permission: PermissionLevel | None = None
 
 
 class UserPermissionCreate(UserPermissionBase):
@@ -20,7 +20,7 @@ class UserPermissionCreate(UserPermissionBase):
 
 
 class UserPermissionUpdate(BaseModel):
-    permission: Optional[PermissionLevel] = None
+    permission: PermissionLevel | None = None
 
 
 class UserPermissionInDBBase(UserPermissionBase):
@@ -28,8 +28,8 @@ class UserPermissionInDBBase(UserPermissionBase):
     user_id: uuid.UUID
     farm_id: uuid.UUID
     permission: PermissionLevel
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -40,7 +40,7 @@ class UserPermissionResponse(UserPermissionInDBBase):
 
 
 class UserPermissionListResponse(BaseModel):
-    permissions: List[UserPermissionResponse]
+    permissions: list[UserPermissionResponse]
     total: int
 
 

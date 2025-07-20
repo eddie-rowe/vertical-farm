@@ -28,9 +28,9 @@ router = APIRouter()
 @router.post("/grows/{grow_id}/automation/initialize")
 async def initialize_grow_automation(
     grow_id: str,
-    automation_config: Optional[GrowAutomationConfigRequest] = None,
+    automation_config: GrowAutomationConfigRequest | None = None,
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Initialize automation for a grow"""
     try:
         # Verify user owns the grow
@@ -197,7 +197,7 @@ async def create_automation_schedule(
     grow_id: str,
     schedule_data: CreateAutomationScheduleRequest,
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a new automation schedule"""
     try:
         # Verify user owns the grow
@@ -251,7 +251,7 @@ async def update_automation_schedule(
     schedule_id: str,
     schedule_data: UpdateAutomationScheduleRequest,
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update an automation schedule"""
     try:
         supabase = get_supabase_client()
@@ -305,7 +305,7 @@ async def update_automation_schedule(
 @router.delete("/automation/schedules/{schedule_id}")
 async def delete_automation_schedule(
     schedule_id: str, current_user=Depends(get_current_user)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Delete an automation schedule"""
     try:
         supabase = get_supabase_client()
@@ -353,7 +353,7 @@ async def create_automation_condition(
     grow_id: str,
     condition_data: CreateAutomationConditionRequest,
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a new automation condition"""
     try:
         # Verify user owns the grow
@@ -405,7 +405,7 @@ async def create_automation_condition(
 @router.get("/grows/{grow_id}/automation/executions")
 async def get_automation_executions(
     grow_id: str, limit: int = 50, current_user=Depends(get_current_user)
-) -> List[AutomationExecutionResponse]:
+) -> list[AutomationExecutionResponse]:
     """Get automation execution history for a grow"""
     try:
         # Verify user owns the grow
@@ -453,7 +453,7 @@ async def get_automation_executions(
 @router.post("/grows/{grow_id}/automation/toggle")
 async def toggle_grow_automation(
     grow_id: str, enabled: bool, current_user=Depends(get_current_user)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Enable or disable automation for a grow"""
     try:
         # Verify user owns the grow
@@ -514,10 +514,10 @@ async def toggle_grow_automation(
 
 @router.get("/automation/device-profiles")
 async def get_device_profiles(
-    device_type: Optional[str] = None,
-    crop_id: Optional[str] = None,
+    device_type: str | None = None,
+    crop_id: str | None = None,
     current_user=Depends(get_current_user),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get available device profiles for automation"""
     try:
         supabase = get_supabase_client()
@@ -551,9 +551,9 @@ async def get_device_profiles(
 async def manually_execute_automation(
     grow_id: str,
     device_assignment_id: str,
-    action: Dict[str, Any],
+    action: dict[str, Any],
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Manually execute an automation action"""
     try:
         # Verify user owns the grow

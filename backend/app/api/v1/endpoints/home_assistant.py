@@ -193,7 +193,7 @@ async def discover_devices(
 )
 async def get_all_devices(
     response: Response,
-    device_type: Optional[str] = Query(
+    device_type: str | None = Query(
         None, description="Filter by device type (light, switch, sensor, etc.)"
     ),
     current_user=Depends(get_current_user),
@@ -383,8 +383,8 @@ async def import_devices_endpoint(
     description="Get all devices imported to the user's device library",
 )
 async def get_imported_devices(
-    device_type: Optional[str] = Query(None, description="Filter by device type"),
-    assigned: Optional[bool] = Query(None, description="Filter by assignment status"),
+    device_type: str | None = Query(None, description="Filter by device type"),
+    assigned: bool | None = Query(None, description="Filter by assignment status"),
     current_user=Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ) -> ImportedDeviceListResponse:
@@ -646,7 +646,7 @@ async def control_device(
     description="Retrieve current sensor readings from Home Assistant",
 )
 async def get_sensor_data(
-    sensor_type: Optional[str] = Query(None, description="Filter by sensor type"),
+    sensor_type: str | None = Query(None, description="Filter by sensor type"),
     current_user=Depends(get_current_user),
     user_ha_service: UserHomeAssistantService = Depends(
         get_user_home_assistant_service
@@ -828,10 +828,10 @@ async def assign_device_to_location(
 
 @router.get("/devices/assignments")
 async def get_device_assignments(
-    farm_id: Optional[str] = None,
-    row_id: Optional[str] = None,
-    rack_id: Optional[str] = None,
-    shelf_id: Optional[str] = None,
+    farm_id: str | None = None,
+    row_id: str | None = None,
+    rack_id: str | None = None,
+    shelf_id: str | None = None,
     current_user=Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):
@@ -975,13 +975,13 @@ async def get_farm_assigned_devices(
 
 @router.get(
     "/config",
-    response_model=List[HomeAssistantConfigResponse],
+    response_model=list[HomeAssistantConfigResponse],
     summary="Get User Home Assistant Configurations",
     description="Get all Home Assistant configurations for the current user",
 )
 async def get_user_configs(
     current_user=Depends(get_current_user), db=Depends(get_async_rls_client)
-) -> List[HomeAssistantConfigResponse]:
+) -> list[HomeAssistantConfigResponse]:
     """Get all Home Assistant configurations for the current user"""
     try:
         # Query user's configurations using RLS client

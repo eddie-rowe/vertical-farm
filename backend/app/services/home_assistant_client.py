@@ -10,7 +10,8 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
+from collections.abc import Callable
 
 import aiohttp
 import websockets
@@ -57,13 +58,13 @@ class HomeAssistantClient:
         self,
         base_url: str,
         access_token: str,
-        websocket_url: Optional[str] = None,
+        websocket_url: str | None = None,
         max_retry_attempts: int = 5,
         retry_delay: float = 1.0,
         cache_ttl: int = 300,  # 5 minutes
-        cloudflare_client_id: Optional[str] = None,
-        cloudflare_client_secret: Optional[str] = None,
-    ):
+        cloudflare_client_id: str | None = None,
+        cloudflare_client_secret: str | None = None,
+    ) -> None:
         """
         Initialize Home Assistant client.
 
@@ -107,26 +108,26 @@ class HomeAssistantClient:
         self.websocket = None
         self.connected = False
         self.message_id = 1
-        self.subscribers: Dict[str, List[Callable]] = {}
+        self.subscribers: dict[str, list[Callable]] = {}
 
         # Rate limiting
         self.throttler = Throttler(rate_limit=10, period=1)  # 10 requests per second
 
         # Entity state cache
-        self.entity_cache: Dict[str, Dict] = {}
-        self.cache_timestamps: Dict[str, datetime] = {}
+        self.entity_cache: dict[str, dict] = {}
+        self.cache_timestamps: dict[str, datetime] = {}
 
         # Background tasks
-        self.background_tasks: List[asyncio.Task] = []
-        self.connection_task: Optional[asyncio.Task] = None
+        self.background_tasks: list[asyncio.Task] = []
+        self.connection_task: asyncio.Task | None = None
 
         # HTTP session
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
         # Enhanced error handling setup
         self._setup_error_handling()
 
-    def _setup_error_handling(self):
+    def _setup_error_handling(self) -> None:
         """Setup enhanced error handling for this client instance"""
         # Register custom retry configs for this client
         rest_config = RetryConfig(
@@ -166,7 +167,7 @@ class HomeAssistantClient:
         )
 
         # Add error callback for logging
-        def error_callback(error: HomeAssistantError):
+        def error_callback(error: HomeAssistantError) -> None:
             logger.error(
                 f"Home Assistant error: {error.message} "
                 f"(Type: {error.error_type.value}, Retryable: {error.retryable})"
@@ -185,7 +186,7 @@ class HomeAssistantClient:
         """Async context manager exit"""
         await self.close()
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Initialize the client and establish connections"""
         try:
             # Create HTTP session
@@ -210,7 +211,7 @@ class HomeAssistantClient:
             await self.close()
             raise ConnectionError(f"Failed to initialize: {e}")
 
-    async def close(self):
+    async def close(self) -> None:
         """Close all connections and cleanup resources"""
         logger.info("Closing Home Assistant client...")
 
@@ -273,7 +274,7 @@ class HomeAssistantClient:
             else:
                 raise ConnectionError(e.message)
 
-    async def _maintain_websocket_connection(self):
+    async def _maintain_websocket_connection(self) -> None:
         """Maintain WebSocket connection with enhanced error handling"""
         service_name = f"ha_websocket_{id(self)}"
 
@@ -306,7 +307,7 @@ class HomeAssistantClient:
                 logger.error(f"Unexpected error in WebSocket maintenance: {e}")
                 await asyncio.sleep(30)
 
-    async def _connect_websocket(self):
+    async def _connect_websocket(self) -> None:
         """Establish WebSocket connection and handle messages"""
         logger.info(f"Connecting to WebSocket: {self.websocket_url}")
 
@@ -387,7 +388,7 @@ class HomeAssistantClient:
             self.connected = False
             raise
 
-    async def _subscribe_to_state_changes(self):
+    async def _subscribe_to_state_changes(self) -> None:
         """Subscribe to entity state changes via WebSocket"""
         subscribe_message = {
             "id": self.message_id,
@@ -400,7 +401,7 @@ class HomeAssistantClient:
 
         logger.info("Subscribed to state change events")
 
-    async def _handle_websocket_message(self, data: Dict):
+    async def _handle_websocket_message(self, data: dict) -> None:
         """Handle incoming WebSocket messages"""
         message_type = data.get("type")
 
@@ -411,7 +412,7 @@ class HomeAssistantClient:
         else:
             logger.debug(f"Received unhandled message type: {message_type}")
 
-    async def _handle_state_change_event(self, data: Dict):
+    async def _handle_state_change_event(self, data: dict) -> None:
         """Handle state change events from WebSocket"""
         try:
             event_data = data.get("event", {})
@@ -435,7 +436,7 @@ class HomeAssistantClient:
         except Exception as e:
             logger.error(f"Error handling state change event: {e}")
 
-    async def _handle_command_result(self, data: Dict):
+    async def _handle_command_result(self, data: dict) -> None:
         """Handle command results from WebSocket"""
         success = data.get("success", False)
         message_id = data.get("id")
@@ -450,7 +451,7 @@ class HomeAssistantClient:
 
     # REST API Methods with enhanced error handling
 
-    async def get_entities(self, entity_type: Optional[str] = None) -> List[Dict]:
+    async def get_entities(self, entity_type: str | None = None) -> list[dict]:
         """
         Get all entities or entities of a specific type with enhanced error handling.
 
@@ -515,7 +516,7 @@ class HomeAssistantClient:
 
     async def get_entity(
         self, entity_id: str, use_cache: bool = True
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """
         Get a specific entity by ID with enhanced error handling.
 
@@ -591,9 +592,9 @@ class HomeAssistantClient:
         self,
         domain: str,
         service: str,
-        entity_id: Optional[str] = None,
-        data: Optional[Dict] = None,
-    ) -> Dict:
+        entity_id: str | None = None,
+        data: dict | None = None,
+    ) -> dict:
         """
         Call a Home Assistant service with enhanced error handling.
 
@@ -653,7 +654,7 @@ class HomeAssistantClient:
             },
         )
 
-    async def get_services(self) -> Dict:
+    async def get_services(self) -> dict:
         """
         Get all available services with enhanced error handling.
 
@@ -695,7 +696,7 @@ class HomeAssistantClient:
             },
         )
 
-    async def get_config(self) -> Dict:
+    async def get_config(self) -> dict:
         """
         Get Home Assistant configuration with enhanced error handling.
 
@@ -737,8 +738,8 @@ class HomeAssistantClient:
     # Subscription and Event Methods
 
     def subscribe_to_entity(
-        self, entity_id: str, callback: Callable[[str, Dict], None]
-    ):
+        self, entity_id: str, callback: Callable[[str, dict], None]
+    ) -> None:
         """
         Subscribe to entity state changes.
 
@@ -753,8 +754,8 @@ class HomeAssistantClient:
         logger.debug(f"Subscribed to entity: {entity_id}")
 
     def unsubscribe_from_entity(
-        self, entity_id: str, callback: Callable[[str, Dict], None]
-    ):
+        self, entity_id: str, callback: Callable[[str, dict], None]
+    ) -> None:
         """
         Unsubscribe from entity state changes.
 
@@ -782,17 +783,17 @@ class HomeAssistantClient:
         """
         return self.connected and self.websocket is not None
 
-    def get_cached_entity(self, entity_id: str) -> Optional[Dict]:
+    def get_cached_entity(self, entity_id: str) -> dict | None:
         """Get cached entity data without making API calls"""
         return self.entity_cache.get(entity_id)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear the entity cache"""
         self.entity_cache.clear()
         self.cache_timestamps.clear()
         logger.debug("Entity cache cleared")
 
-    async def health_check(self) -> Dict:
+    async def health_check(self) -> dict:
         """
         Perform a comprehensive health check with enhanced error reporting.
 

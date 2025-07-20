@@ -15,7 +15,7 @@ from .crud_shelf import shelf  # Added import for shelf CRUD
 class CRUDRack:
     table_name = "racks"
 
-    async def get(self, supabase: SupabaseClient, id: UUID) -> Optional[Dict[str, Any]]:
+    async def get(self, supabase: SupabaseClient, id: UUID) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -36,7 +36,7 @@ class CRUDRack:
 
     async def get_multi_by_row(
         self, supabase: SupabaseClient, *, row_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -53,7 +53,7 @@ class CRUDRack:
 
     async def get_multi_by_row_with_shelves(
         self, supabase: SupabaseClient, *, row_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[RackResponse]:
+    ) -> list[RackResponse]:
         racks_data = await self.get_multi_by_row(
             supabase, row_id=row_id, skip=skip, limit=limit
         )
@@ -81,7 +81,7 @@ class CRUDRack:
 
     async def get_multi_by_row_with_total(
         self, supabase: SupabaseClient, *, row_id: UUID, skip: int = 0, limit: int = 100
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -100,7 +100,7 @@ class CRUDRack:
 
     async def create_with_row(
         self, supabase: SupabaseClient, *, obj_in: RackCreate, row_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             rack_data = obj_in.model_dump()
             rack_data["row_id"] = str(row_id)
@@ -115,7 +115,7 @@ class CRUDRack:
 
     async def update(
         self, supabase: SupabaseClient, *, id: UUID, obj_in: RackUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             update_data = obj_in.model_dump(exclude_unset=True)
             if not update_data:
@@ -137,7 +137,7 @@ class CRUDRack:
 
     async def remove(
         self, supabase: SupabaseClient, *, id: UUID
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         try:
             response = (
                 await supabase.table(self.table_name)
@@ -159,7 +159,7 @@ rack = CRUDRack()
 # These would typically interact with a Supabase table named 'racks'
 
 
-async def get_rack(db: SupabaseClient, id: UUID) -> Optional[RackResponse]:
+async def get_rack(db: SupabaseClient, id: UUID) -> RackResponse | None:
     """Get a single rack by ID."""
     # response = await db.table(settings.SUPABASE_TABLE_RACKS).select("*").eq("id", str(id)).execute()
     # if response.data:
@@ -170,7 +170,7 @@ async def get_rack(db: SupabaseClient, id: UUID) -> Optional[RackResponse]:
 
 async def get_racks_by_row(
     db: SupabaseClient, row_id: UUID, skip: int = 0, limit: int = 100
-) -> List[RackResponse]:
+) -> list[RackResponse]:
     """Get all racks for a specific row."""
     # response = await db.table(settings.SUPABASE_TABLE_RACKS).select("*").eq("row_id", str(row_id)).offset(skip).limit(limit).execute()
     # return [RackResponse(**item) for item in response.data]
@@ -198,7 +198,7 @@ async def create_rack(db: SupabaseClient, obj_in: RackCreate) -> RackResponse:
 
 async def update_rack(
     db: SupabaseClient, id: UUID, obj_in: RackUpdate
-) -> Optional[RackResponse]:
+) -> RackResponse | None:
     """Update an existing rack."""
     # update_data = obj_in.model_dump(exclude_unset=True)
     # response = await db.table(settings.SUPABASE_TABLE_RACKS).update(update_data).eq("id", str(id)).execute()
@@ -208,7 +208,7 @@ async def update_rack(
     return None  # Placeholder
 
 
-async def delete_rack(db: SupabaseClient, id: UUID) -> Optional[RackResponse]:
+async def delete_rack(db: SupabaseClient, id: UUID) -> RackResponse | None:
     """Delete a rack."""
     # response = await db.table(settings.SUPABASE_TABLE_RACKS).delete().eq("id", str(id)).execute()
     # if response.data:

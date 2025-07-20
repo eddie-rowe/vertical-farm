@@ -43,7 +43,7 @@ class TestBackgroundQueueIntegration:
         return mock_service
 
     @pytest.mark.asyncio
-    async def test_task_enqueue_and_status_check(self, mock_queue_service):
+    async def test_task_enqueue_and_status_check(self, mock_queue_service) -> None:
         """Test basic task enqueuing and status checking."""
         # Enqueue a task
         task_data = {
@@ -65,7 +65,7 @@ class TestBackgroundQueueIntegration:
     @pytest.mark.asyncio
     async def test_notification_task_integration(
         self, mock_queue_service, mock_notification_service
-    ):
+    ) -> None:
         """Test that notification tasks integrate properly with queue system."""
         # Simulate a notification task
         notification_task = {
@@ -90,7 +90,7 @@ class TestBackgroundQueueIntegration:
         assert "notification_id" in notification_result
 
     @pytest.mark.asyncio
-    async def test_task_failure_handling(self, mock_queue_service):
+    async def test_task_failure_handling(self, mock_queue_service) -> None:
         """Test that task failures are handled properly."""
         # Mock a failing task
         mock_queue_service.get_task_status.return_value = {
@@ -108,7 +108,7 @@ class TestBackgroundQueueIntegration:
         assert task_status["retry_count"] == 3
 
     @pytest.mark.asyncio
-    async def test_multiple_task_types(self, mock_queue_service):
+    async def test_multiple_task_types(self, mock_queue_service) -> None:
         """Test enqueuing different types of background tasks."""
         task_types = [
             {
@@ -136,7 +136,7 @@ class TestBackgroundQueueIntegration:
         assert len(set(task_ids)) == 3  # All unique task IDs
 
     @pytest.mark.asyncio
-    async def test_queue_system_health_check(self, mock_queue_service):
+    async def test_queue_system_health_check(self, mock_queue_service) -> None:
         """Test queue system health monitoring integration."""
         # Mock health check
         mock_queue_service.health_check.return_value = {
@@ -155,7 +155,7 @@ class TestBackgroundQueueIntegration:
         assert "last_processed" in health
 
     @pytest.mark.asyncio
-    async def test_task_priority_handling(self, mock_queue_service):
+    async def test_task_priority_handling(self, mock_queue_service) -> None:
         """Test that priority tasks are handled correctly."""
         high_priority_task = {
             "type": "emergency_alert",

@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
 
 import redis.asyncio as redis
 
@@ -43,12 +44,12 @@ class TaskResult:
 
     success: bool
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     execution_time: float = 0.0
     retry_count: int = 0
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -59,17 +60,17 @@ class BackgroundTask:
     id: str
     name: str
     function_name: str
-    args: List[Any]
-    kwargs: Dict[str, Any]
+    args: list[Any]
+    kwargs: dict[str, Any]
     priority: TaskPriority = TaskPriority.NORMAL
     max_retries: int = 3
     retry_delay: float = 1.0
     timeout: float = 300.0  # 5 minutes default
-    scheduled_at: Optional[datetime] = None
+    scheduled_at: datetime | None = None
     created_at: datetime = None
     status: TaskStatus = TaskStatus.PENDING
-    result: Optional[TaskResult] = None
-    metadata: Dict[str, Any] = None
+    result: TaskResult | None = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -77,7 +78,7 @@ class BackgroundTask:
         if self.metadata is None:
             self.metadata = {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
         # Convert datetime objects to ISO strings for JSON serialization
         if data["created_at"]:
@@ -87,7 +88,7 @@ class BackgroundTask:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "BackgroundTask":
+    def from_dict(cls, data: dict[str, Any]) -> "BackgroundTask":
         # Convert ISO strings back to datetime objects
         if data.get("created_at"):
             data["created_at"] = datetime.fromisoformat(data["created_at"])
@@ -104,19 +105,19 @@ class BackgroundTask:
 class TaskRegistry:
     """Registry for background task functions"""
 
-    def __init__(self):
-        self._functions: Dict[str, Callable] = {}
+    def __init__(self) -> None:
+        self._functions: dict[str, Callable] = {}
 
-    def register(self, name: str, func: Callable):
+    def register(self, name: str, func: Callable) -> None:
         """Register a function for background execution"""
         self._functions[name] = func
         logger.info(f"Registered background task function: {name}")
 
-    def get(self, name: str) -> Optional[Callable]:
+    def get(self, name: str) -> Callable | None:
         """Get a registered function by name"""
         return self._functions.get(name)
 
-    def list_functions(self) -> List[str]:
+    def list_functions(self) -> list[str]:
         """List all registered function names"""
         return list(self._functions.keys())
 
@@ -130,16 +131,16 @@ class BackgroundProcessor:
         queue_name: str = "background_tasks",
         max_workers: int = 4,
         poll_interval: float = 1.0,
-    ):
+    ) -> None:
         self.redis_url = redis_url
         self.queue_name = queue_name
         self.max_workers = max_workers
         self.poll_interval = poll_interval
 
-        self.redis_client: Optional[redis.Redis] = None
+        self.redis_client: redis.Redis | None = None
         self.task_registry = TaskRegistry()
-        self.workers: List[asyncio.Task] = []
-        self.scheduler_task: Optional[asyncio.Task] = None
+        self.workers: list[asyncio.Task] = []
+        self.scheduler_task: asyncio.Task | None = None
         self.running = False
 
         # Metrics
@@ -152,7 +153,7 @@ class BackgroundProcessor:
             "queue_size": 0,
         }
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Initialize Redis connection and background services"""
         try:
             self.redis_client = redis.from_url(self.redis_url, decode_responses=True)
@@ -176,7 +177,7 @@ class BackgroundProcessor:
             logger.error(f"Failed to initialize background processor: {e}")
             raise
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the background processing system"""
         if self.running:
             logger.warning("Background processor is already running")
@@ -195,7 +196,7 @@ class BackgroundProcessor:
 
         logger.info(f"Started background processor with {self.max_workers} workers")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the background processing system"""
         if not self.running:
             return
@@ -226,7 +227,7 @@ class BackgroundProcessor:
 
         logger.info("Background processor stopped")
 
-    def register_task(self, name: str, func: Callable):
+    def register_task(self, name: str, func: Callable) -> None:
         """Register a function for background execution"""
         self.task_registry.register(name, func)
 
@@ -238,8 +239,8 @@ class BackgroundProcessor:
         max_retries: int = 3,
         retry_delay: float = 1.0,
         timeout: float = 300.0,
-        scheduled_at: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        scheduled_at: datetime | None = None,
+        metadata: dict[str, Any] | None = None,
         **kwargs,
     ) -> str:
         """Enqueue a task for background execution"""
@@ -278,7 +279,7 @@ class BackgroundProcessor:
         logger.info(f"Enqueued task {task_id}: {function_name}")
         return task_id
 
-    async def get_task_status(self, task_id: str) -> Optional[BackgroundTask]:
+    async def get_task_status(self, task_id: str) -> BackgroundTask | None:
         """Get the current status of a task"""
         task_data = await self.redis_client.hget(f"{self.queue_name}:tasks", task_id)
         if task_data:
@@ -299,7 +300,7 @@ class BackgroundProcessor:
         logger.info(f"Cancelled task {task_id}")
         return True
 
-    async def get_queue_stats(self) -> Dict[str, Any]:
+    async def get_queue_stats(self) -> dict[str, Any]:
         """Get queue statistics"""
         stats = {}
 
@@ -323,7 +324,7 @@ class BackgroundProcessor:
 
         return stats
 
-    async def _get_next_task(self) -> Optional[BackgroundTask]:
+    async def _get_next_task(self) -> BackgroundTask | None:
         """Get the next task to process (priority-based)"""
         # Check priority queues in order
         for priority in [
@@ -347,7 +348,7 @@ class BackgroundProcessor:
 
         return None
 
-    async def _worker_loop(self, worker_id: str):
+    async def _worker_loop(self, worker_id: str) -> None:
         """Main worker loop for processing tasks"""
         logger.info(f"Worker {worker_id} started")
 
@@ -374,7 +375,7 @@ class BackgroundProcessor:
 
         logger.info(f"Worker {worker_id} stopped")
 
-    async def _process_task(self, task: BackgroundTask, worker_id: str):
+    async def _process_task(self, task: BackgroundTask, worker_id: str) -> None:
         """Process a single task"""
         start_time = time.time()
 
@@ -459,7 +460,7 @@ class BackgroundProcessor:
             await self._update_task(task)
 
     async def _execute_task_with_timeout(
-        self, func: Callable, args: List[Any], kwargs: Dict[str, Any], timeout: float
+        self, func: Callable, args: list[Any], kwargs: dict[str, Any], timeout: float
     ):
         """Execute a task function with timeout"""
         if asyncio.iscoroutinefunction(func):
@@ -472,7 +473,7 @@ class BackgroundProcessor:
                 timeout=timeout,
             )
 
-    async def _scheduler_loop(self):
+    async def _scheduler_loop(self) -> None:
         """Process scheduled tasks"""
         logger.info("Scheduler started")
 
@@ -507,13 +508,13 @@ class BackgroundProcessor:
 
         logger.info("Scheduler stopped")
 
-    async def _update_task(self, task: BackgroundTask):
+    async def _update_task(self, task: BackgroundTask) -> None:
         """Update task in Redis"""
         await self.redis_client.hset(
             f"{self.queue_name}:tasks", task.id, json.dumps(task.to_dict())
         )
 
-    def _update_average_execution_time(self, execution_time: float):
+    def _update_average_execution_time(self, execution_time: float) -> None:
         """Update average execution time metric"""
         current_avg = self.metrics["average_execution_time"]
         total_processed = self.metrics["tasks_processed"]
@@ -538,7 +539,7 @@ background_processor = BackgroundProcessor(
 
 # Decorator for registering background tasks
 def background_task(
-    name: Optional[str] = None,
+    name: str | None = None,
     priority: TaskPriority = TaskPriority.NORMAL,
     max_retries: int = 3,
     retry_delay: float = 1.0,
