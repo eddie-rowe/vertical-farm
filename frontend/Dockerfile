@@ -21,6 +21,16 @@ RUN npm run build
 
 FROM node:22-alpine
 WORKDIR /app
-COPY --from=builder /app ./
+
+# Create non-root user for security  
+RUN addgroup --system --gid 1001 nodegroup && \
+    adduser --system --uid 1001 --ingroup nodegroup nextjs
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodegroup /app ./
+
+# Switch to non-root user
+USER nextjs
+
 EXPOSE 3000
 CMD ["npm", "start"]

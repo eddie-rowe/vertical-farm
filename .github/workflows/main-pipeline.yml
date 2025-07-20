@@ -167,6 +167,22 @@ jobs:
     
     steps:
       - name: Generate pipeline summary
+        env:
+          BACKEND_TESTS_RESULT: ${{ needs.backend-tests.result }}
+          FRONTEND_TESTS_RESULT: ${{ needs.frontend-tests.result }}
+          BACKEND_SECURITY_RESULT: ${{ needs.backend-security.result }}
+          FRONTEND_SECURITY_RESULT: ${{ needs.frontend-security.result }}
+          REPOSITORY_SECURITY_RESULT: ${{ needs.repository-security.result }}
+          BACKEND_BUILD_RESULT: ${{ needs.backend-build.result }}
+          FRONTEND_BUILD_RESULT: ${{ needs.frontend-build.result }}
+          DOCS_BUILD_RESULT: ${{ needs.docs-build.result }}
+          UNRAID_DEPLOY_RESULT: ${{ needs.unraid-deploy.result }}
+          SUPABASE_DEPLOY_RESULT: ${{ needs.supabase-deploy.result }}
+          PRODUCTION_DEPLOY_RESULT: ${{ needs.production-deploy.result }}
+          CLOUDFLARE_DEPLOY_RESULT: ${{ needs.cloudflare-deploy.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           echo "# 🚀 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -176,23 +192,33 @@ jobs:
           echo "| Phase | Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
           
+          # Function to get status icon
+          get_status_icon() {
+            case "$1" in
+              success) echo "✅" ;;
+              failure) echo "❌" ;;
+              skipped) echo "⏭️" ;;
+              *) echo "⏸️" ;;
+            esac
+          }
+          
           # Phase 1: Testing & Security
-          echo "| 🧪 Testing | Backend Tests | ${{ needs.backend-tests.result == 'success' && '✅' || needs.backend-tests.result == 'failure' && '❌' || needs.backend-tests.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Testing | Frontend Tests | ${{ needs.frontend-tests.result == 'success' && '✅' || needs.frontend-tests.result == 'failure' && '❌' || needs.frontend-tests.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ Security | Backend Security Scan | ${{ needs.backend-security.result == 'success' && '✅' || needs.backend-security.result == 'failure' && '❌' || needs.backend-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ Security | Frontend Security Scan | ${{ needs.frontend-security.result == 'success' && '✅' || needs.frontend-security.result == 'failure' && '❌' || needs.frontend-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ Security | Repository Security Scan | ${{ needs.repository-security.result == 'success' && '✅' || needs.repository-security.result == 'failure' && '❌' || needs.repository-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Testing | Backend Tests | $(get_status_icon "$BACKEND_TESTS_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Testing | Frontend Tests | $(get_status_icon "$FRONTEND_TESTS_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Backend Security Scan | $(get_status_icon "$BACKEND_SECURITY_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Frontend Security Scan | $(get_status_icon "$FRONTEND_SECURITY_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Repository Security Scan | $(get_status_icon "$REPOSITORY_SECURITY_RESULT") |" >> $GITHUB_STEP_SUMMARY
           
           # Phase 2: Building
-          echo "| 🏗️ Building | Backend Build | ${{ needs.backend-build.result == 'success' && '✅' || needs.backend-build.result == 'failure' && '❌' || needs.backend-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏗️ Building | Frontend Build | ${{ needs.frontend-build.result == 'success' && '✅' || needs.frontend-build.result == 'failure' && '❌' || needs.frontend-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏗️ Building | Documentation | ${{ needs.docs-build.result == 'success' && '✅' || needs.docs-build.result == 'failure' && '❌' || needs.docs-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Building | Backend Build | $(get_status_icon "$BACKEND_BUILD_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Building | Frontend Build | $(get_status_icon "$FRONTEND_BUILD_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Building | Documentation | $(get_status_icon "$DOCS_BUILD_RESULT") |" >> $GITHUB_STEP_SUMMARY
           
           # Phase 3: Deployment
-          echo "| 🚀 Deploy | Unraid | ${{ needs.unraid-deploy.result == 'success' && '✅' || needs.unraid-deploy.result == 'failure' && '❌' || needs.unraid-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚀 Deploy | Supabase | ${{ needs.supabase-deploy.result == 'success' && '✅' || needs.supabase-deploy.result == 'failure' && '❌' || needs.supabase-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚀 Deploy | Production | ${{ needs.production-deploy.result == 'success' && '✅' || needs.production-deploy.result == 'failure' && '❌' || needs.production-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚀 Deploy | Cloudflare | ${{ needs.cloudflare-deploy.result == 'success' && '✅' || needs.cloudflare-deploy.result == 'failure' && '❌' || needs.cloudflare-deploy.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Deploy | Unraid | $(get_status_icon "$UNRAID_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Deploy | Supabase | $(get_status_icon "$SUPABASE_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Deploy | Production | $(get_status_icon "$PRODUCTION_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Deploy | Cloudflare | $(get_status_icon "$CLOUDFLARE_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
           
           echo "" >> $GITHUB_STEP_SUMMARY
           
@@ -280,11 +306,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Branch-specific information
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
             echo "## 📋 Pull Request Summary" >> $GITHUB_STEP_SUMMARY
             echo "This is a pull request build. Deployment was skipped." >> $GITHUB_STEP_SUMMARY
-            echo "- **Branch**: ${{ github.head_ref }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Target**: ${{ github.base_ref }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: $HEAD_REF" >> $GITHUB_STEP_SUMMARY
+            echo "- **Target**: $BASE_REF" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "## 🌟 Production Deployment" >> $GITHUB_STEP_SUMMARY
             echo "This build was deployed to production." >> $GITHUB_STEP_SUMMARY
@@ -301,35 +327,43 @@ jobs:
           echo "**Build completed at**: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
       
       - name: Check pipeline health
+        env:
+          BACKEND_TESTS_RESULT: ${{ needs.backend-tests.result }}
+          FRONTEND_TESTS_RESULT: ${{ needs.frontend-tests.result }}
+          BACKEND_BUILD_RESULT: ${{ needs.backend-build.result }}
+          FRONTEND_BUILD_RESULT: ${{ needs.frontend-build.result }}
+          SUPABASE_DEPLOY_RESULT: ${{ needs.supabase-deploy.result }}
+          SKIP_TESTS: ${{ inputs.skip_tests }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           # Determine overall pipeline success
           CRITICAL_FAILURES=0
           
           # Check critical test failures (unless skipped)
-          if [[ "${{ needs.backend-tests.result }}" == "failure" ]] && [[ "${{ inputs.skip_tests }}" != "true" ]]; then
+          if [[ "$BACKEND_TESTS_RESULT" == "failure" ]] && [[ "$SKIP_TESTS" != "true" ]]; then
             echo "❌ Backend tests failed"
             CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
           fi
           
-          if [[ "${{ needs.frontend-tests.result }}" == "failure" ]] && [[ "${{ inputs.skip_tests }}" != "true" ]]; then
+          if [[ "$FRONTEND_TESTS_RESULT" == "failure" ]] && [[ "$SKIP_TESTS" != "true" ]]; then
             echo "❌ Frontend tests failed"
             CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
           fi
           
           # Check critical build failures
-          if [[ "${{ needs.backend-build.result }}" == "failure" ]]; then
+          if [[ "$BACKEND_BUILD_RESULT" == "failure" ]]; then
             echo "❌ Backend build failed"
             CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
           fi
           
-          if [[ "${{ needs.frontend-build.result }}" == "failure" ]]; then
+          if [[ "$FRONTEND_BUILD_RESULT" == "failure" ]]; then
             echo "❌ Frontend build failed"
             CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
           fi
           
           # Check deployment failures on main branch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            if [[ "${{ needs.supabase-deploy.result }}" == "failure" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            if [[ "$SUPABASE_DEPLOY_RESULT" == "failure" ]]; then
               echo "❌ Supabase deployment failed"
               CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
             fi

@@ -112,15 +112,19 @@ jobs:
           platforms: linux/amd64
           
       - name: Generate build summary
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          PUSH_STATUS: ${{ inputs.push_to_registry && '✅ Yes' || '❌ No' }}
         run: |
           echo "## 🌐 Frontend Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Image | \`${{ steps.meta.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Digest | \`${{ steps.build.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`$IMAGE_TAGS\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Digest | \`$IMAGE_DIGEST\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Platforms | linux/amd64 |" >> $GITHUB_STEP_SUMMARY
           echo "| Registry | ghcr.io |" >> $GITHUB_STEP_SUMMARY
-          echo "| Pushed | ${{ inputs.push_to_registry && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pushed | $PUSH_STATUS |" >> $GITHUB_STEP_SUMMARY
           
           # Add vulnerability summary if available
           if [ -f trivy-results.sarif ]; then

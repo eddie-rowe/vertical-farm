@@ -75,9 +75,12 @@ jobs:
       
       - name: Check deployment necessity
         id: check
+        env:
+          FORCE_DEPLOY: ${{ inputs.force_deploy }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Check if we should deploy
-          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+          if [ "$FORCE_DEPLOY" = "true" ]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "🚀 Force deployment requested"
           else

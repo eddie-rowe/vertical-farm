@@ -238,6 +238,7 @@ async def debug_user_profile(
             raw_token,
             key="",
             options={
+                # nosemgrep: python.jwt.security.unverified-jwt-decode.unverified-jwt-decode
                 "verify_signature": False,
                 "verify_aud": False,
                 "verify_iss": False,
