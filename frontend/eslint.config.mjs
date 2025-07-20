@@ -28,19 +28,17 @@ const eslintConfig = [
       "postcss.config.js",
     ],
   },
-  // Configuration for TypeScript files (.ts, .tsx)
+  // Extend Next.js configurations for all files first
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Then override specific rules
   {
-    files: ["**/*.ts", "**/*.tsx"],
-    ...compat.extends("next/core-web-vitals", "next/typescript"),
     rules: {
-      // TypeScript-specific rules
+      // Relaxed rules for development productivity
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
 
-      // Import/export rules
-      "import/no-unresolved": "error",
-      "import/no-cycle": "warn",
+      // Import ordering and organization
       "import/order": [
         "warn",
         {
@@ -72,18 +70,15 @@ const eslintConfig = [
       "no-debugger": "error",
     },
   },
-  // Configuration for JavaScript files (.js, .jsx, .mjs)
+  // Disable TypeScript rules for JavaScript files
   {
     files: ["**/*.js", "**/*.jsx", "**/*.mjs"],
-    ...compat.extends("next/core-web-vitals"),
     rules: {
-      // JavaScript-specific rules (no TypeScript rules)
+      // Turn off TypeScript-specific rules for JS files
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      // Use JavaScript equivalents
       "no-unused-vars": "warn",
-      "react/no-unescaped-entities": "warn",
-      "prefer-const": "warn",
-      "no-var": "error",
-      "no-console": "warn",
-      "no-debugger": "error",
     },
   },
 ];

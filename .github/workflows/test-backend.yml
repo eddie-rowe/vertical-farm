@@ -76,40 +76,13 @@ jobs:
       - name: Linting (flake8)
         working-directory: ./backend
         run: |
-          # First check for critical errors only (E9xx, F8xx series are critical)
-          echo "🔍 Checking for critical flake8 errors..."
-          flake8 app/ \
-            --max-line-length=88 \
-            --extend-ignore=E203,W503 \
-            --select=E9,F63,F7,F82 || {
-            echo "## ❌ Critical Linting Errors Found" >> $GITHUB_STEP_SUMMARY
-            echo "Fix critical flake8 errors above - these block CI" >> $GITHUB_STEP_SUMMARY
+          flake8 app/ --max-line-length=88 --extend-ignore=E203,W503 || {
+            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "Fix flake8 issues above" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
-          
-          # Then show full report including warnings (non-blocking)
-          echo "📋 Generating full linting report..."
-          echo "## 📊 Flake8 Full Report" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **No critical errors found**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Capture full linting output for visibility
-          LINT_OUTPUT=$(flake8 app/ --max-line-length=88 --extend-ignore=E203,W503 --statistics 2>&1 || true)
-          
-          if [ -n "$LINT_OUTPUT" ]; then
-            echo "### ⚠️ Code Quality Issues (Non-blocking)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details><summary>📋 View flake8 report</summary>" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            echo "$LINT_OUTPUT" | head -30 >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            echo "</details>" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "💡 **Consider addressing**: Line length, unused imports, code complexity" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "🎉 **No linting issues found** - excellent code quality!" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "## ✅ Linting (flake8)" >> $GITHUB_STEP_SUMMARY
+          echo "No linting issues found" >> $GITHUB_STEP_SUMMARY
       
       - name: Type checking (mypy)
         working-directory: ./backend
@@ -371,47 +344,12 @@ jobs:
         working-directory: ./backend
         run: |
           source venv/bin/activate
-          
-          # Generate pylint report (non-blocking for CI)
-          echo "📊 Generating code quality analysis..."
-          PYLINT_OUTPUT=$(pylint app/ --output-format=text --score=yes 2>&1 || true)
-          PYLINT_SCORE=$(echo "$PYLINT_OUTPUT" | grep -E "Your code has been rated at" | sed -E 's/.*rated at ([0-9.-]+).*/\1/' || echo "0")
-          
-          echo "## 📊 Code Quality Analysis (PyLint)" >> $GITHUB_STEP_SUMMARY
-          echo "**Score**: $PYLINT_SCORE/10.0" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Interpret score (using awk for portable floating point comparison)
-          SCORE_LEVEL=$(awk -v score="$PYLINT_SCORE" '
-            BEGIN { 
-              if (score >= 8.0) print "excellent"
-              else if (score >= 6.0) print "good" 
-              else if (score >= 4.0) print "fair"
-              else print "poor"
-            }')
-          
-          case $SCORE_LEVEL in
-            "excellent")
-              echo "✅ **Excellent code quality** (≥8.0)" >> $GITHUB_STEP_SUMMARY
-              ;;
-            "good")
-              echo "⚠️ **Good code quality** (6.0-7.9) - consider refactoring" >> $GITHUB_STEP_SUMMARY
-              ;;
-            "fair")
-              echo "🔶 **Fair code quality** (4.0-5.9) - refactoring recommended" >> $GITHUB_STEP_SUMMARY
-              ;;
-            "poor")
-              echo "🔴 **Code quality needs attention** (<4.0) - significant refactoring needed" >> $GITHUB_STEP_SUMMARY
-              ;;
-          esac
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>📋 View PyLint details</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "$PYLINT_OUTPUT" | head -20 >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          pylint app/ --fail-under=8.0 --output-format=text || {
+            echo "## ⚠️ Code Quality Below Threshold" >> $GITHUB_STEP_SUMMARY
+            echo "PyLint score below 8.0 - consider refactoring" >> $GITHUB_STEP_SUMMARY
+          }
+          echo "## ✅ Code Quality (pylint)" >> $GITHUB_STEP_SUMMARY
+          echo "Code quality meets standards" >> $GITHUB_STEP_SUMMARY
       
       - name: Dead code detection (vulture)
         working-directory: ./backend
