@@ -3,7 +3,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
-
 # Updated imports for Supabase-based background processing
 from .supabase_background_service import SupabaseBackgroundService
 from .user_home_assistant_service import UserHomeAssistantService

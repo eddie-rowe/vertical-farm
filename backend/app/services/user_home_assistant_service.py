@@ -21,12 +21,8 @@ from app.core.security import (
     validate_websocket_token,
 )
 from app.db.supabase_client import get_async_supabase_client
-from app.services.error_handling import (
-    global_error_handler,
-)
-from app.services.home_assistant_client import (
-    HomeAssistantClient,
-)
+from app.services.error_handling import global_error_handler
+from app.services.home_assistant_client import HomeAssistantClient
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-
 from .supabase_background_service import SupabaseBackgroundService
 
 logger = logging.getLogger(__name__)

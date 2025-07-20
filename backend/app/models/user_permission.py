@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
 
-# from typing import Optional  # Removed unused import
-
 from pydantic import BaseModel, ConfigDict
 
 from app.models.enums import PermissionLevel
+
+# from typing import Optional  # Removed unused import
+
+
 
 # from sqlalchemy import Column, ForeignKey, Enum as SQLAlchemyEnum, DateTime
 # from sqlalchemy.dialects.postgresql import UUID
