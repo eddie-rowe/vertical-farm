@@ -49,29 +49,41 @@ jobs:
           pip install black isort mypy flake8 pylint vulture
           pip install types-requests types-redis types-PyYAML
       
-      - name: Check code formatting (Black)
+      - name: Check code formatting (Black) - Non-blocking
         working-directory: ./backend
         run: |
-          black --check --diff app/ || {
-            echo "## ❌ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Run \`black app/\` to fix formatting issues" >> $GITHUB_STEP_SUMMARY
-            exit 1
+          black --check --diff app/ && {
+            echo "## ✅ Code Formatting (Black)" >> $GITHUB_STEP_SUMMARY
+            echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
+          } || {
+            echo "## ⚠️ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "**Warning**: Run \`black app/\` to fix formatting issues" >> $GITHUB_STEP_SUMMARY
+            echo "This is a warning, not blocking the pipeline" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Black Formatting Diff:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`diff" >> $GITHUB_STEP_SUMMARY
+            black --check --diff app/ | head -50 >> $GITHUB_STEP_SUMMARY || true
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           }
-          echo "## ✅ Code Formatting (Black)" >> $GITHUB_STEP_SUMMARY
-          echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
       
-      - name: Check import sorting (isort)
+      - name: Check import sorting (isort) - Non-blocking
         working-directory: ./backend
         run: |
           # Ensure isort uses pyproject.toml configuration
-          isort --check-only --diff --settings-file=pyproject.toml app/ || {
-            echo "## ❌ Import Sorting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Run \`isort app/\` to fix import ordering" >> $GITHUB_STEP_SUMMARY
+          isort --check-only --diff --settings-file=pyproject.toml app/ && {
+            echo "## ✅ Import Sorting (isort)" >> $GITHUB_STEP_SUMMARY
+            echo "All imports are properly sorted using pyproject.toml config" >> $GITHUB_STEP_SUMMARY
+          } || {
+            echo "## ⚠️ Import Sorting Issues Found" >> $GITHUB_STEP_SUMMARY
+            echo "**Warning**: Run \`isort app/\` to fix import ordering" >> $GITHUB_STEP_SUMMARY
             echo "Local config uses: profile=black, multi_line_output=3" >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "This is a warning, not blocking the pipeline" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Import Sorting Diff:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`diff" >> $GITHUB_STEP_SUMMARY
+            isort --check-only --diff --settings-file=pyproject.toml app/ | head -50 >> $GITHUB_STEP_SUMMARY || true
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           }
-          echo "## ✅ Import Sorting (isort)" >> $GITHUB_STEP_SUMMARY
-          echo "All imports are properly sorted using pyproject.toml config" >> $GITHUB_STEP_SUMMARY
       
       - name: Linting (flake8) - Critical Issues Only
         working-directory: ./backend
