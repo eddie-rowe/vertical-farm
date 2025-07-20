@@ -1,10 +1,165 @@
 schema-version: v1
+
+# =============================================================================
+# ENHANCED DATADOG STATIC ANALYSIS CONFIGURATION
+# Comprehensive security, quality, and performance analysis for vertical farm system
+# =============================================================================
+
 rulesets:
-  - python-best-practices
-  - python-code-style
-  - python-django
-  - python-flask
-  - python-inclusive
-  - python-pandas
-  - python-security
-  - github-actions
+  # =============================================================================
+  # PYTHON BACKEND ANALYSIS (FastAPI + Supabase + Async)
+  # =============================================================================
+  
+  # Core Python Security & Quality
+  - python-security              # Critical security vulnerability detection
+  - python-best-practices        # Python coding standards and conventions  
+  - python-code-style           # PEP 8 compliance and formatting
+  - python-inclusive            # Inclusive language enforcement
+  - python-performance          # Performance optimization recommendations
+  
+  # Python Framework & Architecture
+  - python-fastapi              # FastAPI-specific security and best practices
+  - python-async               # Async/await pattern validation
+  - python-pydantic            # Pydantic model validation (FastAPI dependency)
+  
+  # =============================================================================
+  # JAVASCRIPT/TYPESCRIPT FRONTEND ANALYSIS (Next.js + React)
+  # =============================================================================
+  
+  # Core JavaScript Security & Quality
+  - javascript-security         # JS/TS security vulnerability detection
+  - javascript-best-practices   # Modern JavaScript standards
+  - javascript-code-style      # Code formatting and conventions
+  - javascript-inclusive       # Inclusive language enforcement
+  - javascript-performance     # Performance optimization rules
+  
+  # Frontend Framework Specific
+  - typescript-best-practices  # TypeScript-specific rules
+  - typescript-security        # TypeScript security patterns
+  - react-best-practices       # React component best practices
+  - react-security            # React security vulnerabilities
+  - nextjs-best-practices     # Next.js specific optimizations
+  - nextjs-security           # Next.js security patterns
+  
+  # =============================================================================
+  # DOCKER & CONTAINERIZATION SECURITY
+  # =============================================================================
+  
+  - docker-best-practices      # Dockerfile optimization and security
+  - docker-security           # Container security scanning
+  
+  # =============================================================================
+  # CI/CD & INFRASTRUCTURE SECURITY
+  # =============================================================================
+  
+  - github-actions-security    # GitHub Actions workflow security
+  - ci-security               # General CI/CD security patterns
+  - secrets-detection         # Hardcoded secrets and credentials
+  - yaml-security             # YAML configuration security
+  
+  # =============================================================================
+  # DATABASE & API SECURITY
+  # =============================================================================
+  
+  - sql-injection             # SQL injection prevention
+  - api-security              # REST API security patterns
+  - authentication-security   # Auth implementation security
+  - authorization-security    # Access control security
+  
+  # =============================================================================
+  # GENERAL SECURITY & COMPLIANCE
+  # =============================================================================
+  
+  - owasp-top-10             # OWASP Top 10 vulnerability coverage
+  - cwe-top-25               # CWE Top 25 most dangerous weaknesses
+  - privacy-security         # Data privacy and protection
+  - cryptographic-security   # Encryption and crypto security
+  
+  # =============================================================================
+  # CODE QUALITY & MAINTAINABILITY
+  # =============================================================================
+  
+  - code-quality             # General code quality metrics
+  - complexity-analysis      # Cyclomatic complexity detection
+  - maintainability          # Code maintainability patterns
+  - documentation-quality    # Documentation coverage and quality
+  
+  # =============================================================================
+  # CONFIGURATION & INFRASTRUCTURE FILES
+  # =============================================================================
+  
+  - yaml-lint                # YAML file validation and security
+  - json-lint                # JSON file validation
+  - toml-lint                # TOML configuration validation
+  - env-security             # Environment variable security
+  
+# =============================================================================
+# ANALYSIS CONFIGURATION
+# =============================================================================
+
+analysis:
+  # Performance and resource optimization
+  max-file-size: "10MB"
+  timeout: "30m"
+  
+  # File type inclusion/exclusion
+  include:
+    - "**/*.py"          # Python backend files
+    - "**/*.ts"          # TypeScript files
+    - "**/*.tsx"         # React TSX files
+    - "**/*.js"          # JavaScript files
+    - "**/*.jsx"         # React JSX files
+    - "**/Dockerfile*"   # Docker configuration
+    - "**/*.yml"         # YAML configurations
+    - "**/*.yaml"        # YAML configurations
+    - "**/*.json"        # JSON configurations
+    - "**/*.toml"        # TOML configurations
+    - "**/*.sql"         # SQL files
+    
+  exclude:
+    - "**/node_modules/**"     # Frontend dependencies
+    - "**/venv/**"            # Python virtual environment
+    - "**/.git/**"            # Git metadata
+    - "**/dist/**"            # Build outputs
+    - "**/build/**"           # Build outputs
+    - "**/.next/**"           # Next.js build cache
+    - "**/coverage/**"        # Test coverage reports
+    - "**/htmlcov/**"         # Python coverage reports
+    - "**/test-results/**"    # Test results
+    - "**/playwright-report/**" # Test reports
+    - "**/*.min.js"           # Minified files
+    - "**/*.map"              # Source maps
+
+# =============================================================================
+# CUSTOM RULE CONFIGURATION
+# =============================================================================
+
+# Environment-specific rules
+environments:
+  production:
+    rules:
+      - no-debug-statements
+      - no-console-logs
+      - security-headers-required
+      
+  development:
+    rules:
+      - allow-debug-statements
+      - warn-on-console-logs
+      
+# Severity levels for different rule categories
+severity:
+  security: "error"           # Security issues block deployment
+  performance: "warning"      # Performance issues warn but don't block
+  style: "info"              # Style issues are informational
+  
+# Integration settings
+integrations:
+  github:
+    pull-request-comments: true
+    check-annotations: true
+    auto-fix-suggestions: true
+    
+  datadog:
+    send-metrics: true
+    dashboard-integration: true

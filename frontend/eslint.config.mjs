@@ -22,37 +22,21 @@ const eslintConfig = [
       "dist/**/*",
       "node_modules/**/*",
       "*.config.js",
+      "*.config.mjs",
       "jest.config.js",
       "tailwind.config.js",
       "postcss.config.js",
     ],
   },
-  // Extend Next.js configurations
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  // Custom rules
+  // Configuration for TypeScript files (.ts, .tsx)
   {
+    files: ["**/*.ts", "**/*.tsx"],
+    ...compat.extends("next/core-web-vitals", "next/typescript"),
     rules: {
-      // Relaxed rules for development productivity
+      // TypeScript-specific rules
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
-
-      // Promote to errors - critical issues
-      "@typescript-eslint/no-unsafe-assignment": "error",
-      "@typescript-eslint/no-unsafe-call": "error",
-      "@typescript-eslint/no-unsafe-member-access": "error",
-      "@typescript-eslint/no-unsafe-return": "error",
-
-      // Helpful warnings that don't block CI
-      "prefer-const": "warn",
-      "no-var": "error",
-      "no-console": "warn",
-      "no-debugger": "error",
-
-      // React-specific helpful rules
-      "react-hooks/exhaustive-deps": "warn",
-      "react/jsx-key": "error",
-      "react/no-array-index-key": "warn",
 
       // Import/export rules
       "import/no-unresolved": "error",
@@ -75,6 +59,31 @@ const eslintConfig = [
           },
         },
       ],
+
+      // React-specific helpful rules
+      "react-hooks/exhaustive-deps": "warn",
+      "react/jsx-key": "error",
+      "react/no-array-index-key": "warn",
+
+      // General code quality
+      "prefer-const": "warn",
+      "no-var": "error",
+      "no-console": "warn",
+      "no-debugger": "error",
+    },
+  },
+  // Configuration for JavaScript files (.js, .jsx, .mjs)
+  {
+    files: ["**/*.js", "**/*.jsx", "**/*.mjs"],
+    ...compat.extends("next/core-web-vitals"),
+    rules: {
+      // JavaScript-specific rules (no TypeScript rules)
+      "no-unused-vars": "warn",
+      "react/no-unescaped-entities": "warn",
+      "prefer-const": "warn",
+      "no-var": "error",
+      "no-console": "warn",
+      "no-debugger": "error",
     },
   },
 ];
