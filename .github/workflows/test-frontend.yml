@@ -14,7 +14,7 @@ permissions:
   security-events: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # Stage 1: Quick Quality Gates (2-3 minutes)
@@ -168,7 +168,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['21']
+        node-version: ['22']
         test-type: ['unit', 'integration']
     
     outputs:
@@ -295,7 +295,7 @@ jobs:
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.node-version == '21' && matrix.test-type == 'unit'
+        if: matrix.node-version == '22' && matrix.test-type == 'unit'
         uses: codecov/codecov-action@v4
         with:
           file: ./frontend/coverage/unit/lcov.info
@@ -306,7 +306,7 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.node-version == '21'
+        if: always() && matrix.node-version == '22'
         with:
           files: frontend/test-results/junit.xml
           check_name: "Frontend Tests (${{ matrix.test-type }})"
@@ -323,7 +323,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['21']  # Latest Node.js version
+        node-version: ['22']  # Latest Node.js version
     
     steps:
       - name: Checkout code
