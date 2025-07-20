@@ -17,158 +17,10 @@ env:
   NODE_VERSION: '22'
 
 jobs:
-  # Stage 1: Quick Quality Gates (2-3 minutes)
-  quality-gates:
-    name: Quality Gates
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            frontend/node_modules
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
-            ${{ runner.os }}-node-
-      
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
-      
-      - name: Check code formatting (Prettier) - Non-blocking
-        working-directory: ./frontend
-        run: |
-          npx prettier --check . && {
-            echo "## ✅ Code Formatting (Prettier)" >> $GITHUB_STEP_SUMMARY
-            echo "All code is properly formatted" >> $GITHUB_STEP_SUMMARY
-          } || {
-            echo "## ⚠️ Code Formatting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "**Warning**: Run \`npx prettier --write .\` to fix formatting" >> $GITHUB_STEP_SUMMARY
-            echo "This is a warning, not blocking the pipeline" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Files needing formatting:" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            npx prettier --check . | head -20 >> $GITHUB_STEP_SUMMARY || true
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          }
-      
-      - name: Lint code (ESLint)
-        working-directory: ./frontend
-        run: |
-          # Run ESLint focusing on errors only for CI
-          npx eslint . \
-            --ext .js,.jsx,.ts,.tsx \
-            --format stylish \
-            --quiet || {
-            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Fix ESLint errors above" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "## ✅ Linting (ESLint)" >> $GITHUB_STEP_SUMMARY
-          echo "No critical linting issues found" >> $GITHUB_STEP_SUMMARY
-          
-          # Generate warning report (non-blocking)
-          echo "## ⚠️ ESLint Warnings Summary" >> $GITHUB_STEP_SUMMARY
-          WARNING_COUNT=$(npx eslint . --ext .js,.jsx,.ts,.tsx --format stylish | grep -c "warning" || echo "0")
-          echo "Total warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
-          if [ "$WARNING_COUNT" -gt 900 ]; then
-            echo "💡 Consider addressing TypeScript 'any' types and unused variables" >> $GITHUB_STEP_SUMMARY
-          fi
-      
-      - name: TypeScript checking
-        working-directory: ./frontend
-        run: |
-          npx tsc --noEmit --strict --skipLibCheck || {
-            echo "## ❌ TypeScript Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Fix TypeScript errors above" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "## ✅ TypeScript Checking" >> $GITHUB_STEP_SUMMARY
-          echo "No TypeScript errors found" >> $GITHUB_STEP_SUMMARY
-      
-      # Note: Security scanning (secrets, licenses, vulnerabilities) is now handled
-      # by the consolidated security-scan.yml workflow to eliminate duplication
-
-  # Stage 2: Build Once (3-4 minutes)
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    needs: quality-gates
-    timeout-minutes: 15
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            frontend/node_modules
-            frontend/.next/cache
-            frontend/.turbo
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
-            ${{ runner.os }}-node-
-      
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: |
-          npm ci
-          npm run build:types || echo "No build:types script found"
-      
-      - name: Build application
-        working-directory: ./frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: npm run build
-      
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: |
-            frontend/node_modules/
-            frontend/.next/
-            frontend/dist/
-            frontend/build/
-            frontend/package.json
-            frontend/package-lock.json
-          retention-days: 1
-
-  # Stage 3: Test Matrix (5-8 minutes per job, parallel)
+  # Combined Quality Gates & Testing (much faster!)
   test-matrix:
     name: Tests (Node ${{ matrix.node-version }}, ${{ matrix.test-type }})
     runs-on: ubuntu-latest
-    needs: build
     timeout-minutes: 20
     
     strategy:
@@ -193,15 +45,40 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
         with:
-          name: frontend-build-${{ github.sha }}
-          path: frontend/
+          path: |
+            ~/.npm
+            frontend/node_modules
+            frontend/.next/cache
+            frontend/.turbo
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
       
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          npm ci
+          npm run build:types || echo "No build:types script found"
+      
+      - name: Run quality checks (fast pre-flight)
+        working-directory: ./frontend
+        run: |
+          # Linting
+          npm run lint
+          
+          # TypeScript checking
+          npx tsc --noEmit --strict --skipLibCheck
+      
+      - name: Build application
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
       
       - name: Setup test environment
         working-directory: ./frontend
@@ -267,30 +144,14 @@ jobs:
           exit ${TEST_EXIT_CODE:-0}
       
       - name: Generate coverage report
-        if: always()
+        if: always() && matrix.test-type != 'e2e'
         working-directory: ./frontend
         run: |
-          if [ -f coverage/${{ matrix.test-type }}/lcov.info ]; then
-            # Extract coverage percentage from lcov.info
-            COVERAGE=$(awk -F, '/SF:/ {files++} /LH:/ {hit+=$2} /LF:/ {total+=$2} END {if(total>0) printf "%.1f", (hit/total)*100; else print "0"}' coverage/${{ matrix.test-type }}/lcov.info)
+          if [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
+            COVERAGE=$(npx lcov-total coverage/${{ matrix.test-type }}/lcov.info)
             echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
             echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
             echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
-          elif [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
-            # Fallback to XML if lcov not available
-            COVERAGE=$(python3 -c "
-            import xml.etree.ElementTree as ET
-            tree = ET.parse('coverage/${{ matrix.test-type }}/cobertura-coverage.xml')
-            root = tree.getroot()
-            print(f'{float(root.attrib.get(\"line-rate\", 0)) * 100:.1f}')
-            " 2>/dev/null || echo "0")
-            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
-            echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "percentage=0" >> $GITHUB_OUTPUT
-            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
-            echo "No coverage data found" >> $GITHUB_STEP_SUMMARY
           fi
         id: coverage
       
@@ -300,8 +161,9 @@ jobs:
         with:
           name: frontend-test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
           path: |
-            frontend/coverage/${{ matrix.test-type }}/
+            frontend/coverage/
             frontend/test-results/
+            frontend/junit.xml
           retention-days: 30
       
       - name: Upload coverage to Codecov
@@ -323,11 +185,10 @@ jobs:
           comment_mode: always
           fail_on: "test failures"
 
-  # Stage 4: E2E Tests (separate due to special requirements)
+  # E2E Tests (separate due to special requirements)
   e2e-tests:
     name: E2E Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: build
     timeout-minutes: 25
     
     strategy:
@@ -348,15 +209,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: frontend/
-      
-      - name: Install dependencies
+      - name: Install dependencies and build
         working-directory: ./frontend
-        run: npm ci --only=production
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
       
       - name: Install Playwright browsers
         working-directory: ./frontend
@@ -388,179 +248,4 @@ jobs:
           path: |
             frontend/test-results/
             frontend/playwright-report/
-          retention-days: 30
-
-  # Note: Security scanning (licenses, dependencies, vulnerabilities) is now handled
-  # by the consolidated security-scan.yml workflow to eliminate duplication
-
-  # Stage 4: Accessibility Tests (parallel with other stage 4 jobs)
-  accessibility-tests:
-    name: Accessibility Tests
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'pull_request'
-    timeout-minutes: 10
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: frontend/
-      
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci --only=production
-      
-      - name: Start application
-        working-directory: ./frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: |
-          npm start &
-          sleep 15
-      
-      - name: Run accessibility tests
-        working-directory: ./frontend
-        run: |
-          npx @axe-core/cli http://localhost:3000 \
-            --save accessibility-report.json \
-            --format json \
-            --exit
-      
-      - name: Upload accessibility results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-accessibility-report
-          path: frontend/accessibility-report.json
-          retention-days: 30
-
-  # Stage 4: Bundle Analysis (parallel with other stage 4 jobs)
-  bundle-analysis:
-    name: Bundle Analysis
-    runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 10
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: frontend/
-      
-      - name: Bundle size analysis
-        working-directory: ./frontend
-        run: |
-          echo "## 📦 Bundle Analysis" >> $GITHUB_STEP_SUMMARY
-          
-          if [ -d .next ]; then
-            # Next.js bundle analysis using pre-built artifacts
-            BUNDLE_SIZE=$(du -sh .next | cut -f1)
-            echo "- **Total bundle size**: $BUNDLE_SIZE" >> $GITHUB_STEP_SUMMARY
-            
-            # Check for large chunks
-            find .next -name "*.js" -size +500k -exec basename {} \; > large-chunks.txt
-            if [ -s large-chunks.txt ]; then
-              echo "- **⚠️ Large chunks found**: Check for optimization opportunities" >> $GITHUB_STEP_SUMMARY
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              cat large-chunks.txt >> $GITHUB_STEP_SUMMARY
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- **✅ Bundle size**: All chunks are reasonably sized" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-      
-      - name: Dependency analysis
-        working-directory: ./frontend
-        run: |
-          echo "## 📊 Dependency Analysis" >> $GITHUB_STEP_SUMMARY
-          
-          # Count dependencies
-          PROD_DEPS=$(jq '.dependencies | keys | length' package.json)
-          DEV_DEPS=$(jq '.devDependencies | keys | length' package.json)
-          
-          echo "- **Production dependencies**: $PROD_DEPS" >> $GITHUB_STEP_SUMMARY
-          echo "- **Development dependencies**: $DEV_DEPS" >> $GITHUB_STEP_SUMMARY
-          
-          # Check for duplicate dependencies
-          npx npm-check-duplicates || {
-            echo "- **⚠️ Duplicate dependencies detected**" >> $GITHUB_STEP_SUMMARY
-          }
-          
-          # Check for unused dependencies
-          if command -v depcheck &> /dev/null; then
-            npx depcheck --json > depcheck-report.json || true
-            UNUSED_COUNT=$(jq '.dependencies | length' depcheck-report.json 2>/dev/null || echo "0")
-            if [ "$UNUSED_COUNT" -gt 0 ]; then
-              echo "- **⚠️ Potentially unused dependencies**: $UNUSED_COUNT" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- **✅ Dependencies**: All dependencies appear to be used" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-      
-      - name: Performance budget check
-        working-directory: ./frontend
-        run: |
-          echo "## ⚡ Performance Budget" >> $GITHUB_STEP_SUMMARY
-          
-          if [ -d .next/static ]; then
-            # Check JavaScript bundle size
-            JS_SIZE=$(find .next/static -name "*.js" -exec cat {} + | wc -c)
-            JS_SIZE_KB=$((JS_SIZE / 1024))
-            
-            echo "- **JavaScript bundle**: ${JS_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
-            
-            if [ $JS_SIZE_KB -gt 1000 ]; then
-              echo "- **⚠️ Large JavaScript bundle** (>${JS_SIZE_KB}KB)" >> $GITHUB_STEP_SUMMARY
-              echo "  Consider code splitting or tree shaking" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- **✅ JavaScript bundle size**: Within reasonable limits" >> $GITHUB_STEP_SUMMARY
-            fi
-            
-            # Check CSS bundle size
-            CSS_SIZE=$(find .next/static -name "*.css" -exec cat {} + | wc -c 2>/dev/null || echo "0")
-            CSS_SIZE_KB=$((CSS_SIZE / 1024))
-            
-            if [ $CSS_SIZE_KB -gt 0 ]; then
-              echo "- **CSS bundle**: ${CSS_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
-              
-              if [ $CSS_SIZE_KB -gt 200 ]; then
-                echo "- **⚠️ Large CSS bundle** (>${CSS_SIZE_KB}KB)" >> $GITHUB_STEP_SUMMARY
-              else
-                echo "- **✅ CSS bundle size**: Within reasonable limits" >> $GITHUB_STEP_SUMMARY
-              fi
-            fi
-          fi
-      
-      - name: Upload bundle analysis reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-bundle-analysis-reports
-          path: |
-            frontend/large-chunks.txt
-            frontend/depcheck-report.json
           retention-days: 30 

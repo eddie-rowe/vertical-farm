@@ -7,11 +7,6 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
     inputs:
-      skip_tests:
-        description: 'Skip test execution'
-        required: false
-        default: false
-        type: boolean
       force_deploy:
         description: 'Force deployment even if no changes'
         required: false
@@ -38,32 +33,41 @@ permissions:
   checks: write
 
 jobs:
-  # Phase 1: Parallel Unit Testing (MUST PASS FIRST)
+  # Phase 1: Parallel Testing & Security by Technology Stack
   backend-tests:
     name: Backend Tests
     uses: ./.github/workflows/test-backend.yml
-    if: inputs.skip_tests != true
     secrets: inherit
   
   frontend-tests:
     name: Frontend Tests
     uses: ./.github/workflows/test-frontend.yml
-    if: inputs.skip_tests != true
     secrets: inherit
   
-  # Phase 1.5: Security Scanning (parallel with unit tests)
-  security-scan:
-    name: Security Scanning
-    uses: ./.github/workflows/security-scan.yml
+  backend-security:
+    name: Backend Security Scan
+    uses: ./.github/workflows/security-scan-backend.yml
     secrets: inherit
   
-  # Note: Integration testing workflow removed to keep pipeline simple
-  # Phase 2: Parallel Building (after tests and security pass)
+  frontend-security:
+    name: Frontend Security Scan
+    uses: ./.github/workflows/security-scan-frontend.yml
+    secrets: inherit
+  
+  repository-security:
+    name: Repository Security Scan
+    uses: ./.github/workflows/security-scan-repository.yml
+    secrets: inherit
+
+  # Phase 2: Technology-Specific Builds (Enhanced Parallel Dependencies)
   backend-build:
     name: Backend Build
     uses: ./.github/workflows/build-backend.yml
-    needs: [backend-tests, security-scan]
-    if: always() && (needs.backend-tests.result == 'success' && needs.security-scan.result == 'success') || inputs.skip_tests == true
+    needs: [backend-tests, backend-security, repository-security]
+    if: |
+      needs.backend-tests.result == 'success' && 
+      needs.backend-security.result == 'success' && 
+      needs.repository-security.result == 'success'
     secrets: inherit
     #with:
     #  push_to_registry: ${{ github.event_name != 'pull_request' }}
@@ -71,8 +75,11 @@ jobs:
   frontend-build:
     name: Frontend Build
     uses: ./.github/workflows/build-frontend.yml
-    needs: [frontend-tests, security-scan]
-    if: always() && (needs.frontend-tests.result == 'success' && needs.security-scan.result == 'success') || inputs.skip_tests == true
+    needs: [frontend-tests, frontend-security, repository-security]
+    if: |
+      needs.frontend-tests.result == 'success' && 
+      needs.frontend-security.result == 'success' && 
+      needs.repository-security.result == 'success'
     secrets: inherit
     #with:
     #  push_to_registry: ${{ github.event_name != 'pull_request' }}
@@ -80,8 +87,11 @@ jobs:
   docs-build:
     name: Documentation Site Build
     uses: ./.github/workflows/build-docs-site.yml
-    # Docs build doesn't depend on tests unless docs are changed
-    #if: github.event_name != 'pull_request' || contains(github.event.pull_request.changed_files, 'docs/')
+    needs: [backend-tests, frontend-tests, repository-security]
+    if: |
+      needs.backend-tests.result == 'success' && 
+      needs.frontend-tests.result == 'success' && 
+      needs.repository-security.result == 'success'
     secrets: inherit
     #with:
     #  deploy_to_pages: ${{ github.ref == 'refs/heads/main' }}
@@ -102,7 +112,7 @@ jobs:
     name: Unraid Deploy
     uses: ./.github/workflows/deploy-unraid.yml
     needs: [backend-build, frontend-build]
-    if: always() && (needs.backend-build.result == 'success' && needs.frontend-build.result == 'success')
+    if: needs.backend-build.result == 'success' && needs.frontend-build.result == 'success'
     secrets: inherit
     #with:
       #environment: ${{ inputs.deploy_environment || 'production' }}
@@ -142,7 +152,9 @@ jobs:
     needs: [
       backend-tests,
       frontend-tests,
-      security-scan,
+      backend-security,
+      frontend-security,
+      repository-security,
       backend-build,
       frontend-build,
       docs-build,
@@ -167,7 +179,9 @@ jobs:
           # Phase 1: Testing & Security
           echo "| 🧪 Testing | Backend Tests | ${{ needs.backend-tests.result == 'success' && '✅' || needs.backend-tests.result == 'failure' && '❌' || needs.backend-tests.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🧪 Testing | Frontend Tests | ${{ needs.frontend-tests.result == 'success' && '✅' || needs.frontend-tests.result == 'failure' && '❌' || needs.frontend-tests.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ Security | Security Scanning | ${{ needs.security-scan.result == 'success' && '✅' || needs.security-scan.result == 'failure' && '❌' || needs.security-scan.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Backend Security Scan | ${{ needs.backend-security.result == 'success' && '✅' || needs.backend-security.result == 'failure' && '❌' || needs.backend-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Frontend Security Scan | ${{ needs.frontend-security.result == 'success' && '✅' || needs.frontend-security.result == 'failure' && '❌' || needs.frontend-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Security | Repository Security Scan | ${{ needs.repository-security.result == 'success' && '✅' || needs.repository-security.result == 'failure' && '❌' || needs.repository-security.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
           
           # Phase 2: Building
           echo "| 🏗️ Building | Backend Build | ${{ needs.backend-build.result == 'success' && '✅' || needs.backend-build.result == 'failure' && '❌' || needs.backend-build.result == 'skipped' && '⏭️' || '⏸️' }} |" >> $GITHUB_STEP_SUMMARY
@@ -195,10 +209,15 @@ jobs:
           # Overall Status
           if [[ "${{ needs.backend-tests.result }}" == "success" && "${{ needs.frontend-tests.result }}" == "success" ]]; then
             TEST_STATUS="✅ All tests passed"
-          elif [[ "${{ inputs.skip_tests }}" == "true" ]]; then
-            TEST_STATUS="⏭️ Tests skipped"
           else
             TEST_STATUS="❌ Some tests failed"
+          fi
+          
+          # Enhanced Security Status
+          if [[ "${{ needs.backend-security.result }}" == "success" && "${{ needs.frontend-security.result }}" == "success" && "${{ needs.repository-security.result }}" == "success" ]]; then
+            SECURITY_STATUS="✅ All security scans passed"
+          else
+            SECURITY_STATUS="❌ Some security scans failed"
           fi
           
           if [[ "${{ needs.backend-build.result }}" == "success" && "${{ needs.frontend-build.result }}" == "success" ]]; then
@@ -225,22 +244,29 @@ jobs:
           
           echo "## 🎯 Pipeline Status" >> $GITHUB_STEP_SUMMARY
           echo "- **Tests**: $TEST_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security**: $SECURITY_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "- **Builds**: $BUILD_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "- **Deployment**: $DEPLOY_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Quality Gates Status
+          # Enhanced Quality Gates Status (Technology-Specific)
           echo "## 🛡️ Quality Gates" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.backend-tests.result }}" == "success" || "${{ inputs.skip_tests }}" == "true" ]]; then
-            echo "- ✅ Backend quality gate: PASSED" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.backend-tests.result }}" == "success" && "${{ needs.backend-security.result }}" == "success" ]]; then
+            echo "- ✅ Backend quality gate: PASSED (tests + security)" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ Backend quality gate: FAILED" >> $GITHUB_STEP_SUMMARY
           fi
           
-          if [[ "${{ needs.frontend-tests.result }}" == "success" || "${{ inputs.skip_tests }}" == "true" ]]; then
-            echo "- ✅ Frontend quality gate: PASSED" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.frontend-tests.result }}" == "success" && "${{ needs.frontend-security.result }}" == "success" ]]; then
+            echo "- ✅ Frontend quality gate: PASSED (tests + security)" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ Frontend quality gate: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.repository-security.result }}" == "success" ]]; then
+            echo "- ✅ Repository security gate: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Repository security gate: FAILED" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY

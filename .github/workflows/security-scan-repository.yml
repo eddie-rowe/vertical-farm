@@ -1,0 +1,193 @@
+name: Repository Security Scanning
+
+on:
+  workflow_call:
+    outputs:
+      security_status:
+        description: "Repository security scan status"
+        value: ${{ jobs.repository-security.outputs.status }}
+      secrets_found:
+        description: "Number of secrets found"
+        value: ${{ jobs.repository-security.outputs.secrets_found }}
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  repository-security:
+    name: Repository Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    
+    outputs:
+      status: ${{ steps.security-assessment.outputs.status }}
+      secrets_found: ${{ steps.security-assessment.outputs.secrets_found }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive secret scanning
+      
+      # =============================================================================
+      # REPOSITORY-WIDE SECRET SCANNING
+      # =============================================================================
+      
+      - name: Repository-wide Secret Scan (TruffleHog)
+        run: |
+          echo "## 🔍 Repository Secret Scanning" >> $GITHUB_STEP_SUMMARY
+          
+          # Download and run TruffleHog for secret detection
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Scan repository for secrets
+          /usr/local/bin/trufflehog git file://. \
+            --only-verified \
+            --json \
+            --no-update > repository-secrets.json || true
+          
+          # Scan recent commits specifically  
+          /usr/local/bin/trufflehog git file://. \
+            --since-commit HEAD~10 \
+            --json \
+            --no-update > recent-secrets.json || true
+          
+          # Count found secrets
+          VERIFIED_SECRETS=$(jq 'select(.Verified == true) | length' repository-secrets.json 2>/dev/null | wc -l || echo "0")
+          TOTAL_FINDINGS=$(jq 'length' repository-secrets.json 2>/dev/null || echo "0")
+          
+          echo "- **Verified secrets found**: $VERIFIED_SECRETS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total secret findings**: $TOTAL_FINDINGS" >> $GITHUB_STEP_SUMMARY
+          
+          # Store results for assessment
+          echo "VERIFIED_SECRETS=$VERIFIED_SECRETS" >> $GITHUB_ENV
+          echo "TOTAL_FINDINGS=$TOTAL_FINDINGS" >> $GITHUB_ENV
+      
+      # =============================================================================
+      # REPOSITORY CONFIGURATION SECURITY
+      # =============================================================================
+      
+      - name: Repository Configuration Security
+        run: |
+          echo "## ⚙️ Repository Configuration Security" >> $GITHUB_STEP_SUMMARY
+          
+          SECURITY_ISSUES=0
+          
+          # Check for common security misconfigurations
+          echo "### Configuration Checks:" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for exposed environment files
+          if find . -name ".env*" -not -path "./.git/*" -not -name ".env.example" -not -name ".env.template" | grep -q .; then
+            echo "- ⚠️ Potential .env files found (review manually)" >> $GITHUB_STEP_SUMMARY
+            find . -name ".env*" -not -path "./.git/*" -not -name ".env.example" -not -name ".env.template" >> $GITHUB_STEP_SUMMARY
+            SECURITY_ISSUES=$((SECURITY_ISSUES + 1))
+          else
+            echo "- ✅ No exposed .env files detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for potential credential files
+          if find . -name "*key*" -o -name "*secret*" -o -name "*password*" -o -name "*token*" | grep -E "\.(txt|json|yaml|yml|key|pem|p12|pfx)$" | grep -v -E "(package|node_modules|\.git|test|spec|example|template)" | head -10 | grep -q .; then
+            echo "- ⚠️ Potential credential files found (review manually):" >> $GITHUB_STEP_SUMMARY
+            find . -name "*key*" -o -name "*secret*" -o -name "*password*" -o -name "*token*" | grep -E "\.(txt|json|yaml|yml|key|pem|p12|pfx)$" | grep -v -E "(package|node_modules|\.git|test|spec|example|template)" | head -5 >> $GITHUB_STEP_SUMMARY
+            SECURITY_ISSUES=$((SECURITY_ISSUES + 1))
+          else
+            echo "- ✅ No obvious credential files detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for large files that might contain secrets
+          if find . -size +10M -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.next/*" | head -5 | grep -q .; then
+            echo "- ⚠️ Large files found (could contain embedded secrets):" >> $GITHUB_STEP_SUMMARY
+            find . -size +10M -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.next/*" | head -3 >> $GITHUB_STEP_SUMMARY
+            SECURITY_ISSUES=$((SECURITY_ISSUES + 1))
+          else
+            echo "- ✅ No concerning large files detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "SECURITY_ISSUES=$SECURITY_ISSUES" >> $GITHUB_ENV
+      
+      # =============================================================================
+      # GITHUB SECURITY CONFIGURATION
+      # =============================================================================
+      
+      - name: GitHub Security Settings Check
+        run: |
+          echo "## 🛡️ GitHub Security Configuration" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if security features are likely enabled (basic checks)
+          echo "### Security Feature Status:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 Secret scanning: Enabled via workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛡️ Dependency review: Check GitHub repo settings" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚨 Security advisories: Check GitHub repo settings" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 Branch protection: Check GitHub repo settings" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for GitHub security files
+          if [ -f ".github/SECURITY.md" ]; then
+            echo "- ✅ Security policy exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ No security policy found (.github/SECURITY.md)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f ".github/dependabot.yml" ] || [ -f ".dependabot.yml" ]; then
+            echo "- ✅ Dependabot configuration exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ No Dependabot configuration found" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # =============================================================================
+      # UPLOAD REPOSITORY SECURITY REPORTS
+      # =============================================================================
+      
+      - name: Upload Repository Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: repository-security-reports
+          path: |
+            repository-secrets.json
+            recent-secrets.json
+          retention-days: 30
+      
+      # =============================================================================
+      # REPOSITORY SECURITY ASSESSMENT & GATING
+      # =============================================================================
+      
+      - name: Repository Security Assessment
+        id: security-assessment
+        run: |
+          echo "## 🎯 Repository Security Assessment" >> $GITHUB_STEP_SUMMARY
+          
+          # Get values from environment
+          VERIFIED_SECRETS=${VERIFIED_SECRETS:-0}
+          TOTAL_FINDINGS=${TOTAL_FINDINGS:-0}
+          SECURITY_ISSUES=${SECURITY_ISSUES:-0}
+          
+          # Create summary table
+          echo "| Security Category | Issues | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Verified Secrets | $VERIFIED_SECRETS | $([ $VERIFIED_SECRETS -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Findings | $TOTAL_FINDINGS | $([ $TOTAL_FINDINGS -lt 5 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Config Issues | $SECURITY_ISSUES | $([ $SECURITY_ISSUES -lt 3 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          
+          # Set outputs for main pipeline
+          echo "secrets_found=$VERIFIED_SECRETS" >> $GITHUB_OUTPUT
+          
+          # Determine overall status
+          if [ "$VERIFIED_SECRETS" -gt 0 ]; then
+            echo "status=critical" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **REPOSITORY SECURITY: CRITICAL**" >> $GITHUB_STEP_SUMMARY
+            echo "Verified secrets found in repository. Immediate action required." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          elif [ "$TOTAL_FINDINGS" -gt 10 ] || [ "$SECURITY_ISSUES" -gt 5 ]; then
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **REPOSITORY SECURITY: WARNING**" >> $GITHUB_STEP_SUMMARY
+            echo "Multiple security findings detected. Review recommended." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **REPOSITORY SECURITY: PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "Repository security checks completed successfully." >> $GITHUB_STEP_SUMMARY
+          fi 
