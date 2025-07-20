@@ -142,7 +142,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[all,test]
           pip install pytest-cov pytest-xdist pytest-timeout
-          pip install mypy flake8
+          pip install pyright flake8
           pip install types-requests types-redis types-PyYAML
       
       - name: Critical quality checks (BLOCKING)
@@ -151,8 +151,8 @@ jobs:
           echo "🛡️ Running critical quality checks..."
           
           # Type checking (blocking)
-          echo "Checking types with mypy..."
-          mypy app/ --ignore-missing-imports --no-strict-optional
+          echo "Checking types with pyright..."
+          pyright app/
           
           # Basic syntax and critical linting (blocking)
           echo "Checking syntax and critical issues..."

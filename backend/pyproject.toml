@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vertical_farm_backend"
+name = "vertical-farm-backend"
 version = "1.0.0"
 description = "FastAPI backend for vertical farming management platform"
 readme = "README.md"
@@ -92,7 +92,7 @@ dev = [
 ]
 
 all = [
-    "vertical_farm_backend[monitoring,test,dev]"
+    "vertical-farm-backend[monitoring,test,dev]"
 ]
 
 [project.scripts]
