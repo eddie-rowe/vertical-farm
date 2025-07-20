@@ -23,7 +23,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Row, Rack, Shelf } from "@/types/farm-layout";
 
-
 type SelectableElement = Row | Rack | Shelf;
 
 interface BulkOperationsToolbarProps {

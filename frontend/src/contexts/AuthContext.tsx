@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 
 import { supabase } from "@/lib/supabaseClient";
 
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;

@@ -1,10 +1,5 @@
 "use client";
-import {
-  AlertTriangle,
-  Bell,
-  CheckCircle,
-  Settings,
-} from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle, Settings } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";

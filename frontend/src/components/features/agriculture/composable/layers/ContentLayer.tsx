@@ -10,7 +10,6 @@ import { Row, Rack, Shelf, AreaType } from "@/types/farm";
 import DeviceRenderer from "../../farm-core/UnifiedFarmView/components/DeviceRenderer";
 import { useAreaConfiguration } from "../providers/FarmAreaProvider";
 
-
 interface ContentLayerProps {
   children: React.ReactNode;
 }

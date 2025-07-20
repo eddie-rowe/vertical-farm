@@ -1,10 +1,4 @@
-import {
-  CheckCircle,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-  X,
-} from "lucide-react";
+import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from "lucide-react";
 import React, {
   useState,
   useEffect,

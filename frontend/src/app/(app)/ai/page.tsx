@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  BeakerIcon,
-  ChartBarIcon,
-  EyeIcon,
-} from "@heroicons/react/24/outline";
+import { BeakerIcon, ChartBarIcon, EyeIcon } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 
 import {

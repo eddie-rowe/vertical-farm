@@ -9,7 +9,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-
 interface HeroMetric {
   icon: React.ComponentType<{ className?: string }>;
   title: string;

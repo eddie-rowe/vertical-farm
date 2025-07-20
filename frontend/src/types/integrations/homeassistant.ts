@@ -1,4 +1,3 @@
-
 // Core Home Assistant Device Interface (consolidated)
 export interface HADevice {
   entity_id: string;

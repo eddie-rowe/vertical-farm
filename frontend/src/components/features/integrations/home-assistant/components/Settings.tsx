@@ -14,10 +14,7 @@ import {
 import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  HAConfig,
-  HAStatus,
-} from "@/types/integrations/homeassistant";
+import { HAConfig, HAStatus } from "@/types/integrations/homeassistant";
 
 interface SettingsProps {
   config: HAConfig;

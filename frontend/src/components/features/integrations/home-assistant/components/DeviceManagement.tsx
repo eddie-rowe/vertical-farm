@@ -2,11 +2,7 @@
 
 import { LayoutGrid, List } from "lucide-react";
 import { FC, useState, useRef, useMemo, useCallback } from "react";
-import {
-  FaSearch,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaEyeSlash } from "react-icons/fa";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";

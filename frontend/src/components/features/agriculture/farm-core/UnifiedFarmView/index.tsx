@@ -27,11 +27,6 @@ import { useLayer } from "@/contexts/LayerContext";
 import { cn } from "@/lib/utils";
 import { FarmPageData, Row, Rack, Shelf } from "@/types/farm/layout";
 
-
-
-
-
-
 // Phase 2 Components
 
 // Grow Management Components
@@ -43,11 +38,9 @@ import ElementDetailModal from "../ElementDetailModal";
 import DeviceRenderer from "./components/DeviceRenderer";
 import { useFarmState } from "./hooks/useFarmState";
 
-
 // Sub-components
 
 // Overlay components
-
 
 interface UnifiedFarmViewProps {
   farmData: FarmPageData | null;

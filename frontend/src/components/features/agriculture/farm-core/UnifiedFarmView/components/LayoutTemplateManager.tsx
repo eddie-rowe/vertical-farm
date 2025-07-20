@@ -37,7 +37,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Row } from "@/types/farm-layout";
 
-
 interface LayoutTemplate {
   id: string;
   name: string;

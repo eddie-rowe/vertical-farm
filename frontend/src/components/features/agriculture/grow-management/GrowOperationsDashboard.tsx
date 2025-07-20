@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-
 // Mock data for demonstration
 const dashboardData = {
   keyMetrics: {

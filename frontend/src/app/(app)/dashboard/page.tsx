@@ -27,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 
-
 // Navigation Header Component
 const NavigationHeader = ({
   view,

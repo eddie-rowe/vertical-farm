@@ -27,7 +27,6 @@ import {
   createFarm as createSupabaseFarm,
 } from "./supabaseService";
 
-
 // =====================================================
 // TYPE TRANSFORMATIONS
 // =====================================================

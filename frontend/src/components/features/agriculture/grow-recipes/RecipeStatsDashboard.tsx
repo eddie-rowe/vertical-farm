@@ -12,7 +12,6 @@ import {
   RecipeStatsCard,
 } from "./RecipeStatsCard";
 
-
 interface RecipeStatsDashboardProps {
   recipes: GrowRecipe[];
   isLoading?: boolean;

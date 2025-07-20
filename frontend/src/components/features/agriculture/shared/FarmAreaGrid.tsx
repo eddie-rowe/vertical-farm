@@ -15,7 +15,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Row, Rack, Shelf, AreaType } from "@/types/farm";
 
-
 // Reusable components from UnifiedFarmView
 import DeviceRenderer from "../farm-core/UnifiedFarmView/components/DeviceRenderer";
 

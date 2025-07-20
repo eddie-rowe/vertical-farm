@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  ChartOptions,
-  ChartData as ChartJSData,
-} from "chart.js";
+import { ChartOptions, ChartData as ChartJSData } from "chart.js";
 import React, { useMemo } from "react";
 
 import { DynamicChart } from "@/components/shared/charts";

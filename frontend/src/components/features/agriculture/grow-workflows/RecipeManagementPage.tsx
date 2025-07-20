@@ -46,7 +46,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // ✅ NEW: Import standardized search/filter components and hooks
 import { useFarmSearch, useFarmFilters } from "@/hooks";
 
-
 interface Recipe {
   id: string;
   name: string;

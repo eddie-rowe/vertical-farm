@@ -23,13 +23,9 @@ import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  HAConfig,
-  SetupStep,
-} from "@/types/integrations/homeassistant";
+import { HAConfig, SetupStep } from "@/types/integrations/homeassistant";
 
 import { useHomeAssistant } from "../../../../components/features/integrations/home-assistant/hooks/useHomeAssistant";
-
 
 export default function HomeAssistantIntegration() {
   // Use the centralized hook for all state management

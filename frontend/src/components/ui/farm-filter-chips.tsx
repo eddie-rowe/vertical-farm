@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Badge } from "./badge";
 import { Button } from "./button";
 
-
 export interface FilterChip {
   id: string;
   label: string;

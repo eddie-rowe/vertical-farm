@@ -33,7 +33,6 @@ import {
 } from "@/services/supabaseService";
 import { Farm } from "@/types/farm";
 
-
 interface EditFarmModalProps {
   farm: Farm;
   onFarmUpdated: (farm: Farm) => void;

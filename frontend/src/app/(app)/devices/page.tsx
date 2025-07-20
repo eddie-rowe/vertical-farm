@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Settings,
-  AlertTriangle,
-} from "lucide-react";
+import { Settings, AlertTriangle } from "lucide-react";
 import React, { useState, useMemo, useCallback } from "react";
 
 import { EmptyStateWithIntegrations } from "@/components/features/automation";
@@ -44,7 +41,6 @@ import {
   FaBuilding,
 } from "@/lib/icons";
 import { DEVICE_INTEGRATIONS } from "@/lib/integrations/constants";
-
 
 // ✅ NEW: Import standardized search/filter components and hooks
 

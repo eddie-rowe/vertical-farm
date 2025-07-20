@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
 import { StatusIndicator } from "./status-indicator";
 
-
 const deviceStatusVariants = cva(
   "relative inline-flex items-center justify-center rounded-full transition-all duration-200 cursor-default",
   {

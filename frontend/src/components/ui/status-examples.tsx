@@ -1,9 +1,4 @@
-import {
-  Wifi,
-  WifiOff,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Wifi, WifiOff, CheckCircle, AlertTriangle } from "lucide-react";
 import React from "react";
 
 import {

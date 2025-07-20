@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { FarmInput, type FarmInputProps } from "./farm-input";
 
-
 export interface FarmSearchInputProps
   extends Omit<FarmInputProps, "icon" | "iconPosition"> {
   /** Search value */

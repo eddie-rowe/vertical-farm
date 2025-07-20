@@ -1,9 +1,4 @@
-import {
-  Grid3X3,
-  Archive,
-  Layers3,
-  Plus,
-} from "lucide-react";
+import { Grid3X3, Archive, Layers3, Plus } from "lucide-react";
 import React from "react";
 
 // Import new Phase 2 components

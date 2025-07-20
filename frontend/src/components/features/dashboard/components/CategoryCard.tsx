@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-
 import { CategoryCardProps } from "../types";
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({

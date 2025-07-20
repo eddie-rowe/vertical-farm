@@ -1,12 +1,4 @@
-import {
-  Settings,
-  Save,
-  Trash2,
-  Info,
-  Edit3,
-  Tag,
-  MapPin,
-} from "lucide-react";
+import { Settings, Save, Trash2, Info, Edit3, Tag, MapPin } from "lucide-react";
 import React, { useState, useCallback } from "react";
 import { toast } from "react-hot-toast";
 
@@ -25,7 +17,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Row, Rack, Shelf } from "@/types/farm-layout";
-
 
 interface PropertyPanelProps {
   isOpen: boolean;

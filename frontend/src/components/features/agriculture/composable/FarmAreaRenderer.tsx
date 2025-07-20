@@ -8,11 +8,7 @@ import { germinationAreaPresets } from "./configurations/germinationAreaConfig";
 import { growingAreaPresets } from "./configurations/growingAreaConfig";
 import { growingAreaConfig } from "./configurations/growingAreaConfig";
 import { AreaConfiguration } from "./configurations/types";
-import {
-  ContentLayer,
-  RowContent,
-  RackContent,
-} from "./layers/ContentLayer";
+import { ContentLayer, RowContent, RackContent } from "./layers/ContentLayer";
 import {
   InteractionLayer,
   RowInteraction,
@@ -271,7 +267,6 @@ export {
 export type { AreaConfiguration } from "./configurations/types";
 
 // ===== Configuration Helpers =====
-
 
 export function createFarmAreaConfig(
   areaType: AreaType,
