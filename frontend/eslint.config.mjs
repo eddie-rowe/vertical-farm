@@ -21,8 +21,10 @@ const eslintConfig = [
       "out/**/*",
       "dist/**/*",
       "node_modules/**/*",
-      "jest.config.js",
       "*.config.js",
+      "jest.config.js",
+      "tailwind.config.js",
+      "postcss.config.js",
     ],
   },
   // Extend Next.js configurations
@@ -30,9 +32,49 @@ const eslintConfig = [
   // Custom rules
   {
     rules: {
+      // Relaxed rules for development productivity
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
+      
+      // Promote to errors - critical issues
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-call": "error", 
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      
+      // Helpful warnings that don't block CI
+      "prefer-const": "warn",
+      "no-var": "error",
+      "no-console": "warn",
+      "no-debugger": "error",
+      
+      // React-specific helpful rules
+      "react-hooks/exhaustive-deps": "warn",
+      "react/jsx-key": "error",
+      "react/no-array-index-key": "warn",
+      
+      // Import/export rules
+      "import/no-unresolved": "error",
+      "import/no-cycle": "warn",
+      "import/order": [
+        "warn",
+        {
+          "groups": [
+            "builtin",
+            "external", 
+            "internal",
+            "parent",
+            "sibling",
+            "index"
+          ],
+          "newlines-between": "always",
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+          }
+        }
+      ],
     },
   },
 ];
