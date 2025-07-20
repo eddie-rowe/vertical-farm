@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Rack, Shelf, UUID } from "@/types/farm"; // Removed SensorDevice
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import EntityEditModal, { EntityType } from "./EntityEditModal";
-import { ShelfSchema, ShelfFormData } from "@/lib/validations/shelfSchemas";
+import { useState, useEffect } from "react";
 import { DefaultValues, FieldValues, SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +16,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShelfSchema, ShelfFormData } from "@/lib/validations/shelfSchemas";
+import { Rack, Shelf, UUID } from "@/types/farm"; // Removed SensorDevice
+
+import EntityEditModal, { EntityType } from "./EntityEditModal";
 
 interface RackDetailViewProps {
   rackData: Rack | null;

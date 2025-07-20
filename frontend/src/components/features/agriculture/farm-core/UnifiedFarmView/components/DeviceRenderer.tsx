@@ -1,12 +1,13 @@
-import React from "react";
-import { SensorDevice } from "@/types/farm-layout";
 import { Lightbulb, Droplets, Wind } from "lucide-react";
+import React from "react";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SensorDevice } from "@/types/farm-layout";
 
 interface DeviceRendererProps {
   device: SensorDevice;

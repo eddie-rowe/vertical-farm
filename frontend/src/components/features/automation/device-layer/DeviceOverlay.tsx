@@ -1,13 +1,5 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  DeviceOverlayProps,
-  DeviceData,
-  DeviceAction,
-} from "@/types/device-layer";
-import { useDevice } from "@/contexts/DeviceContext";
-import { cn } from "@/lib/utils";
 import {
   LightBulbIcon,
   WrenchScrewdriverIcon,
@@ -16,14 +8,23 @@ import {
   PowerIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDevice } from "@/contexts/DeviceContext";
+import { cn } from "@/lib/utils";
+import {
+  DeviceOverlayProps,
+  DeviceData,
+  DeviceAction,
+} from "@/types/device-layer";
 
 interface DeviceStatusIndicatorProps {
   device: DeviceData;

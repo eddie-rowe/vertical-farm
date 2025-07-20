@@ -1,9 +1,11 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { FaArrowUp, FaArrowDown, FaChevronRight } from "react-icons/fa";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+
+
 import { CategoryCardProps } from "../types";
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({

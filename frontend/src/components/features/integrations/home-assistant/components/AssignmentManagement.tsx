@@ -10,8 +10,9 @@ import {
   FaToggleOn,
   FaThermometerHalf,
 } from "react-icons/fa";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { HAAssignment } from "@/types/integrations/homeassistant";
 

@@ -1,7 +1,14 @@
 "use client";
 
+import { Sprout, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import {
+  NewGrowSetup,
+  GrowParametersView,
+  GrowingAreasView,
+  GrowOperationsDashboard,
+} from "@/components/features/agriculture";
 import {
   Card,
   CardContent,
@@ -10,14 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Sprout, ArrowRight } from "lucide-react";
-
-import {
-  NewGrowSetup,
-  GrowParametersView,
-  GrowingAreasView,
-  GrowOperationsDashboard,
-} from "@/components/features/agriculture";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GrowManagementPage() {
   const [activeTab, setActiveTab] = useState("dashboard");

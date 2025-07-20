@@ -1,7 +1,17 @@
 "use client";
 
+import {
+  Settings,
+  Clock,
+  Thermometer,
+  Timer,
+  Target,
+  Play,
+  Pause,
+  AlertCircle,
+} from "lucide-react";
 import React from "react";
-import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,18 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  Settings,
-  Clock,
-  Thermometer,
-  Droplets,
-  Lightbulb,
-  Timer,
-  Target,
-  Play,
-  Pause,
-  AlertCircle,
-} from "lucide-react";
+import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
 
 interface AutomationOverlayProps {
   farmData: FarmPageData | null;

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { useRealtime } from "@/contexts/RealtimeContext";
-import { useRealtimeTable } from "@/hooks/useRealtimeTable";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -10,7 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useRealtime } from "@/contexts/RealtimeContext";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 import { FaWifi, FaCircle } from "@/lib/icons";
 
 export function RealtimeDemo() {

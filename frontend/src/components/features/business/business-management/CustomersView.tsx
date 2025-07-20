@@ -1,15 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  businessManagementService,
-  BusinessCustomer,
-} from "@/services/businessManagementService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Search,
   Plus,
   Mail,
   Phone,
@@ -23,10 +14,19 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
 import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
 import { LoadingCard } from "@/components/ui/loading";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
+  businessManagementService,
+  BusinessCustomer,
+} from "@/services/businessManagementService";
 
 export default function CustomersView() {
   const [customers, setCustomers] = useState<BusinessCustomer[]>([]);

@@ -1,6 +1,7 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,8 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Label } from "@/components/ui/label";
 import { HADevice, AssignmentForm } from "@/types/integrations/homeassistant";
 
 interface AssignmentModalProps {

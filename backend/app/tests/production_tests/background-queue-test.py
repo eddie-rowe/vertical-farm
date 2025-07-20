@@ -9,8 +9,8 @@ import json
 import logging
 import statistics
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Any, Dict
 
 import aiohttp
 

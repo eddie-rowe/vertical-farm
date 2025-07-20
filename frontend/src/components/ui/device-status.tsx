@@ -1,11 +1,5 @@
-import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import { StatusBadge } from "./status-badge";
-import { StatusIndicator } from "./status-indicator";
 import {
-  Wifi,
-  WifiOff,
   Lightbulb,
   ToggleLeft,
   Thermometer,
@@ -13,6 +7,13 @@ import {
   Droplets,
   Zap,
 } from "lucide-react";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+import { StatusBadge } from "./status-badge";
+import { StatusIndicator } from "./status-indicator";
+
 
 const deviceStatusVariants = cva(
   "relative inline-flex items-center justify-center rounded-full transition-all duration-200 cursor-default",

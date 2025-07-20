@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useCallback } from "react";
+import { toast } from "react-hot-toast";
+
+import { cn } from "@/lib/utils";
 import { Row, Rack, Shelf } from "@/types/farm";
+
 import {
   useAreaInteractions,
-  useAreaActions,
   useAreaState,
 } from "../providers/FarmAreaProvider";
-import { cn } from "@/lib/utils";
-import { toast } from "react-hot-toast";
 
 interface InteractionLayerProps {
   children: React.ReactNode;

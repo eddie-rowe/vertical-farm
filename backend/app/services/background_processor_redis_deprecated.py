@@ -6,14 +6,13 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 import redis.asyncio as redis
-from pydantic import BaseModel
 
-from .error_handling import ErrorType, HomeAssistantError, global_error_handler
+from .error_handling import global_error_handler
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
 "use client";
 
+import { Plus, Download, Upload } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Search, Download, Upload, Filter } from "lucide-react";
+import toast from "react-hot-toast";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -13,28 +14,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import toast from "react-hot-toast";
-import { Label } from "@/components/ui/label";
 import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
 import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
-
-import { GrowRecipe, Species, GrowRecipeFilters } from "@/types/grow-recipes";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 import {
   getGrowRecipes,
   getSpecies,
   deleteGrowRecipe,
 } from "@/services/growRecipeService";
+import { GrowRecipe, Species } from "@/types/grow-recipes";
+
 import {
   GrowRecipeForm,
-  GrowRecipeCard,
   EnhancedGrowRecipeCard,
   DeleteConfirmationDialog,
   RecipeStatsDashboard,

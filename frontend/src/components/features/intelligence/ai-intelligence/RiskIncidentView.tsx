@@ -1,10 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useMemo, useCallback } from "react";
 import {
   FaExclamationTriangle,
   FaClock,
@@ -15,14 +11,16 @@ import {
   FaTint,
   FaShieldAlt,
   FaRobot,
-  FaSearch,
-  FaFilter,
   FaMapMarkerAlt,
   FaTools,
 } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
 import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface RiskAlert {
   id: string;

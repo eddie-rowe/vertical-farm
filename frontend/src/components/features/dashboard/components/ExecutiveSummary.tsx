@@ -1,7 +1,9 @@
 import React from "react";
-import { CategoryCard } from "./CategoryCard";
-import { ExecutiveSummaryProps } from "../types";
+
 import { executiveSummaryData } from "../data/strategicData";
+import { ExecutiveSummaryProps } from "../types";
+
+import { CategoryCard } from "./CategoryCard";
 
 export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   onCategoryClick,

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Wifi, WifiOff, Download, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
 
 export default function PWAStatus() {
   const [isOnline, setIsOnline] = useState(true);

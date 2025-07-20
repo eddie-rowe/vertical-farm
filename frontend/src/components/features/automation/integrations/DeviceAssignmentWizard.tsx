@@ -1,18 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  FaArrowRight,
-  FaLightbulb,
-  FaPlug,
-  FaFan,
-  FaThermometerHalf,
-} from "@/lib/icons";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +13,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { HADevice, DeviceAssignment } from "@/types/device-assignment";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  FaArrowRight,
+  FaLightbulb,
+  FaPlug,
+  FaFan,
+  FaThermometerHalf,
+} from "@/lib/icons";
 import deviceAssignmentService from "@/services/deviceAssignmentService";
+import { HADevice, DeviceAssignment } from "@/types/device-assignment";
 
 interface DeviceAssignmentWizardProps {
   device: HADevice;

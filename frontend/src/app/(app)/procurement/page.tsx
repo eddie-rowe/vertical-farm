@@ -1,6 +1,22 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 import {
   FaBoxes,
   FaShoppingCart,
@@ -14,22 +30,6 @@ import {
   FaDollarSign,
   FaCreditCard,
 } from "@/lib/icons";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FarmInput } from "@/components/ui/farm-input";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
-import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
 
 interface InventoryItem {
   id: string;

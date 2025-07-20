@@ -1,18 +1,9 @@
 "use client";
 
+import { Edit2, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import toast from "react-hot-toast";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,14 +15,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   updateFarm,
   deleteFarm,
   CreateFarmData,
 } from "@/services/supabaseService";
 import { Farm } from "@/types/farm";
-import toast from "react-hot-toast";
-import { Edit2, Trash2 } from "lucide-react";
+
 
 interface EditFarmModalProps {
   farm: Farm;

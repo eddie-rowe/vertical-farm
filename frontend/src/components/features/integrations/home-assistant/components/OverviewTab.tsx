@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Activity,
   TrendingUp,
@@ -7,6 +6,10 @@ import {
   Zap,
   Thermometer,
 } from "lucide-react";
+import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -14,8 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import type {
   HAConfig,
   HAConnectionStatus,

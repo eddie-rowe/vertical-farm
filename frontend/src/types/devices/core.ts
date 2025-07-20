@@ -3,7 +3,7 @@
  * Fundamental types used across all device-related functionality
  */
 
-import { UUID, BaseEntity, Status, ExecutionStatus } from "../common";
+import { UUID, BaseEntity } from "../common";
 
 /** Types of devices supported in the system */
 export type DeviceType = "light" | "pump" | "fan" | "sensor";

@@ -5,19 +5,16 @@ This module provides REST API endpoints for managing Square payment integration
 within the vertical farm system.
 """
 
-import asyncio
 import hashlib
 import hmac
 import json
 import logging
 import os
 from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.core.security import get_current_active_user as get_current_user

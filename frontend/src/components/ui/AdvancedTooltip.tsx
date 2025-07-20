@@ -1,11 +1,3 @@
-import React from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import {
   Thermometer,
   Droplets,
@@ -17,6 +9,15 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface EnvironmentalData {

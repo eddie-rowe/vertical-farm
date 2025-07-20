@@ -1,8 +1,10 @@
 "use client";
 
-import { FC, useState } from "react";
-import { FaHome, FaCheck, FaExclamationTriangle, FaWifi } from "react-icons/fa";
 import { Settings, ChevronRight, Wifi } from "lucide-react";
+import { FC } from "react";
+import { FaHome, FaCheck, FaExclamationTriangle } from "react-icons/fa";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -13,7 +15,6 @@ import {
 import { FarmControlButton } from "@/components/ui/farm-control-button";
 import { FarmInput } from "@/components/ui/farm-input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { HAConfig, SetupStep } from "@/types/integrations/homeassistant";
 

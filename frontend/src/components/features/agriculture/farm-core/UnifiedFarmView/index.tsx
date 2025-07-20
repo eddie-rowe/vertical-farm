@@ -1,64 +1,53 @@
 "use client";
 
+import { Plus, Layers, Archive, Grid3X3 } from "lucide-react";
 import React, { useState, useCallback } from "react";
-import { FarmPageData, Row, Rack, Shelf } from "@/types/farm/layout";
-import { Plus, Layers, Archive, Grid3X3, Save, Edit3 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
-
-// Phase 2 Components
-import { RippleButton } from "@/components/ui/RippleButton";
-import { AdvancedTooltip } from "@/components/ui/AdvancedTooltip";
-import {
-  ContextualMenu,
-  getShelfActions,
-  getRackActions,
-  getRowActions,
-} from "@/components/ui/ContextualMenu";
-
-// Grow Management Components
-import { GrowWizardModal } from "../../grow-workflows";
-
-// Custom hooks
-import { useFarmState } from "./hooks/useFarmState";
-import { useLayer } from "@/contexts/LayerContext";
-
-// Sub-components
-import DeviceRenderer from "./components/DeviceRenderer";
-import ElementDetailModal from "../ElementDetailModal";
-
-// Overlay components
 
 import {
   AutomationOverlay,
   GrowsOverlay,
   MonitoringOverlay,
 } from "@/components/shared/overlays";
+import { AdvancedTooltip } from "@/components/ui/AdvancedTooltip";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  ContextualMenu,
+  getShelfActions,
+} from "@/components/ui/ContextualMenu";
+import { RippleButton } from "@/components/ui/RippleButton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useLayer } from "@/contexts/LayerContext";
+import { cn } from "@/lib/utils";
+import { FarmPageData, Row, Rack, Shelf } from "@/types/farm/layout";
+
+
+
+
+
+
+// Phase 2 Components
+
+// Grow Management Components
+import { GrowWizardModal } from "../../grow-workflows";
+
+// Custom hooks
+import ElementDetailModal from "../ElementDetailModal";
+
+import DeviceRenderer from "./components/DeviceRenderer";
+import { useFarmState } from "./hooks/useFarmState";
+
+
+// Sub-components
+
+// Overlay components
+
 
 interface UnifiedFarmViewProps {
   farmData: FarmPageData | null;

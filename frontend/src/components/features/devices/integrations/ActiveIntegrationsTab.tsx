@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -9,10 +12,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { FaHome, FaCog, FaWifi, FaPlus } from "@/lib/icons";
-import Link from "next/link";
 
 interface ActiveIntegration {
   id: string;

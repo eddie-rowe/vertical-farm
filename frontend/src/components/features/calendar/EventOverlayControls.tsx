@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
+import { FaSeedling, FaCog, FaUsers, FaTruck } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { FaSeedling, FaCog, FaUsers, FaTruck } from "react-icons/fa";
 import type { EventOverlay, EventType } from "@/types/calendar";
 
 interface EventOverlayControlsProps {

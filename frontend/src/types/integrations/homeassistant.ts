@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 
 // Core Home Assistant Device Interface (consolidated)
 export interface HADevice {

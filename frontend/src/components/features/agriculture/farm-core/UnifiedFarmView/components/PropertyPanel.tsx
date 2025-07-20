@@ -1,22 +1,20 @@
-import React, { useState, useCallback } from "react";
-import { Row, Rack, Shelf } from "@/types/farm-layout";
 import {
   Settings,
   Save,
   Trash2,
   Info,
   Edit3,
-  Calendar,
   Tag,
   MapPin,
 } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { toast } from "react-hot-toast";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -24,7 +22,10 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { toast } from "react-hot-toast";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Row, Rack, Shelf } from "@/types/farm-layout";
+
 
 interface PropertyPanelProps {
   isOpen: boolean;

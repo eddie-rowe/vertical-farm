@@ -1,8 +1,9 @@
 "use client";
 
-import { FC } from "react";
-import { FaTrash, FaWifi } from "react-icons/fa";
 import { Wifi } from "lucide-react";
+import { FC } from "react";
+import { FaTrash } from "react-icons/fa";
+
 import {
   Card,
   CardContent,
@@ -16,7 +17,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   HAConfig,
   HAStatus,
-  ConnectionState,
 } from "@/types/integrations/homeassistant";
 
 interface SettingsProps {

@@ -1,6 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState, useEffect } from "react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { SkeletonIntegrationsPage } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   FaHome,
   FaPlug,
@@ -12,18 +25,6 @@ import {
   FaCalendarAlt,
 } from "@/lib/icons";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PageHeader } from "@/components/ui/PageHeader";
-import Link from "next/link";
-import {
   homeAssistantService,
   HAConnectionStatus,
 } from "@/services/homeAssistantService";
@@ -31,8 +32,6 @@ import {
   squareService,
   SquareConnectionStatus,
 } from "@/services/squareService";
-import { LoadingCard } from "@/components/ui/loading";
-import { SkeletonIntegrationsPage } from "@/components/ui/skeleton-extended";
 
 interface Integration {
   id: string;

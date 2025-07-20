@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
 import {
-  FaBrain,
-  FaLeaf,
-  FaBuilding,
-  FaExclamationTriangle,
-  FaChartLine,
-  FaMapMarkedAlt,
-} from "@/lib/icons";
+  BeakerIcon,
+  ChartBarIcon,
+  EyeIcon,
+} from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+
+import {
+  EmptyStateWithIntegrations,
+  IntegrationHint,
+} from "@/components/features/automation";
 import {
   CropEnvironmentView,
   OperationalBusinessView,
@@ -17,27 +18,24 @@ import {
   DashboardsForecastingView,
   HeatmapsView,
 } from "@/components/features/intelligence";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
+import { Card } from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { LoadingCard } from "@/components/ui/loading";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
-  BeakerIcon,
-  ChartBarIcon,
-  EyeIcon,
-  BoltIcon,
-} from "@heroicons/react/24/outline";
-import {
-  EmptyStateWithIntegrations,
-  IntegrationHint,
-} from "@/components/features/automation";
+  FaLeaf,
+  FaBuilding,
+  FaExclamationTriangle,
+  FaChartLine,
+  FaMapMarkedAlt,
+} from "@/lib/icons";
 import {
   AI_INTEGRATIONS,
   INTEGRATION_MESSAGES,
   INTEGRATION_CONTEXTS,
 } from "@/lib/integrations/constants";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { usePageData } from "@/components/shared/hooks/usePageData";
-import { MetricsGrid } from "@/components/shared/metrics";
-import { LoadingCard } from "@/components/ui/loading";
-import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
 
 const tabs = [
   {

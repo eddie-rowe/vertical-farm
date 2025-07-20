@@ -3,11 +3,9 @@ Supabase Background Task Service
 Replaces Redis-based background processing with Supabase queues and Edge Functions
 """
 
-import asyncio
-import json
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import httpx

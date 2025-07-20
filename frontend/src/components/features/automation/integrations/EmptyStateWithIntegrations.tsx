@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ChartBarIcon,
   Cog6ToothIcon,
@@ -6,6 +5,8 @@ import {
   CloudIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline";
+import React from "react";
+
 import IntegrationCard from "./IntegrationCard";
 
 interface Integration {

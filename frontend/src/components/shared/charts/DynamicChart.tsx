@@ -1,7 +1,8 @@
 "use client";
 
-import React, { Suspense } from "react";
 import dynamic from "next/dynamic";
+import React, { Suspense } from "react";
+
 import { LoadingSpinner } from "@/components/loading/LoadingSpinner";
 
 // Dynamic imports for Chart.js components to remove from vendor bundle

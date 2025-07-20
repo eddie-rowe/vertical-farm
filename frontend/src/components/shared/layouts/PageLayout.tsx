@@ -1,9 +1,10 @@
 import React from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
+
 import {
   EmptyStateWithIntegrations,
   IntegrationHint,
 } from "@/components/features/automation";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // Integration interface for empty state component
 interface Integration {

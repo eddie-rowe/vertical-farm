@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,6 +14,7 @@ import {
   Filler,
   Title,
 } from "chart.js";
+import React from "react";
 
 // Register Chart.js components
 ChartJS.register(

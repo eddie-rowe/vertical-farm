@@ -1,23 +1,20 @@
-import React, { useState, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
 import {
   Plus,
   Settings,
   BarChart3,
-  Calendar,
-  AlertTriangle,
   Copy,
   Trash2,
   Edit,
   Eye,
   Zap,
-  Activity,
   Leaf,
   Play,
   Pause,
-  Square,
   Scissors,
 } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+
+import { cn } from "@/lib/utils";
 
 interface MenuAction {
   id: string;

@@ -1,32 +1,15 @@
 "use client";
 
-import { FC, useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { LayoutGrid, List } from "lucide-react";
+import { FC, useState, useRef, useMemo, useCallback } from "react";
 import {
   FaSearch,
-  FaFilter,
-  FaMapPin,
-  FaCheckCircle,
-  FaCircle,
-  FaLightbulb,
-  FaToggleOn,
-  FaThermometerHalf,
-  FaWater,
-  FaLeaf,
   FaEye,
   FaEyeSlash,
-  FaExpandAlt,
-  FaList,
-  FaTh,
-  FaDownload,
-  FaPlay,
-  FaStop,
 } from "react-icons/fa";
-import { LayoutGrid, List, Grid, X } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { FarmInput } from "@/components/ui/farm-input";
 
 // ✅ NEW: Import standardized search and filter components
 import {
@@ -34,12 +17,12 @@ import {
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
-
 import {
   HADevice,
   HAAssignment,
   HAImportedDevice,
 } from "@/types/integrations/homeassistant";
+
 import { DeviceCard } from "./DeviceCard";
 
 // Legacy types for existing functionality

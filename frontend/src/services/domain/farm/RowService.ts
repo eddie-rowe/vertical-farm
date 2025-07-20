@@ -1,6 +1,7 @@
 "use client";
 
 import { BaseCRUDService } from "../../core/base/BaseCRUDService";
+
 import { Row } from "./types";
 
 export class RowService extends BaseCRUDService<Row> {

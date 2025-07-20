@@ -3,14 +3,11 @@ Layer Two: Grow Automation Service
 Bridges grow management with device control automation
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from app.core.config import settings
 from app.db.supabase_client import get_supabase_client
 from app.services.database_service import DatabaseService
 from app.services.device_monitoring_service import DeviceMonitoringService

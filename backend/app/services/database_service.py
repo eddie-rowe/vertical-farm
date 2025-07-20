@@ -1,7 +1,6 @@
 """Modern database service for connecting to PostgreSQL/Supabase with graceful degradation"""
 
 import logging
-from functools import lru_cache
 from typing import AsyncGenerator, Optional
 
 import asyncpg

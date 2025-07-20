@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Plus,
   Settings,
@@ -8,6 +7,11 @@ import {
   X,
   AlertCircle,
 } from "lucide-react";
+import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,9 +19,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,19 +37,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   SquareConfig,
   SquareConfigCreate,
   SquareConfigUpdate,
   SquareConnectionStatus,
 } from "@/services/squareService";
+
 import { TestResult } from "../types";
 
 interface ConfigurationTabProps {

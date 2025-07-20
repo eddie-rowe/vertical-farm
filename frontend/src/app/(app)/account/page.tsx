@@ -1,13 +1,14 @@
 "use client";
-import { useState, useRef } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
-import { FarmSelect } from "@/components/ui/farm-select";
-import { FarmInput } from "@/components/ui/farm-input";
+import { useState, useRef } from "react";
+
 import { FarmCheckbox } from "@/components/ui/farm-checkbox";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmInput } from "@/components/ui/farm-input";
+import { FarmSelect } from "@/components/ui/farm-select";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function AccountPage() {
   const { user } = useAuth();

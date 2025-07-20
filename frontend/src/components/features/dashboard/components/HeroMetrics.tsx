@@ -1,13 +1,14 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
 import {
   FaDollarSign,
   FaChartLine,
   FaTasks,
   FaCalendarAlt,
 } from "react-icons/fa";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+
 
 interface HeroMetric {
   icon: React.ComponentType<{ className?: string }>;

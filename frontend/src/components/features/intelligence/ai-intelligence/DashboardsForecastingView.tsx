@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { FaArrowRight, FaEye, FaDownload, FaFilter } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardsForecastingView() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("7d");

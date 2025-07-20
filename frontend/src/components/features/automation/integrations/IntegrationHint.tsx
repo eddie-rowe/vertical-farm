@@ -1,10 +1,10 @@
-import React, { useState } from "react";
 import {
   LightBulbIcon,
   XMarkIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 interface IntegrationHintProps {
   message: string;

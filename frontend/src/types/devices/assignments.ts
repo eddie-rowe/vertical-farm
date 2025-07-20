@@ -4,6 +4,7 @@
  */
 
 import { UUID, BaseEntity } from "../common";
+
 import {
   DeviceType,
   DeviceCapabilities,

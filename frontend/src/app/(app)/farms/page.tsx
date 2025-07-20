@@ -1,11 +1,16 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
 import { UUID } from "crypto";
-import { Toaster } from "react-hot-toast";
-import toast from "react-hot-toast";
+
 import { Zap, Activity, Home } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
+
+import CreateFarmModal from "@/components/features/agriculture/farm-core/CreateFarmModal";
+import EditFarmModal from "@/components/features/agriculture/farm-core/EditFarmModal";
+import UnifiedFarmView from "@/components/features/agriculture/farm-core/UnifiedFarmView";
+import { Phase2Demo } from "@/components/shared";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +18,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { FarmSelect } from "@/components/ui/farm-select";
 import { PageHeader } from "@/components/ui/PageHeader";
-import CreateFarmModal from "@/components/features/agriculture/farm-core/CreateFarmModal";
-import EditFarmModal from "@/components/features/agriculture/farm-core/EditFarmModal";
-import { Phase2Demo } from "@/components/shared";
-import UnifiedFarmView from "@/components/features/agriculture/farm-core/UnifiedFarmView";
+import { useAuth } from "@/contexts/AuthContext";
 import { LayerProvider } from "@/contexts/LayerContext";
+import { supabase } from "@/lib/supabaseClient";
 // LayerSwitcher temporarily disabled due to import issues
 import { FarmPageData, Row, Rack, Shelf, Farm } from "@/types/farm";
-import { CreateFarmData } from "@/services/supabaseService";
 
 export default function FarmsPage() {
   const { user } = useAuth();

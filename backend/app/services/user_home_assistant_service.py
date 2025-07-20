@@ -9,7 +9,6 @@ import asyncio
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
-from uuid import UUID
 
 from fastapi import HTTPException, status
 from supabase import AClient as SupabaseAsyncClient
@@ -18,23 +17,15 @@ from app.core.config import get_settings
 from app.core.security import (
     AuthenticationError,
     SessionExpiredError,
-    get_session_health,
     is_token_expired,
     validate_websocket_token,
 )
 from app.db.supabase_client import get_async_supabase_client
 from app.services.error_handling import (
-    ErrorType,
-    HomeAssistantError,
-    RecoveryStrategy,
-    RetryConfig,
     global_error_handler,
-    with_error_handling,
 )
-from app.services.home_assistant_client import ConnectionError as HAConnectionError
 from app.services.home_assistant_client import (
     HomeAssistantClient,
-    HomeAssistantClientError,
 )
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import ValidationError
-from supabase import AClient, acreate_client  # Changed
+from supabase import AClient  # Changed
 
 from app.core.config import settings
 from app.crud import crud_user

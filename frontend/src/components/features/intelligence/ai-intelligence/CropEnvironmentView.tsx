@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { FaChartLine, FaThermometerHalf, FaTint, FaWind } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function CropEnvironmentView() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("24h");

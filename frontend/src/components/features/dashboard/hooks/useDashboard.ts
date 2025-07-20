@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { DashboardView } from "../types";
+
 import { strategicData, executiveSummaryData } from "../data/strategicData";
+import { DashboardView } from "../types";
 
 export const useDashboard = () => {
   const [currentView, setCurrentView] = useState<DashboardView>("executive");

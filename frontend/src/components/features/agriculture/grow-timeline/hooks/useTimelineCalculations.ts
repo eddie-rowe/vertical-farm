@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+
 import { GrowTimelineItem, TimelinePosition } from "../types";
 
 interface UseTimelineCalculationsProps {

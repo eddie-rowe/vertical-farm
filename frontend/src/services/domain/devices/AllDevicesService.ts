@@ -1,5 +1,4 @@
 import { BaseService } from "@/services/core/base/BaseService";
-import { HomeAssistantWebSocketService } from "@/services/domain/integrations/HomeAssistantWebSocketService";
 import { ErrorHandler } from "@/services/core/utils/errorHandler";
 
 // Unified device interface for all integrations

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRealtime } from "../contexts/RealtimeContext";
-import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+
+import { supabase } from "@/lib/supabaseClient";
+
+import { useRealtime } from "../contexts/RealtimeContext";
 
 interface UseRealtimeTableOptions {
   // Initial data loading

@@ -6,6 +6,9 @@ import React, {
   useReducer,
   useCallback,
 } from "react";
+
+import { Row, Rack, Shelf } from "@/types/farm";
+
 import {
   FarmAreaState,
   FarmAreaAction,
@@ -15,7 +18,6 @@ import {
   AreaConfiguration,
   FarmElement,
 } from "../configurations/types";
-import { Row, Rack, Shelf } from "@/types/farm";
 
 // ===== Initial State =====
 

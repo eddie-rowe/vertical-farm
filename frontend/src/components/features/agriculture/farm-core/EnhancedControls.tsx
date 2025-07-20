@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ZoomIn,
   ZoomOut,
@@ -8,11 +7,10 @@ import {
   Maximize,
   Minimize,
   Map,
-  Grid3X3,
-  Move,
   MousePointer2,
   Hand,
 } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 export interface ViewState {
   zoom: number;

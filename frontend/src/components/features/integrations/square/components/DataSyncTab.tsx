@@ -1,14 +1,17 @@
-import React from "react";
 import {
   RefreshCw,
   Database,
   Clock,
   Settings,
   Play,
-  Pause,
   AlertCircle,
   Check,
 } from "lucide-react";
+import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,9 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -28,9 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { SyncStatus, SyncSettings } from "../types";
+
 import { DATA_TYPE_CONFIGS, SYNC_INTERVAL_OPTIONS } from "../data";
+import { SyncStatus, SyncSettings } from "../types";
 
 interface DataSyncTabProps {
   activeConfig: any;

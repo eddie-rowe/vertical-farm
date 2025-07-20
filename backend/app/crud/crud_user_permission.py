@@ -2,7 +2,7 @@ import datetime
 from typing import List, Optional  # Added List, Optional
 from uuid import UUID
 
-from supabase import AClient, acreate_client  # Changed
+from supabase import AClient  # Changed
 
 from app.models import (
     user_permission as user_permission_model,  # For DB model instantiation
@@ -11,7 +11,6 @@ from app.models import (
 # from app.models.user import User # SQLAlchemy User model removed
 from app.models.enums import (  # This enum might still be useful if user role is stored directly
     PermissionLevel,
-    UserRole,
 )
 from app.schemas import (
     user_permission as user_permission_schema,  # For input/output types; was app.models

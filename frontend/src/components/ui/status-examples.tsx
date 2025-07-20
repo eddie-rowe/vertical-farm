@@ -1,17 +1,17 @@
+import {
+  Wifi,
+  WifiOff,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 import React from "react";
+
 import {
   StatusBadge,
   StatusIndicator,
   DeviceStatus,
   Badge, // Legacy badge for comparison
 } from "@/components/ui";
-import {
-  Lightbulb,
-  Wifi,
-  WifiOff,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
 
 /**
  * Status Component Examples & Migration Guide

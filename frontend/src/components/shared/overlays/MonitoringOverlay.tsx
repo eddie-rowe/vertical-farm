@@ -1,16 +1,5 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import {
   Activity,
   Thermometer,
@@ -24,9 +13,21 @@ import {
   TrendingDown,
   Minus,
 } from "lucide-react";
-import { useLayer } from "@/contexts/LayerContext";
-import { ConsolidatedStatusBadge } from "@/components/ui/ConsolidatedStatusBadge";
+import React, { useState, useMemo } from "react";
+
 import { MonitoringDashboard } from "@/components/features/monitoring/monitoring/MonitoringDashboard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConsolidatedStatusBadge } from "@/components/ui/ConsolidatedStatusBadge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useLayer } from "@/contexts/LayerContext";
+import { cn } from "@/lib/utils";
+import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
 
 interface MonitoringData {
   elementId: string;

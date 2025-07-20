@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { CheckCircle, XCircle, AlertCircle, Loader2, Info } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 export type FeedbackType = "success" | "error" | "warning" | "info" | "loading";
 

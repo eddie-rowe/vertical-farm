@@ -1,4 +1,13 @@
+import {
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -7,15 +16,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from "lucide-react";
 
 interface ConsolidatedStatusBadgeProps {
   overallHealth: number; // 0-10 scale

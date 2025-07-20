@@ -1,6 +1,8 @@
 import React from "react";
+
 import { cn } from "@/lib/utils";
-import { MetricCard, MetricCardProps } from "./MetricCard";
+
+import { MetricCard } from "./MetricCard";
 
 /**
  * Metric data interface for grid display

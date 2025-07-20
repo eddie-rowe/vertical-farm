@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { EventContentArg } from "@fullcalendar/core";
-import { Badge } from "@/components/ui/badge";
+import React from "react";
 import {
   FaSeedling,
   FaCog,
@@ -11,6 +10,8 @@ import {
   FaExclamationCircle,
   FaClock,
 } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
 import type { EventType, EventPriority, EventStatus } from "@/types/calendar";
 
 const EVENT_TYPE_ICONS = {

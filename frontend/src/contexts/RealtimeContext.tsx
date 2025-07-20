@@ -7,9 +7,11 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
+
+import { supabase } from "@/lib/supabaseClient";
+
+import { useAuth } from "./AuthContext";
 
 // Types for real-time events
 interface RealtimeEvent {

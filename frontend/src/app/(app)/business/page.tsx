@@ -1,20 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import {
   CurrencyDollarIcon,
   ChartBarIcon,
   UsersIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataChart } from "@/components/features/business";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
 import {
   Package,
   Receipt,
@@ -23,20 +14,24 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import React, { useState, useEffect } from "react";
 
 // Import view components
+
+// Import standardized components and hooks
+
+// Import empty state component
+import { EmptyStateWithIntegrations } from "@/components/features/automation";
+import { DataChart } from "@/components/features/business";
 import {
   CustomersView,
   OrdersInvoicesView,
   PaymentsView,
-  InventoryView,
   TeamMembersView,
   DisputesView,
   RefundsView,
   PayoutsView,
 } from "@/components/features/business";
-
-// Import standardized components and hooks
 import {
   usePageData,
   createIntegrationStorageKey,
@@ -44,16 +39,19 @@ import {
   createMetric,
   MetricFormatters,
 } from "@/components/shared";
-
-// Import empty state component
-import { EmptyStateWithIntegrations } from "@/components/features/automation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
 
 // Import Square service
-import { squareService, SquareConfig } from "@/services/squareService";
 
 // Import loading components
 import { LoadingCard } from "@/components/ui/loading";
-import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { squareService, SquareConfig } from "@/services/squareService";
 
 // Business data interface
 interface BusinessData {

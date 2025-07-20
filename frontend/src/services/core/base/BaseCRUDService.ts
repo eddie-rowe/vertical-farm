@@ -1,7 +1,6 @@
 "use client";
 
 import { BaseService } from "./BaseService";
-import { PostgrestSingleResponse } from "@supabase/supabase-js";
 
 export interface BaseEntity {
   id?: string;

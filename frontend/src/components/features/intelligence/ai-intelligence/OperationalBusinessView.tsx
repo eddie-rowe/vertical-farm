@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   FaChartLine,
   FaArrowUp,
@@ -13,6 +10,11 @@ import {
   FaBoxes,
   FaTruck,
 } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
 
 interface OperationalMetric {
   id: string;

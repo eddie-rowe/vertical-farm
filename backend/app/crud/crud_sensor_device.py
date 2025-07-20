@@ -4,7 +4,7 @@ from uuid import UUID
 from httpx import HTTPStatusError
 from supabase import AClient as SupabaseClient
 
-from app.models.enums import ParentType, SensorType  # For enum usage
+from app.models.enums import ParentType  # For enum usage
 from app.schemas.sensor_device import (  # Pydantic schemas
     SensorDeviceCreate,
     SensorDeviceUpdate,

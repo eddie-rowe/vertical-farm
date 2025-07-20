@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cva, type VariantProps } from "class-variance-authority";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/lib/icons";
+import * as React from "react";
 
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 const selectTriggerVariants = cva(

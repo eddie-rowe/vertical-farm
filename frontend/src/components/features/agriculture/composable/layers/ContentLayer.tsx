@@ -1,12 +1,15 @@
 "use client";
 
-import React from "react";
-import { Row, Rack, Shelf, AreaType } from "@/types/farm";
-import { useAreaConfiguration } from "../providers/FarmAreaProvider";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Grid3X3, Layers, Sprout, Leaf } from "lucide-react";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Row, Rack, Shelf, AreaType } from "@/types/farm";
+
 import DeviceRenderer from "../../farm-core/UnifiedFarmView/components/DeviceRenderer";
+import { useAreaConfiguration } from "../providers/FarmAreaProvider";
+
 
 interface ContentLayerProps {
   children: React.ReactNode;

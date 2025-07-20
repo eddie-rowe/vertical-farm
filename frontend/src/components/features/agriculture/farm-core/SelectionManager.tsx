@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+
 import { Row, Rack, Shelf, SensorDevice } from "@/types/farm-layout";
 
 export type SelectableElement = {

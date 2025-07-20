@@ -1,16 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
 // import Header from "../components/Header"; // Removed
 // import Sidebar from "../components/Sidebar"; // Removed
-import { ThemeProvider } from "../contexts/ThemeContext";
+import { Toaster } from "react-hot-toast";
+
+import InstallPrompt from "../components/InstallPrompt";
+import NotificationManager from "../components/NotificationManager";
+import PWAStatus from "../components/PWAStatus";
 import { AuthProvider } from "../contexts/AuthContext"; // Re-added for global access
 import { RealtimeProvider } from "../contexts/RealtimeContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
+
 import DatadogInit from "./datadog-init";
-import { Toaster } from "react-hot-toast";
-import InstallPrompt from "../components/InstallPrompt";
-import PWAStatus from "../components/PWAStatus";
-import NotificationManager from "../components/NotificationManager";
 
 // Optimized font loading with preload and display swap
 const geistSans = Geist({

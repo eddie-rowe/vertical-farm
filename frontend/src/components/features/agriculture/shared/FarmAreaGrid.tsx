@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { Row, Rack, Shelf, AreaType } from "@/types/farm";
 import { Plus, Leaf, Sprout, Grid3X3, Archive, Layers } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { toast } from "react-hot-toast";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { Row, Rack, Shelf, AreaType } from "@/types/farm";
+
 
 // Reusable components from UnifiedFarmView
 import DeviceRenderer from "../farm-core/UnifiedFarmView/components/DeviceRenderer";

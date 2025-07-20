@@ -1,7 +1,8 @@
 import React from "react";
-import { GrowTimelineItem } from "../types";
+
 import { STATUS_COLORS } from "../data";
 import { useTimelineCalculations } from "../hooks";
+import { GrowTimelineItem } from "../types";
 
 interface TimelineViewProps {
   grows: GrowTimelineItem[];

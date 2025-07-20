@@ -1,10 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { Search, X } from "lucide-react";
-import { FarmInput, type FarmInputProps } from "./farm-input";
-import { Button } from "./button";
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
+
+import { Button } from "./button";
+import { FarmInput, type FarmInputProps } from "./farm-input";
+
 
 export interface FarmSearchInputProps
   extends Omit<FarmInputProps, "icon" | "iconPosition"> {

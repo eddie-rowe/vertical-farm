@@ -1,9 +1,5 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DollarSign,
   CreditCard,
@@ -13,16 +9,20 @@ import {
   RefreshCw,
   Download,
   TrendingUp,
-  Loader2,
 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { LoadingCard } from "@/components/ui/loading";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 import {
   businessManagementService,
   BusinessPayment,
 } from "@/services/businessManagementService";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
-import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
-import { LoadingCard } from "@/components/ui/loading";
 
 export default function PaymentsView() {
   const [payments, setPayments] = useState<BusinessPayment[]>([]);

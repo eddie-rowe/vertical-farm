@@ -1,9 +1,7 @@
 import asyncio
-import json
 import logging
 
 # Removed jose.utils import
-import os
 import re
 import time
 from collections import defaultdict, deque
@@ -14,7 +12,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi import Depends, HTTPException, Request, status
-from jose import JWTError, jwt
+from jose import jwt
 
 from app.core.config import settings
 
@@ -32,43 +30,29 @@ logger = logging.getLogger(__name__)
 class AuthenticationError(Exception):
     """Custom authentication error"""
 
-    pass
-
 
 class SessionExpiredError(AuthenticationError):
     """Raised when session has expired"""
-
-    pass
 
 
 class TokenRefreshRequiredError(AuthenticationError):
     """Raised when token refresh is required"""
 
-    pass
-
 
 class RateLimitExceededError(Exception):
     """Raised when rate limit is exceeded"""
-
-    pass
 
 
 class DeviceControlError(Exception):
     """Raised when device control validation fails"""
 
-    pass
-
 
 class FarmAccessDeniedError(Exception):
     """Raised when user lacks access to farm location"""
 
-    pass
-
 
 class InvalidEntityError(Exception):
     """Raised when Home Assistant entity ID format is invalid"""
-
-    pass
 
 
 # --- Rate Limiting for Device Controls ---

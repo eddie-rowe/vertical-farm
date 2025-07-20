@@ -1,9 +1,8 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from .error_handling import global_error_handler
 
 # Updated imports for Supabase-based background processing
 from .supabase_background_service import SupabaseBackgroundService

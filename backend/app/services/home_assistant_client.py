@@ -9,8 +9,8 @@ and real-time updates with enhanced error handling and recovery.
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional
+from datetime import datetime
+from typing import Callable, Dict, List, Optional
 
 import aiohttp
 import websockets
@@ -23,7 +23,6 @@ from .error_handling import (
     HomeAssistantError,
     RetryConfig,
     global_error_handler,
-    with_error_handling,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,19 +31,13 @@ logger = logging.getLogger(__name__)
 class HomeAssistantClientError(Exception):
     """Base exception for Home Assistant client errors"""
 
-    pass
-
 
 class AuthenticationError(HomeAssistantClientError):
     """Raised when authentication fails"""
 
-    pass
-
 
 class ConnectionError(HomeAssistantClientError):
     """Raised when connection to Home Assistant fails"""
-
-    pass
 
 
 class HomeAssistantClient:

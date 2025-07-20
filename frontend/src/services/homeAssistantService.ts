@@ -1,7 +1,8 @@
 "use client";
 
-import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+
+import { supabase } from "@/lib/supabaseClient";
 import { HADevice, HAConfig } from "@/types/integrations/homeassistant";
 
 // Home Assistant API service for frontend

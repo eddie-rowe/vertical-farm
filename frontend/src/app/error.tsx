@@ -1,9 +1,10 @@
 "use client";
 
+import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 import React, { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 
 // Type declarations for external services
 declare global {

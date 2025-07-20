@@ -2,10 +2,11 @@
  * Testing utilities for React components and hooks
  */
 
-import React, { ReactElement } from "react";
 import { render, RenderOptions, RenderResult } from "@testing-library/react";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import React, { ReactElement } from "react";
+
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Mock Next.js router
 export const mockRouter = {

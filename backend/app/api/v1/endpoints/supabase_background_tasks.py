@@ -5,7 +5,7 @@ Replaces Redis-based background task endpoints with Supabase-powered ones
 
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.core.security import get_current_active_user as get_current_user

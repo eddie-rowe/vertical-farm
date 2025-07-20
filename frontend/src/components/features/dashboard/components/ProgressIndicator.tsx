@@ -1,5 +1,7 @@
 import React from "react";
+
 import { Progress } from "@/components/ui/progress";
+
 import { ProgressIndicatorProps } from "../types";
 
 export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({

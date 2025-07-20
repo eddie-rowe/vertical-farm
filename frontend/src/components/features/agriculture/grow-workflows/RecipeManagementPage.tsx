@@ -1,40 +1,3 @@
-import React, { useState, useMemo, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-
-// ✅ NEW: Import standardized search/filter components and hooks
-import {
-  FarmSearchAndFilter,
-  type FilterDefinition,
-} from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
-
 import {
   BookOpen,
   Plus,
@@ -46,12 +9,43 @@ import {
   Droplets,
   Sun,
   FlaskConical,
-  Search,
-  Filter,
-  ChevronDown,
   Star,
   Leaf,
 } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// ✅ NEW: Import standardized search/filter components and hooks
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+
 
 interface Recipe {
   id: string;

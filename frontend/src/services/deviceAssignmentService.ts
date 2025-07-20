@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabaseClient";
+import { getCurrentUser } from "@/services/supabaseService";
 import {
   HADevice,
   DeviceAssignment,
@@ -5,8 +7,6 @@ import {
   DeviceAssignmentRequest,
   AssignmentTarget,
 } from "@/types/device-assignment";
-import { supabase } from "@/lib/supabaseClient";
-import { getCurrentUser } from "@/services/supabaseService";
 
 class DeviceAssignmentService {
   private haService: any = null;

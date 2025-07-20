@@ -1,7 +1,8 @@
 "use client";
 import { supabase } from "@/lib/supabaseClient";
-import { Species, PaginatedGrowRecipes } from "../types/grow-recipes";
 import { UUID } from "@/types/farm-layout";
+
+import { Species, PaginatedGrowRecipes } from "../types/grow-recipes";
 
 // =====================================================
 // TYPES

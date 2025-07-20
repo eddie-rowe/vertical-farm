@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import Link from "next/link";
+
 
 export default function SignupPage() {
   const { signUp, user, loading: authLoading } = useAuth();

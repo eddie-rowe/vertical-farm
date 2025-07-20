@@ -1,6 +1,7 @@
 "use client";
 
 import { WifiOff, Leaf, RefreshCw } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 export default function OfflinePage() {

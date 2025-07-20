@@ -1,28 +1,30 @@
 "use client";
 
 import React from "react";
+
 import { Row, AreaType } from "@/types/farm";
+
+import { germinationAreaPresets } from "./configurations/germinationAreaConfig";
+import { growingAreaPresets } from "./configurations/growingAreaConfig";
+import { growingAreaConfig } from "./configurations/growingAreaConfig";
 import { AreaConfiguration } from "./configurations/types";
-import { FarmAreaProvider, useFarmArea } from "./providers/FarmAreaProvider";
-import { LayoutLayer, RackLayout } from "./layers/LayoutLayer";
-import {
-  InteractionLayer,
-  RowInteraction,
-  RackInteraction,
-  ShelfInteraction,
-} from "./layers/InteractionLayer";
 import {
   ContentLayer,
   RowContent,
   RackContent,
-  ShelfContent,
 } from "./layers/ContentLayer";
+import {
+  InteractionLayer,
+  RowInteraction,
+  RackInteraction,
+} from "./layers/InteractionLayer";
+import { LayoutLayer, RackLayout } from "./layers/LayoutLayer";
 import {
   ElementDetailModal,
   GrowWizardModal,
   LayerOverlayModal,
 } from "./modals";
-import { cn } from "@/lib/utils";
+import { FarmAreaProvider, useFarmArea } from "./providers/FarmAreaProvider";
 
 interface FarmAreaRendererProps {
   rows: Row[];
@@ -270,9 +272,6 @@ export type { AreaConfiguration } from "./configurations/types";
 
 // ===== Configuration Helpers =====
 
-import { growingAreaPresets } from "./configurations/growingAreaConfig";
-import { germinationAreaPresets } from "./configurations/germinationAreaConfig";
-import { growingAreaConfig } from "./configurations/growingAreaConfig";
 
 export function createFarmAreaConfig(
   areaType: AreaType,

@@ -1,16 +1,12 @@
 "use client";
 
+import { MapPin, Clock } from "lucide-react";
 import { FC } from "react";
 import {
   FaLightbulb,
   FaToggleOn,
   FaThermometerHalf,
   FaPlug,
-  FaWifi,
-  FaHome,
-  FaLeaf,
-  FaWater,
-  FaCheck,
   FaExclamationTriangle,
   FaCheckCircle,
   FaCircle,
@@ -20,12 +16,12 @@ import {
   FaSun,
   FaMoon,
 } from "react-icons/fa";
-import { MapPin, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Switch } from "@/components/ui/switch";
 import {
   HADevice,
   HAAssignment,

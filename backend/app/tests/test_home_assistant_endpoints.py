@@ -18,16 +18,6 @@ from fastapi import status
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.models.home_assistant import (
-    DeviceControlRequest,
-    DeviceControlResponse,
-    DeviceListResponse,
-    HealthCheckResponse,
-    HomeAssistantConfigRequest,
-    HomeAssistantDevice,
-    HomeAssistantStatusResponse,
-    HomeAssistantTestConnectionRequest,
-)
 
 
 class TestHomeAssistantEndpoints:
@@ -75,7 +65,7 @@ class TestHomeAssistantEndpoints:
     def mock_ha_service(self):
         """Create a mock Home Assistant service for testing."""
         from datetime import datetime
-        from unittest.mock import AsyncMock, MagicMock
+        from unittest.mock import AsyncMock
 
         # Create an AsyncMock for the service
         mock_service = AsyncMock()

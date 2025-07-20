@@ -1,8 +1,9 @@
 "use client";
 
 import { AuthError } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+
+import { supabase } from "@/lib/supabaseClient";
 
 export class ServiceError extends Error {
   constructor(

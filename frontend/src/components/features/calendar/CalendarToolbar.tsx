@@ -1,14 +1,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -17,6 +9,15 @@ import {
   FaCalendar,
   FaList,
 } from "react-icons/fa";
+
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { CalendarView } from "@/types/calendar";
 
 // FullCalendar-compatible toolbar props

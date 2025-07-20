@@ -1,5 +1,9 @@
 "use client";
 
+import { Clock, Zap, Calendar, Settings, Play, Pause } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,10 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Clock, Zap, Calendar, Settings, Play, Pause } from "lucide-react";
 import type { Farm } from "@/types/farm";
 
 interface AutomationManagementLayerProps {

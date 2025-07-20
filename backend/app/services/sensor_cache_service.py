@@ -17,11 +17,10 @@ Key Features:
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from supabase import Client
 
 from app.core.cache import CacheManager
 from app.core.database import get_db

@@ -5,11 +5,10 @@ This module provides a centralized cache service that can be used
 across the application for storing and retrieving cached data.
 """
 
-import asyncio
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from ..core.cache import CacheManager
 

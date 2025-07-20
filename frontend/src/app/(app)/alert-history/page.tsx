@@ -1,7 +1,20 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Filter,
+  Download,
+  Clock,
+  Thermometer,
+  Droplets,
+  Zap,
+  Settings2,
+} from "lucide-react";
+import { useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,35 +22,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FarmInput } from "@/components/ui/farm-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertTriangle,
-  CheckCircle,
-  Filter,
-  Download,
-  Clock,
-  Search,
-  Thermometer,
-  Droplets,
-  Zap,
-  Settings2,
-  Calendar,
-} from "lucide-react";
 
 // ✅ NEW: Import standardized search/filter components and hooks
 import {
   FarmSearchAndFilter,
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface AlertRecord {

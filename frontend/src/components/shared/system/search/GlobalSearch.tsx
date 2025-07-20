@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { FaSearch, FaTimes, FaFilter, FaHistory, FaStar } from "react-icons/fa";
+import { FaSearch, FaTimes, FaHistory, FaStar } from "react-icons/fa";
 
 export interface SearchResult {
   id: string;

@@ -1,12 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
 import {
   Activity,
   BarChart3,
@@ -14,12 +7,10 @@ import {
   Database,
   MapPin,
   RefreshCw,
-  TestTube,
   Info,
-  Home,
 } from "lucide-react";
+import { useState } from "react";
 
-import { useHomeAssistant } from "../../../../components/features/integrations/home-assistant/hooks/useHomeAssistant";
 import {
   OverviewTab,
   ConfigurationTab,
@@ -27,11 +18,18 @@ import {
   AssignmentTab,
   SetupWizard,
 } from "@/components/features/integrations/home-assistant/components";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Progress } from "@/components/ui/progress";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   HAConfig,
   SetupStep,
-  HADevice,
 } from "@/types/integrations/homeassistant";
+
+import { useHomeAssistant } from "../../../../components/features/integrations/home-assistant/hooks/useHomeAssistant";
+
 
 export default function HomeAssistantIntegration() {
   // Use the centralized hook for all state management

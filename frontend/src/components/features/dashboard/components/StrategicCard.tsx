@@ -1,5 +1,7 @@
 import React from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { StrategicCardProps } from "../types";
 
 export const StrategicCard: React.FC<StrategicCardProps> = ({

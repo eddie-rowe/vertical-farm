@@ -1,9 +1,10 @@
 import React from "react";
+
 import { Header, Sidebar } from "../../components/layout";
 import { MobileBottomNav } from "../../components/layout/MobileNavigation";
 // import { AuthProvider } from '../../contexts/AuthContext'; // Removed - now in root layout
-import { ThemeProvider } from "../../contexts/ThemeContext";
 import ProtectedPageWrapper from "../../components/pages/auth/ProtectedPageWrapper";
+import { ThemeProvider } from "../../contexts/ThemeContext";
 
 export default function AppLayout({
   children,

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import DataChart, { ChartConfig, ChartData } from "./DataChart";
 
 export interface GrowthData {

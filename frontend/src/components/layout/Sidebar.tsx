@@ -1,5 +1,5 @@
-import ServerSidebar from "./ServerSidebar";
 import ClientSidebarNavigation from "./ClientSidebarNavigation";
+import ServerSidebar from "./ServerSidebar";
 
 const Sidebar = () => {
   return (

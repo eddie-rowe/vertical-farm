@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import React, { useState } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EventOverlayControls } from "./EventOverlayControls";
 import type {
   CalendarEvent,
   EventType,
   CalendarView as CalendarViewType,
   EventOverlay,
 } from "@/types/calendar";
+
+import { EventOverlayControls } from "./EventOverlayControls";
 
 // Default overlay configuration
 const DEFAULT_OVERLAYS: EventOverlay[] = [

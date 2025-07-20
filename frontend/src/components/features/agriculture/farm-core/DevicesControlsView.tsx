@@ -1,9 +1,5 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Lightbulb,
   Waves,
@@ -17,7 +13,11 @@ import {
   Pause,
   RotateCcw,
 } from "lucide-react";
-import { FarmPageData } from "@/types/farm-layout";
+import { useState, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // ✅ NEW: Import standardized search/filter components and hooks
 import {
@@ -25,6 +25,7 @@ import {
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
+import { FarmPageData } from "@/types/farm-layout";
 
 interface DevicesControlsViewProps {
   farmPageData: FarmPageData | null;

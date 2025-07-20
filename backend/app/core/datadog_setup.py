@@ -1,7 +1,6 @@
 # Datadog tracing and logging initialization for FastAPI backend
 import os
 
-import ddtrace.auto
 from ddtrace import tracer
 
 # Optionally set service/env/version

@@ -1,6 +1,7 @@
 import React from "react";
-import { ViewMode, SortField, SortOrder } from "../types";
+
 import { SORT_OPTIONS, ZOOM_LEVELS, STATUS_LABELS } from "../data";
+import { ViewMode, SortField, SortOrder } from "../types";
 
 interface TimelineControlsProps {
   viewMode: ViewMode;

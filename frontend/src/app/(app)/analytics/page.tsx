@@ -1,51 +1,8 @@
 "use client";
 
+
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmSelect } from "@/components/ui/farm-select";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import {
-  FaChartBar,
-  FaChartLine,
-  FaArrowUp,
-  FaArrowDown,
-  FaDollarSign,
-  FaLeaf,
-  FaUsers,
-  FaCalendarAlt,
-  FaSearch,
-  FaBrain,
-  FaBullseye,
-  FaCog,
-  FaDownload,
-  FaExpand,
-  FaFilter,
-} from "@/lib/icons";
-import {
-  Calendar,
-  Download,
-  TrendingUp,
-  TrendingDown,
-  Award,
-  BarChart3,
-  Search,
-  Filter,
-  PieChart,
-  Activity,
-} from "lucide-react";
 
 import {
   AnalyticsDashboard,
@@ -54,11 +11,32 @@ import {
   EnvironmentalChart,
 } from "@/components/features/business";
 import { usePageData } from "@/components/shared/hooks/usePageData";
-import { MetricsGrid, MetricCard } from "@/components/shared/metrics";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
+import { MetricsGrid } from "@/components/shared/metrics";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
 import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
-import { LoadingCard } from "@/components/ui/loading";
+import { FarmSelect } from "@/components/ui/farm-select";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
+  FaChartLine,
+  FaLeaf,
+  FaCalendarAlt,
+  FaBrain,
+  FaBullseye,
+  FaDownload,
+  FaFilter,
+} from "@/lib/icons";
 
 interface HistoricalGrow {
   id: string;

@@ -8,15 +8,16 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import { toast } from "react-hot-toast";
+
 import {
   DeviceLayerState,
   DeviceData,
   DeviceAction,
   DeviceWebSocketMessage,
-  LocationDevices,
 } from "@/types/device-layer";
+
 import { useAuth } from "./AuthContext";
-import { toast } from "react-hot-toast";
 
 // Device Layer Actions
 type DeviceLayerAction =

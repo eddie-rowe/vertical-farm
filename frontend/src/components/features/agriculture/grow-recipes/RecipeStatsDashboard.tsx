@@ -1,14 +1,17 @@
 "use client";
 
+import { TrendingUp } from "lucide-react";
 import { useMemo } from "react";
-import { Users, TrendingUp } from "lucide-react";
+
+import type { GrowRecipe } from "@/types/grow-recipes";
+
 import {
   TotalRecipesCard,
   AvgSuccessRateCard,
   AvgGrowTimeCard,
   RecipeStatsCard,
 } from "./RecipeStatsCard";
-import type { GrowRecipe } from "@/types/grow-recipes";
+
 
 interface RecipeStatsDashboardProps {
   recipes: GrowRecipe[];

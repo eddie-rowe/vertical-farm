@@ -1,4 +1,5 @@
 import React from "react";
+
 import { CircularProgressProps } from "../types";
 
 export const CircularProgress: React.FC<CircularProgressProps> = ({

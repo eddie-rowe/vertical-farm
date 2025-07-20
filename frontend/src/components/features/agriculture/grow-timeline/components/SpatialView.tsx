@@ -1,6 +1,7 @@
 import React from "react";
-import { GrowTimelineItem } from "../types";
+
 import { STATUS_COLORS, groupGrowsByFarm } from "../data";
+import { GrowTimelineItem } from "../types";
 
 interface SpatialViewProps {
   grows: GrowTimelineItem[];

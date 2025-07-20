@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Edit,
   Trash2,
@@ -10,9 +8,11 @@ import {
   Info,
   Plus,
   Eye,
-  EyeOff,
   Move,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ContextMenuProps {
   visible: boolean;

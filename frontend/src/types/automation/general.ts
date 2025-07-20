@@ -3,7 +3,7 @@
  * Base automation types used across the system
  */
 
-import { UUID, BaseEntity, ExecutionStatus, Priority } from "../common";
+import { UUID, BaseEntity, Priority } from "../common";
 
 /** Types of automation tasks that can be executed */
 export type AutomationTaskType =

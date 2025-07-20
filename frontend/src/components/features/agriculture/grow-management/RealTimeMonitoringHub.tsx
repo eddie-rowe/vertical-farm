@@ -1,16 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  Clock,
-  Zap,
   Droplets,
   Sun,
   Thermometer,
@@ -23,12 +16,13 @@ import {
   Play,
   Settings,
   Bell,
-  BellOff,
   Maximize2,
-  TrendingUp,
-  TrendingDown,
-  Minus,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EnvironmentalReading {
   id: string;

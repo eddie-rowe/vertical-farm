@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
+
 import { navItems } from "./ServerSidebar";
 
 type NavVariant = "primary" | "maintenance" | "offline" | "growing" | "default";

@@ -1,20 +1,16 @@
-import React from "react";
 import {
   Shield,
   Settings,
   AlertTriangle,
   FileText,
   TestTube,
-  Download,
   Eye,
-  Trash2,
-  RefreshCw,
-  Database,
-  Globe,
   AlertCircle,
-  Check,
-  X,
 } from "lucide-react";
+import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,9 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -34,9 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { SquareLocation } from "@/services/squareService";
+
 import { DEBUG_ACTIONS } from "../data";
 
 interface AdvancedTabProps {

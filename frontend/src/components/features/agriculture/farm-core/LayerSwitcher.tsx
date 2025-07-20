@@ -1,11 +1,5 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { useLayer, LayerType } from "@/contexts/LayerContext";
-import { cn } from "@/lib/utils";
 import {
   Monitor,
   Cog,
@@ -16,6 +10,13 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useLayer, LayerType } from "@/contexts/LayerContext";
+import { cn } from "@/lib/utils";
 
 interface LayerSwitcherProps {
   className?: string;

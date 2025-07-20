@@ -1,7 +1,8 @@
 "use client";
 
-import { BaseService } from "./BaseService";
 import { ErrorHandler } from "../utils/errorHandler";
+
+import { BaseService } from "./BaseService";
 
 export interface RealtimeSubscription {
   id: string;

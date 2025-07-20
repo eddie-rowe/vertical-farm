@@ -1,10 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { X } from "lucide-react";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { cn } from "@/lib/utils";
+
 
 export interface FilterChip {
   id: string;

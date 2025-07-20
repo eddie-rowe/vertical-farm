@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { FarmAreaRenderer, createFarmAreaConfig } from "../FarmAreaRenderer";
-import { Row, AreaType } from "@/types/farm";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Row, AreaType } from "@/types/farm";
+
+import { FarmAreaRenderer, createFarmAreaConfig } from "../FarmAreaRenderer";
 
 // Mock data for testing
 const mockGrowingAreaRows: Row[] = [

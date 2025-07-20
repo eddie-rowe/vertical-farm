@@ -1,28 +1,24 @@
-import React from "react";
-import { Row, Rack, Shelf } from "@/types/farm-layout";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Grid3X3,
   Archive,
   Layers3,
   Plus,
-  Thermometer,
-  Droplets,
-  Sun,
-  Activity,
 } from "lucide-react";
+import React from "react";
 
 // Import new Phase 2 components
-import { RippleButton } from "@/components/ui/RippleButton";
 import { AdvancedTooltip } from "@/components/ui/AdvancedTooltip";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   ContextualMenu,
   getShelfActions,
   getRackActions,
   getRowActions,
 } from "@/components/ui/ContextualMenu";
+import { RippleButton } from "@/components/ui/RippleButton";
+import { cn } from "@/lib/utils";
+import { Row, Rack, Shelf } from "@/types/farm-layout";
 
 interface HoveredElements {
   row: string | null;

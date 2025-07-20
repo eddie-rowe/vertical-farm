@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase } from "@/lib/supabaseClient";
+
 import { AuthService } from "../auth/AuthService";
 import { ErrorHandler } from "../utils/errorHandler";
 

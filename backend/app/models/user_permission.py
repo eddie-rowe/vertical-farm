@@ -1,8 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import (  # Optional not used here but good practice to keep if model evolves
-    Optional,
-)
+# from typing import Optional  # Removed unused import
 
 from pydantic import BaseModel, ConfigDict
 

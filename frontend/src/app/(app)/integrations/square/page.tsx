@@ -1,18 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Activity,
   BarChart3,
@@ -21,17 +8,28 @@ import {
   Shield,
   RefreshCw,
   RotateCcw,
-  Info,
 } from "lucide-react";
+import { useEffect } from "react";
 
 import { SquareSetupGuide } from "@/components/features/automation";
-import { useSquareIntegration } from "@/components/features/integrations/square/hooks/useSquareIntegration";
 import {
   OverviewTab,
   ConfigurationTab,
   DataSyncTab,
   AdvancedTab,
 } from "@/components/features/integrations/square/components";
+import { useSquareIntegration } from "@/components/features/integrations/square/hooks/useSquareIntegration";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SquareIntegrationPage() {
   // Use the centralized hook for all state management

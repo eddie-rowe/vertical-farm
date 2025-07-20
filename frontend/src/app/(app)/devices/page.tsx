@@ -1,6 +1,17 @@
 "use client";
 
+import {
+  Settings,
+  AlertTriangle,
+} from "lucide-react";
 import React, { useState, useMemo, useCallback } from "react";
+
+import { EmptyStateWithIntegrations } from "@/components/features/automation";
+import { AllDevicesTab } from "@/components/features/devices/all/AllDevicesTab";
+import { ActiveIntegrationsTab } from "@/components/features/devices/integrations/ActiveIntegrationsTab";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -9,15 +20,17 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmSelect } from "@/components/ui/farm-select";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader } from "@/components/ui/PageHeader";
 import {
-  FaPlug,
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Separator } from "@/components/ui/separator";
+import { SkeletonDevicePage } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
   FaHome,
   FaCog,
   FaWifi,
@@ -25,48 +38,15 @@ import {
   FaFan,
   FaTint,
   FaThermometerHalf,
-  FaSearch,
   FaPlus,
-  FaBook,
-  FaQuestionCircle,
   FaCheckCircle,
-  FaExclamationTriangle,
   Layers,
-  Info,
   FaBuilding,
 } from "@/lib/icons";
-import {
-  Zap,
-  Home,
-  Settings,
-  Wifi,
-  Plus,
-  BookOpen,
-  HelpCircle,
-  ChevronRight,
-  ExternalLink,
-  Download,
-  Play,
-  Activity,
-  Shield,
-  AlertTriangle,
-} from "lucide-react";
-import { EmptyStateWithIntegrations } from "@/components/features/automation";
 import { DEVICE_INTEGRATIONS } from "@/lib/integrations/constants";
-import { usePageData } from "@/components/shared/hooks/usePageData";
-import { LoadingCard } from "@/components/ui/loading";
-import { SkeletonDevicePage } from "@/components/ui/skeleton-extended";
-import { MetricsGrid } from "@/components/shared/metrics";
-import { AllDevicesTab } from "@/components/features/devices/all/AllDevicesTab";
-import { ActiveIntegrationsTab } from "@/components/features/devices/integrations/ActiveIntegrationsTab";
-import Link from "next/link";
+
 
 // ✅ NEW: Import standardized search/filter components and hooks
-import {
-  FarmSearchAndFilter,
-  type FilterDefinition,
-} from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 const tabs = [
   {

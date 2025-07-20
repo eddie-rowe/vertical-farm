@@ -1,11 +1,7 @@
-import React, { useState, useMemo, useCallback } from "react";
 import {
   Search,
-  Filter,
   Download,
   Eye,
-  EyeOff,
-  Zap,
   Home,
   Lightbulb,
   Thermometer,
@@ -14,11 +10,15 @@ import {
   ToggleRight,
   RefreshCw,
   CheckCircle,
-  Circle,
   Package,
   Database,
   Info,
 } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,20 +26,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { HADevice, ImportedDevice } from "@/services/homeAssistantService";
-
-// ✅ NEW: Import standardized search/filter components and hooks
 import {
   FarmSearchAndFilter,
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
+import type { HADevice, ImportedDevice } from "@/services/homeAssistantService";
+
+// ✅ NEW: Import standardized search/filter components and hooks
 
 interface DeviceManagementTabProps {
   devices: HADevice[];

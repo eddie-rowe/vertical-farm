@@ -5,7 +5,6 @@ REST API for managing grow automation that bridges grows with device controls
 
 import logging
 from typing import Any, Dict, List, Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -15,11 +14,9 @@ from app.schemas.grow_automation_schemas import (
     AutomationExecutionResponse,
     AutomationStatusResponse,
     CreateAutomationConditionRequest,
-    CreateAutomationRuleRequest,
     CreateAutomationScheduleRequest,
     GrowAutomationConfigRequest,
     GrowAutomationResponse,
-    UpdateAutomationConditionRequest,
     UpdateAutomationScheduleRequest,
 )
 from app.services.grow_automation_service import grow_automation_service

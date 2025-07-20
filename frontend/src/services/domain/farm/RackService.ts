@@ -1,6 +1,7 @@
 "use client";
 
 import { BaseCRUDService } from "../../core/base/BaseCRUDService";
+
 import { Rack } from "./types";
 
 export class RackService extends BaseCRUDService<Rack> {

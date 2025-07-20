@@ -1,4 +1,14 @@
+import {
+  ChevronLeft,
+  ChevronRight,
+  Leaf,
+  Clock,
+  BookOpen,
+  CheckCircle,
+} from "lucide-react";
 import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +16,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,15 +28,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 // Using simple date input instead of calendar component
 import { cn } from "@/lib/utils";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar as CalendarIcon,
-  Leaf,
-  Clock,
-  BookOpen,
-  CheckCircle,
-} from "lucide-react";
 
 // Helper function to format dates without date-fns
 const formatDate = (date: Date) => {

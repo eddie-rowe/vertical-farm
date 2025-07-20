@@ -1,6 +1,27 @@
 "use client";
 
+import {
+  Layers,
+  Settings,
+  Eye,
+  Monitor,
+  Zap,
+  Sprout,
+  AlertTriangle,
+  Cpu,
+  RotateCcw,
+} from "lucide-react";
 import React, { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +29,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,31 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Layers,
-  Settings,
-  Eye,
-  EyeOff,
-  Monitor,
-  Zap,
-  Sprout,
-  AlertTriangle,
-  Cpu,
-  Palette,
-  RotateCcw,
-} from "lucide-react";
+
 import { OverlayConfig } from "../configurations/types";
 
 interface LayerOverlayModalProps {

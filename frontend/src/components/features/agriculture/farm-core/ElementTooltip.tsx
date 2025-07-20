@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Grid3X3,
   Archive,
@@ -14,6 +11,10 @@ import {
   Lightbulb,
   Activity,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Row, Rack, Shelf, SensorDevice } from "@/types/farm-layout";
 
 interface ElementTooltipProps {

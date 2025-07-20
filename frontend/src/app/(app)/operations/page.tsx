@@ -1,6 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import {
+  DeliveryScheduleView,
+  MaintenanceScheduleView,
+  ResourceUsageChart,
+} from "@/components/features/business";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FaTachometerAlt,
   FaDollarSign,
@@ -15,27 +33,6 @@ import {
   FaBoxes,
   FaTools,
 } from "@/lib/icons";
-import {
-  DeliveryScheduleView,
-  MaintenanceScheduleView,
-  ResourceUsageChart,
-} from "@/components/features/business";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { usePageData } from "@/components/shared/hooks/usePageData";
-import { MetricsGrid } from "@/components/shared/metrics";
-import { LoadingCard } from "@/components/ui/loading";
-import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
 
 interface EfficiencyMetric {
   id: string;

@@ -1,21 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 import {
   Leaf,
   Calendar,
   Clock,
-  Droplets,
-  Sun,
   AlertTriangle,
   CheckCircle,
   Play,
   Pause,
 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
 
 interface GrowTimelineItem {
   id: string;

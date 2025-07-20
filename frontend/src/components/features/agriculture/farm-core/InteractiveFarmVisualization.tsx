@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { FarmPageData, Row, Rack, Shelf, SensorDevice } from "@/types/farm";
 import {
   Plus,
   Layers,
@@ -11,6 +9,8 @@ import {
   Droplets,
   Wind,
 } from "lucide-react";
+import React, { useState, useCallback } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { FarmPageData, Row, Rack, Shelf, SensorDevice } from "@/types/farm";
+
 import ElementDetailModal from "./ElementDetailModal";
 
 interface InteractiveFarmVisualizationProps {

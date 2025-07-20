@@ -1,6 +1,7 @@
 "use client";
 
 import { BaseCRUDService } from "../../core/base/BaseCRUDService";
+
 import { Farm, FarmStatistics } from "./types";
 
 export class FarmService extends BaseCRUDService<Farm> {

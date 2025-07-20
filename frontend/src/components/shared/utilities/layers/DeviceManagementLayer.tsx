@@ -1,5 +1,9 @@
 "use client";
 
+import { Home, Lightbulb, Fan, Droplets, PlugZap } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,9 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Home, Lightbulb, Fan, Droplets, PlugZap } from "lucide-react";
 import type { Farm } from "@/types/farm";
 
 interface DeviceManagementLayerProps {

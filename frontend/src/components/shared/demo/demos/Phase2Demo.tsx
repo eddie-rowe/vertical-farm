@@ -1,13 +1,3 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Zap,
   MousePointer,
@@ -18,13 +8,24 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import { useToastHelpers } from "@/components/ui/ToastNotification";
-import { RippleButton } from "@/components/ui/RippleButton";
+import React, { useState } from "react";
+
 import { AdvancedTooltip } from "@/components/ui/AdvancedTooltip";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ContextualMenu,
   getShelfActions,
 } from "@/components/ui/ContextualMenu";
+import { RippleButton } from "@/components/ui/RippleButton";
+import { useToastHelpers } from "@/components/ui/ToastNotification";
 
 export const Phase2Demo: React.FC = () => {
   const [demoStep, setDemoStep] = useState(0);

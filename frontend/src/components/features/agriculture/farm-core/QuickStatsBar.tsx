@@ -1,7 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Activity,
   AlertTriangle,
@@ -9,6 +8,7 @@ import {
   Sprout,
   Bell,
 } from "lucide-react";
+
 import { Farm } from "@/types/farm-layout";
 
 interface FarmStats {

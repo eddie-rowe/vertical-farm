@@ -1,4 +1,3 @@
-import React from "react";
 import {
   DndContext,
   closestCenter,
@@ -14,6 +13,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import React from "react";
+
 import DraggableItem from "./DraggableItem";
 
 interface Shelf {

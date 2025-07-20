@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { GrowTimelineItem } from "../types";
+
 import { STATUS_COLORS, STATUS_LABELS } from "../data";
+import { GrowTimelineItem } from "../types";
 
 interface ManagementViewProps {
   grows: GrowTimelineItem[];

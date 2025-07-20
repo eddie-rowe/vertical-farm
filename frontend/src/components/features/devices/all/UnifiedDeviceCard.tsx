@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin, Clock, Zap, Activity, Radio } from "lucide-react";
 import { FC } from "react";
 import {
   FaLightbulb,
@@ -8,9 +9,6 @@ import {
   FaPlug,
   FaWifi,
   FaHome,
-  FaLeaf,
-  FaWater,
-  FaCheck,
   FaExclamationTriangle,
   FaCheckCircle,
   FaCircle,
@@ -22,12 +20,12 @@ import {
   FaFan,
   FaTint,
 } from "react-icons/fa";
-import { MapPin, Clock, Zap, Activity, Radio } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Switch } from "@/components/ui/switch";
 import { UnifiedDevice } from "@/services/domain/devices/AllDevicesService";
 
 interface UnifiedDeviceCardProps {

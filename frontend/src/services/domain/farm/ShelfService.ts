@@ -1,6 +1,7 @@
 "use client";
 
 import { BaseCRUDService } from "../../core/base/BaseCRUDService";
+
 import { Shelf } from "./types";
 
 export class ShelfService extends BaseCRUDService<Shelf> {

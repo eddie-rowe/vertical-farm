@@ -1,29 +1,13 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
 import {
-  Search,
-  Filter,
   Lightbulb,
   ToggleLeft,
   Thermometer,
-  CheckCircle,
-  Circle,
   Download,
   MapPin,
-  Play,
-  Square,
-  Eye,
-  EyeOff,
   Grid,
   List,
-  LayoutGrid,
   RefreshCw,
   Home,
   Wifi,
@@ -31,27 +15,22 @@ import {
   Settings,
   Activity,
   Radio,
-  Zap,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   FarmSearchAndFilter,
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
 import { LoadingCard } from "@/components/ui/loading";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 // Mock interface for demo - replace with actual service when available
 interface MockDevice {

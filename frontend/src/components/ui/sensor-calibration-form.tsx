@@ -1,11 +1,12 @@
 "use client";
 
+import { Activity, Settings, Zap } from "lucide-react";
 import * as React from "react";
-import { FarmInput } from "./farm-input";
-import { FarmSelect, type FarmSelectOption } from "./farm-select";
-import { FarmRangeSlider } from "./farm-range-slider";
+
 import { FarmCheckbox } from "./farm-checkbox";
-import { Activity, AlertTriangle, Settings, Zap } from "lucide-react";
+import { FarmInput } from "./farm-input";
+import { FarmRangeSlider } from "./farm-range-slider";
+import { FarmSelect, type FarmSelectOption } from "./farm-select";
 
 export interface SensorCalibration {
   sensorId: string;

@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { Row, Rack, Shelf } from "@/types/farm";
-import { useAreaConfiguration } from "../providers/FarmAreaProvider";
+
 import { cn } from "@/lib/utils";
+import { Row, Rack, Shelf } from "@/types/farm";
+
+import { useAreaConfiguration } from "../providers/FarmAreaProvider";
 
 interface LayoutLayerProps {
   rows: Row[];

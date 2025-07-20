@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+
 import {
   squareService,
   SquareConfig,
@@ -7,17 +8,18 @@ import {
   SquareConnectionStatus,
   SquareLocation,
 } from "@/services/squareService";
+
+import {
+  DEFAULT_SYNC_STATUSES,
+  DEFAULT_CONNECTION_HEALTH,
+  DEFAULT_SYNC_SETTINGS,
+} from "../data";
 import {
   SyncStatus,
   ConnectionHealth,
   SyncSettings,
   TestResult,
 } from "../types";
-import {
-  DEFAULT_SYNC_STATUSES,
-  DEFAULT_CONNECTION_HEALTH,
-  DEFAULT_SYNC_SETTINGS,
-} from "../data";
 
 export const useSquareIntegration = () => {
   // Configuration state

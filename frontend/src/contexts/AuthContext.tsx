@@ -1,4 +1,5 @@
 "use client";
+import type { User, Session } from "@supabase/supabase-js";
 import React, {
   createContext,
   useContext,
@@ -6,10 +7,10 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 
-import type { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
+
 
 interface AuthContextType {
   user: User | null;

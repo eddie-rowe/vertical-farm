@@ -1,9 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   TrendingUp,
   TrendingDown,
@@ -12,12 +8,14 @@ import {
   Target,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Leaf,
   Zap,
-  Droplets,
-  Thermometer,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface GrowStats {
   totalActiveGrows: number;

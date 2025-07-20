@@ -1,33 +1,5 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { PageHeader } from "@/components/ui/PageHeader";
 import {
   BookOpen,
   Plus,
@@ -39,16 +11,43 @@ import {
   Droplets,
   Sun,
   FlaskConical,
-  Search,
   Star,
   Leaf,
 } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
 
-// ✅ NEW: Import standardized search/filter components and hooks
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
 import {
   FarmSearchAndFilter,
   type FilterDefinition,
 } from "@/components/ui/farm-search-and-filter";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// ✅ NEW: Import standardized search/filter components and hooks
 import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface Recipe {

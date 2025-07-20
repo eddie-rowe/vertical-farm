@@ -1,8 +1,6 @@
 "use client";
 
 import { BaseRealtimeService } from "../../core/base/BaseRealtimeService";
-import { AuthService } from "../../core/auth/AuthService";
-import { ErrorHandler } from "../../core/utils/errorHandler";
 
 export interface HomeAssistantConfig {
   url: string;

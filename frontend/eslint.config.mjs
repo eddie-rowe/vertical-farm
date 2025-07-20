@@ -32,9 +32,24 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   // Then override specific rules
   {
+    plugins: {
+      "unused-imports": (await import("eslint-plugin-unused-imports")).default,
+    },
     rules: {
-      // Relaxed rules for development productivity
-      "@typescript-eslint/no-unused-vars": "warn",
+      // Unused imports and variables (autoflake-like functionality)
+      "unused-imports/no-unused-imports": "error",
+      "unused-imports/no-unused-vars": [
+        "warn",
+        {
+          vars: "all",
+          varsIgnorePattern: "^_",
+          args: "after-used",
+          argsIgnorePattern: "^_",
+        },
+      ],
+      "@typescript-eslint/no-unused-vars": "off", // Turn off default rule in favor of unused-imports
+
+      // Other existing rules
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
 

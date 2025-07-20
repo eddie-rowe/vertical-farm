@@ -1,13 +1,15 @@
 "use client";
 
 import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+import { FarmFilterChips, type FilterChip } from "./farm-filter-chips";
 import {
   FarmSearchInput,
   type FarmSearchInputProps,
 } from "./farm-search-input";
 import { FarmSelect, type FarmSelectOption } from "./farm-select";
-import { FarmFilterChips, type FilterChip } from "./farm-filter-chips";
-import { cn } from "@/lib/utils";
 
 export interface FilterDefinition {
   id: string;

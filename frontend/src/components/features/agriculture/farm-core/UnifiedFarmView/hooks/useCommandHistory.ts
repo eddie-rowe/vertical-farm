@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { CommandHistory, Command } from "../utils/commands";
 import { toast } from "react-hot-toast";
+
+import { CommandHistory, Command } from "../utils/commands";
 
 export const useCommandHistory = (maxHistorySize: number = 50) => {
   const commandHistory = useRef(new CommandHistory(maxHistorySize));

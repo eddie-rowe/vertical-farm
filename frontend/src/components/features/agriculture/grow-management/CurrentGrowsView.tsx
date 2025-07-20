@@ -1,6 +1,10 @@
 "use client";
 
+import { Calendar, Clock, Search, Eye, Trash2, Edit, Bot } from "lucide-react";
 import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,10 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -19,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Clock, Search, Eye, Trash2, Edit, Bot } from "lucide-react";
+
 import AutomationMonitorCard from "./AutomationMonitorCard";
 
 interface CurrentGrow {

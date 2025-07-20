@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
-import NotificationCenter from "../shared/system/notifications/NotificationCenter";
-import { MobileNavigation } from "./MobileNavigation";
-import { Button } from "../ui/button";
 import { ChevronDown, User } from "lucide-react";
+import Link from "next/link";
+
+import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import NotificationCenter from "../shared/system/notifications/NotificationCenter";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
+
+import { MobileNavigation } from "./MobileNavigation";
 
 const ClientHeaderActions: React.FC = () => {
   const { theme, toggleTheme } = useTheme();

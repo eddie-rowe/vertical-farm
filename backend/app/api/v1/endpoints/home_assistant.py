@@ -5,16 +5,14 @@ This module provides REST API endpoints for controlling and monitoring
 Home Assistant devices within the vertical farm system.
 """
 
-import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from fastapi.responses import JSONResponse
 
 from app.core.security import get_current_active_user as get_current_user
-from app.db.supabase_client import get_async_rls_client, get_async_supabase_client
+from app.db.supabase_client import get_async_rls_client
 from app.models.home_assistant import (
     DeviceAssignmentRequest,
     DeviceControlRequest,
@@ -23,7 +21,6 @@ from app.models.home_assistant import (
     DeviceImportRequest,
     DeviceListResponse,
     DeviceSubscriptionRequest,
-    ErrorResponse,
     HealthCheckResponse,
     HomeAssistantConfigRequest,
     HomeAssistantConfigResponse,
@@ -37,8 +34,6 @@ from app.models.home_assistant import (
     ImportedDeviceUpdateRequest,
     SensorData,
     SensorDataResponse,
-    UserDeviceConfigRequest,
-    UserDeviceConfigResponse,
 )
 from app.services.user_home_assistant_service import (
     UserHomeAssistantService,

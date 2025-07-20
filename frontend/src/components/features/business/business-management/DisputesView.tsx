@@ -1,9 +1,5 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertTriangle,
   DollarSign,
@@ -12,15 +8,19 @@ import {
   RefreshCw,
   Loader2,
   Eye,
-  CreditCard,
 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 import {
   businessManagementService,
   BusinessDispute,
 } from "@/services/businessManagementService";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
-import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
 
 export default function DisputesView() {
   const [disputes, setDisputes] = useState<BusinessDispute[]>([]);

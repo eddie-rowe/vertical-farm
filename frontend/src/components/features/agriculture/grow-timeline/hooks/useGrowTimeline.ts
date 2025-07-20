@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { generateMockGrows, filterGrows } from "../data";
 import {
   TimelineState,
-  GrowTimelineItem,
   ViewMode,
   SortField,
   SortOrder,
 } from "../types";
-import { generateMockGrows, filterGrows } from "../data";
 
 interface UseGrowTimelineProps {
   selectedGrowId?: string;

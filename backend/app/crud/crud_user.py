@@ -1,17 +1,11 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from gotrue.errors import AuthApiError as APIError
 from httpx import HTTPStatusError
-from pydantic import EmailStr
 from supabase import AClient as SupabaseClient  # Use AClient
-from supabase.lib.client_options import ClientOptions
 
 # from app.schemas import user as user_schema # Remove top-level import
-from app.core.password_utils import (  # Keep for direct password check if needed, though Supabase handles most auth
-    get_password_hash,
-    verify_password,
-)
 
 # from app.db.supabase_client import get_async_supabase_client # Client should be injected or handled by API layer
 

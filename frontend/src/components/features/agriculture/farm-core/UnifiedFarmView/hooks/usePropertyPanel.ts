@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+
 import { Row, Rack, Shelf } from "@/types/farm-layout";
 
 interface PropertyPanelState {

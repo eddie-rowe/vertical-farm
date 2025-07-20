@@ -1,4 +1,10 @@
+import { MapPin, Plus, Search, Info, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useCallback } from "react";
+import { toast } from "react-hot-toast";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,17 +12,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +20,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -33,14 +38,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Plus, Search, Info, Edit, Trash2 } from "lucide-react";
-import { toast } from "react-hot-toast";
-import { DeviceAssignment } from "@/types/device-assignment";
-import deviceAssignmentService from "@/services/deviceAssignmentService";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
-import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { DeviceAssignment } from "@/types/device-assignment";
 
 interface AssignmentTabProps {
   assignments: DeviceAssignment[];

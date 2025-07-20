@@ -7,6 +7,15 @@
  */
 
 import {
+  Farm as FrontendFarm,
+  FarmPageData,
+  Row as FrontendRow,
+  Rack as FrontendRack,
+  Shelf as FrontendShelf,
+  UUID,
+} from "@/types/farm-layout";
+
+import {
   Farm as SupabaseFarm,
   FarmWithHierarchy as SupabaseFarmWithHierarchy,
   Row as SupabaseRow,
@@ -18,14 +27,6 @@ import {
   createFarm as createSupabaseFarm,
 } from "./supabaseService";
 
-import {
-  Farm as FrontendFarm,
-  FarmPageData,
-  Row as FrontendRow,
-  Rack as FrontendRack,
-  Shelf as FrontendShelf,
-  UUID,
-} from "@/types/farm-layout";
 
 // =====================================================
 // TYPE TRANSFORMATIONS

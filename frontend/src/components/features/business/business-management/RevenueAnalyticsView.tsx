@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
   TrendingDown,
@@ -14,6 +11,10 @@ import {
   Target,
   Award,
 } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RevenueAnalyticsView() {
   const [timeRange, setTimeRange] = useState("30d");

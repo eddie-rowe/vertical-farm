@@ -1,8 +1,18 @@
 "use client";
 
 import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  FaDollarSign,
+  FaChartLine,
+  FaTasks,
+  FaBrain,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaClock,
+  FaArrowLeft,
+  FaCalendarCheck,
+} from "react-icons/fa";
+
 import {
   HeroMetrics,
   ExecutiveSummary,
@@ -12,30 +22,11 @@ import {
   CircularProgress,
 } from "@/components/features/dashboard/components";
 import { useDashboard } from "@/components/features/dashboard/hooks/useDashboard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  FaDollarSign,
-  FaChartLine,
-  FaTasks,
-  FaUsers,
-  FaBrain,
-  FaFlask,
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaClock,
-  FaArrowLeft,
-  FaShieldAlt,
-  FaRocket,
-  FaHome,
-  FaEye,
-  FaPhone,
-  FaClipboardList,
-  FaCalendarCheck,
-  FaEnvelope,
-  FaFileInvoiceDollar,
-} from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
+
 
 // Navigation Header Component
 const NavigationHeader = ({

@@ -2,15 +2,13 @@
 Shared test fixtures and configuration for the backend test suite.
 """
 
-import asyncio
 import os
 import sys
-from typing import AsyncGenerator, Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import AsyncGenerator
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 # Add the backend directory to Python path
@@ -119,7 +117,6 @@ async def setup_test_environment():
     # Clear any existing patches
     yield
     # Cleanup after test
-    pass
 
 
 # Removed custom event_loop fixture to avoid deprecation warnings

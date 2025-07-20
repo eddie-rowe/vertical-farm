@@ -1,30 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import {
-  Search,
   Lightbulb,
   Zap,
   Wind,
@@ -39,20 +15,42 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/lib/supabaseClient";
-import { Row, Rack, Shelf } from "@/types/farm/layout";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import deviceAssignmentService from "@/services/deviceAssignmentService";
+import homeAssistantService from "@/services/homeAssistantService";
 import {
   HADevice,
   DeviceAssignment,
-  DeviceFilter,
   AssignmentTarget,
 } from "@/types/device-assignment";
-import deviceAssignmentService from "@/services/deviceAssignmentService";
-import homeAssistantService from "@/services/homeAssistantService";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
-import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { Row, Rack, Shelf } from "@/types/farm/layout";
 
 interface Device {
   id: string;

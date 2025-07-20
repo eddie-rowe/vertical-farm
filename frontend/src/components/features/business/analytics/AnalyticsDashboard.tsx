@@ -1,19 +1,15 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  FaChartLine,
-  FaChartBar,
-  FaChartPie,
   FaThermometerHalf,
   FaTint,
   FaSun,
   FaLeaf,
   FaExclamationTriangle,
   FaCheckCircle,
-  FaCog,
   FaExpand,
   FaRedo,
-  FaDownload,
 } from "react-icons/fa";
+
 import { DataChart } from "./DataChart";
 
 // Types

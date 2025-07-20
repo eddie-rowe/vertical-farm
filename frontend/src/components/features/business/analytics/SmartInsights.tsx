@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FaBrain,
   FaLightbulb,
   FaExclamationTriangle,
   FaInfoCircle,
-  FaCheckCircle,
   FaThumbsUp,
   FaThumbsDown,
   FaClock,

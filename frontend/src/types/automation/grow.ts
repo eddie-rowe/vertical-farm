@@ -3,7 +3,7 @@
  * Types specific to grow automation rules, schedules, and conditions
  */
 
-import { UUID, BaseEntity, Priority } from "../common";
+import { BaseEntity, Priority } from "../common";
 import {
   DeviceAction,
   DeviceType,
