@@ -65,24 +65,50 @@ jobs:
       - name: Lint code (ESLint)
         working-directory: ./frontend
         run: |
-          # Run ESLint focusing on errors only for CI
+          # First, check for errors only (fail CI if found)
+          echo "🔍 Checking for ESLint errors..."
           npx eslint . \
             --ext .js,.jsx,.ts,.tsx \
             --format stylish \
             --quiet || {
-            echo "## ❌ Linting Issues Found" >> $GITHUB_STEP_SUMMARY
-            echo "Fix ESLint errors above" >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ Linting Errors Found" >> $GITHUB_STEP_SUMMARY
+            echo "Fix ESLint errors above - these block CI" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
-          echo "## ✅ Linting (ESLint)" >> $GITHUB_STEP_SUMMARY
-          echo "No critical linting issues found" >> $GITHUB_STEP_SUMMARY
           
-          # Generate warning report (non-blocking)
-          echo "## ⚠️ ESLint Warnings Summary" >> $GITHUB_STEP_SUMMARY
-          WARNING_COUNT=$(npx eslint . --ext .js,.jsx,.ts,.tsx --format stylish | grep -c "warning" || echo "0")
-          echo "Total warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
-          if [ "$WARNING_COUNT" -gt 900 ]; then
-            echo "💡 Consider addressing TypeScript 'any' types and unused variables" >> $GITHUB_STEP_SUMMARY
+          # Then, show full report including warnings (non-blocking)
+          echo "📋 Generating full linting report with warnings..."
+          echo "## 📊 ESLint Full Report" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **No blocking errors found**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Capture and display warnings for visibility
+          LINT_OUTPUT=$(npx eslint . --ext .js,.jsx,.ts,.tsx --format stylish 2>&1 || true)
+          ERROR_COUNT=$(echo "$LINT_OUTPUT" | grep -E "^\s*[0-9]+\s+error" | awk '{sum += $1} END {print sum+0}')
+          WARNING_COUNT=$(echo "$LINT_OUTPUT" | grep -E "^\s*[0-9]+\s+warning" | awk '{sum += $1} END {print sum+0}')
+          
+          echo "- **Errors**: $ERROR_COUNT (❌ CI blocking)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Warnings**: $WARNING_COUNT (⚠️ Informational)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$WARNING_COUNT" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 💡 Code Quality Suggestions" >> $GITHUB_STEP_SUMMARY
+            if [ "$WARNING_COUNT" -gt 20 ]; then
+              echo "- Consider addressing TypeScript \`any\` types and unused variables" >> $GITHUB_STEP_SUMMARY
+              echo "- Review import organization and naming conventions" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary>📋 View all warnings</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$LINT_OUTPUT" | head -50 >> $GITHUB_STEP_SUMMARY
+            if [ "$WARNING_COUNT" -gt 50 ]; then
+              echo "... (truncated, see full CI logs for complete output)" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "🎉 **No warnings found** - excellent code quality!" >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: TypeScript checking
