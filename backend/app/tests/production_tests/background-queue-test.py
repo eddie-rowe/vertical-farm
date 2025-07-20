@@ -143,7 +143,9 @@ class BackgroundQueueTester:
         submission_time = end_time - start_time
 
         logger.info(f"✅ Submitted {num_tasks} tasks in {submission_time:.2f}s")
-        logger.info(f"📈 Submission rate: {num_tasks / submission_time:.2f} tasks/second")
+        logger.info(
+            f"📈 Submission rate: {num_tasks / submission_time:.2f} tasks/second"
+        )
 
     async def test_queue_performance(self, duration_minutes: int = 5):
         """Monitor queue performance over time"""
