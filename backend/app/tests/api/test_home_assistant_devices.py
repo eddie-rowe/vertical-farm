@@ -38,7 +38,7 @@ class TestHomeAssistantDevices:
     def mock_ha_service(self):
         """Create a mock Home Assistant service for testing."""
         mock_service = AsyncMock()
-        
+
         # Mock device discovery
         mock_service.discover_devices.return_value = {
             "devices": [
@@ -52,7 +52,7 @@ class TestHomeAssistantDevices:
             ],
             "total_count": 1,
         }
-        
+
         # Mock get all devices
         mock_service.get_user_devices.return_value = [
             {
@@ -65,7 +65,7 @@ class TestHomeAssistantDevices:
                 "last_updated": "2024-01-01T12:00:00Z",
             }
         ]
-        
+
         # Mock device details
         mock_service.get_user_device.return_value = {
             "entity_id": "light.test_light",
@@ -76,7 +76,7 @@ class TestHomeAssistantDevices:
             "last_changed": "2024-01-01T12:00:00Z",
             "last_updated": "2024-01-01T12:00:00Z",
         }
-        
+
         # Mock device control
         mock_service.control_device.return_value = {
             "success": True,
@@ -85,7 +85,7 @@ class TestHomeAssistantDevices:
             "timestamp": datetime.utcnow().isoformat(),
             "result": {"success": True},
         }
-        
+
         return mock_service
 
     def setup_dependency_overrides(self, mock_user, mock_ha_service):
@@ -94,9 +94,11 @@ class TestHomeAssistantDevices:
             get_current_user,
             get_user_home_assistant_service,
         )
-        
+
         app.dependency_overrides[get_current_user] = lambda: mock_user
-        app.dependency_overrides[get_user_home_assistant_service] = lambda: mock_ha_service
+        app.dependency_overrides[get_user_home_assistant_service] = (
+            lambda: mock_ha_service
+        )
 
     def cleanup_dependency_overrides(self):
         """Clean up dependency overrides after test."""
@@ -106,11 +108,11 @@ class TestHomeAssistantDevices:
     async def test_discover_devices_endpoint(self, client, mock_user, mock_ha_service):
         """Test device discovery endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         try:
             response = await client.post("/api/v1/home-assistant/discover")
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert "devices" in data
             assert "total_count" in data
@@ -123,11 +125,11 @@ class TestHomeAssistantDevices:
     async def test_get_all_devices_endpoint(self, client, mock_user, mock_ha_service):
         """Test get all devices endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         try:
             response = await client.get("/api/v1/home-assistant/devices")
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert isinstance(data, list)
             assert len(data) == 1
@@ -139,11 +141,11 @@ class TestHomeAssistantDevices:
     async def test_get_devices_with_filter(self, client, mock_user, mock_ha_service):
         """Test get devices with domain filter."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         try:
             response = await client.get("/api/v1/home-assistant/devices?domain=light")
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert isinstance(data, list)
             # Verify that the service was called with the domain filter
@@ -152,15 +154,17 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_get_device_details_endpoint(self, client, mock_user, mock_ha_service):
+    async def test_get_device_details_endpoint(
+        self, client, mock_user, mock_ha_service
+    ):
         """Test get device details endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         try:
             entity_id = "light.test_light"
             response = await client.get(f"/api/v1/home-assistant/devices/{entity_id}")
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert data["entity_id"] == entity_id
             assert data["name"] == "Test Light"
@@ -173,20 +177,16 @@ class TestHomeAssistantDevices:
     async def test_control_device_endpoint(self, client, mock_user, mock_ha_service):
         """Test device control endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
-        control_data = {
-            "action": "turn_on",
-            "parameters": {"brightness": 255}
-        }
-        
+
+        control_data = {"action": "turn_on", "parameters": {"brightness": 255}}
+
         try:
             entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control",
-                json=control_data
+                f"/api/v1/home-assistant/devices/{entity_id}/control", json=control_data
             )
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert data["success"] is True
             assert data["entity_id"] == entity_id
@@ -205,23 +205,19 @@ class TestHomeAssistantDevices:
             "error": "Device not reachable",
             "timestamp": datetime.utcnow().isoformat(),
         }
-        
+
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
-        control_data = {
-            "action": "turn_on",
-            "parameters": {"brightness": 255}
-        }
-        
+
+        control_data = {"action": "turn_on", "parameters": {"brightness": 255}}
+
         try:
             entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control",
-                json=control_data
+                f"/api/v1/home-assistant/devices/{entity_id}/control", json=control_data
             )
             # Should still return 200 but with success: false
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert data["success"] is False
             assert "error" in data
@@ -229,18 +225,19 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_invalid_device_control_request(self, client, mock_user, mock_ha_service):
+    async def test_invalid_device_control_request(
+        self, client, mock_user, mock_ha_service
+    ):
         """Test device control with invalid request data."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         # Invalid control data - missing required fields
         invalid_data = {"invalid": "data"}
-        
+
         try:
             entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control",
-                json=invalid_data
+                f"/api/v1/home-assistant/devices/{entity_id}/control", json=invalid_data
             )
             # Should return validation error
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -252,12 +249,12 @@ class TestHomeAssistantDevices:
         """Test accessing non-existent device."""
         # Mock device not found
         mock_ha_service.get_user_device.return_value = None
-        
+
         self.setup_dependency_overrides(mock_user, mock_ha_service)
-        
+
         try:
             entity_id = "light.nonexistent"
             response = await client.get(f"/api/v1/home-assistant/devices/{entity_id}")
             assert response.status_code == status.HTTP_404_NOT_FOUND
         finally:
-            self.cleanup_dependency_overrides() 
+            self.cleanup_dependency_overrides()

@@ -7,7 +7,7 @@ async def test_health_check_endpoint(setup_test_environment, client):
     """Test the health check endpoint returns proper status and structure"""
     response = await client.get("/health")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert "status" in data
     assert "services" in data
@@ -20,7 +20,7 @@ async def test_root_endpoint(setup_test_environment, client):
     """Test the main root endpoint returns welcome message"""
     response = await client.get("/")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert "message" in data
     assert "Welcome to" in data["message"]
@@ -31,7 +31,7 @@ async def test_cors_endpoint(setup_test_environment, client):
     """Test the CORS test endpoint"""
     response = await client.get("/cors-test-simple")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert data["message"] == "CORS is working!"
     assert "timestamp" in data
@@ -50,4 +50,4 @@ async def test_endpoint_response_headers(setup_test_environment, client):
 async def test_api_error_handling(setup_test_environment, client):
     """Test API error handling for non-existent endpoints"""
     response = await client.get("/nonexistent-endpoint")
-    assert response.status_code == 404 
+    assert response.status_code == 404

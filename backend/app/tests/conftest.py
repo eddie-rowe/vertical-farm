@@ -6,8 +6,8 @@ Updated for modern service architecture with comprehensive mocks and test data.
 import os
 import sys
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import AsyncGenerator, Dict, Any, List
+from datetime import datetime, timedelta, timezone
+from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -23,12 +23,19 @@ if backend_dir not in sys.path:
 
 from app.core.config import get_settings
 from app.main import app
-from app.models.enums import UserRole, PermissionLevel, SensorType, FanType, ParentType, RowOrientation
-
+from app.models.enums import (
+    FanType,
+    ParentType,
+    PermissionLevel,
+    RowOrientation,
+    SensorType,
+    UserRole,
+)
 
 # =============================================================================
 # CORE CONFIGURATION FIXTURES
 # =============================================================================
+
 
 @pytest.fixture
 def settings():
@@ -76,6 +83,7 @@ def mock_environment_variables(monkeypatch):
 # MODERN SERVICE MOCKS (Updated Architecture)
 # =============================================================================
 
+
 @pytest.fixture
 def mock_supabase():
     """Mock Supabase client for testing."""
@@ -84,7 +92,7 @@ def mock_supabase():
     mock_client.table = MagicMock()
     mock_client.storage = MagicMock()
     mock_client.rpc = MagicMock()
-    
+
     # Mock table operations
     mock_table = MagicMock()
     mock_table.select.return_value = mock_table
@@ -94,7 +102,7 @@ def mock_supabase():
     mock_table.eq.return_value = mock_table
     mock_table.execute.return_value = MagicMock(data=[])
     mock_client.table.return_value = mock_table
-    
+
     return mock_client
 
 
@@ -119,9 +127,9 @@ def mock_cache_service():
     mock_service.set = AsyncMock(return_value=True)
     mock_service.delete = AsyncMock(return_value=True)
     mock_service.clear = AsyncMock(return_value=True)
-    mock_service.get_stats = AsyncMock(return_value={
-        "hits": 0, "misses": 0, "sets": 0, "deletes": 0
-    })
+    mock_service.get_stats = AsyncMock(
+        return_value={"hits": 0, "misses": 0, "sets": 0, "deletes": 0}
+    )
     return mock_service
 
 
@@ -173,15 +181,17 @@ def mock_supabase_background_service():
     """Mock SupabaseBackgroundService for testing."""
     mock_service = AsyncMock()
     mock_service.queue_task = AsyncMock(return_value="task-123")
-    mock_service.get_task_status = AsyncMock(return_value={
-        "task_id": "task-123",
-        "status": "completed",
-        "result": {"success": True}
-    })
+    mock_service.get_task_status = AsyncMock(
+        return_value={
+            "task_id": "task-123",
+            "status": "completed",
+            "result": {"success": True},
+        }
+    )
     mock_service.cancel_task = AsyncMock(return_value=True)
-    mock_service.get_queue_stats = AsyncMock(return_value={
-        "queued": 0, "processing": 0, "completed": 5, "failed": 0
-    })
+    mock_service.get_queue_stats = AsyncMock(
+        return_value={"queued": 0, "processing": 0, "completed": 5, "failed": 0}
+    )
     mock_service.get_registered_functions = AsyncMock(return_value=[])
     return mock_service
 
@@ -195,14 +205,14 @@ def mock_home_assistant_service():
     service.initialize = AsyncMock(return_value=True)
     service.close = AsyncMock()
     service.is_enabled = AsyncMock(return_value=True)
-    
+
     service.get_user_integration_status.return_value = {
         "healthy": True,
         "rest_api": True,
         "websocket": True,
         "last_updated": datetime.now(timezone.utc).isoformat(),
         "device_count": 15,
-        "version": "2024.1.0"
+        "version": "2024.1.0",
     }
 
     service.get_user_devices.return_value = [
@@ -240,14 +250,16 @@ def mock_home_assistant_service():
         "response_time": 0.123,
         "rest_api_working": True,
         "websocket_supported": True,
-        "cloudflare_working": False
+        "cloudflare_working": False,
     }
 
     service.discover_devices = AsyncMock(return_value={"devices_found": 15})
-    service.get_available_services = AsyncMock(return_value={
-        "light": {"turn_on": {}, "turn_off": {}},
-        "switch": {"turn_on": {}, "turn_off": {}}
-    })
+    service.get_available_services = AsyncMock(
+        return_value={
+            "light": {"turn_on": {}, "turn_off": {}},
+            "switch": {"turn_on": {}, "turn_off": {}},
+        }
+    )
 
     return service
 
@@ -306,6 +318,7 @@ def mock_redis():
 # USER & AUTHENTICATION FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def mock_user():
     """Create a mock authenticated user."""
@@ -360,6 +373,7 @@ def mock_manager_user():
 # =============================================================================
 # COMPREHENSIVE SAMPLE DATA FIXTURES
 # =============================================================================
+
 
 @pytest.fixture
 def sample_farm_data():
@@ -508,7 +522,7 @@ def sample_home_assistant_config():
             "success": True,
             "version": "2024.1.0",
             "device_count": 15,
-            "response_time": 0.123
+            "response_time": 0.123,
         },
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
@@ -526,7 +540,7 @@ def sample_device_data():
             "supported_features": 41,
             "brightness": 255,
             "color_temp": 3000,
-            "rgb_color": [255, 255, 255]
+            "rgb_color": [255, 255, 255],
         },
         "domain": "light",
         "device_class": None,
@@ -549,14 +563,10 @@ def sample_device_assignment():
             "farm_id": str(uuid.uuid4()),
             "row_id": str(uuid.uuid4()),
             "rack_id": str(uuid.uuid4()),
-            "shelf_id": str(uuid.uuid4())
+            "shelf_id": str(uuid.uuid4()),
         },
         "position": {"x": 0.5, "y": 1.0, "z": 2.5},
-        "configuration": {
-            "brightness": 80,
-            "color_temp": 3000,
-            "schedule": "daily"
-        },
+        "configuration": {"brightness": 80, "color_temp": 3000, "schedule": "daily"},
         "is_active": True,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
@@ -578,13 +588,13 @@ def sample_sensor_reading_data():
             "farm_id": str(uuid.uuid4()),
             "row_id": str(uuid.uuid4()),
             "rack_id": str(uuid.uuid4()),
-            "shelf_id": str(uuid.uuid4())
+            "shelf_id": str(uuid.uuid4()),
         },
         "metadata": {
             "accuracy": "±0.5°C",
             "calibration_date": datetime.now(timezone.utc) - timedelta(days=30),
-            "battery_level": 85
-        }
+            "battery_level": 85,
+        },
     }
 
 
@@ -599,18 +609,18 @@ def sample_background_task_data():
         "payload": {
             "user_id": str(uuid.uuid4()),
             "config_id": str(uuid.uuid4()),
-            "filters": ["light", "sensor"]
+            "filters": ["light", "sensor"],
         },
         "metadata": {
             "created_at": datetime.now(timezone.utc).isoformat(),
             "retry_count": 0,
             "max_retries": 3,
-            "estimated_duration": "10-30 seconds"
+            "estimated_duration": "10-30 seconds",
         },
         "result": None,
         "error": None,
         "started_at": None,
-        "completed_at": None
+        "completed_at": None,
     }
 
 
@@ -625,7 +635,7 @@ def sample_automation_schedule_data():
         "cron_expression": "0 6 * * *",
         "device_action": {
             "action_type": "turn_on",
-            "parameters": {"brightness": 80, "color_temp": 3000}
+            "parameters": {"brightness": 80, "color_temp": 3000},
         },
         "starts_at": datetime.now(timezone.utc),
         "ends_at": None,
@@ -633,7 +643,7 @@ def sample_automation_schedule_data():
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
         "last_run": None,
-        "next_run": datetime.now(timezone.utc) + timedelta(hours=24)
+        "next_run": datetime.now(timezone.utc) + timedelta(hours=24),
     }
 
 
@@ -641,14 +651,15 @@ def sample_automation_schedule_data():
 # COMPLEX SCENARIO FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def complete_farm_setup(
     sample_farm_data,
-    sample_row_data, 
+    sample_row_data,
     sample_rack_data,
     sample_shelf_data,
     sample_sensor_device_data,
-    sample_device_assignment
+    sample_device_assignment,
 ):
     """Complete farm setup with hierarchical data."""
     # Link the data together
@@ -656,14 +667,14 @@ def complete_farm_setup(
     sample_rack_data["row_id"] = sample_row_data["id"]
     sample_shelf_data["rack_id"] = sample_rack_data["id"]
     sample_sensor_device_data["parent_id"] = sample_shelf_data["id"]
-    
+
     return {
         "farm": sample_farm_data,
         "row": sample_row_data,
         "rack": sample_rack_data,
         "shelf": sample_shelf_data,
         "sensor": sample_sensor_device_data,
-        "device_assignment": sample_device_assignment
+        "device_assignment": sample_device_assignment,
     }
 
 
@@ -672,14 +683,14 @@ def integration_test_data(
     mock_user,
     sample_home_assistant_config,
     sample_device_assignment,
-    sample_background_task_data
+    sample_background_task_data,
 ):
     """Integration test data combining user, HA config, and device data."""
     return {
         "user": mock_user,
         "ha_config": sample_home_assistant_config,
         "device_assignment": sample_device_assignment,
-        "background_task": sample_background_task_data
+        "background_task": sample_background_task_data,
     }
 
 
