@@ -13,7 +13,6 @@ from typing import Dict, List, Optional, Set
 from fastapi import HTTPException
 
 from app.core.config import get_settings
-from app.services.home_assistant_client import AuthenticationError
 from app.services.home_assistant_client import ConnectionError as HAConnectionError
 from app.services.home_assistant_client import (
     HomeAssistantClient,
