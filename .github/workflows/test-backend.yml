@@ -315,7 +315,7 @@ jobs:
         with:
           files: backend/test-results-*.xml
           check_name: "Backend Tests (${{ matrix.test-type }})"
-          comment_mode: create new
+          comment_mode: always
           fail_on: "test failures"
 
   # Stage 4: Code Quality Analysis (parallel with other stage 4 jobs)

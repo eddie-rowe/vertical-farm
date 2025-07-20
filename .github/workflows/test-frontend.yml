@@ -193,6 +193,10 @@ jobs:
           name: frontend-build-${{ github.sha }}
           path: frontend/
       
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
       - name: Setup test environment
         working-directory: ./frontend
         run: |
@@ -310,7 +314,7 @@ jobs:
         with:
           files: frontend/test-results/junit.xml
           check_name: "Frontend Tests (${{ matrix.test-type }})"
-          comment_mode: create new
+          comment_mode: always
           fail_on: "test failures"
 
   # Stage 4: E2E Tests (separate due to special requirements)
@@ -343,6 +347,10 @@ jobs:
         with:
           name: frontend-build-${{ github.sha }}
           path: frontend/
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci --only=production
       
       - name: Install Playwright browsers
         working-directory: ./frontend
@@ -404,6 +412,10 @@ jobs:
           name: frontend-build-${{ github.sha }}
           path: frontend/
       
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci --only=production
+      
       - name: Start application
         working-directory: ./frontend
         env:
@@ -418,7 +430,7 @@ jobs:
         run: |
           npx @axe-core/cli http://localhost:3000 \
             --save accessibility-report.json \
-            --reporter json \
+            --format json \
             --exit
       
       - name: Upload accessibility results

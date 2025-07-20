@@ -133,7 +133,7 @@ class BackgroundQueueTester:
             stats = await self.get_queue_stats()
             if "queue_depth" in stats:
                 logger.info(
-                    f"📊 Batch {i//batch_size + 1}: Queue depth = {stats['queue_depth']}"
+                    f"📊 Batch {i // batch_size + 1}: Queue depth = {stats['queue_depth']}"
                 )
 
             # Small delay between batches
@@ -143,7 +143,7 @@ class BackgroundQueueTester:
         submission_time = end_time - start_time
 
         logger.info(f"✅ Submitted {num_tasks} tasks in {submission_time:.2f}s")
-        logger.info(f"📈 Submission rate: {num_tasks/submission_time:.2f} tasks/second")
+        logger.info(f"📈 Submission rate: {num_tasks / submission_time:.2f} tasks/second")
 
     async def test_queue_performance(self, duration_minutes: int = 5):
         """Monitor queue performance over time"""
@@ -216,14 +216,14 @@ class BackgroundQueueTester:
         burst_time = end_time - start_time
 
         logger.info(f"⚡ Burst completed in {burst_time:.2f}s")
-        logger.info(f"📊 Burst rate: {burst_size/burst_time:.2f} tasks/second")
+        logger.info(f"📊 Burst rate: {burst_size / burst_time:.2f} tasks/second")
 
         # Monitor queue recovery
         for i in range(10):
             stats = await self.get_queue_stats()
             if "queue_depth" in stats:
                 logger.info(
-                    f"📉 Recovery check {i+1}: Queue depth = {stats['queue_depth']}"
+                    f"📉 Recovery check {i + 1}: Queue depth = {stats['queue_depth']}"
                 )
             await asyncio.sleep(5)
 
