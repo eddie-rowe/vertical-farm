@@ -185,7 +185,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-type: ['unit', 'integration', 'api']
+        test-type: ['unit', 'integration', 'api', 'schemas']
     
     outputs:
       coverage: ${{ steps.coverage.outputs.percentage }}
@@ -231,6 +231,25 @@ jobs:
             --timeout=60 \
             -v
       
+      - name: Run API tests
+        if: matrix.test-type == 'api'
+        working-directory: ./backend
+        env:
+          TESTING: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          source venv/bin/activate
+          pytest app/tests/api/ \
+            --cov=app \
+            --cov-report=xml:coverage-api.xml \
+            --cov-report=html:htmlcov-api \
+            --junit-xml=test-results-api.xml \
+            -n auto \
+            --timeout=60 \
+            -v
+      
       - name: Run integration tests
         if: matrix.test-type == 'integration'
         working-directory: ./backend
@@ -250,37 +269,21 @@ jobs:
             --timeout=120 \
             -v
       
-      - name: Run API tests
-        if: matrix.test-type == 'api'
+      - name: Run schema tests
+        if: matrix.test-type == 'schemas'
         working-directory: ./backend
         env:
           TESTING: true
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          API_BASE_URL: http://localhost:8000
         run: |
           source venv/bin/activate
-          
-          # Start the API server in background
-          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          API_PID=$!
-          sleep 10
-          
-          # Run API tests
-          pytest app/tests/api/ \
+          pytest app/tests/schemas/ \
             --cov=app \
-            --cov-report=xml:coverage-api.xml \
-            --cov-report=html:htmlcov-api \
-            --junit-xml=test-results-api.xml \
+            --cov-report=xml:coverage-schemas.xml \
+            --cov-report=html:htmlcov-schemas \
+            --junit-xml=test-results-schemas.xml \
             -n auto \
-            --timeout=90 \
-            -v || TEST_EXIT_CODE=$?
-          
-          # Clean up API server
-          kill $API_PID 2>/dev/null || true
-          
-          # Exit with test result
-          exit ${TEST_EXIT_CODE:-0}
+            --timeout=60 \
+            -v
       
       - name: Generate coverage report
         if: always()
