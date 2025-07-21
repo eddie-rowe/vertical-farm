@@ -4,7 +4,7 @@ REST API for managing grow automation that bridges grows with device controls
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 

@@ -1,7 +1,6 @@
 """Modern database service for connecting to PostgreSQL/Supabase with graceful degradation"""
 
 import logging
-from typing import Optional
 from collections.abc import AsyncGenerator
 
 import asyncpg

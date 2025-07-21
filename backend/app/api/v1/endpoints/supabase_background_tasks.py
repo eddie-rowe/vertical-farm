@@ -3,7 +3,6 @@ Supabase Background Tasks API Endpoints
 Replaces Redis-based background task endpoints with Supabase-powered ones
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel

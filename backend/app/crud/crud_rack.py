@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -30,7 +30,7 @@ class CRUDRack:
                 return None
             # logger.error(f"Error fetching rack {id}: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error fetching rack {id}: {e}")
             raise
 
@@ -47,7 +47,7 @@ class CRUDRack:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching racks for row {row_id}: {e}")
             raise
 
@@ -94,7 +94,7 @@ class CRUDRack:
             racks = response.data
             total = response.count if response.count is not None else 0
             return racks, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching racks with total for row {row_id}: {e}")
             raise
 
@@ -109,7 +109,7 @@ class CRUDRack:
                 # logger.error(f"Failed to create rack for row {row_id}: No data. Response: {response}")
                 raise Exception("Failed to create rack: No data returned from Supabase")
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating rack for row {row_id}: {e}")
             raise
 
@@ -131,7 +131,7 @@ class CRUDRack:
                 # logger.warning(f"Update for rack {id} returned no data. Rack might not exist or no change made. Resp: {response}")
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating rack {id}: {e}")
             raise
 
@@ -148,7 +148,7 @@ class CRUDRack:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting rack {id}: {e}")
             raise
 

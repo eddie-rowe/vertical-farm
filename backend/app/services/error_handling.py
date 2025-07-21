@@ -10,12 +10,12 @@ import asyncio
 import json
 import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List, Optional
-from collections.abc import Callable
+from typing import Any
 
 import aiohttp
 from websockets.exceptions import ConnectionClosed, WebSocketException

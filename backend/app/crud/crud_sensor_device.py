@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -31,7 +31,7 @@ class CRUDSensorDevice:
             if e.response.status_code == 406:
                 return None
             raise
-        except Exception as e:
+        except Exception:
             raise
 
     async def get_multi_by_parent(
@@ -54,7 +54,7 @@ class CRUDSensorDevice:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching sensor devices for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -80,7 +80,7 @@ class CRUDSensorDevice:
             sensor_devices = response.data
             total = response.count if response.count is not None else 0
             return sensor_devices, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching sensor devices with total for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -107,7 +107,7 @@ class CRUDSensorDevice:
                     "Failed to create sensor device: No data returned from Supabase"
                 )
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating sensor device for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -133,7 +133,7 @@ class CRUDSensorDevice:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating sensor device {id}: {e}")
             raise
 
@@ -150,7 +150,7 @@ class CRUDSensorDevice:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting sensor device {id}: {e}")
             raise
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -28,7 +28,7 @@ class CRUDFan:
             if e.response.status_code == 406:
                 return None
             raise
-        except Exception as e:
+        except Exception:
             raise
 
     async def get_multi_by_parent(
@@ -51,7 +51,7 @@ class CRUDFan:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching fans for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -77,7 +77,7 @@ class CRUDFan:
             fans = response.data
             total = response.count if response.count is not None else 0
             return fans, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching fans with total for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -101,7 +101,7 @@ class CRUDFan:
             if not response.data:
                 raise Exception("Failed to create fan: No data returned from Supabase")
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating fan for parent {parent_id} ({parent_type.value}): {e}")
             raise
 
@@ -128,7 +128,7 @@ class CRUDFan:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating fan {id}: {e}")
             raise
 
@@ -145,7 +145,7 @@ class CRUDFan:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting fan {id}: {e}")
             raise
 

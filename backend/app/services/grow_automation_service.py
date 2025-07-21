@@ -5,7 +5,7 @@ Bridges grow management with device control automation
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import uuid4
 
 from app.db.supabase_client import get_supabase_client
@@ -194,7 +194,7 @@ class GrowAutomationService:
                 on_schedule = {
                     "grow_id": grow_id,
                     "device_assignment_id": device_assignment_id,
-                    "schedule_name": f"Auto Light On",
+                    "schedule_name": "Auto Light On",
                     "schedule_type": "daily",
                     "device_action": {
                         "action_type": "turn_on",
@@ -215,7 +215,7 @@ class GrowAutomationService:
                 off_schedule = {
                     "grow_id": grow_id,
                     "device_assignment_id": device_assignment_id,
-                    "schedule_name": f"Auto Light Off",
+                    "schedule_name": "Auto Light Off",
                     "schedule_type": "daily",
                     "device_action": {"action_type": "turn_off"},
                     "cron_expression": self._time_to_cron(config["off_time"]),
@@ -236,7 +236,7 @@ class GrowAutomationService:
                 schedule = {
                     "grow_id": grow_id,
                     "device_assignment_id": device_assignment_id,
-                    "schedule_name": f"Auto Watering",
+                    "schedule_name": "Auto Watering",
                     "schedule_type": "custom",
                     "device_action": {
                         "action_type": "turn_on",

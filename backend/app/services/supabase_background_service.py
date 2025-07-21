@@ -6,7 +6,7 @@ Replaces Redis-based background processing with Supabase queues and Edge Functio
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from supabase import Client, create_client

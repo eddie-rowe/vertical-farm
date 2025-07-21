@@ -9,9 +9,8 @@ and real-time updates with enhanced error handling and recovery.
 import asyncio
 import json
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional
 from collections.abc import Callable
+from datetime import datetime
 
 import aiohttp
 import websockets

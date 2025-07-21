@@ -19,7 +19,7 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.core.cache import CacheManager
 from app.core.database import get_db

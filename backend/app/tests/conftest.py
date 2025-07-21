@@ -6,8 +6,8 @@ Updated for modern service architecture with comprehensive mocks and test data.
 import os
 import sys
 import uuid
-from datetime import datetime, timedelta, timezone
 from collections.abc import AsyncGenerator
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest

@@ -5,12 +5,12 @@ import logging
 import re
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 
 # Removed httpx import
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
-from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, HTTPException, Request, status
 from jose import jwt
@@ -801,7 +801,7 @@ async def get_current_active_user_with_session_health(
         )
         user_id_str = payload.get("sub")
         session_health = validate_session_health(payload)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format"
         )

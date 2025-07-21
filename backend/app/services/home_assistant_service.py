@@ -7,7 +7,6 @@ high-level integration with the vertical farm system.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set
 
 from fastapi import HTTPException
 

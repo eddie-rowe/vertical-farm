@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 # Updated imports for Supabase-based background processing
 from .supabase_background_service import SupabaseBackgroundService
@@ -57,11 +57,11 @@ async def discover_home_assistant_devices(
             "relevant_entities": len(relevant_entities),
             "entities": relevant_entities,
             "device_types_found": list(
-                set(
+                {
                     entity["entity_id"].split(".")[0]
                     for entity in relevant_entities
                     if "." in entity["entity_id"]
-                )
+                }
             ),
         }
 

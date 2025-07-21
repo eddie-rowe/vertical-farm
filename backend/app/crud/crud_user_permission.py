@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional  # Added List, Optional
+from typing import Optional  # Added List, Optional
 from uuid import UUID
 
 from supabase import AClient  # Changed

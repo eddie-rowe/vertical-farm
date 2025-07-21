@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -54,7 +54,7 @@ class CRUDFarm:
                 return None
             # logger.error(f"Error fetching farm {id}: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error fetching farm {id}: {e}")
             raise
 
@@ -76,7 +76,7 @@ class CRUDFarm:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching farms for owner {owner_id}: {e}")
             raise
 
@@ -104,7 +104,7 @@ class CRUDFarm:
                 response.count if response.count is not None else 0
             )  # Handle if count is None
             return farms, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching farms with total: {e}")
             raise
 
@@ -128,7 +128,7 @@ class CRUDFarm:
                 # logger.error(f"Failed to create farm: No data returned. Response: {response}")
                 raise Exception("Failed to create farm: No data returned from Supabase")
             return response.data[0]  # Supabase insert returns a list with one item
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating farm for owner {owner_id}: {e}")
             raise
 
@@ -160,7 +160,7 @@ class CRUDFarm:
 
             # Return the full FarmResponse after update by fetching it
             return await self.get(supabase, id)
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating farm {id}: {e}")
             raise
 
@@ -183,7 +183,7 @@ class CRUDFarm:
             if not response.data:  # If no rows were deleted (e.g., ID not found)
                 return None
             return item_to_delete  # Return the full FarmResponse object
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting farm {id}: {e}")
             raise
 

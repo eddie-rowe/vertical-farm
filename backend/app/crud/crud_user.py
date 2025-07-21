@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 from uuid import UUID
 
 from gotrue.errors import AuthApiError as APIError
@@ -60,7 +60,7 @@ class CRUDUser:
                 return None
             # logger.error(f"Error fetching user by email {email} from table: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error fetching user by email {email} from table: {e}")
             raise
 
@@ -120,7 +120,7 @@ class CRUDUser:
                     try:
                         await supabase.auth.admin.delete_user(user_id)
                         # logger.info(f"Cleaned up auth user {user_id} after failed profile creation.")
-                    except Exception as admin_delete_e:
+                    except Exception:
                         # logger.error(f"Failed to clean up auth user {user_id} after profile error: {admin_delete_e}")
                         pass  # Log and continue to raise the profile creation error
                     raise APIError(
@@ -151,10 +151,10 @@ class CRUDUser:
                     status_code=500,
                 )
 
-        except APIError as e:
+        except APIError:
             # logger.error(f"Supabase APIError during user creation for {obj_in.email}: {e.message}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error during user creation for {obj_in.email}: {e}")
             raise
 
@@ -217,7 +217,7 @@ class CRUDUser:
             if "User not found" in e.message:
                 return None
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error during user update for {user_id}: {e}")
             raise
         return None
@@ -238,10 +238,10 @@ class CRUDUser:
                 return auth_response.user.model_dump()
             # logger.info(f"Authentication failed for {email}: {auth_response.error.message if auth_response.error else 'No user data'}")
             return None
-        except APIError as e:
+        except APIError:
             # logger.warning(f"Supabase APIError during authentication for {email}: {e.message}")
             return None  # Common for auth errors like invalid credentials
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error during authentication for {email}: {e}")
             raise
 

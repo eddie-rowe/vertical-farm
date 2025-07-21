@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -35,7 +35,7 @@ class CRUDShelf:
                 return None
             # logger.error(f"Error fetching shelf {id}: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error fetching shelf {id}: {e}")
             raise
 
@@ -57,7 +57,7 @@ class CRUDShelf:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching shelves for rack {rack_id}: {e}")
             raise
 
@@ -114,7 +114,7 @@ class CRUDShelf:
             shelves = response.data
             total = response.count if response.count is not None else 0
             return shelves, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching shelves with total for rack {rack_id}: {e}")
             raise
 
@@ -133,7 +133,7 @@ class CRUDShelf:
                     "Failed to create shelf: No data returned from Supabase"
                 )
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating shelf for rack {rack_id}: {e}")
             raise
 
@@ -155,7 +155,7 @@ class CRUDShelf:
                 # logger.warning(f"Update for shelf {id} returned no data. Shelf might not exist. Resp: {response}")
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating shelf {id}: {e}")
             raise
 
@@ -172,7 +172,7 @@ class CRUDShelf:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting shelf {id}: {e}")
             raise
 

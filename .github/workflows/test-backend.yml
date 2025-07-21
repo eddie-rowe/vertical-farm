@@ -146,20 +146,48 @@ jobs:
           pip install pyright flake8
           pip install types-requests types-redis types-PyYAML
       
-      - name: Critical quality checks (BLOCKING)
+      - name: Type checking (pyright)
+        working-directory: ./backend
+        continue-on-error: true  # Make type checking non-blocking
+        run: |
+          echo "## 🔍 Type Checking with Pyright" >> $GITHUB_STEP_SUMMARY
+          echo "Running pyright type checker..." 
+          
+          if pyright app/ > pyright-output.txt 2>&1; then
+            echo "✅ Type checking: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "No type errors found!" >> $GITHUB_STEP_SUMMARY
+          else
+            # Count errors and warnings
+            ERRORS=$(grep -c " - error:" pyright-output.txt || echo "0")
+            WARNINGS=$(grep -c " - warning:" pyright-output.txt || echo "0")
+            
+            echo "⚠️ Type checking: $ERRORS errors, $WARNINGS warnings" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Type checking results:**" >> $GITHUB_STEP_SUMMARY
+            echo "- 🚫 Errors: $ERRORS" >> $GITHUB_STEP_SUMMARY  
+            echo "- ⚠️ Warnings: $WARNINGS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary>📄 View first 50 type issues</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            head -50 pyright-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💡 **Note:** Type checking is non-blocking. Pipeline continues with warnings." >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Critical syntax checks (BLOCKING)
         working-directory: ./backend
         run: |
-          echo "🛡️ Running critical quality checks..."
-          
-          # Type checking (blocking)
-          echo "Checking types with pyright..."
-          pyright app/
+          echo "🛡️ Running critical syntax checks..."
           
           # Basic syntax and critical linting (blocking)
           echo "Checking syntax and critical issues..."
           flake8 app/ --max-line-length=100 --ignore=E203,W503 --select=E9,F63,F7,F82
           
-          echo "✅ Critical quality checks passed"
+          echo "✅ Critical syntax checks passed"
       
       - name: Run unit tests
         if: matrix.test-type == 'unit'

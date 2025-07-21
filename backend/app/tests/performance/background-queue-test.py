@@ -10,7 +10,7 @@ import logging
 import statistics
 import time
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import aiohttp
 

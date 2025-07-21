@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from httpx import HTTPStatusError
@@ -31,7 +31,7 @@ class CRUDRow:
                 return None
             # logger.error(f"Error fetching row {id}: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error fetching row {id}: {e}")
             raise
 
@@ -53,7 +53,7 @@ class CRUDRow:
                 .execute()
             )
             return response.data
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching rows for farm {farm_id}: {e}")
             raise
 
@@ -106,7 +106,7 @@ class CRUDRow:
             rows = response.data
             total = response.count if response.count is not None else 0
             return rows, total
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error fetching rows with total for farm {farm_id}: {e}")
             raise
 
@@ -126,7 +126,7 @@ class CRUDRow:
                 # logger.error(f"Failed to create row for farm {farm_id}: No data. Response: {response}")
                 raise Exception("Failed to create row: No data returned from Supabase")
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error creating row for farm {farm_id}: {e}")
             raise
 
@@ -152,7 +152,7 @@ class CRUDRow:
                 # logger.warning(f"Update for row {id} returned no data. Row might not exist or no change made. Resp: {response}")
                 return None  # Or fetch current to confirm existence: await self.get(supabase, id)
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error updating row {id}: {e}")
             raise
 
@@ -169,7 +169,7 @@ class CRUDRow:
             if not response.data:
                 return None
             return response.data[0]
-        except Exception as e:
+        except Exception:
             # logger.error(f"Error deleting row {id}: {e}")
             raise
 

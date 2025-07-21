@@ -7,7 +7,6 @@ Home Assistant devices within the vertical farm system.
 
 import logging
 from datetime import datetime
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 

@@ -3,7 +3,7 @@ Pydantic models for Home Assistant integration API endpoints.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import (
     BaseModel,

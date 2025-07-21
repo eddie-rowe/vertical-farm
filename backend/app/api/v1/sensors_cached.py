@@ -9,7 +9,6 @@ These endpoints provide fast access to sensor data for dashboards and analytics
 while maintaining separation between cached data and realtime alerts.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 

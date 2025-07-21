@@ -4,12 +4,12 @@ import logging
 import os
 import time
 import uuid
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
-from collections.abc import Callable
+from typing import Any
 
 import redis.asyncio as redis
 
