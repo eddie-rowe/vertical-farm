@@ -169,7 +169,7 @@ npm install
 Ensure the following environment variables are set:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_KEY`
 
 ## Performance Testing Workflow
 

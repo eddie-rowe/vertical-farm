@@ -65,7 +65,7 @@ def mock_environment_variables(monkeypatch) -> None:
     """Mock environment variables for testing."""
     test_env_vars = {
         "SUPABASE_URL": "https://test.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "test_service_key",
+        "SUPABASE_SERVICE_KEY": "test_service_key",
         "SUPABASE_ANON_KEY": "test_anon_key",
         "JWT_SECRET_KEY": "test_jwt_secret",
         "ENVIRONMENT": "test",

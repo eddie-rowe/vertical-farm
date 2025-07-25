@@ -29,7 +29,7 @@ if [ ! -f ".env.test" ]; then
 # Test Environment Configuration
 ENVIRONMENT=test
 SUPABASE_URL=https://test.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=test_service_key
+SUPABASE_SERVICE_KEY=test_service_key
 SUPABASE_ANON_KEY=test_anon_key
 JWT_SECRET_KEY=test_jwt_secret_key_for_testing_only
 CORS_ORIGINS=["http://localhost:3000"]
