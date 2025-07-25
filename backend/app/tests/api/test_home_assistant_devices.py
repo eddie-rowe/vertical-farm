@@ -131,9 +131,11 @@ class TestHomeAssistantDevices:
             assert response.status_code == status.HTTP_200_OK
 
             data = response.json()
-            assert isinstance(data, list)
-            assert len(data) == 1
-            assert data[0]["entity_id"] == "light.test_light"
+            assert "devices" in data
+            assert "total_count" in data
+            assert isinstance(data["devices"], list)
+            assert len(data["devices"]) == 1
+            assert data["devices"][0]["entity_id"] == "light.test_light"
         finally:
             self.cleanup_dependency_overrides()
 
@@ -143,12 +145,14 @@ class TestHomeAssistantDevices:
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
         try:
-            response = await client.get("/api/v1/home-assistant/devices?domain=light")
+            response = await client.get("/api/v1/home-assistant/devices?device_type=light")
             assert response.status_code == status.HTTP_200_OK
 
             data = response.json()
-            assert isinstance(data, list)
-            # Verify that the service was called with the domain filter
+            assert "devices" in data
+            assert "total_count" in data
+            assert isinstance(data["devices"], list)
+            # Verify that the service was called with the device_type filter
             mock_ha_service.get_user_devices.assert_called_once()
         finally:
             self.cleanup_dependency_overrides()
@@ -178,12 +182,12 @@ class TestHomeAssistantDevices:
         """Test device control endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
-        control_data = {"action": "turn_on", "parameters": {"brightness": 255}}
+        entity_id = "light.test_light"
+        control_data = {"entity_id": entity_id, "action": "on"}
 
         try:
-            entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control", json=control_data
+                "/api/v1/home-assistant/devices/control", json=control_data
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -201,19 +205,19 @@ class TestHomeAssistantDevices:
         mock_ha_service.control_device.return_value = {
             "success": False,
             "entity_id": "light.test_light",
-            "action": "turn_on",
+            "action": "on",
             "error": "Device not reachable",
             "timestamp": datetime.utcnow().isoformat(),
         }
 
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
-        control_data = {"action": "turn_on", "parameters": {"brightness": 255}}
+        entity_id = "light.test_light"
+        control_data = {"entity_id": entity_id, "action": "on"}
 
         try:
-            entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control", json=control_data
+                "/api/v1/home-assistant/devices/control", json=control_data
             )
             # Should still return 200 but with success: false
             assert response.status_code == status.HTTP_200_OK
@@ -235,9 +239,8 @@ class TestHomeAssistantDevices:
         invalid_data = {"invalid": "data"}
 
         try:
-            entity_id = "light.test_light"
             response = await client.post(
-                f"/api/v1/home-assistant/devices/{entity_id}/control", json=invalid_data
+                "/api/v1/home-assistant/devices/control", json=invalid_data
             )
             # Should return validation error
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

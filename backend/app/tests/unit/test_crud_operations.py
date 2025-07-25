@@ -19,9 +19,11 @@ class TestFarmCRUD:
     @pytest.fixture
     def mock_supabase_client(self):
         """Create a mock Supabase client."""
-        mock_client = MagicMock()
-        mock_table = MagicMock()
-        mock_response = MagicMock()
+        from unittest.mock import AsyncMock
+        
+        mock_client = AsyncMock()
+        mock_table = AsyncMock()
+        mock_response = AsyncMock()
 
         # Mock the table chaining
         mock_client.table.return_value = mock_table
@@ -43,13 +45,15 @@ class TestFarmCRUD:
     @pytest.mark.asyncio
     async def test_create_farm_success(self, farm_crud, mock_supabase_client) -> None:
         """Test successful farm creation."""
+        from app.schemas.farm import FarmCreate
+        
         mock_client, mock_table, mock_response = mock_supabase_client
 
-        # Mock successful response
-        farm_data = {
-            "name": "Test Farm",
-            "location": "Test Location",
-        }
+        # Mock successful response using proper Pydantic model
+        farm_data = FarmCreate(
+            name="Test Farm",
+            location="Test Location"
+        )
         
         created_farm = {
             "id": str(uuid4()),
@@ -179,9 +183,11 @@ class TestUserCRUD:
     @pytest.fixture
     def mock_supabase_client(self):
         """Create a mock Supabase client."""
-        mock_client = MagicMock()
-        mock_table = MagicMock()
-        mock_response = MagicMock()
+        from unittest.mock import AsyncMock
+        
+        mock_client = AsyncMock()
+        mock_table = AsyncMock()
+        mock_response = AsyncMock()
 
         mock_client.table.return_value = mock_table
         mock_table.insert.return_value = mock_table

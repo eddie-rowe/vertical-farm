@@ -77,8 +77,9 @@ class TestHomeAssistantHealth:
 
             data = response.json()
             assert "healthy" in data
-            assert "enabled" in data
+            assert "services" in data
             assert "last_check" in data
+            assert isinstance(data["services"], dict)
         finally:
             self.cleanup_dependency_overrides()
 
@@ -108,8 +109,8 @@ class TestHomeAssistantHealth:
             "healthy": False,
             "enabled": True,
             "initialized": False,
-            "rest_api_available": False,
-            "websocket_connected": False,
+            "rest_api": False,
+            "websocket": False,
             "last_check": "2024-06-19T13:20:05.111018",
             "error": "Connection refused",
         }
@@ -122,7 +123,8 @@ class TestHomeAssistantHealth:
 
             data = response.json()
             assert data["healthy"] is False
-            assert "error" in data
+            assert "services" in data
+            assert data["services"]["home_assistant"] is False
         finally:
             self.cleanup_dependency_overrides()
 
