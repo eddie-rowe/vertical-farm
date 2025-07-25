@@ -19,12 +19,17 @@ class TestBackgroundQueueIntegration:
     @pytest.fixture
     def mock_queue_service(self):
         """Mock background queue service."""
+        import uuid
         mock_service = AsyncMock()
-        mock_service.enqueue_task.return_value = {
-            "task_id": "test-task-123",
-            "status": "queued",
-            "created_at": datetime.utcnow().isoformat(),
-        }
+        
+        def generate_task_result(*args, **kwargs):
+            return {
+                "task_id": f"test-task-{uuid.uuid4()}",
+                "status": "queued",
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        
+        mock_service.enqueue_task.side_effect = generate_task_result
         mock_service.get_task_status.return_value = {
             "task_id": "test-task-123",
             "status": "completed",

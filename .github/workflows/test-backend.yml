@@ -266,12 +266,7 @@ jobs:
         working-directory: ./backend
         run: |
           if [ -f coverage-${{ matrix.test-type }}.xml ]; then
-            COVERAGE=$(python -c "
-            import xml.etree.ElementTree as ET
-            tree = ET.parse('coverage-${{ matrix.test-type }}.xml')
-            root = tree.getroot()
-            print(f\"{float(root.attrib['line-rate']) * 100:.1f}\")
-            ")
+            COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage-${{ matrix.test-type }}.xml'); root = tree.getroot(); print(f'{float(root.attrib[\"line-rate\"]) * 100:.1f}')")
             echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
             echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
             echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY

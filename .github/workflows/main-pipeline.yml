@@ -63,9 +63,10 @@ jobs:
   backend-build:
     name: Backend Build
     uses: ./.github/workflows/build-backend.yml
-    needs: [backend-tests, backend-security, repository-security]
+    needs: [backend-tests, frontend-tests, backend-security, repository-security]
     if: |
       needs.backend-tests.result == 'success' && 
+      needs.frontend-tests.result == 'success' && 
       needs.backend-security.result == 'success' && 
       needs.repository-security.result == 'success'
     secrets: inherit
@@ -75,8 +76,9 @@ jobs:
   frontend-build:
     name: Frontend Build
     uses: ./.github/workflows/build-frontend.yml
-    needs: [frontend-tests, frontend-security, repository-security]
+    needs: [backend-tests, frontend-tests, frontend-security, repository-security]
     if: |
+      needs.backend-tests.result == 'success' && 
       needs.frontend-tests.result == 'success' && 
       needs.frontend-security.result == 'success' && 
       needs.repository-security.result == 'success'
