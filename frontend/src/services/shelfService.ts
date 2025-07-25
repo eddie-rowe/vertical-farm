@@ -1,12 +1,12 @@
 /**
  * Shelf Service - Migrated to Supabase PostGREST
- * 
+ *
  * This service replaces FastAPI endpoints with direct Supabase calls,
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '@/lib/supabaseClient';
-import { UUID } from '@/types/farm-layout';
+import { supabase } from "@/lib/supabaseClient";
+import { UUID } from "@/types/farm-layout";
 
 // =====================================================
 // TYPES
@@ -46,9 +46,12 @@ export interface UpdateShelfData {
 // =====================================================
 
 const requireAuth = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw error;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) throw new Error("User not authenticated");
   return user;
 };
 
@@ -60,20 +63,22 @@ const requireAuth = async () => {
  * Create a new shelf
  * Replaces: POST /api/v1/shelves/
  */
-export const createShelf = async (shelfData: CreateShelfData): Promise<Shelf> => {
+export const createShelf = async (
+  shelfData: CreateShelfData,
+): Promise<Shelf> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
+    .from("shelves")
     .insert([shelfData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating shelf:', error);
+    console.error("Error creating shelf:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -83,18 +88,18 @@ export const createShelf = async (shelfData: CreateShelfData): Promise<Shelf> =>
  */
 export const getShelfById = async (shelfId: UUID): Promise<Shelf> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select('*')
-    .eq('id', shelfId)
+    .from("shelves")
+    .select("*")
+    .eq("id", shelfId)
     .single();
-  
+
   if (error) {
     console.error(`Error fetching shelf ${shelfId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -104,18 +109,18 @@ export const getShelfById = async (shelfId: UUID): Promise<Shelf> => {
  */
 export const getShelvesByRackId = async (rackId: UUID): Promise<Shelf[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select('*')
-    .eq('rack_id', rackId)
-    .order('position_in_rack', { ascending: true });
-  
+    .from("shelves")
+    .select("*")
+    .eq("rack_id", rackId)
+    .order("position_in_rack", { ascending: true });
+
   if (error) {
     console.error(`Error fetching shelves for rack ${rackId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -123,21 +128,24 @@ export const getShelvesByRackId = async (rackId: UUID): Promise<Shelf[]> => {
  * Update an existing shelf
  * Replaces: PUT /api/v1/shelves/{shelf_id}
  */
-export const updateShelf = async (shelfId: UUID, shelfData: UpdateShelfData): Promise<Shelf> => {
+export const updateShelf = async (
+  shelfId: UUID,
+  shelfData: UpdateShelfData,
+): Promise<Shelf> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
+    .from("shelves")
     .update(shelfData)
-    .eq('id', shelfId)
+    .eq("id", shelfId)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`Error updating shelf ${shelfId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -147,12 +155,9 @@ export const updateShelf = async (shelfId: UUID, shelfData: UpdateShelfData): Pr
  */
 export const deleteShelf = async (shelfId: UUID): Promise<void> => {
   await requireAuth();
-  
-  const { error } = await supabase
-    .from('shelves')
-    .delete()
-    .eq('id', shelfId);
-  
+
+  const { error } = await supabase.from("shelves").delete().eq("id", shelfId);
+
   if (error) {
     console.error(`Error deleting shelf ${shelfId}:`, error);
     throw error;
@@ -163,32 +168,35 @@ export const deleteShelf = async (shelfId: UUID): Promise<void> => {
  * Reorder shelves within a rack
  * Updates position_in_rack values for multiple shelves
  */
-export const reorderShelves = async (rackId: UUID, shelfOrders: Array<{ id: UUID; position_in_rack: number }>): Promise<Shelf[]> => {
+export const reorderShelves = async (
+  rackId: UUID,
+  shelfOrders: Array<{ id: UUID; position_in_rack: number }>,
+): Promise<Shelf[]> => {
   await requireAuth();
-  
+
   // Update positions in a transaction-like manner
   const updatePromises = shelfOrders.map(({ id, position_in_rack }) =>
     supabase
-      .from('shelves')
+      .from("shelves")
       .update({ position_in_rack })
-      .eq('id', id)
-      .eq('rack_id', rackId) // Extra safety check
+      .eq("id", id)
+      .eq("rack_id", rackId) // Extra safety check
       .select()
-      .single()
+      .single(),
   );
-  
+
   try {
     const results = await Promise.all(updatePromises);
-    const errors = results.filter(result => result.error);
-    
+    const errors = results.filter((result) => result.error);
+
     if (errors.length > 0) {
-      console.error('Error reordering shelves:', errors);
-      throw new Error('Failed to reorder some shelves');
+      console.error("Error reordering shelves:", errors);
+      throw new Error("Failed to reorder some shelves");
     }
-    
-    return results.map(result => result.data!);
+
+    return results.map((result) => result.data!);
   } catch (error) {
-    console.error('Error in bulk shelf reorder:', error);
+    console.error("Error in bulk shelf reorder:", error);
     throw error;
   }
 };
@@ -202,17 +210,17 @@ export const reorderShelves = async (rackId: UUID, shelfOrders: Array<{ id: UUID
  */
 export const getShelfCount = async (rackId: UUID): Promise<number> => {
   await requireAuth();
-  
+
   const { count, error } = await supabase
-    .from('shelves')
-    .select('*', { count: 'exact', head: true })
-    .eq('rack_id', rackId);
-  
+    .from("shelves")
+    .select("*", { count: "exact", head: true })
+    .eq("rack_id", rackId);
+
   if (error) {
     console.error(`Error getting shelf count for rack ${rackId}:`, error);
     throw error;
   }
-  
+
   return count || 0;
 };
 
@@ -221,23 +229,26 @@ export const getShelfCount = async (rackId: UUID): Promise<number> => {
  */
 export const getNextShelfPosition = async (rackId: UUID): Promise<number> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select('position_in_rack')
-    .eq('rack_id', rackId)
-    .order('position_in_rack', { ascending: false })
+    .from("shelves")
+    .select("position_in_rack")
+    .eq("rack_id", rackId)
+    .order("position_in_rack", { ascending: false })
     .limit(1);
-  
+
   if (error) {
-    console.error(`Error getting next shelf position for rack ${rackId}:`, error);
+    console.error(
+      `Error getting next shelf position for rack ${rackId}:`,
+      error,
+    );
     throw error;
   }
-  
+
   if (!data || data.length === 0) {
     return 1; // First shelf
   }
-  
+
   return (data[0].position_in_rack || 0) + 1;
 };
 
@@ -246,21 +257,23 @@ export const getNextShelfPosition = async (rackId: UUID): Promise<number> => {
  */
 export const getShelvesByRowId = async (rowId: UUID): Promise<Shelf[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select(`
+    .from("shelves")
+    .select(
+      `
       *,
       racks!inner(row_id)
-    `)
-    .eq('racks.row_id', rowId)
-    .order('position_in_rack', { ascending: true });
-  
+    `,
+    )
+    .eq("racks.row_id", rowId)
+    .order("position_in_rack", { ascending: true });
+
   if (error) {
     console.error(`Error fetching shelves for row ${rowId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -269,24 +282,26 @@ export const getShelvesByRowId = async (rowId: UUID): Promise<Shelf[]> => {
  */
 export const getShelvesByFarmId = async (farmId: UUID): Promise<Shelf[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select(`
+    .from("shelves")
+    .select(
+      `
       *,
       racks!inner(
         row_id,
         rows!inner(farm_id)
       )
-    `)
-    .eq('racks.rows.farm_id', farmId)
-    .order('position_in_rack', { ascending: true });
-  
+    `,
+    )
+    .eq("racks.rows.farm_id", farmId)
+    .order("position_in_rack", { ascending: true });
+
   if (error) {
     console.error(`Error fetching shelves for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -295,10 +310,11 @@ export const getShelvesByFarmId = async (farmId: UUID): Promise<Shelf[]> => {
  */
 export const getShelfWithHierarchy = async (shelfId: UUID) => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('shelves')
-    .select(`
+    .from("shelves")
+    .select(
+      `
       *,
       racks!inner(
         id,
@@ -314,15 +330,16 @@ export const getShelfWithHierarchy = async (shelfId: UUID) => {
           )
         )
       )
-    `)
-    .eq('id', shelfId)
+    `,
+    )
+    .eq("id", shelfId)
     .single();
-  
+
   if (error) {
     console.error(`Error fetching shelf hierarchy for ${shelfId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -344,4 +361,4 @@ const shelfService = {
   getShelfWithHierarchy,
 };
 
-export default shelfService; 
+export default shelfService;

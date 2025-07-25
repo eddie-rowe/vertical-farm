@@ -1,98 +1,108 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FaArrowRight, FaEye, FaDownload, FaFilter } from 'react-icons/fa';
+import React, { useState } from "react";
+import { FaArrowRight, FaEye, FaDownload, FaFilter } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardsForecastingView() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
+  const [selectedTimeframe, setSelectedTimeframe] = useState("7d");
 
   // Mock data for demonstration
   const forecastData = [
     {
       id: 1,
-      metric: 'Yield Prediction',
+      metric: "Yield Prediction",
       currentValue: 2.4,
       predictedValue: 2.8,
-      unit: 'kg/m²',
+      unit: "kg/m²",
       confidence: 87,
-      trend: 'increasing',
-      period: '7 days',
-      factors: ['Temperature optimization', 'Nutrient adjustment']
+      trend: "increasing",
+      period: "7 days",
+      factors: ["Temperature optimization", "Nutrient adjustment"],
     },
     {
       id: 2,
-      metric: 'Growth Rate',
+      metric: "Growth Rate",
       currentValue: 15.2,
       predictedValue: 18.5,
-      unit: 'cm/week',
+      unit: "cm/week",
       confidence: 92,
-      trend: 'increasing',
-      period: '14 days',
-      factors: ['Light cycle adjustment', 'CO2 enhancement']
+      trend: "increasing",
+      period: "14 days",
+      factors: ["Light cycle adjustment", "CO2 enhancement"],
     },
     {
       id: 3,
-      metric: 'Resource Usage',
+      metric: "Resource Usage",
       currentValue: 45.8,
       predictedValue: 42.1,
-      unit: 'L/day',
+      unit: "L/day",
       confidence: 78,
-      trend: 'decreasing',
-      period: '30 days',
-      factors: ['Efficiency improvements', 'System optimization']
-    }
+      trend: "decreasing",
+      period: "30 days",
+      factors: ["Efficiency improvements", "System optimization"],
+    },
   ];
 
   const insights = [
     {
       id: 1,
-      title: 'Optimal Harvest Window',
-      description: 'Based on growth patterns, harvest window opens in 12-14 days',
-      priority: 'high',
+      title: "Optimal Harvest Window",
+      description:
+        "Based on growth patterns, harvest window opens in 12-14 days",
+      priority: "high",
       confidence: 94,
       recommendations: [
-        'Monitor trichome development',
-        'Adjust lighting schedule',
-        'Reduce nutrient concentration'
-      ]
+        "Monitor trichome development",
+        "Adjust lighting schedule",
+        "Reduce nutrient concentration",
+      ],
     },
     {
       id: 2,
-      title: 'Resource Optimization',
-      description: 'Water usage can be reduced by 8% without affecting yield',
-      priority: 'medium',
+      title: "Resource Optimization",
+      description: "Water usage can be reduced by 8% without affecting yield",
+      priority: "medium",
       confidence: 82,
       recommendations: [
-        'Implement smart irrigation',
-        'Monitor soil moisture',
-        'Adjust watering schedule'
-      ]
-    }
+        "Implement smart irrigation",
+        "Monitor soil moisture",
+        "Adjust watering schedule",
+      ],
+    },
   ];
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'increasing': return '↗️';
-      case 'decreasing': return '↘️';
-      case 'stable': return '➡️';
-      default: return '➡️';
+      case "increasing":
+        return "↗️";
+      case "decreasing":
+        return "↘️";
+      case "stable":
+        return "➡️";
+      default:
+        return "➡️";
     }
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 90) return 'text-green-600';
-    if (confidence >= 75) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 90) return "text-green-600";
+    if (confidence >= 75) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "high":
+        return "bg-red-100 text-red-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -105,18 +115,19 @@ export default function DashboardsForecastingView() {
             AI Forecasting Dashboard
           </h2>
           <p className="text-content-secondary">
-            Predictive analytics and intelligent insights for your farming operations
+            Predictive analytics and intelligent insights for your farming
+            operations
           </p>
         </div>
         <div className="flex gap-2">
-          {['24h', '7d', '30d', '90d'].map((timeframe) => (
+          {["24h", "7d", "30d", "90d"].map((timeframe) => (
             <button
               key={timeframe}
               onClick={() => setSelectedTimeframe(timeframe)}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 selectedTimeframe === timeframe
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
               }`}
             >
               {timeframe}
@@ -141,13 +152,17 @@ export default function DashboardsForecastingView() {
               {/* Current vs Predicted */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-content-secondary">Current</span>
+                  <span className="text-sm text-content-secondary">
+                    Current
+                  </span>
                   <span className="font-medium text-content">
                     {forecast.currentValue} {forecast.unit}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-content-secondary">Predicted</span>
+                  <span className="text-sm text-content-secondary">
+                    Predicted
+                  </span>
                   <span className="font-bold text-blue-600">
                     {forecast.predictedValue} {forecast.unit}
                   </span>
@@ -156,8 +171,12 @@ export default function DashboardsForecastingView() {
 
               {/* Confidence */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-content-secondary">Confidence</span>
-                <span className={`font-medium ${getConfidenceColor(forecast.confidence)}`}>
+                <span className="text-sm text-content-secondary">
+                  Confidence
+                </span>
+                <span
+                  className={`font-medium ${getConfidenceColor(forecast.confidence)}`}
+                >
                   {forecast.confidence}%
                 </span>
               </div>
@@ -169,7 +188,10 @@ export default function DashboardsForecastingView() {
                 </h4>
                 <div className="space-y-1">
                   {forecast.factors.map((factor, index) => (
-                    <div key={index} className="text-xs text-content-secondary flex items-center gap-1">
+                    <div
+                      key={index}
+                      className="text-xs text-content-secondary flex items-center gap-1"
+                    >
                       <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
                       {factor}
                     </div>
@@ -207,7 +229,10 @@ export default function DashboardsForecastingView() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {insights.map((insight) => (
-            <Card key={insight.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={insight.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -218,7 +243,9 @@ export default function DashboardsForecastingView() {
                       {insight.priority} priority
                     </Badge>
                   </div>
-                  <span className={`text-sm font-medium ${getConfidenceColor(insight.confidence)}`}>
+                  <span
+                    className={`text-sm font-medium ${getConfidenceColor(insight.confidence)}`}
+                  >
                     {insight.confidence}% confident
                   </span>
                 </div>
@@ -233,7 +260,10 @@ export default function DashboardsForecastingView() {
                   </h5>
                   <ul className="space-y-1">
                     {insight.recommendations.map((rec, index) => (
-                      <li key={index} className="text-sm text-content-secondary flex items-center gap-2">
+                      <li
+                        key={index}
+                        className="text-sm text-content-secondary flex items-center gap-2"
+                      >
                         <FaArrowRight className="text-xs text-blue-500" />
                         {rec}
                       </li>
@@ -261,7 +291,9 @@ export default function DashboardsForecastingView() {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-600">127</div>
-              <div className="text-sm text-content-secondary">Predictions Made</div>
+              <div className="text-sm text-content-secondary">
+                Predictions Made
+              </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">89.7%</div>
@@ -272,4 +304,4 @@ export default function DashboardsForecastingView() {
       </Card>
     </div>
   );
-} 
+}

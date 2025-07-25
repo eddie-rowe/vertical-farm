@@ -1,16 +1,25 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Home, Lightbulb, Fan, Droplets, PlugZap } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { Farm } from "@/types/farm";
 
 interface DeviceManagementLayerProps {
   farm?: Farm;
 }
 
-export default function DeviceManagementLayer({ farm }: DeviceManagementLayerProps) {
+export default function DeviceManagementLayer({
+  farm,
+}: DeviceManagementLayerProps) {
   // Mock device data for demonstration
   const mockDevices = [
     {
@@ -19,15 +28,15 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
       type: "light",
       status: "connected",
       location: "Row 1, Rack A",
-      state: "On"
+      state: "On",
     },
     {
       id: 2,
       name: "Water Pump - East",
       type: "pump",
-      status: "connected", 
+      status: "connected",
       location: "Row 2, Rack B",
-      state: "Off"
+      state: "Off",
     },
     {
       id: 3,
@@ -35,24 +44,31 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
       type: "fan",
       status: "disconnected",
       location: "Row 1, Rack C",
-      state: "Off"
-    }
+      state: "Off",
+    },
   ];
 
   const getDeviceIcon = (type: string) => {
     switch (type) {
-      case 'light': return <Lightbulb className="h-4 w-4" />;
-      case 'pump': return <Droplets className="h-4 w-4" />;
-      case 'fan': return <Fan className="h-4 w-4" />;
-      default: return <PlugZap className="h-4 w-4" />;
+      case "light":
+        return <Lightbulb className="h-4 w-4" />;
+      case "pump":
+        return <Droplets className="h-4 w-4" />;
+      case "fan":
+        return <Fan className="h-4 w-4" />;
+      default:
+        return <PlugZap className="h-4 w-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'disconnected': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case "connected":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "disconnected":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
@@ -65,7 +81,9 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
             Device Management
           </h2>
           <p className="text-gray-500 dark:text-gray-400">
-            {farm ? `Managing devices for ${farm.name}` : 'Connect and control your farm devices'}
+            {farm
+              ? `Managing devices for ${farm.name}`
+              : "Connect and control your farm devices"}
           </p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -111,7 +129,10 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
         <CardContent>
           <div className="space-y-4">
             {mockDevices.map((device) => (
-              <div key={device.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <div
+                key={device.id}
+                className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     {getDeviceIcon(device.type)}
@@ -129,9 +150,7 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
                   <Badge className={getStatusColor(device.status)}>
                     {device.status}
                   </Badge>
-                  <Badge variant="outline">
-                    {device.state}
-                  </Badge>
+                  <Badge variant="outline">{device.state}</Badge>
                   <Button variant="outline" size="sm">
                     Assign
                   </Button>
@@ -154,13 +173,13 @@ export default function DeviceManagementLayer({ farm }: DeviceManagementLayerPro
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <PlugZap className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium mb-2">No Device Assignments</h3>
-            <p className="mb-4">Start by connecting devices and assigning them to farm locations.</p>
-            <Button variant="outline">
-              Create Assignment
-            </Button>
+            <p className="mb-4">
+              Start by connecting devices and assigning them to farm locations.
+            </p>
+            <Button variant="outline">Create Assignment</Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

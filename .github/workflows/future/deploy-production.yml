@@ -75,9 +75,12 @@ jobs:
       
       - name: Check deployment necessity
         id: check
+        env:
+          FORCE_DEPLOY: ${{ inputs.force_deploy }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Check if we should deploy
-          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+          if [ "$FORCE_DEPLOY" = "true" ]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "🚀 Force deployment requested"
           else
@@ -229,19 +232,14 @@ jobs:
             -e ENVIRONMENT=production \
             -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
             -e SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
-            -e SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -e SUPABASE_SERVICE_KEY="${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-            -e CORS_ORIGINS="https://farm.yourdomain.com" \
+            -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
             -v /mnt/user/appdata/vertical-farm/logs:/app/logs \
             -v /mnt/user/appdata/vertical-farm/data:/app/data \
             -p 8000:8000 \
-            --label traefik.enable=true \
-            --label traefik.http.routers.vertical-farm-api.rule="Host(\`api.farm.yourdomain.com\`)" \
-            --label traefik.http.routers.vertical-farm-api.tls=true \
-            --label traefik.http.routers.vertical-farm-api.tls.certresolver=letsencrypt \
             ${{ needs.prepare.outputs.backend_image }}
-          
           echo "✅ Backend container started" >> $GITHUB_STEP_SUMMARY
       
       - name: Deploy frontend service

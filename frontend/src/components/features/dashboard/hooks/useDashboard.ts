@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { DashboardView } from '../types';
-import { strategicData, executiveSummaryData } from '../data/strategicData';
+import { useState, useEffect } from "react";
+
+import { strategicData, executiveSummaryData } from "../data/strategicData";
+import { DashboardView } from "../types";
 
 export const useDashboard = () => {
-  const [currentView, setCurrentView] = useState<DashboardView>('executive');
+  const [currentView, setCurrentView] = useState<DashboardView>("executive");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,17 +22,17 @@ export const useDashboard = () => {
   };
 
   const handleBackToExecutive = () => {
-    setCurrentView('executive');
+    setCurrentView("executive");
   };
 
   const refreshData = async () => {
     setIsLoading(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       // In a real app, this would fetch fresh data
     } catch (error) {
-      console.error('Error refreshing dashboard data:', error);
+      console.error("Error refreshing dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +46,6 @@ export const useDashboard = () => {
     executiveSummaryData,
     handleCategoryClick,
     handleBackToExecutive,
-    refreshData
+    refreshData,
   };
-}; 
+};

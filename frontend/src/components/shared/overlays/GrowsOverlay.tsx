@@ -1,21 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { FarmPageData, Row, Rack, Shelf } from '@/types/farm';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { 
-  Leaf, 
+import {
+  Leaf,
   Calendar,
   Clock,
-  Droplets,
-  Sun,
   AlertTriangle,
   CheckCircle,
   Play,
-  Pause
-} from 'lucide-react';
+  Pause,
+} from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { FarmPageData, Row, Rack, Shelf } from "@/types/farm";
 
 interface GrowTimelineItem {
   id: string;
@@ -28,7 +26,7 @@ interface GrowTimelineItem {
   speciesName: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'active' | 'completed' | 'aborted';
+  status: "planned" | "active" | "completed" | "aborted";
   progress: number;
   daysElapsed: number;
   daysRemaining: number;
@@ -46,11 +44,11 @@ interface GrowsOverlayProps {
   selectedShelf?: Shelf | null;
 }
 
-const GrowsOverlay: React.FC<GrowsOverlayProps> = ({ 
-  farmData, 
-  selectedRow, 
-  selectedRack, 
-  selectedShelf 
+const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
+  farmData,
+  selectedRow,
+  selectedRack,
+  selectedShelf,
 }) => {
   const [grows, setGrows] = useState<GrowTimelineItem[]>([]);
 
@@ -75,7 +73,7 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
         totalDays: 35,
         automationEnabled: true,
         criticalAlerts: 0,
-        environmentalScore: 92
+        environmentalScore: 92,
       },
       {
         id: "grow-2",
@@ -95,7 +93,7 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
         totalDays: 49,
         automationEnabled: true,
         criticalAlerts: 1,
-        environmentalScore: 87
+        environmentalScore: 87,
       },
       {
         id: "grow-3",
@@ -115,7 +113,7 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
         totalDays: 49,
         automationEnabled: false,
         criticalAlerts: 2,
-        environmentalScore: 78
+        environmentalScore: 78,
       },
       {
         id: "grow-4",
@@ -135,45 +133,55 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
         totalDays: 14,
         automationEnabled: true,
         criticalAlerts: 0,
-        environmentalScore: 0
-      }
+        environmentalScore: 0,
+      },
     ];
-    
+
     setGrows(mockGrows);
   }, []);
 
-  const getStatusColor = (status: GrowTimelineItem['status']) => {
+  const getStatusColor = (status: GrowTimelineItem["status"]) => {
     switch (status) {
-      case 'active': return 'text-green-600 dark:text-green-400';
-      case 'planned': return 'text-blue-600 dark:text-blue-400';
-      case 'completed': return 'text-gray-600 dark:text-gray-400';
-      case 'aborted': return 'text-red-600 dark:text-red-400';
-      default: return 'text-gray-600 dark:text-gray-400';
+      case "active":
+        return "text-green-600 dark:text-green-400";
+      case "planned":
+        return "text-blue-600 dark:text-blue-400";
+      case "completed":
+        return "text-gray-600 dark:text-gray-400";
+      case "aborted":
+        return "text-red-600 dark:text-red-400";
+      default:
+        return "text-gray-600 dark:text-gray-400";
     }
   };
 
-  const getStatusIcon = (status: GrowTimelineItem['status']) => {
+  const getStatusIcon = (status: GrowTimelineItem["status"]) => {
     switch (status) {
-      case 'active': return <Play className="w-3 h-3" />;
-      case 'planned': return <Calendar className="w-3 h-3" />;
-      case 'completed': return <CheckCircle className="w-3 h-3" />;
-      case 'aborted': return <Pause className="w-3 h-3" />;
-      default: return <Clock className="w-3 h-3" />;
+      case "active":
+        return <Play className="w-3 h-3" />;
+      case "planned":
+        return <Calendar className="w-3 h-3" />;
+      case "completed":
+        return <CheckCircle className="w-3 h-3" />;
+      case "aborted":
+        return <Pause className="w-3 h-3" />;
+      default:
+        return <Clock className="w-3 h-3" />;
     }
   };
 
   const getGrowForShelf = (shelfId: string | number) => {
-    return grows.find(grow => grow.shelfId === String(shelfId));
+    return grows.find((grow) => grow.shelfId === String(shelfId));
   };
 
   if (!farmData?.farm?.rows) return null;
 
   // Simple informational overlay showing grow summary
   const totalGrows = grows.length;
-  const activeGrows = grows.filter(g => g.status === 'active').length;
-  const plannedGrows = grows.filter(g => g.status === 'planned').length;
+  const activeGrows = grows.filter((g) => g.status === "active").length;
+  const plannedGrows = grows.filter((g) => g.status === "planned").length;
   const criticalAlerts = grows.reduce((sum, g) => sum + g.criticalAlerts, 0);
-  
+
   return (
     <div className="absolute inset-0 pointer-events-none z-40">
       {/* Grow Information Panel */}
@@ -185,7 +193,7 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
               Active Grows
             </span>
           </div>
-          
+
           {/* Summary Stats */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="text-center">
@@ -219,7 +227,8 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
             <div className="mb-4">
               <Badge variant="destructive" className="w-full justify-center">
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                {criticalAlerts} Alert{criticalAlerts !== 1 ? 's' : ''} Need Attention
+                {criticalAlerts} Alert{criticalAlerts !== 1 ? "s" : ""} Need
+                Attention
               </Badge>
             </div>
           )}
@@ -230,44 +239,58 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
               Current Grows
             </h4>
             <div className="max-h-40 overflow-y-auto space-y-2">
-              {grows.filter(g => g.status === 'active' || g.status === 'planned').slice(0, 4).map((grow) => (
-                <div 
-                  key={grow.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={cn("flex items-center gap-1", getStatusColor(grow.status))}>
-                      {getStatusIcon(grow.status)}
+              {grows
+                .filter((g) => g.status === "active" || g.status === "planned")
+                .slice(0, 4)
+                .map((grow) => (
+                  <div
+                    key={grow.id}
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          "flex items-center gap-1",
+                          getStatusColor(grow.status),
+                        )}
+                      >
+                        {getStatusIcon(grow.status)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {grow.speciesName}
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {grow.shelfName}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {grow.speciesName}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {grow.shelfName}
-                      </div>
+
+                    <div className="text-right">
+                      {grow.status === "active" && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {grow.progress}% • {grow.daysRemaining}d
+                        </div>
+                      )}
+                      {grow.status === "planned" && (
+                        <div className="text-xs text-blue-600 dark:text-blue-400">
+                          Starts {new Date(grow.startDate).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    {grow.status === 'active' && (
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {grow.progress}% • {grow.daysRemaining}d
-                      </div>
-                    )}
-                    {grow.status === 'planned' && (
-                      <div className="text-xs text-blue-600 dark:text-blue-400">
-                        Starts {new Date(grow.startDate).toLocaleDateString()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {grows.filter(g => g.status === 'active' || g.status === 'planned').length > 4 && (
+                ))}
+
+              {grows.filter(
+                (g) => g.status === "active" || g.status === "planned",
+              ).length > 4 && (
                 <div className="text-center">
                   <Badge variant="outline" className="text-xs">
-                    +{grows.filter(g => g.status === 'active' || g.status === 'planned').length - 4} more
+                    +
+                    {grows.filter(
+                      (g) => g.status === "active" || g.status === "planned",
+                    ).length - 4}{" "}
+                    more
                   </Badge>
                 </div>
               )}
@@ -279,4 +302,4 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
   );
 };
 
-export default GrowsOverlay; 
+export default GrowsOverlay;

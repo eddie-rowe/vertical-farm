@@ -1,0 +1,137 @@
+name: Security Scanning Orchestrator
+
+on:
+  workflow_call:
+    outputs:
+      security_status:
+        description: "Overall security scan status"
+        value: ${{ jobs.security-summary.outputs.status }}
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # Repository-wide security checks (secrets scanning)
+  repository-security:
+    name: Repository Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Repository-wide Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Parallel security scanning for both stacks
+  backend-security:
+    name: Backend Security
+    uses: ./.github/workflows/security-scan-backend.yml
+    secrets: inherit
+
+  frontend-security:
+    name: Frontend Security  
+    uses: ./.github/workflows/security-scan-frontend.yml
+    secrets: inherit
+
+  # Combine results and make overall security decision
+  security-summary:
+    name: Security Summary & Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [repository-security, backend-security, frontend-security]
+    if: always()
+    
+    outputs:
+      status: ${{ steps.overall-assessment.outputs.status }}
+    
+    steps:
+      - name: Overall Security Assessment
+        id: overall-assessment
+        run: |
+          echo "# 🛡️ Overall Security Assessment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get results from both workflows
+          BACKEND_STATUS="${{ needs.backend-security.result }}"
+          FRONTEND_STATUS="${{ needs.frontend-security.result }}"
+          REPO_STATUS="${{ needs.repository-security.result }}"
+          
+          BACKEND_CRITICAL="${{ needs.backend-security.outputs.critical_issues || 0 }}"
+          FRONTEND_CRITICAL="${{ needs.frontend-security.outputs.critical_issues || 0 }}"
+          BACKEND_HIGH="${{ needs.backend-security.outputs.high_issues || 0 }}"
+          FRONTEND_HIGH="${{ needs.frontend-security.outputs.high_issues || 0 }}"
+          
+          # Calculate totals
+          TOTAL_CRITICAL=$((BACKEND_CRITICAL + FRONTEND_CRITICAL))
+          TOTAL_HIGH=$((BACKEND_HIGH + FRONTEND_HIGH))
+          
+          # Create comprehensive summary
+          echo "## 📊 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status | Critical | High |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|----------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Repository Secrets | ${{ needs.repository-security.result == 'success' && '✅' || '❌' }} | - | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Security | ${{ needs.backend-security.result == 'success' && '✅' || needs.backend-security.result == 'failure' && '❌' || '⏭️' }} | $BACKEND_CRITICAL | $BACKEND_HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Security | ${{ needs.frontend-security.result == 'success' && '✅' || needs.frontend-security.result == 'failure' && '❌' || '⏭️' }} | $FRONTEND_CRITICAL | $FRONTEND_HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Overall Total** | - | **$TOTAL_CRITICAL** | **$TOTAL_HIGH** |" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall security gate status
+          if [ "$REPO_STATUS" != "success" ]; then
+            echo "status=critical" >> $GITHUB_OUTPUT
+            echo "❌ **SECURITY GATE: FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "Repository secret scanning failed. Check for exposed secrets." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          elif [ "$TOTAL_CRITICAL" -gt 0 ]; then
+            echo "status=critical" >> $GITHUB_OUTPUT
+            echo "❌ **SECURITY GATE: FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "Critical security vulnerabilities must be resolved before deployment." >> $GITHUB_STEP_SUMMARY
+            echo "- Backend critical issues: $BACKEND_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend critical issues: $FRONTEND_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          elif [ "$TOTAL_HIGH" -gt 10 ]; then
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "⚠️ **SECURITY GATE: WARNING**" >> $GITHUB_STEP_SUMMARY
+            echo "High number of security issues detected ($TOTAL_HIGH). Consider addressing before deployment." >> $GITHUB_STEP_SUMMARY
+            echo "- Backend high issues: $BACKEND_HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend high issues: $FRONTEND_HIGH" >> $GITHUB_STEP_SUMMARY
+          elif [ "$BACKEND_STATUS" == "failure" ] || [ "$FRONTEND_STATUS" == "failure" ]; then
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "⚠️ **SECURITY GATE: WARNING**" >> $GITHUB_STEP_SUMMARY
+            echo "One or more security scans failed to complete." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "✅ **SECURITY GATE: PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "No critical security issues detected. Ready for deployment." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          if [ "$TOTAL_CRITICAL" -gt 0 ] || [ "$TOTAL_HIGH" -gt 5 ]; then
+            echo "1. Review security reports in job artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "2. Update vulnerable dependencies" >> $GITHUB_STEP_SUMMARY
+            echo "3. Address high-severity code issues" >> $GITHUB_STEP_SUMMARY
+            echo "4. Re-run security scan after fixes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No immediate security action required" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Debug output
+          echo "Overall security status determined: ${{ steps.overall-assessment.outputs.status }}"
+          echo "Total critical issues: $TOTAL_CRITICAL"
+          echo "Total high issues: $TOTAL_HIGH" 

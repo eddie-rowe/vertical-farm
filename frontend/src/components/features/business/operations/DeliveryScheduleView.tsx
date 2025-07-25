@@ -1,17 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FaMapMarkerAlt, FaClock, FaCalendarAlt, FaUser, FaBoxes, FaArrowRight } from '@/lib/icons';
+import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  FaMapMarkerAlt,
+  FaClock,
+  FaCalendarAlt,
+  FaUser,
+  FaBoxes,
+  FaArrowRight,
+} from "@/lib/icons";
 
 interface DeliveryRoute {
   id: string;
   routeName: string;
   driver: string;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'delayed';
+  status: "scheduled" | "in-progress" | "completed" | "delayed";
   estimatedTime: string;
   actualTime?: string;
   stops: number;
@@ -25,91 +39,93 @@ interface DeliveryStop {
   address: string;
   orderValue: number;
   timeWindow: string;
-  status: 'pending' | 'delivered' | 'failed';
+  status: "pending" | "delivered" | "failed";
   notes?: string;
 }
 
 export default function DeliveryScheduleView() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+
   // Mock data - replace with actual API calls
   const deliveryRoutes: DeliveryRoute[] = [
     {
-      id: 'route-001',
-      routeName: 'Downtown Route A',
-      driver: 'John Smith',
-      status: 'in-progress',
-      estimatedTime: '3.5 hrs',
-      actualTime: '2.8 hrs',
+      id: "route-001",
+      routeName: "Downtown Route A",
+      driver: "John Smith",
+      status: "in-progress",
+      estimatedTime: "3.5 hrs",
+      actualTime: "2.8 hrs",
       stops: 8,
       completedStops: 5,
-      distance: '24 miles'
+      distance: "24 miles",
     },
     {
-      id: 'route-002',
-      routeName: 'Suburban Route B',
-      driver: 'Sarah Johnson',
-      status: 'scheduled',
-      estimatedTime: '4.2 hrs',
+      id: "route-002",
+      routeName: "Suburban Route B",
+      driver: "Sarah Johnson",
+      status: "scheduled",
+      estimatedTime: "4.2 hrs",
       stops: 12,
       completedStops: 0,
-      distance: '31 miles'
+      distance: "31 miles",
     },
     {
-      id: 'route-003',
-      routeName: 'Commercial Route C',
-      driver: 'Mike Davis',
-      status: 'completed',
-      estimatedTime: '2.8 hrs',
-      actualTime: '2.5 hrs',
+      id: "route-003",
+      routeName: "Commercial Route C",
+      driver: "Mike Davis",
+      status: "completed",
+      estimatedTime: "2.8 hrs",
+      actualTime: "2.5 hrs",
       stops: 6,
       completedStops: 6,
-      distance: '18 miles'
-    }
+      distance: "18 miles",
+    },
   ];
 
   const deliveryStops: DeliveryStop[] = [
     {
-      id: 'stop-001',
-      customerName: 'Green Leaf Restaurant',
-      address: '123 Main St, Downtown',
-      orderValue: 145.50,
-      timeWindow: '8:00 AM - 10:00 AM',
-      status: 'delivered'
+      id: "stop-001",
+      customerName: "Green Leaf Restaurant",
+      address: "123 Main St, Downtown",
+      orderValue: 145.5,
+      timeWindow: "8:00 AM - 10:00 AM",
+      status: "delivered",
     },
     {
-      id: 'stop-002',
-      customerName: 'Fresh Market Co.',
-      address: '456 Oak Ave, Midtown',
+      id: "stop-002",
+      customerName: "Fresh Market Co.",
+      address: "456 Oak Ave, Midtown",
       orderValue: 289.75,
-      timeWindow: '10:30 AM - 12:00 PM',
-      status: 'pending'
+      timeWindow: "10:30 AM - 12:00 PM",
+      status: "pending",
     },
     {
-      id: 'stop-003',
-      customerName: 'Healthy Bites Cafe',
-      address: '789 Pine St, Uptown',
+      id: "stop-003",
+      customerName: "Healthy Bites Cafe",
+      address: "789 Pine St, Uptown",
       orderValue: 92.25,
-      timeWindow: '1:00 PM - 3:00 PM',
-      status: 'pending'
-    }
+      timeWindow: "1:00 PM - 3:00 PM",
+      status: "pending",
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-      case 'delivered':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'in-progress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'scheduled':
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'delayed':
-      case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "completed":
+      case "delivered":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "scheduled":
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "delayed":
+      case "failed":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -157,18 +173,23 @@ export default function DeliveryScheduleView() {
         <TabsContent value="routes" className="space-y-4">
           <div className="grid gap-4">
             {deliveryRoutes.map((route) => (
-              <Card key={route.id} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={route.id}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg">{route.routeName}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {route.routeName}
+                      </CardTitle>
                       <CardDescription className="flex items-center gap-2 mt-1">
                         <FaUser className="h-3 w-3" />
                         {route.driver}
                       </CardDescription>
                     </div>
                     <Badge className={getStatusColor(route.status)}>
-                      {route.status.replace('-', ' ').toUpperCase()}
+                      {route.status.replace("-", " ").toUpperCase()}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -180,7 +201,9 @@ export default function DeliveryScheduleView() {
                     </div>
                     <div className="flex items-center gap-2">
                       <FaMapMarkerAlt className="h-4 w-4 text-gray-500" />
-                      <span>{route.completedStops}/{route.stops} stops</span>
+                      <span>
+                        {route.completedStops}/{route.stops} stops
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <FaArrowRight className="h-4 w-4 text-gray-500" />
@@ -201,7 +224,10 @@ export default function DeliveryScheduleView() {
         <TabsContent value="schedule" className="space-y-4">
           <div className="grid gap-4">
             {deliveryStops.map((stop) => (
-              <Card key={stop.id} className="border border-gray-200 dark:border-gray-700">
+              <Card
+                key={stop.id}
+                className="border border-gray-200 dark:border-gray-700"
+              >
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -236,7 +262,8 @@ export default function DeliveryScheduleView() {
             <CardHeader>
               <CardTitle>Route Visualization</CardTitle>
               <CardDescription>
-                Interactive map showing delivery routes and real-time vehicle locations
+                Interactive map showing delivery routes and real-time vehicle
+                locations
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -247,7 +274,8 @@ export default function DeliveryScheduleView() {
                     Interactive Map Coming Soon
                   </h3>
                   <p className="text-gray-500 dark:text-gray-500">
-                    Real-time route tracking and optimization will be available here
+                    Real-time route tracking and optimization will be available
+                    here
                   </p>
                   <Button className="mt-4" variant="outline">
                     <FaArrowRight className="mr-2" />
@@ -261,4 +289,4 @@ export default function DeliveryScheduleView() {
       </Tabs>
     </div>
   );
-} 
+}

@@ -1,24 +1,31 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional # Optional not used here but good practice to keep if model evolves
 import uuid
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
 from app.models.enums import PermissionLevel
+
+# from typing import Optional  # Removed unused import
+
+
 # from sqlalchemy import Column, ForeignKey, Enum as SQLAlchemyEnum, DateTime
 # from sqlalchemy.dialects.postgresql import UUID
 # from sqlalchemy.sql import func
 
 # from app.db.base_class import Base # Ensure Base is imported
 
+
 # This model represents the structure of the 'user_permissions' table in the database.
 class UserPermissionInDB(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
     farm_id: uuid.UUID
-    permission: PermissionLevel # Stored as string/enum value in DB, Pydantic handles conversion
+    permission: PermissionLevel  # Stored as string/enum value in DB, Pydantic handles conversion
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+
 
 # class UserPermission(Base):
 #     __tablename__ = "user_permissions"

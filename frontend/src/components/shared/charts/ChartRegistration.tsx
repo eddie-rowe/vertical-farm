@@ -1,6 +1,5 @@
-'use client';
+"use client";
 
-import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,7 +13,8 @@ import {
   Legend,
   Filler,
   Title,
-} from 'chart.js';
+} from "chart.js";
+import React from "react";
 
 // Register Chart.js components
 ChartJS.register(
@@ -28,12 +28,12 @@ ChartJS.register(
   Tooltip,
   Legend,
   Filler,
-  Title
+  Title,
 );
 
 // Configure better defaults for our charts
-ChartJS.defaults.font.family = 'Inter, system-ui, sans-serif';
-ChartJS.defaults.color = '#6b7280'; // gray-500 for better readability
+ChartJS.defaults.font.family = "Inter, system-ui, sans-serif";
+ChartJS.defaults.color = "#6b7280"; // gray-500 for better readability
 
 // React component that handles Chart.js registration
 const ChartRegistration: React.FC = () => {
@@ -42,4 +42,4 @@ const ChartRegistration: React.FC = () => {
 };
 
 export default ChartRegistration;
-export { ChartJS }; 
+export { ChartJS };

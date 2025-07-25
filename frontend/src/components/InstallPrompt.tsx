@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
+import { Download, X } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
@@ -18,7 +20,7 @@ export default function InstallPrompt() {
     // Check if app is already installed
     const checkInstallation = () => {
       // Check if running in standalone mode (already installed)
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (window.matchMedia("(display-mode: standalone)").matches) {
         setIsInstalled(true);
         return;
       }
@@ -46,12 +48,15 @@ export default function InstallPrompt() {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -61,14 +66,14 @@ export default function InstallPrompt() {
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
+
+      if (outcome === "accepted") {
         setShowInstallPrompt(false);
       }
-      
+
       setDeferredPrompt(null);
     } catch (error) {
-      console.error('Installation failed:', error);
+      console.error("Installation failed:", error);
     }
   };
 
@@ -100,29 +105,21 @@ export default function InstallPrompt() {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <p className="text-sm text-muted-foreground">
           Install the app for quick access and offline use
         </p>
-        
+
         <div className="flex space-x-2">
-          <Button
-            onClick={handleInstallClick}
-            size="sm"
-            className="flex-1"
-          >
+          <Button onClick={handleInstallClick} size="sm" className="flex-1">
             <Download className="h-4 w-4 mr-2" />
             Install
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDismiss}
-          >
+          <Button variant="outline" size="sm" onClick={handleDismiss}>
             Later
           </Button>
         </div>
       </div>
     </div>
   );
-} 
+}

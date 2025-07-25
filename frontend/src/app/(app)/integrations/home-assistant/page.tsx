@@ -1,33 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { 
-  Activity, 
-  BarChart3, 
-  Settings, 
-  Database, 
-  MapPin, 
-  RefreshCw, 
-  TestTube,
+import {
+  Activity,
+  BarChart3,
+  Settings,
+  Database,
+  MapPin,
+  RefreshCw,
   Info,
-  Home
-} from 'lucide-react';
+} from "lucide-react";
+import { useState } from "react";
 
-import { useHomeAssistant } from '../../../../components/features/integrations/home-assistant/hooks/useHomeAssistant';
-import { 
-  OverviewTab, 
-  ConfigurationTab, 
-  DeviceManagementTab, 
+import {
+  OverviewTab,
+  ConfigurationTab,
+  DeviceManagementTab,
   AssignmentTab,
-  SetupWizard
-} from '@/components/features/integrations/home-assistant/components';
-import { HAConfig, SetupStep, HADevice } from '@/types/integrations/homeassistant';
+  SetupWizard,
+} from "@/components/features/integrations/home-assistant/components";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { Progress } from "@/components/ui/progress";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HAConfig, SetupStep } from "@/types/integrations/homeassistant";
+
+import { useHomeAssistant } from "../../../../components/features/integrations/home-assistant/hooks/useHomeAssistant";
 
 export default function HomeAssistantIntegration() {
   // Use the centralized hook for all state management
@@ -48,19 +46,19 @@ export default function HomeAssistantIntegration() {
     assignDevice,
     removeAssignment,
     bulkImportDevices,
-    bulkControlDevices
+    bulkControlDevices,
   } = useHomeAssistant();
 
   const [isTesting, setIsTesting] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
-  
+
   // Setup wizard state
-  const [setupStep, setSetupStep] = useState<SetupStep>('connection');
+  const [setupStep, setSetupStep] = useState<SetupStep>("connection");
   const [tempConfig, setTempConfig] = useState<HAConfig>({
-    name: '',
-    url: '',
-    token: '',
-    enabled: true
+    name: "",
+    url: "",
+    token: "",
+    enabled: true,
   });
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
@@ -101,7 +99,7 @@ export default function HomeAssistantIntegration() {
       farm_id: assignment.farm_id,
       row_id: assignment.row_id,
       rack_id: assignment.rack_id,
-      shelf_id: assignment.shelf_id
+      shelf_id: assignment.shelf_id,
     });
   };
 
@@ -114,7 +112,7 @@ export default function HomeAssistantIntegration() {
       farm_id: assignment.farm_id,
       row_id: assignment.row_id,
       rack_id: assignment.rack_id,
-      shelf_id: assignment.shelf_id
+      shelf_id: assignment.shelf_id,
     });
   };
 
@@ -127,17 +125,15 @@ export default function HomeAssistantIntegration() {
   };
 
   const handleBulkImportDevices = async (devices: any[]) => {
-    const entityIds = devices.map(d => d.entity_id);
+    const entityIds = devices.map((d) => d.entity_id);
     await bulkImportDevices(entityIds);
   };
 
-
-
   // Temporary helper for OverviewTab compatibility
   const getStatusColor = (connected: boolean) => {
-    return connected 
-      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    return connected
+      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
   };
 
   // Handler for testing connection from SetupWizard
@@ -146,7 +142,7 @@ export default function HomeAssistantIntegration() {
     setIsTesting(true);
     try {
       await testConnection(tempConfig.url, tempConfig.token);
-      setSetupStep('discovery');
+      setSetupStep("discovery");
     } catch (error) {
       // Error is handled by the hook
     } finally {
@@ -159,8 +155,8 @@ export default function HomeAssistantIntegration() {
     if (!tempConfig.name || !tempConfig.url || !tempConfig.token) return;
     try {
       await saveConfig(tempConfig);
-      setSaveSuccess('Configuration saved successfully!');
-      setSetupStep('complete');
+      setSaveSuccess("Configuration saved successfully!");
+      setSetupStep("complete");
     } catch (error) {
       // Error is handled by the hook
     }
@@ -189,10 +185,12 @@ export default function HomeAssistantIntegration() {
       <div className="bg-farm-white dark:bg-control-surface-dark card-shadow rounded-lg border p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-farm-title text-control-content dark:text-control-content-dark">Home Assistant Integration</h1>
+            <h1 className="text-farm-title text-control-content dark:text-control-content-dark">
+              Home Assistant Integration
+            </h1>
             <div className="flex items-center mt-2 space-x-4">
-              <StatusBadge status={status.connected ? 'connected' : 'offline'}>
-                {status.connected ? 'Connected' : 'Disconnected'}
+              <StatusBadge status={status.connected ? "connected" : "offline"}>
+                {status.connected ? "Connected" : "Disconnected"}
               </StatusBadge>
               {status.connected && (
                 <>
@@ -228,7 +226,7 @@ export default function HomeAssistantIntegration() {
               ) : (
                 <RefreshCw className="w-4 h-4 mr-2" />
               )}
-              {isManualRefreshing ? 'Refreshing...' : 'Refresh Data'}
+              {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
             </FarmControlButton>
           </div>
         </div>
@@ -242,8 +240,12 @@ export default function HomeAssistantIntegration() {
                 {importedDevices.length} imported / {devices.length} total
               </span>
             </div>
-            <Progress 
-              value={devices.length > 0 ? (importedDevices.length / devices.length) * 100 : 0} 
+            <Progress
+              value={
+                devices.length > 0
+                  ? (importedDevices.length / devices.length) * 100
+                  : 0
+              }
               className="h-2"
             />
           </div>
@@ -265,7 +267,10 @@ export default function HomeAssistantIntegration() {
             <BarChart3 className="w-4 h-4" />
             <span>Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="configuration" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="configuration"
+            className="flex items-center space-x-2"
+          >
             <Settings className="w-4 h-4" />
             <span>Configuration</span>
           </TabsTrigger>
@@ -273,7 +278,10 @@ export default function HomeAssistantIntegration() {
             <Database className="w-4 h-4" />
             <span>Device Management</span>
           </TabsTrigger>
-          <TabsTrigger value="assignments" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="assignments"
+            className="flex items-center space-x-2"
+          >
             <MapPin className="w-4 h-4" />
             <span>Assignments</span>
           </TabsTrigger>
@@ -344,7 +352,7 @@ export default function HomeAssistantIntegration() {
                 rack_id: a.rack_id!,
                 shelf_id: a.shelf_id!,
                 friendly_name: a.friendly_name,
-                entity_type: a.entity_type || 'unknown',
+                entity_type: a.entity_type || "unknown",
               }))}
             onRefresh={refreshData}
           />
@@ -352,4 +360,4 @@ export default function HomeAssistantIntegration() {
       </Tabs>
     </div>
   );
-} 
+}

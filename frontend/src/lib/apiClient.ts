@@ -1,34 +1,47 @@
-'use client'; // Added 'use client' as it uses supabase.auth.getSession which is client-side
-import { supabase } from '@/lib/supabaseClient';
+"use client"; // Added 'use client' as it uses supabase.auth.getSession which is client-side
+import { supabase } from "@/lib/supabaseClient";
 
 // NEXT_PUBLIC_API_URL should point to the base of the backend, e.g., http://localhost:8000
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface RequestOptions extends RequestInit {
   useAuth?: boolean;
 }
 
-async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  endpoint: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { useAuth = true, ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers || {});
 
   if (useAuth) {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
     if (sessionError || !sessionData.session) {
-      console.error('User is not authenticated or session expired.', { sessionError, hasSession: !!sessionData?.session });
-      throw new Error('Authentication required. Please log in to continue.');
+      console.error("User is not authenticated or session expired.", {
+        sessionError,
+        hasSession: !!sessionData?.session,
+      });
+      throw new Error("Authentication required. Please log in to continue.");
     } else {
-      headers.append('Authorization', `Bearer ${sessionData.session.access_token}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${sessionData.session.access_token}`,
+      );
     }
   }
 
-  if (!headers.has('Content-Type') && !(fetchOptions.body instanceof FormData)) {
-    headers.append('Content-Type', 'application/json');
+  if (
+    !headers.has("Content-Type") &&
+    !(fetchOptions.body instanceof FormData)
+  ) {
+    headers.append("Content-Type", "application/json");
   }
 
   // Ensure the endpoint starts with a slash if it doesn't have one, to avoid issues with URL joining.
-  const fullPathEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullPathEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
   const response = await fetch(`${API_URL}${fullPathEndpoint}`, {
     ...fetchOptions,
@@ -43,28 +56,33 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     } catch {
       // ignore
     }
-    const errorMessage = errorJson?.detail || 
-                         (typeof errorJson === 'string' ? errorJson : null) || 
-                         response.statusText || 
-                         `API request to ${fullPathEndpoint} failed with status ${response.status}`;
-    console.error('API Error:', { 
-        status: response.status, 
-        statusText: response.statusText, 
-        endpoint: fullPathEndpoint, 
-        errorBody: errorJson || errorBody 
+    const errorMessage =
+      errorJson?.detail ||
+      (typeof errorJson === "string" ? errorJson : null) ||
+      response.statusText ||
+      `API request to ${fullPathEndpoint} failed with status ${response.status}`;
+    console.error("API Error:", {
+      status: response.status,
+      statusText: response.statusText,
+      endpoint: fullPathEndpoint,
+      errorBody: errorJson || errorBody,
     });
     throw new Error(errorMessage);
   }
 
-  if (response.status === 204) { // No Content
+  if (response.status === 204) {
+    // No Content
     return undefined as T;
   }
   try {
-    return await response.json() as Promise<T>;
+    return (await response.json()) as Promise<T>;
   } catch (e) {
     // Handle cases where response is OK but not JSON (e.g. plain text success message)
     // Or if JSON parsing fails for other reasons despite response.ok
-    console.warn(`Response from ${fullPathEndpoint} was not valid JSON, despite successful status.`, e);
+    console.warn(
+      `Response from ${fullPathEndpoint} was not valid JSON, despite successful status.`,
+      e,
+    );
     // Depending on expectation, you might return null, an empty object, or rethrow
     return undefined as T; // Or throw new Error('Failed to parse successful response as JSON');
   }
@@ -81,7 +99,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 // export const deleteTask = (id: string) => request<void>(`/tasks/${id}`, { method: 'DELETE' });
 
 // Import FarmPageData type
-import { FarmPageData, UUID } from '@/types/farm-layout';
+import { FarmPageData, UUID } from "@/types/farm-layout";
 
 // Define a type for the basic farm information
 export interface FarmBasicInfo {
@@ -103,13 +121,13 @@ export interface FarmBasicListResponse {
 export const getFarmDetails = async (farmId: UUID): Promise<FarmPageData> => {
   // Backend returns a flat farm object, but frontend expects { farm: {...} }
   const farmData = await request<any>(`/api/v1/farms/${farmId}`);
-  
+
   // Transform the response to match FarmPageData structure
   return {
     farm: {
       ...farmData,
-      rows: farmData.rows || []
-    }
+      rows: farmData.rows || [],
+    },
   };
 };
 
@@ -117,7 +135,8 @@ export const getFarmDetails = async (farmId: UUID): Promise<FarmPageData> => {
  * Fetches a list of farms with basic information (id and name).
  * @returns A Promise resolving to FarmBasicListResponse.
  */
-export const getFarmsList = () => request<FarmBasicListResponse>('/api/v1/farms/');
+export const getFarmsList = () =>
+  request<FarmBasicListResponse>("/api/v1/farms/");
 
 // Define a type for creating a new farm
 export interface CreateFarmData {
@@ -147,10 +166,10 @@ export interface FarmResponse {
  * @param farmData The data for the new farm.
  * @returns A Promise resolving to FarmResponse.
  */
-export const createFarm = (farmData: CreateFarmData) => 
-  request<FarmResponse>('/api/v1/farms/', { 
-    method: 'POST', 
-    body: JSON.stringify(farmData) 
+export const createFarm = (farmData: CreateFarmData) =>
+  request<FarmResponse>("/api/v1/farms/", {
+    method: "POST",
+    body: JSON.stringify(farmData),
   });
 
-export default request; 
+export default request;

@@ -13,7 +13,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   test:
@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['18', '20', '21']
+        node-version: ['22']
         test-type: ['unit', 'integration', 'e2e']
     
     outputs:
@@ -63,7 +63,7 @@ jobs:
           npm run build:types  # Generate TypeScript types if needed
       
       - name: Lint code
-        if: matrix.test-type == 'unit' && matrix.node-version == '20'
+        if: matrix.test-type == 'unit' && matrix.node-version == '22'
         working-directory: ./frontend
         run: |
           npm run lint
@@ -157,7 +157,7 @@ jobs:
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.node-version == '20' && matrix.test-type == 'unit'
+        if: matrix.node-version == '22' && matrix.test-type == 'unit'
         uses: codecov/codecov-action@v4
         with:
           file: ./frontend/coverage/unit/lcov.info
@@ -168,7 +168,7 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.node-version == '20' && matrix.test-type != 'e2e'
+        if: always() && matrix.node-version == '22' && matrix.test-type != 'e2e'
         with:
           files: frontend/junit.xml
           check_name: "Frontend Tests (${{ matrix.test-type }})"
@@ -207,7 +207,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       
@@ -268,7 +268,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       

@@ -1,5 +1,6 @@
-import pytest
 from uuid import uuid4
+
+import pytest
 from pydantic import ValidationError
 
 from app.schemas.fan import FanCreate, FanUpdate
@@ -8,7 +9,8 @@ from app.schemas.fan import FanCreate, FanUpdate
 VALID_FAN_ID = uuid4()
 VALID_PARENT_ID = uuid4()
 
-def test_fan_create_valid():
+
+def test_fan_create_valid() -> None:
     valid_data = {
         "name": "Circulation Fan FX-100",
         "model_number": "FX-100-C",
@@ -21,14 +23,15 @@ def test_fan_create_valid():
         "position_x": 10.0,
         "position_y": 5.0,
         "position_z": 2.0,
-        "orientation": "front"
+        "orientation": "front",
     }
     fan = FanCreate(**valid_data)
     assert fan.name == valid_data["name"]
     assert fan.parent_id == VALID_PARENT_ID
     assert fan.type == "circulation"
 
-def test_fan_create_missing_required_fields():
+
+def test_fan_create_missing_required_fields() -> None:
     invalid_data = {
         # name is missing
         "parent_type": "row",
@@ -38,46 +41,46 @@ def test_fan_create_missing_required_fields():
         FanCreate(**invalid_data)
     assert "name" in str(excinfo.value)
 
-def test_fan_create_invalid_type():
+
+def test_fan_create_invalid_type() -> None:
     invalid_data = {
         "name": "Test Fan",
-        "type": "invalid_fan_type", # Invalid enum value
+        "type": "invalid_fan_type",  # Invalid enum value
         "parent_type": "rack",
         "parent_id": VALID_PARENT_ID,
     }
     with pytest.raises(ValidationError):
         FanCreate(**invalid_data)
 
-def test_fan_create_invalid_value_constraint():
+
+def test_fan_create_invalid_value_constraint() -> None:
     invalid_data = {
-        "name": "F", # Too short
+        "name": "F",  # Too short
         "parent_type": "rack",
         "parent_id": VALID_PARENT_ID,
-        "size_cm": -10 # Not positive
+        "size_cm": -10,  # Not positive
     }
     with pytest.raises(ValidationError) as excinfo:
         FanCreate(**invalid_data)
-    assert "name" in str(excinfo.value) 
+    assert "name" in str(excinfo.value)
     assert "size_cm" in str(excinfo.value)
 
-def test_fan_update_valid_partial():
-    update_data = {
-        "name": "Updated Fan Name",
-        "power_watts": 80.0
-    }
+
+def test_fan_update_valid_partial() -> None:
+    update_data = {"name": "Updated Fan Name", "power_watts": 80.0}
     fan_update = FanUpdate(**update_data)
     assert fan_update.name == update_data["name"]
     assert fan_update.power_watts == update_data["power_watts"]
 
-def test_fan_update_invalid_value_constraint():
-    update_data = {
-        "airflow_cfm": -500 # Not positive
-    }
+
+def test_fan_update_invalid_value_constraint() -> None:
+    update_data = {"airflow_cfm": -500}  # Not positive
     with pytest.raises(ValidationError) as excinfo:
         FanUpdate(**update_data)
     assert "airflow_cfm" in str(excinfo.value)
 
-def test_fan_create_optional_fields_not_provided():
+
+def test_fan_create_optional_fields_not_provided() -> None:
     # Only required fields for FanCreate
     required_data = {
         "name": "Minimal Fan",
@@ -87,8 +90,9 @@ def test_fan_create_optional_fields_not_provided():
     fan = FanCreate(**required_data)
     assert fan.name == required_data["name"]
     assert fan.parent_id == required_data["parent_id"]
-    assert fan.model_number is None # Check optional fields are None by default
+    assert fan.model_number is None  # Check optional fields are None by default
     assert fan.size_cm is None
+
 
 # Example for testing FanUpdate with all fields (can be extensive)
 # def test_fan_update_all_fields():
@@ -107,4 +111,4 @@ def test_fan_create_optional_fields_not_provided():
 #     }
 #     fan_update = FanUpdate(**full_update_data)
 # for key, value in full_update_data.items():
-# assert getattr(fan_update, key) == value 
+# assert getattr(fan_update, key) == value

@@ -1,44 +1,45 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Loader2 } from '@/lib/icons';
+import React from "react";
+
+import { Loader2 } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 // =============================================================================
 // Loading Spinner Components
 // =============================================================================
 
 interface LoadingSpinnerProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'default' | 'primary' | 'secondary' | 'accent';
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  variant?: "default" | "primary" | "secondary" | "accent";
   className?: string;
 }
 
-export function LoadingSpinner({ 
-  size = 'md', 
-  variant = 'default', 
-  className 
+export function LoadingSpinner({
+  size = "md",
+  variant = "default",
+  className,
 }: LoadingSpinnerProps) {
   const sizeClasses = {
-    xs: 'w-3 h-3',
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12'
+    xs: "w-3 h-3",
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
+    xl: "w-12 h-12",
   };
 
   const variantClasses = {
-    default: 'text-muted-foreground',
-    primary: 'text-primary',
-    secondary: 'text-secondary',
-    accent: 'text-farm-accent'
+    default: "text-muted-foreground",
+    primary: "text-primary",
+    secondary: "text-secondary",
+    accent: "text-farm-accent",
   };
 
   return (
-    <Loader2 
+    <Loader2
       className={cn(
-        'animate-spin',
+        "animate-spin",
         sizeClasses[size],
         variantClasses[variant],
-        className
+        className,
       )}
       aria-hidden="true"
     />
@@ -52,47 +53,43 @@ export function LoadingSpinner({
 interface LoadingCardProps {
   children?: React.ReactNode;
   message?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
-export function LoadingCard({ 
-  children, 
-  message, 
-  size = 'md', 
-  className 
+export function LoadingCard({
+  children,
+  message,
+  size = "md",
+  className,
 }: LoadingCardProps) {
   const sizeClasses = {
-    sm: 'p-4',
-    md: 'p-6', 
-    lg: 'p-8'
+    sm: "p-4",
+    md: "p-6",
+    lg: "p-8",
   };
 
-  const spinnerSize = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md';
+  const spinnerSize = size === "sm" ? "sm" : size === "lg" ? "lg" : "md";
 
   return (
-    <div 
+    <div
       className={cn(
-        'flex items-center justify-center',
+        "flex items-center justify-center",
         sizeClasses[size],
-        className
+        className,
       )}
       role="status"
-      aria-label={message || 'Loading content'}
+      aria-label={message || "Loading content"}
     >
       <div className="flex flex-col items-center gap-3 text-center">
         <LoadingSpinner size={spinnerSize} variant="primary" />
         {(message || children) && (
           <div className="space-y-1">
             {message && (
-              <p className="text-sm font-medium text-foreground">
-                {message}
-              </p>
+              <p className="text-sm font-medium text-foreground">{message}</p>
             )}
             {children && (
-              <div className="text-xs text-muted-foreground">
-                {children}
-              </div>
+              <div className="text-xs text-muted-foreground">{children}</div>
             )}
           </div>
         )}
@@ -108,18 +105,18 @@ interface LoadingOverlayProps {
   className?: string;
 }
 
-export function LoadingOverlay({ 
-  message = 'Loading...', 
+export function LoadingOverlay({
+  message = "Loading...",
   description,
   backdrop = true,
-  className 
+  className,
 }: LoadingOverlayProps) {
   return (
-    <div 
+    <div
       className={cn(
-        'absolute inset-0 flex items-center justify-center z-50',
-        backdrop && 'bg-background/80 backdrop-blur-sm',
-        className
+        "absolute inset-0 flex items-center justify-center z-50",
+        backdrop && "bg-background/80 backdrop-blur-sm",
+        className,
       )}
       role="status"
       aria-label={message}
@@ -144,29 +141,29 @@ interface LoadingPageProps {
   className?: string;
 }
 
-export function LoadingPage({ 
-  title = 'Loading Vertical Farm',
-  description = 'Preparing your dashboard...',
+export function LoadingPage({
+  title = "Loading Vertical Farm",
+  description = "Preparing your dashboard...",
   progress = true,
-  className 
+  className,
 }: LoadingPageProps) {
   return (
-    <div 
+    <div
       className={cn(
-        'min-h-screen bg-background flex items-center justify-center',
-        className
+        "min-h-screen bg-background flex items-center justify-center",
+        className,
       )}
       role="status"
       aria-label={title}
     >
       <div className="text-center space-y-6 max-w-md mx-4">
         <LoadingSpinner size="xl" variant="primary" />
-        
+
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        
+
         {progress && (
           <div className="w-64 mx-auto">
             <div className="h-1 bg-muted rounded-full overflow-hidden">
@@ -175,7 +172,7 @@ export function LoadingPage({
           </div>
         )}
       </div>
-      
+
       <span className="sr-only">
         {title}. {description}
       </span>
@@ -184,7 +181,7 @@ export function LoadingPage({
 }
 
 // =============================================================================
-// Loading List/Table Components  
+// Loading List/Table Components
 // =============================================================================
 
 interface LoadingListProps {
@@ -193,14 +190,14 @@ interface LoadingListProps {
   className?: string;
 }
 
-export function LoadingList({ 
-  count = 3, 
-  message = 'Loading data...',
-  className 
+export function LoadingList({
+  count = 3,
+  message = "Loading data...",
+  className,
 }: LoadingListProps) {
   return (
-    <div 
-      className={cn('space-y-3', className)}
+    <div
+      className={cn("space-y-3", className)}
       role="status"
       aria-label={message}
     >
@@ -232,20 +229,22 @@ export function LoadingStateWrapper({
   error,
   loadingComponent,
   errorComponent,
-  children
+  children,
 }: LoadingStateProps) {
   if (isLoading) {
     return loadingComponent || <LoadingCard message="Loading..." />;
   }
 
   if (error) {
-    return errorComponent || (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center space-y-2">
-          <p className="text-sm font-medium text-destructive">Error</p>
-          <p className="text-xs text-muted-foreground">{error}</p>
+    return (
+      errorComponent || (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium text-destructive">Error</p>
+            <p className="text-xs text-muted-foreground">{error}</p>
+          </div>
         </div>
-      </div>
+      )
     );
   }
 
@@ -262,9 +261,11 @@ export function LoadingStateWrapper({
  */
 export function LegacySpinner({ className }: { className?: string }) {
   return (
-    <div className={cn(
-      "animate-spin rounded-full h-6 w-6 border-b-2 border-farm-accent",
-      className
-    )} />
+    <div
+      className={cn(
+        "animate-spin rounded-full h-6 w-6 border-b-2 border-farm-accent",
+        className,
+      )}
+    />
   );
-} 
+}

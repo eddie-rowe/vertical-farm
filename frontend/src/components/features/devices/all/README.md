@@ -5,6 +5,7 @@ This directory contains the implementation for the comprehensive "All Devices" t
 ## Architecture
 
 ### AllDevicesService (`AllDevicesService.ts`)
+
 - **Purpose**: Aggregates devices from all connected integrations (Home Assistant, SmartThings, Arduino Cloud, AWS IoT Core, Raspberry Pi Connect)
 - **Pattern**: Follows the established service architecture with singleton pattern and extends BaseService
 - **Key Features**:
@@ -15,6 +16,7 @@ This directory contains the implementation for the comprehensive "All Devices" t
   - Delegates operations to appropriate integration services
 
 ### UnifiedDeviceCard (`UnifiedDeviceCard.tsx`)
+
 - **Purpose**: Displays individual devices from any integration with consistent UI
 - **Features**:
   - Integration source badges with proper colors and icons
@@ -25,6 +27,7 @@ This directory contains the implementation for the comprehensive "All Devices" t
   - Last seen timestamps
 
 ### AllDevicesTab (`AllDevicesTab.tsx`)
+
 - **Purpose**: Main component that provides the complete All Devices interface
 - **Features**:
   - Real-time device statistics dashboard
@@ -40,14 +43,16 @@ The system is designed to support multiple integration types:
 
 - ✅ **Home Assistant**: Fully implemented with device discovery, import, control, and assignment
 - 🔄 **SmartThings**: Framework ready, awaiting implementation
-- 🔄 **Arduino Cloud**: Framework ready, awaiting implementation  
+- 🔄 **Arduino Cloud**: Framework ready, awaiting implementation
 - 🔄 **AWS IoT Core**: Framework ready, awaiting implementation
 - 🔄 **Raspberry Pi Connect**: Framework ready, awaiting implementation
 
 ## Key Features
 
 ### Unified Device Interface
+
 All devices are normalized to a common `UnifiedDevice` interface that includes:
+
 - Core identification (entity_id, friendly_name, device_name)
 - Device classification (domain, device_class, device_type)
 - State and capabilities (state, attributes, supported_features)
@@ -56,6 +61,7 @@ All devices are normalized to a common `UnifiedDevice` interface that includes:
 - Connectivity status (is_online)
 
 ### Advanced Filtering
+
 - **By Integration**: Filter devices by their source integration
 - **By Device Type**: Filter by domain (light, switch, sensor, fan, etc.)
 - **By Status**: Filter by online/offline/unavailable status
@@ -63,17 +69,20 @@ All devices are normalized to a common `UnifiedDevice` interface that includes:
 - **Search**: Free-text search across device names and properties
 
 ### Bulk Operations
+
 - **Bulk Import**: Import multiple devices at once
 - **Bulk Control**: Turn multiple devices on/off simultaneously
 - **Bulk Selection**: Select all/clear selections with visual feedback
 
 ### Statistics Dashboard
+
 - Total device count across all integrations
 - Online/offline device counts
 - Assigned/unassigned device counts
 - Breakdown by integration and device type
 
 ### Responsive Design
+
 - Card-based layout with hover effects
 - Grid/list view modes
 - Mobile-responsive design
@@ -83,16 +92,19 @@ All devices are normalized to a common `UnifiedDevice` interface that includes:
 ## Integration with Existing System
 
 ### Database Integration
+
 - Uses existing `device_assignments` table
 - Respects existing assignment patterns
 - Maintains compatibility with Home Assistant service
 
 ### UI Component Reuse
+
 - Uses established `FarmControlButton`, `FarmInput`, `FarmSelect` components
 - Follows existing card layout patterns
 - Maintains consistent theming and styling
 
 ### Service Architecture
+
 - Extends `BaseService` for error handling and logging
 - Uses singleton pattern for performance
 - Integrates with existing Home Assistant service
@@ -116,4 +128,4 @@ The All Devices tab is automatically integrated into the main devices page (`/de
 3. Provide device control and management capabilities
 4. Show appropriate empty states when no integrations are connected
 
-The implementation provides a solid foundation for comprehensive device management across multiple IoT platforms in a vertical farming environment. 
+The implementation provides a solid foundation for comprehensive device management across multiple IoT platforms in a vertical farming environment.

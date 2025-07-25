@@ -16,19 +16,20 @@ Key Features:
 
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from app.core.cache import CacheManager
 from app.core.database import get_db
-from supabase import Client
 
 logger = logging.getLogger(__name__)
 
+
 class CacheKeyType(Enum):
     """Cache key types for different data categories"""
+
     SENSOR_LATEST = "sensor_latest"
     SENSOR_HISTORY = "sensor_history"
     SENSOR_AGGREGATES = "sensor_aggregates"
@@ -38,21 +39,25 @@ class CacheKeyType(Enum):
     STATIC_RECIPES = "static_recipes"
     USER_PREFERENCES = "user_preferences"
 
+
 @dataclass
 class SensorReading:
     """Sensor reading data structure"""
-    id: Optional[int]
+
+    id: int | None
     device_assignment_id: str
     reading_type: str
     value: float
-    unit: Optional[str]
+    unit: str | None
     timestamp: datetime
-    device_name: Optional[str] = None
-    location: Optional[str] = None
+    device_name: str | None = None
+    location: str | None = None
+
 
 @dataclass
 class SensorAggregate:
     """Aggregated sensor data structure"""
+
     device_assignment_id: str
     sensor_type: str
     avg_value: float
@@ -62,51 +67,52 @@ class SensorAggregate:
     period_start: datetime
     period_end: datetime
 
+
 class SensorCacheService:
     """Service for caching sensor data and related information"""
-    
-    def __init__(self, cache_manager: CacheManager):
+
+    def __init__(self, cache_manager: CacheManager) -> None:
         self.cache = cache_manager
         self.default_ttl = {
-            CacheKeyType.SENSOR_LATEST: 300,      # 5 minutes
-            CacheKeyType.SENSOR_HISTORY: 900,     # 15 minutes
-            CacheKeyType.SENSOR_AGGREGATES: 1800, # 30 minutes
-            CacheKeyType.DEVICE_STATUS: 300,      # 5 minutes
-            CacheKeyType.STATIC_SPECIES: 86400,   # 24 hours
-            CacheKeyType.STATIC_VARIETIES: 86400, # 24 hours
-            CacheKeyType.STATIC_RECIPES: 86400,   # 24 hours
+            CacheKeyType.SENSOR_LATEST: 300,  # 5 minutes
+            CacheKeyType.SENSOR_HISTORY: 900,  # 15 minutes
+            CacheKeyType.SENSOR_AGGREGATES: 1800,  # 30 minutes
+            CacheKeyType.DEVICE_STATUS: 300,  # 5 minutes
+            CacheKeyType.STATIC_SPECIES: 86400,  # 24 hours
+            CacheKeyType.STATIC_VARIETIES: 86400,  # 24 hours
+            CacheKeyType.STATIC_RECIPES: 86400,  # 24 hours
             CacheKeyType.USER_PREFERENCES: 3600,  # 1 hour
         }
-    
+
     def _get_cache_key(self, key_type: CacheKeyType, *args) -> str:
         """Generate cache key for given type and arguments"""
         key_parts = [key_type.value] + [str(arg) for arg in args]
         return ":".join(key_parts)
-    
+
     async def get_latest_sensor_readings(
-        self, 
-        user_id: str, 
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None
-    ) -> List[SensorReading]:
+        self,
+        user_id: str,
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+    ) -> list[SensorReading]:
         """
         Get latest sensor readings for user's devices
-        
+
         Args:
             user_id: User ID
             device_ids: Optional list of specific device IDs
             sensor_types: Optional list of sensor types to filter
-            
+
         Returns:
             List of latest sensor readings
         """
         cache_key = self._get_cache_key(
-            CacheKeyType.SENSOR_LATEST, 
-            user_id, 
-            ",".join(device_ids or []), 
-            ",".join(sensor_types or [])
+            CacheKeyType.SENSOR_LATEST,
+            user_id,
+            ",".join(device_ids or []),
+            ",".join(sensor_types or []),
         )
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -115,55 +121,47 @@ class SensorCacheService:
                 return [SensorReading(**reading) for reading in readings_data]
             except (json.JSONDecodeError, TypeError) as e:
                 logger.warning(f"Failed to deserialize cached sensor readings: {e}")
-        
+
         # Cache miss - fetch from database
         readings = await self._fetch_latest_sensor_readings_from_db(
             user_id, device_ids, sensor_types
         )
-        
+
         # Cache the results
         if readings:
             readings_data = [asdict(reading) for reading in readings]
             # Convert datetime objects to ISO strings for JSON serialization
             for reading_data in readings_data:
-                if isinstance(reading_data.get('timestamp'), datetime):
-                    reading_data['timestamp'] = reading_data['timestamp'].isoformat()
-            
+                if isinstance(reading_data.get("timestamp"), datetime):
+                    reading_data["timestamp"] = reading_data["timestamp"].isoformat()
+
             await self.cache.set(
-                cache_key, 
+                cache_key,
                 json.dumps(readings_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.SENSOR_LATEST]
+                ttl=self.default_ttl[CacheKeyType.SENSOR_LATEST],
             )
-        
+
         return readings
-    
+
     async def get_sensor_history(
-        self,
-        user_id: str,
-        device_id: str,
-        sensor_type: str,
-        hours: int = 24
-    ) -> List[SensorReading]:
+        self, user_id: str, device_id: str, sensor_type: str, hours: int = 24
+    ) -> list[SensorReading]:
         """
         Get sensor reading history for a specific device and sensor type
-        
+
         Args:
             user_id: User ID
             device_id: Device assignment ID
             sensor_type: Type of sensor (temperature, humidity, etc.)
             hours: Number of hours of history to retrieve
-            
+
         Returns:
             List of sensor readings ordered by timestamp
         """
         cache_key = self._get_cache_key(
-            CacheKeyType.SENSOR_HISTORY,
-            user_id,
-            device_id,
-            sensor_type,
-            hours
+            CacheKeyType.SENSOR_HISTORY, user_id, device_id, sensor_type, hours
         )
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -172,44 +170,44 @@ class SensorCacheService:
                 return [SensorReading(**reading) for reading in readings_data]
             except (json.JSONDecodeError, TypeError) as e:
                 logger.warning(f"Failed to deserialize cached sensor history: {e}")
-        
+
         # Cache miss - fetch from database
         readings = await self._fetch_sensor_history_from_db(
             user_id, device_id, sensor_type, hours
         )
-        
+
         # Cache the results
         if readings:
             readings_data = [asdict(reading) for reading in readings]
             # Convert datetime objects to ISO strings for JSON serialization
             for reading_data in readings_data:
-                if isinstance(reading_data.get('timestamp'), datetime):
-                    reading_data['timestamp'] = reading_data['timestamp'].isoformat()
-            
+                if isinstance(reading_data.get("timestamp"), datetime):
+                    reading_data["timestamp"] = reading_data["timestamp"].isoformat()
+
             await self.cache.set(
                 cache_key,
                 json.dumps(readings_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.SENSOR_HISTORY]
+                ttl=self.default_ttl[CacheKeyType.SENSOR_HISTORY],
             )
-        
+
         return readings
-    
+
     async def get_sensor_aggregates(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
-        period_hours: int = 24
-    ) -> List[SensorAggregate]:
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+        period_hours: int = 24,
+    ) -> list[SensorAggregate]:
         """
         Get aggregated sensor data (averages, min, max) for dashboard charts
-        
+
         Args:
             user_id: User ID
             device_ids: Optional list of device IDs
             sensor_types: Optional list of sensor types
             period_hours: Period for aggregation in hours
-            
+
         Returns:
             List of sensor aggregates
         """
@@ -218,9 +216,9 @@ class SensorCacheService:
             user_id,
             ",".join(device_ids or []),
             ",".join(sensor_types or []),
-            period_hours
+            period_hours,
         )
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -229,38 +227,38 @@ class SensorCacheService:
                 return [SensorAggregate(**agg) for agg in aggregates_data]
             except (json.JSONDecodeError, TypeError) as e:
                 logger.warning(f"Failed to deserialize cached sensor aggregates: {e}")
-        
+
         # Cache miss - fetch from database
         aggregates = await self._fetch_sensor_aggregates_from_db(
             user_id, device_ids, sensor_types, period_hours
         )
-        
+
         # Cache the results
         if aggregates:
             aggregates_data = [asdict(agg) for agg in aggregates]
             # Convert datetime objects to ISO strings for JSON serialization
             for agg_data in aggregates_data:
-                for field in ['period_start', 'period_end']:
+                for field in ["period_start", "period_end"]:
                     if isinstance(agg_data.get(field), datetime):
                         agg_data[field] = agg_data[field].isoformat()
-            
+
             await self.cache.set(
                 cache_key,
                 json.dumps(aggregates_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.SENSOR_AGGREGATES]
+                ttl=self.default_ttl[CacheKeyType.SENSOR_AGGREGATES],
             )
-        
+
         return aggregates
-    
-    async def get_static_species_data(self) -> List[Dict[str, Any]]:
+
+    async def get_static_species_data(self) -> list[dict[str, Any]]:
         """
         Get cached species data (static data that changes rarely)
-        
+
         Returns:
             List of species data
         """
         cache_key = self._get_cache_key(CacheKeyType.STATIC_SPECIES)
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -268,29 +266,29 @@ class SensorCacheService:
                 return json.loads(cached_data)
             except json.JSONDecodeError as e:
                 logger.warning(f"Failed to deserialize cached species data: {e}")
-        
+
         # Cache miss - fetch from database
         species_data = await self._fetch_species_from_db()
-        
+
         # Cache the results
         if species_data:
             await self.cache.set(
                 cache_key,
                 json.dumps(species_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.STATIC_SPECIES]
+                ttl=self.default_ttl[CacheKeyType.STATIC_SPECIES],
             )
-        
+
         return species_data
-    
-    async def get_static_plant_varieties_data(self) -> List[Dict[str, Any]]:
+
+    async def get_static_plant_varieties_data(self) -> list[dict[str, Any]]:
         """
         Get cached plant varieties data (static data that changes rarely)
-        
+
         Returns:
             List of plant varieties data
         """
         cache_key = self._get_cache_key(CacheKeyType.STATIC_VARIETIES)
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -298,29 +296,29 @@ class SensorCacheService:
                 return json.loads(cached_data)
             except json.JSONDecodeError as e:
                 logger.warning(f"Failed to deserialize cached varieties data: {e}")
-        
+
         # Cache miss - fetch from database
         varieties_data = await self._fetch_plant_varieties_from_db()
-        
+
         # Cache the results
         if varieties_data:
             await self.cache.set(
                 cache_key,
                 json.dumps(varieties_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.STATIC_VARIETIES]
+                ttl=self.default_ttl[CacheKeyType.STATIC_VARIETIES],
             )
-        
+
         return varieties_data
-    
-    async def get_static_grow_recipes_data(self) -> List[Dict[str, Any]]:
+
+    async def get_static_grow_recipes_data(self) -> list[dict[str, Any]]:
         """
         Get cached grow recipes data (static data that changes rarely)
-        
+
         Returns:
             List of grow recipes data
         """
         cache_key = self._get_cache_key(CacheKeyType.STATIC_RECIPES)
-        
+
         # Try cache first
         cached_data = await self.cache.get(cache_key)
         if cached_data:
@@ -328,29 +326,29 @@ class SensorCacheService:
                 return json.loads(cached_data)
             except json.JSONDecodeError as e:
                 logger.warning(f"Failed to deserialize cached recipes data: {e}")
-        
+
         # Cache miss - fetch from database
         recipes_data = await self._fetch_grow_recipes_from_db()
-        
+
         # Cache the results
         if recipes_data:
             await self.cache.set(
                 cache_key,
                 json.dumps(recipes_data, default=str),
-                ttl=self.default_ttl[CacheKeyType.STATIC_RECIPES]
+                ttl=self.default_ttl[CacheKeyType.STATIC_RECIPES],
             )
-        
+
         return recipes_data
-    
+
     async def invalidate_sensor_cache(
-        self, 
-        user_id: str, 
-        device_id: Optional[str] = None,
-        sensor_type: Optional[str] = None
-    ):
+        self,
+        user_id: str,
+        device_id: str | None = None,
+        sensor_type: str | None = None,
+    ) -> None:
         """
         Invalidate sensor-related cache entries
-        
+
         Args:
             user_id: User ID
             device_id: Optional specific device ID
@@ -359,153 +357,157 @@ class SensorCacheService:
         # Invalidate latest readings cache
         patterns = [
             f"{CacheKeyType.SENSOR_LATEST.value}:{user_id}:*",
-            f"{CacheKeyType.SENSOR_AGGREGATES.value}:{user_id}:*"
+            f"{CacheKeyType.SENSOR_AGGREGATES.value}:{user_id}:*",
         ]
-        
+
         if device_id:
-            patterns.extend([
-                f"{CacheKeyType.SENSOR_HISTORY.value}:{user_id}:{device_id}:*",
-                f"{CacheKeyType.DEVICE_STATUS.value}:{user_id}:{device_id}:*"
-            ])
-        
+            patterns.extend(
+                [
+                    f"{CacheKeyType.SENSOR_HISTORY.value}:{user_id}:{device_id}:*",
+                    f"{CacheKeyType.DEVICE_STATUS.value}:{user_id}:{device_id}:*",
+                ]
+            )
+
         for pattern in patterns:
             await self.cache.delete_pattern(pattern)
-    
-    async def invalidate_static_cache(self, data_type: str):
+
+    async def invalidate_static_cache(self, data_type: str) -> None:
         """
         Invalidate static data cache
-        
+
         Args:
             data_type: Type of static data (species, varieties, recipes)
         """
         cache_type_map = {
-            'species': CacheKeyType.STATIC_SPECIES,
-            'varieties': CacheKeyType.STATIC_VARIETIES,
-            'recipes': CacheKeyType.STATIC_RECIPES
+            "species": CacheKeyType.STATIC_SPECIES,
+            "varieties": CacheKeyType.STATIC_VARIETIES,
+            "recipes": CacheKeyType.STATIC_RECIPES,
         }
-        
+
         cache_type = cache_type_map.get(data_type)
         if cache_type:
             cache_key = self._get_cache_key(cache_type)
             await self.cache.delete(cache_key)
-    
+
     # Private methods for database queries
-    
+
     async def _fetch_latest_sensor_readings_from_db(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None
-    ) -> List[SensorReading]:
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+    ) -> list[SensorReading]:
         """Fetch latest sensor readings from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
-            logger.info(f"Fetching latest sensor readings for user {user_id}, devices {device_ids}, types {sensor_types}")
-            
+            logger.info(
+                f"Fetching latest sensor readings for user {user_id}, devices {device_ids}, types {sensor_types}"
+            )
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching latest sensor readings from DB: {e}")
             return []
-    
+
     async def _fetch_sensor_history_from_db(
-        self,
-        user_id: str,
-        device_id: str,
-        sensor_type: str,
-        hours: int
-    ) -> List[SensorReading]:
+        self, user_id: str, device_id: str, sensor_type: str, hours: int
+    ) -> list[SensorReading]:
         """Fetch sensor history from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
-            logger.info(f"Fetching sensor history for device {device_id}, sensor {sensor_type}, hours {hours}")
-            
+            logger.info(
+                f"Fetching sensor history for device {device_id}, sensor {sensor_type}, hours {hours}"
+            )
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching sensor history from DB: {e}")
             return []
-    
+
     async def _fetch_sensor_aggregates_from_db(
         self,
         user_id: str,
-        device_ids: Optional[List[str]] = None,
-        sensor_types: Optional[List[str]] = None,
-        period_hours: int = 24
-    ) -> List[SensorAggregate]:
+        device_ids: list[str] | None = None,
+        sensor_types: list[str] | None = None,
+        period_hours: int = 24,
+    ) -> list[SensorAggregate]:
         """Fetch sensor aggregates from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
-            logger.info(f"Fetching sensor aggregates for user {user_id}, devices {device_ids}, types {sensor_types}")
-            
+            logger.info(
+                f"Fetching sensor aggregates for user {user_id}, devices {device_ids}, types {sensor_types}"
+            )
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching sensor aggregates from DB: {e}")
             return []
-    
-    async def _fetch_species_from_db(self) -> List[Dict[str, Any]]:
+
+    async def _fetch_species_from_db(self) -> list[dict[str, Any]]:
         """Fetch species data from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
             logger.info("Fetching species data from database")
-            
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching species from DB: {e}")
             return []
-    
-    async def _fetch_plant_varieties_from_db(self) -> List[Dict[str, Any]]:
+
+    async def _fetch_plant_varieties_from_db(self) -> list[dict[str, Any]]:
         """Fetch plant varieties data from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
             logger.info("Fetching plant varieties data from database")
-            
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching plant varieties from DB: {e}")
             return []
-    
-    async def _fetch_grow_recipes_from_db(self) -> List[Dict[str, Any]]:
+
+    async def _fetch_grow_recipes_from_db(self) -> list[dict[str, Any]]:
         """Fetch grow recipes data from database"""
         try:
             # Get Supabase client
             client = await get_db().__anext__()
-            
+
             # TODO: Implement proper Supabase query
             # For now, return mock data to allow tests to pass
             logger.info("Fetching grow recipes data from database")
-            
+
             # Return empty list for now - this would be replaced with actual Supabase queries
             return []
-            
+
         except Exception as e:
             logger.error(f"Error fetching grow recipes from DB: {e}")
             return []
@@ -515,5 +517,6 @@ class SensorCacheService:
 def get_sensor_cache_service() -> SensorCacheService:
     """Get sensor cache service instance"""
     from app.core.cache import get_cache_manager
+
     cache_manager = get_cache_manager()
-    return SensorCacheService(cache_manager) 
+    return SensorCacheService(cache_manager)

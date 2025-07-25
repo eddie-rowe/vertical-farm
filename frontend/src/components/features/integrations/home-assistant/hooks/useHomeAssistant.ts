@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { homeAssistantService, HAConfig, HAConnectionStatus, HADevice, DeviceAssignment, ImportedDevice, DeviceControlRequest, ImportDevicesRequest } from '@/services/homeAssistantService';
+import { useState, useEffect } from "react";
+
+import {
+  homeAssistantService,
+  HAConfig,
+  HAConnectionStatus,
+  HADevice,
+  DeviceAssignment,
+  ImportedDevice,
+  DeviceControlRequest,
+  ImportDevicesRequest,
+} from "@/services/homeAssistantService";
 
 export function useHomeAssistant() {
   const [config, setConfig] = useState<HAConfig | null>(null);
-  const [status, setStatus] = useState<HAConnectionStatus>({ connected: false });
+  const [status, setStatus] = useState<HAConnectionStatus>({
+    connected: false,
+  });
   const [devices, setDevices] = useState<HADevice[]>([]);
   const [assignments, setAssignments] = useState<DeviceAssignment[]>([]);
   const [importedDevices, setImportedDevices] = useState<ImportedDevice[]>([]);
@@ -16,13 +28,13 @@ export function useHomeAssistant() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Load both config and status in parallel
       const [configData, statusData] = await Promise.all([
         homeAssistantService.getConfig(),
-        homeAssistantService.getStatus()
+        homeAssistantService.getStatus(),
       ]);
-      
+
       setConfig(configData);
       setStatus(statusData);
 
@@ -30,11 +42,11 @@ export function useHomeAssistant() {
       if (statusData.connected) {
         await loadDeviceData();
         // Set localStorage flag to indicate device integrations are connected
-        localStorage.setItem('device-integrations-connected', 'true');
+        localStorage.setItem("device-integrations-connected", "true");
       }
     } catch (err) {
-      console.error('Failed to load Home Assistant data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error("Failed to load Home Assistant data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -45,14 +57,14 @@ export function useHomeAssistant() {
       const [devicesData, assignmentsData, importedData] = await Promise.all([
         homeAssistantService.getDevices().catch(() => []),
         homeAssistantService.getAssignments().catch(() => []),
-        homeAssistantService.getImportedDevices().catch(() => [])
+        homeAssistantService.getImportedDevices().catch(() => []),
       ]);
-      
+
       setDevices(devicesData);
       setAssignments(assignmentsData);
       setImportedDevices(importedData);
     } catch (err) {
-      console.error('Failed to load device data:', err);
+      console.error("Failed to load device data:", err);
       // Don't set error state for device data failures
     }
   };
@@ -66,21 +78,21 @@ export function useHomeAssistant() {
       setIsLoading(true);
       const savedConfig = await homeAssistantService.saveConfig(newConfig);
       setConfig(savedConfig);
-      
+
       // Refresh status after saving config
       const newStatus = await homeAssistantService.getStatus();
       setStatus(newStatus);
-      
+
       // If newly connected, load device data and set localStorage flag
       if (newStatus.connected) {
         await loadDeviceData();
         // Set localStorage flag to indicate device integrations are connected
-        localStorage.setItem('device-integrations-connected', 'true');
+        localStorage.setItem("device-integrations-connected", "true");
       }
-      
+
       return savedConfig;
     } catch (err) {
-      console.error('Failed to save config:', err);
+      console.error("Failed to save config:", err);
       throw err;
     } finally {
       setIsLoading(false);
@@ -91,7 +103,7 @@ export function useHomeAssistant() {
     try {
       return await homeAssistantService.testConnection(url, token);
     } catch (err) {
-      console.error('Failed to test connection:', err);
+      console.error("Failed to test connection:", err);
       throw err;
     }
   };
@@ -107,23 +119,26 @@ export function useHomeAssistant() {
       setDevices(discoveredDevices);
       return discoveredDevices;
     } catch (err) {
-      console.error('Failed to discover devices:', err);
+      console.error("Failed to discover devices:", err);
       throw err;
     }
   };
 
-  const controlDevice = async (device: HADevice, action: 'turn_on' | 'turn_off' | 'toggle') => {
+  const controlDevice = async (
+    device: HADevice,
+    action: "turn_on" | "turn_off" | "toggle",
+  ) => {
     try {
       const request: DeviceControlRequest = {
         entity_id: device.entity_id,
-        action
+        action,
       };
       await homeAssistantService.controlDevice(request);
-      
+
       // Refresh device states after control
       await loadDeviceData();
     } catch (err) {
-      console.error('Failed to control device:', err);
+      console.error("Failed to control device:", err);
       throw err;
     }
   };
@@ -131,36 +146,39 @@ export function useHomeAssistant() {
   const importDevice = async (device: HADevice) => {
     try {
       const request: ImportDevicesRequest = {
-        entity_ids: [device.entity_id]
+        entity_ids: [device.entity_id],
       };
       const result = await homeAssistantService.importDevices(request);
-      
+
       // Refresh imported devices
       const updatedImported = await homeAssistantService.getImportedDevices();
       setImportedDevices(updatedImported);
-      
+
       return result;
     } catch (err) {
-      console.error('Failed to import device:', err);
+      console.error("Failed to import device:", err);
       throw err;
     }
   };
 
-  const assignDevice = async (entityId: string, assignment: Omit<DeviceAssignment, 'entity_id'>) => {
+  const assignDevice = async (
+    entityId: string,
+    assignment: Omit<DeviceAssignment, "entity_id">,
+  ) => {
     try {
       const fullAssignment: DeviceAssignment = {
         entity_id: entityId,
-        ...assignment
+        ...assignment,
       };
       const result = await homeAssistantService.saveAssignment(fullAssignment);
-      
+
       // Refresh assignments
       const updatedAssignments = await homeAssistantService.getAssignments();
       setAssignments(updatedAssignments);
-      
+
       return result;
     } catch (err) {
-      console.error('Failed to assign device:', err);
+      console.error("Failed to assign device:", err);
       throw err;
     }
   };
@@ -168,12 +186,12 @@ export function useHomeAssistant() {
   const removeAssignment = async (entityId: string) => {
     try {
       await homeAssistantService.removeAssignment(entityId);
-      
+
       // Refresh assignments
       const updatedAssignments = await homeAssistantService.getAssignments();
       setAssignments(updatedAssignments);
     } catch (err) {
-      console.error('Failed to remove assignment:', err);
+      console.error("Failed to remove assignment:", err);
       throw err;
     }
   };
@@ -181,37 +199,40 @@ export function useHomeAssistant() {
   const bulkImportDevices = async (devices: HADevice[]) => {
     try {
       const request: ImportDevicesRequest = {
-        entity_ids: devices.map(d => d.entity_id)
+        entity_ids: devices.map((d) => d.entity_id),
       };
       const result = await homeAssistantService.importDevices(request);
-      
+
       // Refresh imported devices
       const updatedImported = await homeAssistantService.getImportedDevices();
       setImportedDevices(updatedImported);
-      
+
       return result;
     } catch (err) {
-      console.error('Failed to bulk import devices:', err);
+      console.error("Failed to bulk import devices:", err);
       throw err;
     }
   };
 
-  const bulkControlDevices = async (devices: HADevice[], action: 'turn_on' | 'turn_off') => {
+  const bulkControlDevices = async (
+    devices: HADevice[],
+    action: "turn_on" | "turn_off",
+  ) => {
     try {
       // Control devices in parallel
       await Promise.all(
-        devices.map(device => 
+        devices.map((device) =>
           homeAssistantService.controlDevice({
             entity_id: device.entity_id,
-            action
-          })
-        )
+            action,
+          }),
+        ),
       );
-      
+
       // Refresh device states after bulk control
       await loadDeviceData();
     } catch (err) {
-      console.error('Failed to bulk control devices:', err);
+      console.error("Failed to bulk control devices:", err);
       throw err;
     }
   };
@@ -225,12 +246,12 @@ export function useHomeAssistant() {
     importedDevices,
     isLoading,
     error,
-    
+
     // Configuration methods
     saveConfig,
     testConnection,
     refreshData,
-    
+
     // Device management methods
     discoverDevices,
     controlDevice,
@@ -239,6 +260,6 @@ export function useHomeAssistant() {
     removeAssignment,
     bulkImportDevices,
     bulkControlDevices,
-    loadDeviceData
+    loadDeviceData,
   };
-} 
+}

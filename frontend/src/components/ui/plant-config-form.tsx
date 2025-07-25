@@ -1,11 +1,12 @@
 "use client";
 
+import { Leaf, Droplets, Thermometer } from "lucide-react";
 import * as React from "react";
-import { FarmInput } from "./farm-input";
-import { FarmSelect, type FarmSelectOption } from "./farm-select";
-import { FarmRangeSlider } from "./farm-range-slider";
+
 import { FarmCheckbox } from "./farm-checkbox";
-import { Leaf, Droplets, Sun, Thermometer } from "lucide-react";
+import { FarmInput } from "./farm-input";
+import { FarmRangeSlider } from "./farm-range-slider";
+import { FarmSelect, type FarmSelectOption } from "./farm-select";
 
 export interface PlantConfig {
   name: string;
@@ -86,7 +87,9 @@ export function PlantConfigForm({
     notes: initialData.notes || "",
   });
 
-  const [errors, setErrors] = React.useState<Partial<Record<keyof PlantConfig, string>>>({});
+  const [errors, setErrors] = React.useState<
+    Partial<Record<keyof PlantConfig, string>>
+  >({});
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof PlantConfig, string>> = {};
@@ -135,12 +138,12 @@ export function PlantConfigForm({
 
   const updateField = <K extends keyof PlantConfig>(
     field: K,
-    value: PlantConfig[K]
+    value: PlantConfig[K],
   ) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when field is updated
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -151,7 +154,7 @@ export function PlantConfigForm({
           <Leaf className="h-5 w-5 text-green-600" />
           Plant Information
         </h3>
-        
+
         <div className="mobile-grid gap-4">
           <FarmInput
             label="Plant Name"
@@ -162,7 +165,7 @@ export function PlantConfigForm({
             icon={<Leaf className="h-4 w-4" />}
             required
           />
-          
+
           <FarmInput
             label="Variety"
             placeholder="e.g., Buttercrunch, Cherry"
@@ -171,7 +174,7 @@ export function PlantConfigForm({
             errorText={errors.variety}
             helpText="Specific cultivar or variety name"
           />
-          
+
           <FarmSelect
             label="Species"
             options={PLANT_SPECIES_OPTIONS}
@@ -180,7 +183,7 @@ export function PlantConfigForm({
             errorText={errors.species}
             required
           />
-          
+
           <FarmSelect
             label="Growth Stage"
             options={GROWTH_STAGE_OPTIONS}
@@ -189,13 +192,15 @@ export function PlantConfigForm({
             errorText={errors.stage}
             required
           />
-          
+
           <FarmInput
             label="Expected Yield"
             type="number"
             placeholder="0"
             value={formData.expectedYield}
-            onChange={(e) => updateField("expectedYield", Number(e.target.value))}
+            onChange={(e) =>
+              updateField("expectedYield", Number(e.target.value))
+            }
             errorText={errors.expectedYield}
             helpText="Expected harvest weight in grams"
             min="0"
@@ -209,7 +214,7 @@ export function PlantConfigForm({
           <Thermometer className="h-5 w-5 text-blue-600" />
           Environmental Parameters
         </h3>
-        
+
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FarmRangeSlider
@@ -224,7 +229,7 @@ export function PlantConfigForm({
               errorText={errors.phMin}
               helpText="Optimal pH for nutrient uptake"
             />
-            
+
             <FarmRangeSlider
               label="pH Range (Maximum)"
               min={5.0}
@@ -237,7 +242,7 @@ export function PlantConfigForm({
               errorText={errors.phMax}
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FarmRangeSlider
               label="Temperature Range (Min)"
@@ -249,7 +254,7 @@ export function PlantConfigForm({
               unit="°C"
               errorText={errors.temperatureMin}
             />
-            
+
             <FarmRangeSlider
               label="Temperature Range (Max)"
               min={10}
@@ -261,7 +266,7 @@ export function PlantConfigForm({
               errorText={errors.temperatureMax}
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FarmRangeSlider
               label="Target Humidity"
@@ -273,7 +278,7 @@ export function PlantConfigForm({
               unit="%"
               helpText="Relative humidity percentage"
             />
-            
+
             <FarmRangeSlider
               label="Daily Light Hours"
               min={8}
@@ -293,7 +298,7 @@ export function PlantConfigForm({
           <Droplets className="h-5 w-5 text-blue-500" />
           Automation Settings
         </h3>
-        
+
         <div className="space-y-4">
           <FarmCheckbox
             label="Automatic Watering"
@@ -302,7 +307,7 @@ export function PlantConfigForm({
             onCheckedChange={(checked) => updateField("autoWatering", checked)}
             inputSize="lg"
           />
-          
+
           <FarmCheckbox
             label="Automatic Nutrient Dosing"
             description="Enable automated nutrient solution mixing and delivery"
@@ -314,10 +319,8 @@ export function PlantConfigForm({
       </div>
 
       <div className="gradient-shelf rounded-lg p-6">
-        <h3 className="text-farm-title font-semibold mb-4">
-          Additional Notes
-        </h3>
-        
+        <h3 className="text-farm-title font-semibold mb-4">Additional Notes</h3>
+
         <FarmInput
           label="Notes"
           placeholder="Any additional care instructions or observations..."
@@ -338,7 +341,7 @@ export function PlantConfigForm({
             Cancel
           </button>
         )}
-        
+
         <button
           type="submit"
           disabled={isLoading}
@@ -359,4 +362,4 @@ export function PlantConfigForm({
       </div>
     </form>
   );
-} 
+}

@@ -1,89 +1,74 @@
 "use client";
 
+import { Settings, AlertTriangle } from "lucide-react";
 import React, { useState, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
+
+import { EmptyStateWithIntegrations } from "@/components/features/automation";
+import { AllDevicesTab } from "@/components/features/devices/all/AllDevicesTab";
+import { ActiveIntegrationsTab } from "@/components/features/devices/integrations/ActiveIntegrationsTab";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmSelect } from "@/components/ui/farm-select";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { 
-  FaPlug, 
-  FaHome, 
-  FaCog, 
-  FaWifi, 
-  FaLightbulb, 
-  FaFan, 
-  FaTint, 
+import { Separator } from "@/components/ui/separator";
+import { SkeletonDevicePage } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
+  FaHome,
+  FaCog,
+  FaWifi,
+  FaLightbulb,
+  FaFan,
+  FaTint,
   FaThermometerHalf,
-  FaSearch, 
   FaPlus,
-  FaBook,
-  FaQuestionCircle,
   FaCheckCircle,
-  FaExclamationTriangle,
   Layers,
-  Info,
-  FaBuilding
-} from '@/lib/icons';
-import { 
-  Zap,
-  Home,
-  Settings,
-  Wifi,
-  Plus,
-  BookOpen,
-  HelpCircle,
-  ChevronRight,
-  ExternalLink,
-  Download,
-  Play,
-  Activity,
-  Shield,
-  AlertTriangle
-} from "lucide-react";
-import { EmptyStateWithIntegrations } from '@/components/features/automation';
-import { DEVICE_INTEGRATIONS } from '@/lib/integrations/constants';
-import { usePageData } from '@/components/shared/hooks/usePageData';
-import { LoadingCard } from '@/components/ui/loading';
-import { SkeletonDevicePage } from '@/components/ui/skeleton-extended';
-import { MetricsGrid } from '@/components/shared/metrics';
-import { AllDevicesTab } from '@/components/features/devices/all/AllDevicesTab';
-import { ActiveIntegrationsTab } from '@/components/features/devices/integrations/ActiveIntegrationsTab';
-import Link from 'next/link';
+  FaBuilding,
+} from "@/lib/icons";
+import { DEVICE_INTEGRATIONS } from "@/lib/integrations/constants";
 
 // ✅ NEW: Import standardized search/filter components and hooks
-import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
 
 const tabs = [
   {
-    id: 'overview',
-    label: 'Overview',
+    id: "overview",
+    label: "Overview",
     icon: <Layers className="text-sensor-value gradient-icon" />,
-    description: 'Device status and health dashboard'
+    description: "Device status and health dashboard",
   },
   {
-    id: 'all-devices',
-    label: 'All Devices',
+    id: "all-devices",
+    label: "All Devices",
     icon: <FaCog className="text-control-label gradient-icon" />,
-    description: 'Unified device management and control'
+    description: "Unified device management and control",
   },
   {
-    id: 'integrations',
-    label: 'Integrations',
+    id: "integrations",
+    label: "Integrations",
     icon: <FaWifi className="text-control-secondary gradient-icon" />,
-    description: 'Manage connection sources and health'
+    description: "Manage connection sources and health",
   },
   {
-    id: 'settings',
-    label: 'Settings',
+    id: "settings",
+    label: "Settings",
     icon: <FaBuilding className="text-control-secondary gradient-icon" />,
-    description: 'Global device management configuration'
-  }
+    description: "Global device management configuration",
+  },
 ];
 
 // Mock data interface to simulate device management data
@@ -99,18 +84,36 @@ interface IntegrationData {
   id: string;
   name: string;
   deviceCount: number;
-  status: 'connected' | 'disconnected';
+  status: "connected" | "disconnected";
   lastSync: string;
 }
 
 const mockIntegrations: IntegrationData[] = [
-  { id: 'home-assistant', name: 'Home Assistant', deviceCount: 24, status: 'connected', lastSync: '2 minutes ago' },
-  { id: 'arduino-cloud', name: 'Arduino Cloud', deviceCount: 12, status: 'connected', lastSync: '5 minutes ago' },
-  { id: 'smartthings', name: 'SmartThings', deviceCount: 11, status: 'connected', lastSync: '1 minute ago' }
+  {
+    id: "home-assistant",
+    name: "Home Assistant",
+    deviceCount: 24,
+    status: "connected",
+    lastSync: "2 minutes ago",
+  },
+  {
+    id: "arduino-cloud",
+    name: "Arduino Cloud",
+    deviceCount: 12,
+    status: "connected",
+    lastSync: "5 minutes ago",
+  },
+  {
+    id: "smartthings",
+    name: "SmartThings",
+    deviceCount: 11,
+    status: "connected",
+    lastSync: "1 minute ago",
+  },
 ];
 
 const DeviceManagementPage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   // ✅ NEW: Replace manual search state with standardized hooks
   const {
@@ -118,10 +121,10 @@ const DeviceManagementPage = () => {
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
+    hasSearch,
   } = useFarmSearch<IntegrationData>({
-    searchFields: ['name'],
-    caseSensitive: false
+    searchFields: ["name"],
+    caseSensitive: false,
   });
 
   const {
@@ -131,88 +134,99 @@ const DeviceManagementPage = () => {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<IntegrationData>();
 
   // ✅ NEW: Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'integration',
-      label: 'Integration',
-      placeholder: 'Filter by integration',
-      options: [
-        { value: 'all', label: 'All Integrations' },
-        { value: 'home-assistant', label: 'Home Assistant' },
-        { value: 'smartthings', label: 'SmartThings' },
-        { value: 'arduino-cloud', label: 'Arduino Cloud' }
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'deviceType',
-      label: 'Device Type',
-      placeholder: 'Filter by device type',
-      options: [
-        { value: 'all', label: 'All Device Types' },
-        { value: 'lights', label: 'Lights' },
-        { value: 'sensors', label: 'Sensors' },
-        { value: 'pumps', label: 'Pumps & Valves' },
-        { value: 'fans', label: 'Fans & Climate' }
-      ],
-      defaultValue: 'all'
-    }
-  ], []);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "integration",
+        label: "Integration",
+        placeholder: "Filter by integration",
+        options: [
+          { value: "all", label: "All Integrations" },
+          { value: "home-assistant", label: "Home Assistant" },
+          { value: "smartthings", label: "SmartThings" },
+          { value: "arduino-cloud", label: "Arduino Cloud" },
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "deviceType",
+        label: "Device Type",
+        placeholder: "Filter by device type",
+        options: [
+          { value: "all", label: "All Device Types" },
+          { value: "lights", label: "Lights" },
+          { value: "sensors", label: "Sensors" },
+          { value: "pumps", label: "Pumps & Valves" },
+          { value: "fans", label: "Fans & Climate" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [],
+  );
 
   // ✅ NEW: Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // ✅ NEW: Apply combined filtering (for integrations list)
   const filteredIntegrations = useMemo(() => {
     let result = mockIntegrations;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     return result;
   }, [searchFilterItems, filterFilterItems]);
 
   // Use our standardized data loading hook
   const { data: deviceData, isLoading } = usePageData<DeviceData>({
-    storageKey: 'device-integrations-connected',
+    storageKey: "device-integrations-connected",
     mockData: {
       totalDevices: 47,
       onlineDevices: 43,
       integrationCount: 3,
-      hasData: true
-    }
+      hasData: true,
+    },
   });
 
-  const activeTabData = tabs.find(tab => tab.id === activeTab);
+  const activeTabData = tabs.find((tab) => tab.id === activeTab);
 
   const handleConnectIntegration = (integrationName: string) => {
     console.log(`Connecting to ${integrationName}...`);
     // This would typically redirect to integration setup
-    const integrationSlug = integrationName.toLowerCase().replace(/\s+/g, '-');
+    const integrationSlug = integrationName.toLowerCase().replace(/\s+/g, "-");
     window.location.href = `/integrations/${integrationSlug}`;
   };
 
-  const deviceIntegrationsWithHandlers = DEVICE_INTEGRATIONS.map(integration => ({
-    ...integration,
-    onConnect: () => handleConnectIntegration(integration.name)
-  }));
+  const deviceIntegrationsWithHandlers = DEVICE_INTEGRATIONS.map(
+    (integration) => ({
+      ...integration,
+      onConnect: () => handleConnectIntegration(integration.name),
+    }),
+  );
 
   if (isLoading) {
     return <SkeletonDevicePage />;
@@ -264,45 +278,53 @@ const DeviceManagementPage = () => {
       </div>
 
       {/* Quick Metrics */}
-      <MetricsGrid 
+      <MetricsGrid
         columns={4}
         metrics={[
           {
-            id: 'total-devices',
-            label: 'Total Devices',
+            id: "total-devices",
+            label: "Total Devices",
             value: deviceData?.totalDevices?.toString() || "0",
             icon: () => <FaCog className="text-farm-accent" />,
-            stateClass: 'state-active'
+            stateClass: "state-active",
           },
           {
-            id: 'online-devices',
-            label: 'Online Devices',
+            id: "online-devices",
+            label: "Online Devices",
             value: deviceData?.onlineDevices?.toString() || "0",
             icon: () => <FaCheckCircle className="text-green-600" />,
-            stateClass: 'state-growing'
+            stateClass: "state-growing",
           },
           {
-            id: 'integrations',
-            label: 'Integrations',
+            id: "integrations",
+            label: "Integrations",
             value: deviceData?.integrationCount?.toString() || "0",
             icon: () => <FaWifi className="text-blue-600" />,
-            stateClass: 'state-active'
+            stateClass: "state-active",
           },
           {
-            id: 'alerts',
-            label: 'Active Alerts',
+            id: "alerts",
+            label: "Active Alerts",
             value: "2",
             icon: () => <AlertTriangle className="text-orange-600" />,
-            stateClass: 'state-maintenance'
-          }
+            stateClass: "state-maintenance",
+          },
         ]}
       />
 
       {/* Main Tab Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="flex items-center gap-2"
+            >
               {tab.icon}
               {tab.label}
             </TabsTrigger>
@@ -326,17 +348,25 @@ const DeviceManagementPage = () => {
                 orientation="horizontal"
                 showFilterChips={true}
               />
-              
+
               {/* Results summary */}
               {(hasSearch || hasActiveFilters) && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600">
-                    Showing {filteredIntegrations.length} of {mockIntegrations.length} integrations
+                    Showing {filteredIntegrations.length} of{" "}
+                    {mockIntegrations.length} integrations
                   </p>
                   {(hasSearch || hasActiveFilters) && (
-                                         <FarmControlButton size="sm" variant="default" onClick={() => { clearSearch(); clearAllFilters(); }}>
-                       Clear all filters
-                     </FarmControlButton>
+                    <FarmControlButton
+                      size="sm"
+                      variant="default"
+                      onClick={() => {
+                        clearSearch();
+                        clearAllFilters();
+                      }}
+                    >
+                      Clear all filters
+                    </FarmControlButton>
                   )}
                 </div>
               )}
@@ -351,7 +381,9 @@ const DeviceManagementPage = () => {
                   <FaHome className="text-orange-600" />
                   Home Assistant
                 </CardTitle>
-                <CardDescription className="text-control-label">Smart home automation platform</CardDescription>
+                <CardDescription className="text-control-label">
+                  Smart home automation platform
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -365,10 +397,16 @@ const DeviceManagementPage = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Last Sync</span>
-                    <span className="text-control-label opacity-70">2 minutes ago</span>
+                    <span className="text-control-label opacity-70">
+                      2 minutes ago
+                    </span>
                   </div>
                   <Separator />
-                  <FarmControlButton size="sm" variant="default" className="w-full">
+                  <FarmControlButton
+                    size="sm"
+                    variant="default"
+                    className="w-full"
+                  >
                     <FaCog className="h-4 w-4 mr-2" />
                     Manage
                   </FarmControlButton>
@@ -382,7 +420,9 @@ const DeviceManagementPage = () => {
                   <FaWifi className="text-blue-600" />
                   Arduino Cloud
                 </CardTitle>
-                <CardDescription className="text-control-label">Custom sensor platform</CardDescription>
+                <CardDescription className="text-control-label">
+                  Custom sensor platform
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -396,10 +436,16 @@ const DeviceManagementPage = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Last Sync</span>
-                    <span className="text-control-label opacity-70">5 minutes ago</span>
+                    <span className="text-control-label opacity-70">
+                      5 minutes ago
+                    </span>
                   </div>
                   <Separator />
-                  <FarmControlButton size="sm" variant="default" className="w-full">
+                  <FarmControlButton
+                    size="sm"
+                    variant="default"
+                    className="w-full"
+                  >
                     <FaCog className="h-4 w-4 mr-2" />
                     Manage
                   </FarmControlButton>
@@ -413,7 +459,9 @@ const DeviceManagementPage = () => {
                   <FaWifi className="text-purple-600" />
                   SmartThings
                 </CardTitle>
-                <CardDescription className="text-control-label">Samsung IoT platform</CardDescription>
+                <CardDescription className="text-control-label">
+                  Samsung IoT platform
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -427,10 +475,16 @@ const DeviceManagementPage = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-control-label">Last Sync</span>
-                    <span className="text-control-label opacity-70">1 minute ago</span>
+                    <span className="text-control-label opacity-70">
+                      1 minute ago
+                    </span>
                   </div>
                   <Separator />
-                  <FarmControlButton size="sm" variant="default" className="w-full">
+                  <FarmControlButton
+                    size="sm"
+                    variant="default"
+                    className="w-full"
+                  >
                     <FaCog className="h-4 w-4 mr-2" />
                     Manage
                   </FarmControlButton>
@@ -442,8 +496,12 @@ const DeviceManagementPage = () => {
           {/* Recent Activity */}
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Recent Device Activity</CardTitle>
-              <CardDescription className="text-control-label">Latest device state changes and events</CardDescription>
+              <CardTitle className="text-farm-title">
+                Recent Device Activity
+              </CardTitle>
+              <CardDescription className="text-control-label">
+                Latest device state changes and events
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -454,7 +512,7 @@ const DeviceManagementPage = () => {
                     time: "2 minutes ago",
                     integration: "Home Assistant",
                     icon: FaLightbulb,
-                    color: "text-yellow-600"
+                    color: "text-yellow-600",
                   },
                   {
                     device: "Nutrient Pump #3",
@@ -462,7 +520,7 @@ const DeviceManagementPage = () => {
                     time: "8 minutes ago",
                     integration: "Arduino Cloud",
                     icon: FaTint,
-                    color: "text-blue-600"
+                    color: "text-blue-600",
                   },
                   {
                     device: "Exhaust Fan System",
@@ -470,7 +528,7 @@ const DeviceManagementPage = () => {
                     time: "12 minutes ago",
                     integration: "SmartThings",
                     icon: FaFan,
-                    color: "text-green-600"
+                    color: "text-green-600",
                   },
                   {
                     device: "Temperature Sensor B2",
@@ -478,19 +536,28 @@ const DeviceManagementPage = () => {
                     time: "15 minutes ago",
                     integration: "Home Assistant",
                     icon: FaThermometerHalf,
-                    color: "text-orange-600"
-                  }
+                    color: "text-orange-600",
+                  },
                 ].map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
                       <activity.icon className={`${activity.color}`} />
                       <div>
-                        <p className="text-control-label font-medium">{activity.device}</p>
-                        <p className="text-control-label opacity-70">{activity.action}</p>
+                        <p className="text-control-label font-medium">
+                          {activity.device}
+                        </p>
+                        <p className="text-control-label opacity-70">
+                          {activity.action}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-control-label opacity-70">{activity.time}</p>
+                      <p className="text-control-label opacity-70">
+                        {activity.time}
+                      </p>
                       <Badge variant="outline" className="text-xs">
                         {activity.integration}
                       </Badge>
@@ -513,15 +580,22 @@ const DeviceManagementPage = () => {
         <TabsContent value="settings" className="space-y-6">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Global Device Settings</CardTitle>
-              <CardDescription className="text-control-label">Configure device management preferences and defaults</CardDescription>
+              <CardTitle className="text-farm-title">
+                Global Device Settings
+              </CardTitle>
+              <CardDescription className="text-control-label">
+                Configure device management preferences and defaults
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
                 <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-farm-title font-semibold mb-2">System Configuration</h3>
+                <h3 className="text-farm-title font-semibold mb-2">
+                  System Configuration
+                </h3>
                 <p className="text-control-label">
-                  Device settings and configuration options will be available here.
+                  Device settings and configuration options will be available
+                  here.
                 </p>
               </div>
             </CardContent>
@@ -532,4 +606,4 @@ const DeviceManagementPage = () => {
   );
 };
 
-export default DeviceManagementPage; 
+export default DeviceManagementPage;

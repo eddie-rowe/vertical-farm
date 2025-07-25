@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const RowSchema = z.object({
   id: z.string().uuid().optional(),
@@ -7,7 +7,7 @@ export const RowSchema = z.object({
   position_x: z.number().optional(),
   position_y: z.number().optional(),
   length: z.number().positive("Length must be a positive number.").optional(),
-  orientation: z.enum(['horizontal', 'vertical']),
+  orientation: z.enum(["horizontal", "vertical"]),
 });
 
-export type RowFormData = z.infer<typeof RowSchema>; 
+export type RowFormData = z.infer<typeof RowSchema>;

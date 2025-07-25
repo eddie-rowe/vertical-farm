@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { supabase } from '@/lib/supabaseClient';
-import toast from 'react-hot-toast';
-import { HADevice, HAConfig } from '@/types/integrations/homeassistant';
+import toast from "react-hot-toast";
+
+import { supabase } from "@/lib/supabaseClient";
+import { HADevice, HAConfig } from "@/types/integrations/homeassistant";
 
 // Home Assistant API service for frontend
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/home-assistant`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/home-assistant`;
 
 // Re-export the consolidated types for backward compatibility
-export type { HADevice, HAConfig } from '@/types/integrations/homeassistant';
+export type { HADevice, HAConfig } from "@/types/integrations/homeassistant";
 
 export interface HAConnectionStatus {
   connected: boolean;
@@ -20,54 +21,54 @@ export interface HAConnectionStatus {
 
 export interface DeviceControlRequest {
   entity_id: string;
-  action: 'turn_on' | 'turn_off' | 'toggle';
+  action: "turn_on" | "turn_off" | "toggle";
   options?: Record<string, any>;
   duration?: number;
 }
 
 export interface DeviceAssignment {
-  id?: string;                    // UUID from database
-  entity_id: string;              // Home Assistant entity ID
-  entity_type: string;            // Device type from HA (light, switch, sensor, etc.)
-  friendly_name?: string;         // Human-readable name
-  shelf_id?: string;              // UUID if assigned to a shelf
-  rack_id?: string;               // UUID if assigned to a rack
-  row_id?: string;                // UUID if assigned to a row
-  farm_id?: string;               // UUID if assigned to a farm
-  assigned_by?: string;           // UUID of user who assigned the device
-  created_at?: string;            // ISO timestamp
-  updated_at?: string;            // ISO timestamp
+  id?: string; // UUID from database
+  entity_id: string; // Home Assistant entity ID
+  entity_type: string; // Device type from HA (light, switch, sensor, etc.)
+  friendly_name?: string; // Human-readable name
+  shelf_id?: string; // UUID if assigned to a shelf
+  rack_id?: string; // UUID if assigned to a rack
+  row_id?: string; // UUID if assigned to a row
+  farm_id?: string; // UUID if assigned to a farm
+  assigned_by?: string; // UUID of user who assigned the device
+  created_at?: string; // ISO timestamp
+  updated_at?: string; // ISO timestamp
   // Additional fields from joined queries
-  farm_name?: string;             // Name of the farm (from JOIN)
-  row_name?: string;              // Name of the row (from JOIN)
-  rack_name?: string;             // Name of the rack (from JOIN)
-  shelf_name?: string;            // Name of the shelf (from JOIN)
+  farm_name?: string; // Name of the farm (from JOIN)
+  row_name?: string; // Name of the row (from JOIN)
+  rack_name?: string; // Name of the rack (from JOIN)
+  shelf_name?: string; // Name of the shelf (from JOIN)
 }
 
 export interface ImportedDevice {
-  id: number;                     // Internal device ID
-  entity_id: string;              // Home Assistant entity ID
-  name: string;                   // Device name
-  device_type: string;            // Device type (light, switch, sensor, etc.)
-  state?: string;                 // Current device state
+  id: number; // Internal device ID
+  entity_id: string; // Home Assistant entity ID
+  name: string; // Device name
+  device_type: string; // Device type (light, switch, sensor, etc.)
+  state?: string; // Current device state
   attributes: Record<string, any>; // Device attributes
-  is_assigned: boolean;           // Whether device is assigned to a farm location
-  last_seen: string;              // When device was last seen
-  created_at: string;             // When device was imported
-  updated_at: string;             // When device info was last updated
+  is_assigned: boolean; // Whether device is assigned to a farm location
+  last_seen: string; // When device was last seen
+  created_at: string; // When device was imported
+  updated_at: string; // When device info was last updated
 }
 
 export interface ImportDevicesRequest {
-  entity_ids: string[];           // List of entity IDs to import
-  update_existing?: boolean;      // Whether to update existing imported devices
+  entity_ids: string[]; // List of entity IDs to import
+  update_existing?: boolean; // Whether to update existing imported devices
 }
 
 export interface ImportDevicesResponse {
-  success: boolean;               // Whether the import was successful
-  imported_count: number;         // Number of devices imported
-  updated_count: number;          // Number of existing devices updated
-  skipped_count: number;          // Number of devices skipped
-  errors: string[];               // Any errors that occurred
+  success: boolean; // Whether the import was successful
+  imported_count: number; // Number of devices imported
+  updated_count: number; // Number of existing devices updated
+  skipped_count: number; // Number of devices skipped
+  errors: string[]; // Any errors that occurred
   imported_devices: ImportedDevice[]; // Details of imported devices
 }
 
@@ -81,10 +82,18 @@ export interface HomeAssistantEntity {
 }
 
 export interface WebSocketMessage {
-  type: 'auth_required' | 'auth_ok' | 'auth_invalid' | 'event' | 'result' | 'error' | 'auth' | 'subscribe_events';
+  type:
+    | "auth_required"
+    | "auth_ok"
+    | "auth_invalid"
+    | "event"
+    | "result"
+    | "error"
+    | "auth"
+    | "subscribe_events";
   id?: number;
   event?: {
-    event_type: 'state_changed';
+    event_type: "state_changed";
     data: {
       entity_id: string;
       new_state: HomeAssistantEntity;
@@ -105,7 +114,8 @@ class HomeAssistantService {
   private baseUrl = API_BASE_URL;
   private wsConnection: WebSocket | null = null;
   private subscriptions = new Map<string, (device: HADevice) => void>();
-  private eventListeners: Map<string, (entity: HomeAssistantEntity) => void> = new Map();
+  private eventListeners: Map<string, (entity: HomeAssistantEntity) => void> =
+    new Map();
   private messageId = 1;
   private isAuthenticated = false;
   private reconnectAttempts = 0;
@@ -116,27 +126,34 @@ class HomeAssistantService {
   private retryDelay = 1000; // Start with 1 second
 
   private async getAuthHeaders(): Promise<HeadersInit> {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
     if (sessionError || !sessionData.session) {
-      console.error('User is not authenticated or session expired.', { sessionError, hasSession: !!sessionData?.session });
-      throw new Error('Authentication required. Please log in to continue.');
+      console.error("User is not authenticated or session expired.", {
+        sessionError,
+        hasSession: !!sessionData?.session,
+      });
+      throw new Error("Authentication required. Please log in to continue.");
     }
 
     return {
-      'Authorization': `Bearer ${sessionData.session.access_token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionData.session.access_token}`,
+      "Content-Type": "application/json",
     };
   }
 
-  private async handleApiError(response: Response, operation: string): Promise<void> {
+  private async handleApiError(
+    response: Response,
+    operation: string,
+  ): Promise<void> {
     if (response.status === 401) {
-      toast.error('Session expired. Please sign in again.');
+      toast.error("Session expired. Please sign in again.");
       // Trigger sign out to clear invalid session
       await supabase.auth.signOut();
-      throw new Error('Authentication failed');
+      throw new Error("Authentication failed");
     }
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`${operation} failed:`, errorText);
@@ -156,40 +173,47 @@ class HomeAssistantService {
         }
         if (response.status === 500) {
           // Server error - don't sign out user, just return null
-          console.error('Home Assistant config service error:', response.statusText);
+          console.error(
+            "Home Assistant config service error:",
+            response.statusText,
+          );
           return null;
         }
-        await this.handleApiError(response, 'Get configuration');
+        await this.handleApiError(response, "Get configuration");
       }
 
       const backendConfigs = await response.json();
-      
+
       // If no configurations exist, return null
       if (!backendConfigs || backendConfigs.length === 0) {
         return null;
       }
-      
+
       // Find the default configuration or use the first one
-      const defaultConfig = backendConfigs.find((config: any) => config.is_default) || backendConfigs[0];
-      
+      const defaultConfig =
+        backendConfigs.find((config: any) => config.is_default) ||
+        backendConfigs[0];
+
       // Transform backend response to frontend format
       return {
         url: defaultConfig.url,
-        token: '', // Backend doesn't return the token for security
+        token: "", // Backend doesn't return the token for security
         enabled: defaultConfig.is_default,
-        cloudflare_client_id: '', // Backend doesn't return credentials for security
-        cloudflare_client_secret: '',
+        cloudflare_client_id: "", // Backend doesn't return credentials for security
+        cloudflare_client_secret: "",
         name: defaultConfig.name,
-        local_url: defaultConfig.local_url
+        local_url: defaultConfig.local_url,
       };
     } catch (error) {
-      console.error('Failed to get HA configuration:', error);
+      console.error("Failed to get HA configuration:", error);
       // Return null instead of throwing to prevent logout
       return null;
     }
   }
 
-  async getAllConfigs(): Promise<Array<HAConfig & { id: string; created_at: string; updated_at: string }>> {
+  async getAllConfigs(): Promise<
+    Array<HAConfig & { id: string; created_at: string; updated_at: string }>
+  > {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/config`, { headers });
@@ -198,26 +222,26 @@ class HomeAssistantService {
         if (response.status === 404) {
           return [];
         }
-        await this.handleApiError(response, 'Get all configurations');
+        await this.handleApiError(response, "Get all configurations");
       }
 
       const backendConfigs = await response.json();
-      
+
       // Transform backend response to frontend format
       return backendConfigs.map((config: any) => ({
         id: config.id,
         url: config.url,
-        token: '', // Backend doesn't return the token for security
+        token: "", // Backend doesn't return the token for security
         enabled: config.is_default,
-        cloudflare_client_id: '', // Backend doesn't return credentials for security
-        cloudflare_client_secret: '',
+        cloudflare_client_id: "", // Backend doesn't return credentials for security
+        cloudflare_client_secret: "",
         name: config.name,
         local_url: config.local_url,
         created_at: config.created_at,
-        updated_at: config.updated_at
+        updated_at: config.updated_at,
       }));
     } catch (error) {
-      console.error('Failed to get all HA configurations:', error);
+      console.error("Failed to get all HA configurations:", error);
       throw error;
     }
   }
@@ -226,14 +250,14 @@ class HomeAssistantService {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/config/${configId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers,
       });
 
-      await this.handleApiError(response, 'Delete configuration');
-      toast.success('Configuration deleted successfully');
+      await this.handleApiError(response, "Delete configuration");
+      toast.success("Configuration deleted successfully");
     } catch (error) {
-      console.error('Failed to delete HA configuration:', error);
+      console.error("Failed to delete HA configuration:", error);
       throw error;
     }
   }
@@ -246,7 +270,7 @@ class HomeAssistantService {
         return await this.createConfig(config);
       }
     } catch (error) {
-      console.error('Failed to save HA configuration:', error);
+      console.error("Failed to save HA configuration:", error);
       throw error;
     }
   }
@@ -255,13 +279,15 @@ class HomeAssistantService {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/config`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({
           name: config.name,
           url: config.url,
           access_token: config.token,
-          cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
+          cloudflare_enabled: !!(
+            config.cloudflare_client_id && config.cloudflare_client_secret
+          ),
           cloudflare_client_id: config.cloudflare_client_id,
           cloudflare_client_secret: config.cloudflare_client_secret,
           is_default: config.enabled,
@@ -269,33 +295,38 @@ class HomeAssistantService {
         }),
       });
 
-      await this.handleApiError(response, 'Create configuration');
+      await this.handleApiError(response, "Create configuration");
       const result = await response.json();
-      toast.success('Configuration created successfully');
-      
+      toast.success("Configuration created successfully");
+
       return {
         ...config,
         id: result.id,
         created_at: result.created_at,
-        updated_at: result.updated_at
+        updated_at: result.updated_at,
       };
     } catch (error) {
-      console.error('Failed to create HA configuration:', error);
+      console.error("Failed to create HA configuration:", error);
       throw error;
     }
   }
 
-  private async updateConfig(configId: string, config: HAConfig): Promise<HAConfig> {
+  private async updateConfig(
+    configId: string,
+    config: HAConfig,
+  ): Promise<HAConfig> {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/config/${configId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers,
         body: JSON.stringify({
           name: config.name,
           url: config.url,
           access_token: config.token,
-          cloudflare_enabled: !!(config.cloudflare_client_id && config.cloudflare_client_secret),
+          cloudflare_enabled: !!(
+            config.cloudflare_client_id && config.cloudflare_client_secret
+          ),
           cloudflare_client_id: config.cloudflare_client_id,
           cloudflare_client_secret: config.cloudflare_client_secret,
           is_default: config.enabled,
@@ -303,61 +334,66 @@ class HomeAssistantService {
         }),
       });
 
-      await this.handleApiError(response, 'Update configuration');
+      await this.handleApiError(response, "Update configuration");
       const result = await response.json();
-      toast.success('Configuration updated successfully');
-      
+      toast.success("Configuration updated successfully");
+
       return {
         ...config,
         id: result.id,
         created_at: result.created_at,
-        updated_at: result.updated_at
+        updated_at: result.updated_at,
       };
     } catch (error) {
-      console.error('Failed to update HA configuration:', error);
+      console.error("Failed to update HA configuration:", error);
       throw error;
     }
   }
 
   async testConnection(
-    url: string, 
-    token: string, 
-    options?: { cloudflare_client_id?: string; cloudflare_client_secret?: string }
+    url: string,
+    token: string,
+    options?: {
+      cloudflare_client_id?: string;
+      cloudflare_client_secret?: string;
+    },
   ): Promise<HAConnectionStatus> {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/test-connection`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({
           url,
           access_token: token,
-          cloudflare_enabled: !!(options?.cloudflare_client_id && options?.cloudflare_client_secret),
+          cloudflare_enabled: !!(
+            options?.cloudflare_client_id && options?.cloudflare_client_secret
+          ),
           cloudflare_client_id: options?.cloudflare_client_id,
           cloudflare_client_secret: options?.cloudflare_client_secret,
         }),
       });
 
-      await this.handleApiError(response, 'Test connection');
+      await this.handleApiError(response, "Test connection");
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success('Connection test successful');
+        toast.success("Connection test successful");
       } else {
         toast.error(`Connection test failed: ${result.message}`);
       }
-      
+
       return {
         connected: result.success,
         version: result.version,
-        error: result.success ? undefined : result.message
+        error: result.success ? undefined : result.message,
       };
     } catch (error) {
-      console.error('Connection test failed:', error);
-      toast.error('Connection test failed');
-      return { 
-        connected: false, 
-        error: 'Connection test failed' 
+      console.error("Connection test failed:", error);
+      toast.error("Connection test failed");
+      return {
+        connected: false,
+        error: "Connection test failed",
       };
     }
   }
@@ -375,54 +411,56 @@ class HomeAssistantService {
           version: undefined,
           device_count: 0,
           last_updated: undefined,
-          error: 'No Home Assistant configuration found'
+          error: "No Home Assistant configuration found",
         };
       }
 
       if (response.status === 500) {
         // Server error - don't sign out user, just return disconnected status
-        console.error('Home Assistant service error:', response.statusText);
+        console.error("Home Assistant service error:", response.statusText);
         return {
           connected: false,
           version: undefined,
           device_count: 0,
           last_updated: undefined,
-          error: 'Home Assistant service unavailable'
+          error: "Home Assistant service unavailable",
         };
       }
 
       if (response.status === 401) {
         // For status checks, don't auto-logout on 401 - just return disconnected status
-        console.log('Home Assistant status check failed - user not authenticated for this integration');
+        console.log(
+          "Home Assistant status check failed - user not authenticated for this integration",
+        );
         return {
           connected: false,
           version: undefined,
           device_count: 0,
           last_updated: undefined,
-          error: 'Authentication required for Home Assistant integration'
+          error: "Authentication required for Home Assistant integration",
         };
       }
 
       // Only call handleApiError for other errors (not 401)
-      await this.handleApiError(response, 'Get status');
+      await this.handleApiError(response, "Get status");
       const result = await response.json();
-      
+
       return {
         connected: result.connected,
         version: result.version,
         device_count: result.device_count,
         last_updated: result.last_updated,
-        error: result.error
+        error: result.error,
       };
     } catch (error) {
-      console.error('Failed to get HA status:', error);
+      console.error("Failed to get HA status:", error);
       // Return a safe default instead of throwing
       return {
         connected: false,
         version: undefined,
         device_count: 0,
         last_updated: undefined,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -431,17 +469,17 @@ class HomeAssistantService {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/discover`, {
-        method: 'POST',
+        method: "POST",
         headers,
       });
 
-      await this.handleApiError(response, 'Discover devices');
+      await this.handleApiError(response, "Discover devices");
       const result = await response.json();
-      
+
       // Extract devices array from DeviceListResponse
       return result.devices || [];
     } catch (error) {
-      console.error('Failed to discover HA devices:', error);
+      console.error("Failed to discover HA devices:", error);
       throw error;
     }
   }
@@ -451,13 +489,13 @@ class HomeAssistantService {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/devices`, { headers });
 
-      await this.handleApiError(response, 'Get devices');
+      await this.handleApiError(response, "Get devices");
       const result = await response.json();
-      
-      // Extract devices array from DeviceListResponse  
+
+      // Extract devices array from DeviceListResponse
       return result.devices || [];
     } catch (error) {
-      console.error('Failed to get HA devices:', error);
+      console.error("Failed to get HA devices:", error);
       throw error;
     }
   }
@@ -465,15 +503,17 @@ class HomeAssistantService {
   async getDevice(entityId: string): Promise<HADevice> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/${entityId}`, { headers });
+      const response = await fetch(`${this.baseUrl}/devices/${entityId}`, {
+        headers,
+      });
 
-      await this.handleApiError(response, 'Get device');
+      await this.handleApiError(response, "Get device");
       const result = await response.json();
-      
+
       // Extract device from DeviceDetailsResponse
       return result.device || null;
     } catch (error) {
-      console.error('Failed to get HA device:', error);
+      console.error("Failed to get HA device:", error);
       throw error;
     }
   }
@@ -481,69 +521,84 @@ class HomeAssistantService {
   async controlDevice(request: DeviceControlRequest): Promise<void> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/${request.entity_id}/control`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          action: request.action,
-          options: request.options,
-          duration: request.duration,
-        }),
-      });
+      const response = await fetch(
+        `${this.baseUrl}/devices/${request.entity_id}/control`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            action: request.action,
+            options: request.options,
+            duration: request.duration,
+          }),
+        },
+      );
 
-      await this.handleApiError(response, 'Control device');
+      await this.handleApiError(response, "Control device");
       toast.success(`Device ${request.action} successful`);
     } catch (error) {
-      console.error('Failed to control HA device:', error);
-      toast.error('Failed to control device');
+      console.error("Failed to control HA device:", error);
+      toast.error("Failed to control device");
       throw error;
     }
   }
 
   async controlLight(
-    entityId: string, 
-    action: 'turn_on' | 'turn_off' | 'toggle', 
-    options?: { brightness?: number; color?: string }
+    entityId: string,
+    action: "turn_on" | "turn_off" | "toggle",
+    options?: { brightness?: number; color?: string },
   ): Promise<void> {
     return this.controlDevice({
       entity_id: entityId,
       action,
-      options
+      options,
     });
   }
 
-  async controlIrrigation(entityId: string, action: 'open' | 'close' | 'pulse', duration?: number): Promise<void> {
-    const actionMap = { open: 'turn_on', close: 'turn_off', pulse: 'toggle' } as const;
+  async controlIrrigation(
+    entityId: string,
+    action: "open" | "close" | "pulse",
+    duration?: number,
+  ): Promise<void> {
+    const actionMap = {
+      open: "turn_on",
+      close: "turn_off",
+      pulse: "toggle",
+    } as const;
     return this.controlDevice({
       entity_id: entityId,
       action: actionMap[action],
-      duration
+      duration,
     });
   }
 
   async getAssignments(): Promise<DeviceAssignment[]> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/assignments`, { headers });
+      const response = await fetch(`${this.baseUrl}/devices/assignments`, {
+        headers,
+      });
 
       // Handle the case where no Home Assistant configuration exists
       if (response.status === 404) {
         return []; // Return empty array instead of throwing error
       }
 
-      await this.handleApiError(response, 'Get assignments');
+      await this.handleApiError(response, "Get assignments");
       const result = await response.json();
       return result.assignments || []; // Backend returns {assignments: [...], count: N}
     } catch (error) {
-      console.error('Failed to get device assignments:', error);
+      console.error("Failed to get device assignments:", error);
       throw error;
     }
   }
 
-  async saveAssignment(assignment: DeviceAssignment): Promise<DeviceAssignment> {
+  async saveAssignment(
+    assignment: DeviceAssignment,
+  ): Promise<DeviceAssignment> {
     try {
       const headers = await this.getAuthHeaders();
-      
+
       // Prepare the request body to match backend DeviceAssignmentRequest model
       const requestBody = {
         shelf_id: assignment.shelf_id || null,
@@ -551,23 +606,26 @@ class HomeAssistantService {
         row_id: assignment.row_id || null,
         farm_id: assignment.farm_id || null,
         friendly_name: assignment.friendly_name || null,
-        assigned_by: assignment.assigned_by || null
+        assigned_by: assignment.assigned_by || null,
       };
-      
-      const response = await fetch(`${this.baseUrl}/devices/${assignment.entity_id}/assign`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      });
 
-      await this.handleApiError(response, 'Save assignment');
+      const response = await fetch(
+        `${this.baseUrl}/devices/${assignment.entity_id}/assign`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestBody),
+        },
+      );
+
+      await this.handleApiError(response, "Save assignment");
       const result = await response.json();
-      toast.success('Device assignment saved successfully');
-      
+      toast.success("Device assignment saved successfully");
+
       // Backend returns { success: true, message: "...", assignment: {...} }
       return result.assignment || result;
     } catch (error) {
-      console.error('Failed to save device assignment:', error);
+      console.error("Failed to save device assignment:", error);
       throw error;
     }
   }
@@ -575,89 +633,108 @@ class HomeAssistantService {
   async removeAssignment(entityId: string): Promise<void> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/${entityId}/assignment`, {
-        method: 'DELETE',
-        headers,
-      });
+      const response = await fetch(
+        `${this.baseUrl}/devices/${entityId}/assignment`,
+        {
+          method: "DELETE",
+          headers,
+        },
+      );
 
-      await this.handleApiError(response, 'Remove assignment');
-      toast.success('Device assignment removed successfully');
+      await this.handleApiError(response, "Remove assignment");
+      toast.success("Device assignment removed successfully");
     } catch (error) {
-      console.error('Failed to remove device assignment:', error);
+      console.error("Failed to remove device assignment:", error);
       throw error;
     }
   }
 
   // Device Import Methods
-  async importDevices(request: ImportDevicesRequest): Promise<ImportDevicesResponse> {
+  async importDevices(
+    request: ImportDevicesRequest,
+  ): Promise<ImportDevicesResponse> {
     try {
       const headers = await this.getAuthHeaders();
-      console.log('🚀 Importing devices request:', request);
-      
+      console.log("🚀 Importing devices request:", request);
+
       const response = await fetch(`${this.baseUrl}/devices/import`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify(request),
       });
 
-      await this.handleApiError(response, 'Import devices');
+      await this.handleApiError(response, "Import devices");
       const result = await response.json();
-      console.log('✅ Import devices response:', result);
-      
+      console.log("✅ Import devices response:", result);
+
       if (result.success) {
-        toast.success(`Successfully imported ${result.imported_count} device(s)`);
+        toast.success(
+          `Successfully imported ${result.imported_count} device(s)`,
+        );
       } else if (result.errors?.length > 0) {
-        toast.error(`Import completed with errors: ${result.errors.join(', ')}`);
+        toast.error(
+          `Import completed with errors: ${result.errors.join(", ")}`,
+        );
       }
-      
+
       return result;
     } catch (error) {
-      console.error('❌ Failed to import devices:', error);
-      toast.error('Failed to import devices');
+      console.error("❌ Failed to import devices:", error);
+      toast.error("Failed to import devices");
       throw error;
     }
   }
 
-  async getImportedDevices(deviceType?: string, assigned?: boolean): Promise<ImportedDevice[]> {
+  async getImportedDevices(
+    deviceType?: string,
+    assigned?: boolean,
+  ): Promise<ImportedDevice[]> {
     try {
       const headers = await this.getAuthHeaders();
       const params = new URLSearchParams();
-      if (deviceType) params.append('device_type', deviceType);
-      if (assigned !== undefined) params.append('assigned', assigned.toString());
-      
-      const url = `${this.baseUrl}/devices/imported${params.toString() ? '?' + params.toString() : ''}`;
-      console.log('🔍 Calling getImportedDevices URL:', url);
-      
+      if (deviceType) params.append("device_type", deviceType);
+      if (assigned !== undefined)
+        params.append("assigned", assigned.toString());
+
+      const url = `${this.baseUrl}/devices/imported${params.toString() ? "?" + params.toString() : ""}`;
+      console.log("🔍 Calling getImportedDevices URL:", url);
+
       const response = await fetch(url, { headers });
 
-      await this.handleApiError(response, 'Get imported devices');
+      await this.handleApiError(response, "Get imported devices");
       const data = await response.json();
-      console.log('📦 Raw getImportedDevices response:', data);
-      console.log('🎯 Returning devices:', data.devices || []);
-      
+      console.log("📦 Raw getImportedDevices response:", data);
+      console.log("🎯 Returning devices:", data.devices || []);
+
       return data.devices || [];
     } catch (error) {
-      console.error('❌ Error in getImportedDevices:', error);
+      console.error("❌ Error in getImportedDevices:", error);
       throw error;
     }
   }
 
-  async updateImportedDevice(entityId: string, updates: { name?: string; device_type?: string }): Promise<ImportedDevice> {
+  async updateImportedDevice(
+    entityId: string,
+    updates: { name?: string; device_type?: string },
+  ): Promise<ImportedDevice> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/imported/${entityId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(updates),
-      });
+      const response = await fetch(
+        `${this.baseUrl}/devices/imported/${entityId}`,
+        {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(updates),
+        },
+      );
 
-      await this.handleApiError(response, 'Update imported device');
+      await this.handleApiError(response, "Update imported device");
       const result = await response.json();
-      toast.success('Device updated successfully');
+      toast.success("Device updated successfully");
       return result;
     } catch (error) {
-      console.error('Failed to update imported device:', error);
-      toast.error('Failed to update device');
+      console.error("Failed to update imported device:", error);
+      toast.error("Failed to update device");
       throw error;
     }
   }
@@ -665,21 +742,27 @@ class HomeAssistantService {
   async removeImportedDevice(entityId: string): Promise<void> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/devices/imported/${entityId}`, {
-        method: 'DELETE',
-        headers,
-      });
+      const response = await fetch(
+        `${this.baseUrl}/devices/imported/${entityId}`,
+        {
+          method: "DELETE",
+          headers,
+        },
+      );
 
-      await this.handleApiError(response, 'Remove imported device');
-      toast.success('Device removed from library');
+      await this.handleApiError(response, "Remove imported device");
+      toast.success("Device removed from library");
     } catch (error) {
-      console.error('Failed to remove imported device:', error);
-      toast.error('Failed to remove device');
+      console.error("Failed to remove imported device:", error);
+      toast.error("Failed to remove device");
       throw error;
     }
   }
 
-  createDeviceSubscription(entityId: string, callback: (device: HADevice) => void): () => void {
+  createDeviceSubscription(
+    entityId: string,
+    callback: (device: HADevice) => void,
+  ): () => void {
     this.subscriptions.set(entityId, callback);
     this.eventListeners.set(entityId, (entity) => {
       // Convert HomeAssistantEntity to HADevice format
@@ -690,10 +773,10 @@ class HomeAssistantService {
         last_changed: entity.last_changed,
         last_updated: entity.last_updated,
         friendly_name: entity.friendly_name || entity.attributes.friendly_name,
-        domain: entity.entity_id.split('.')[0],
+        domain: entity.entity_id.split(".")[0],
         device_class: entity.attributes.device_class,
         unit_of_measurement: entity.attributes.unit_of_measurement,
-        area: entity.attributes.area
+        area: entity.attributes.area,
       };
       callback(device);
     });
@@ -705,21 +788,26 @@ class HomeAssistantService {
   }
 
   private async initializeWebSocket(): Promise<void> {
-    if (!this.wsConnection || this.wsConnection.readyState === WebSocket.CLOSED) {
-      const { data: { session } } = await supabase.auth.getSession();
+    if (
+      !this.wsConnection ||
+      this.wsConnection.readyState === WebSocket.CLOSED
+    ) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        throw new Error('No valid session for WebSocket connection');
+        throw new Error("No valid session for WebSocket connection");
       }
 
-      const wsUrl = `${this.baseUrl.replace('http', 'ws')}/ws?token=${session.access_token}`;
+      const wsUrl = `${this.baseUrl.replace("http", "ws")}/ws?token=${session.access_token}`;
       this.wsConnection = new WebSocket(wsUrl);
-      
+
       this.wsConnection.onopen = () => {
-        console.log('WebSocket connected');
+        console.log("WebSocket connected");
         this.isAuthenticated = false;
         this.reconnectAttempts = 0;
-        this.sendMessage({ type: 'auth', access_token: session.access_token });
-        toast.success('Connected to Home Assistant');
+        this.sendMessage({ type: "auth", access_token: session.access_token });
+        toast.success("Connected to Home Assistant");
       };
 
       this.wsConnection.onmessage = (event) => {
@@ -728,63 +816,73 @@ class HomeAssistantService {
       };
 
       this.wsConnection.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
+        console.log("WebSocket disconnected:", event.code, event.reason);
         this.isAuthenticated = false;
-        
+
         if (event.code === 1008 || event.code === 4001) {
-          toast.error('WebSocket authentication failed. Please sign in again.');
+          toast.error("WebSocket authentication failed. Please sign in again.");
           supabase.auth.signOut();
           return;
         }
-        
-        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+
+        if (
+          event.code !== 1000 &&
+          this.reconnectAttempts < this.maxReconnectAttempts
+        ) {
           this.scheduleReconnect();
         } else if (event.code !== 1000) {
-          toast.error('WebSocket connection lost. Maximum retries exceeded.');
+          toast.error("WebSocket connection lost. Maximum retries exceeded.");
         }
       };
 
       this.wsConnection.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        toast.error('WebSocket connection error');
+        console.error("WebSocket error:", error);
+        toast.error("WebSocket connection error");
       };
     }
   }
 
-  private async handleWebSocketMessage(message: WebSocketMessage): Promise<void> {
+  private async handleWebSocketMessage(
+    message: WebSocketMessage,
+  ): Promise<void> {
     switch (message.type) {
-      case 'auth_required':
-        const { data: { session } } = await supabase.auth.getSession();
+      case "auth_required":
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.access_token) {
-          this.sendMessage({ type: 'auth', access_token: session.access_token });
+          this.sendMessage({
+            type: "auth",
+            access_token: session.access_token,
+          });
         }
         break;
-        
-      case 'auth_ok':
+
+      case "auth_ok":
         this.isAuthenticated = true;
-        console.log('WebSocket authenticated');
+        console.log("WebSocket authenticated");
         // Subscribe to state changes
         this.sendMessage({
-          type: 'subscribe_events',
+          type: "subscribe_events",
           id: this.messageId++,
-          event_type: 'state_changed'
+          event_type: "state_changed",
         });
         break;
-        
-      case 'auth_invalid':
-        console.error('WebSocket authentication failed');
-        toast.error('WebSocket authentication failed');
+
+      case "auth_invalid":
+        console.error("WebSocket authentication failed");
+        toast.error("WebSocket authentication failed");
         this.wsConnection?.close();
         break;
-        
-      case 'result':
+
+      case "result":
         if (message.success) {
-          console.log('Successfully subscribed to events');
+          console.log("Successfully subscribed to events");
         }
         break;
-        
-      case 'event':
-        if (message.event?.event_type === 'state_changed') {
+
+      case "event":
+        if (message.event?.event_type === "state_changed") {
           const { entity_id, new_state } = message.event.data;
           const listener = this.eventListeners.get(entity_id);
           if (listener) {
@@ -792,9 +890,9 @@ class HomeAssistantService {
           }
         }
         break;
-        
-      case 'error':
-        console.error('WebSocket error:', message.error);
+
+      case "error":
+        console.error("WebSocket error:", message.error);
         toast.error(`Home Assistant error: ${message.error?.message}`);
         break;
     }
@@ -802,14 +900,16 @@ class HomeAssistantService {
 
   private scheduleReconnect(): void {
     this.reconnectAttempts++;
-    console.log(`Scheduling WebSocket reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${this.reconnectDelay}ms`);
-    
+    console.log(
+      `Scheduling WebSocket reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${this.reconnectDelay}ms`,
+    );
+
     setTimeout(() => {
-      this.initializeWebSocket().catch(error => {
-        console.error('WebSocket reconnection failed:', error);
+      this.initializeWebSocket().catch((error) => {
+        console.error("WebSocket reconnection failed:", error);
       });
     }, this.reconnectDelay);
-    
+
     // Exponential backoff with max delay of 30 seconds
     this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000);
   }
@@ -821,7 +921,10 @@ class HomeAssistantService {
   }
 
   // Subscribe to entity state changes
-  subscribeToEntity(entityId: string, callback: (entity: HomeAssistantEntity) => void): void {
+  subscribeToEntity(
+    entityId: string,
+    callback: (entity: HomeAssistantEntity) => void,
+  ): void {
     this.eventListeners.set(entityId, callback);
   }
 
@@ -832,7 +935,7 @@ class HomeAssistantService {
 
   disconnectWebSocket(): void {
     if (this.wsConnection) {
-      this.wsConnection.close(1000, 'Deliberate disconnect');
+      this.wsConnection.close(1000, "Deliberate disconnect");
       this.wsConnection = null;
     }
     this.subscriptions.clear();
@@ -844,7 +947,9 @@ class HomeAssistantService {
 
   // Get connection status
   isConnected(): boolean {
-    return this.wsConnection?.readyState === WebSocket.OPEN && this.isAuthenticated;
+    return (
+      this.wsConnection?.readyState === WebSocket.OPEN && this.isAuthenticated
+    );
   }
 
   // Initialize connection with authentication awareness
@@ -852,13 +957,13 @@ class HomeAssistantService {
     try {
       await this.initializeWebSocket();
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
-      toast.error('Failed to connect to Home Assistant');
+      console.error("Failed to connect WebSocket:", error);
+      toast.error("Failed to connect to Home Assistant");
       throw error;
     }
   }
 }
 
 // Export singleton instance
-export const homeAssistantService = new HomeAssistantService(); 
-export default homeAssistantService; 
+export const homeAssistantService = new HomeAssistantService();
+export default homeAssistantService;

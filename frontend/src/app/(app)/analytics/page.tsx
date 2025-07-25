@@ -1,58 +1,40 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FarmControlButton } from "@/components/ui/farm-control-button";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { FarmSelect } from "@/components/ui/farm-select";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
-import { 
-  FaChartBar, 
-  FaChartLine, 
-  FaArrowUp, 
-  FaArrowDown, 
-  FaDollarSign, 
-  FaLeaf, 
-  FaUsers, 
-  FaCalendarAlt,
-  FaSearch, 
-  FaBrain, 
-  FaBullseye,
-  FaCog,
-  FaDownload,
-  FaExpand,
-  FaFilter
-} from '@/lib/icons';
-import { 
-  Calendar, 
-  Download, 
-  TrendingUp, 
-  TrendingDown,
-  Award, 
-  BarChart3, 
-  Search, 
-  Filter,
-  PieChart,
-  Activity 
-} from "lucide-react";
 
-import { 
-  AnalyticsDashboard, 
-  PerformanceMetrics, 
+import {
+  AnalyticsDashboard,
+  PerformanceMetrics,
   SmartInsights,
-  EnvironmentalChart 
-} from '@/components/features/business';
-import { usePageData } from '@/components/shared/hooks/usePageData';
-import { MetricsGrid, MetricCard } from '@/components/shared/metrics';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { LoadingCard } from '@/components/ui/loading';
-import { SkeletonDashboard } from '@/components/ui/skeleton-extended';
+  EnvironmentalChart,
+} from "@/components/features/business";
+import { usePageData } from "@/components/shared/hooks/usePageData";
+import { MetricsGrid } from "@/components/shared/metrics";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { FarmSelect } from "@/components/ui/farm-select";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { SkeletonDashboard } from "@/components/ui/skeleton-extended";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
+  FaChartLine,
+  FaLeaf,
+  FaCalendarAlt,
+  FaBrain,
+  FaBullseye,
+  FaDownload,
+  FaFilter,
+} from "@/lib/icons";
 
 interface HistoricalGrow {
   id: string;
@@ -62,7 +44,7 @@ interface HistoricalGrow {
   species_name: string;
   start_date: string;
   end_date: string;
-  status: 'completed' | 'aborted';
+  status: "completed" | "aborted";
   yield_kg?: number;
   duration_days: number;
   target_duration_days: number;
@@ -78,10 +60,12 @@ interface AnalyticsData {
 
 const AnalyticsPage = () => {
   const [historicalGrows, setHistoricalGrows] = useState<HistoricalGrow[]>([]);
-  const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
-  const [sortBy, setSortBy] = useState('end_date');
+  const [timeRange, setTimeRange] = useState<"1h" | "24h" | "7d" | "30d">(
+    "24h",
+  );
+  const [sortBy, setSortBy] = useState("end_date");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedFarm, setSelectedFarm] = useState<string>('all');
+  const [selectedFarm, setSelectedFarm] = useState<string>("all");
 
   // Use standardized search and filter hooks
   const {
@@ -89,10 +73,10 @@ const AnalyticsPage = () => {
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
+    hasSearch,
   } = useFarmSearch<HistoricalGrow>({
-    searchFields: ['species_name', 'recipe_name', 'shelf_name', 'farm_name'],
-    caseSensitive: false
+    searchFields: ["species_name", "recipe_name", "shelf_name", "farm_name"],
+    caseSensitive: false,
   });
 
   const {
@@ -102,19 +86,20 @@ const AnalyticsPage = () => {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<HistoricalGrow>();
 
   // Use our standardized data loading hook
-  const { data: analyticsData, isLoading: analyticsDataLoading } = usePageData<AnalyticsData>({
-    storageKey: 'analytics-integrations-connected',
-    mockData: {
-      activeInsights: 24,
-      farmEfficiency: 94.2,
-      dataPoints: "12.8K",
-      predictions: 89
-    }
-  });
+  const { data: analyticsData, isLoading: analyticsDataLoading } =
+    usePageData<AnalyticsData>({
+      storageKey: "analytics-integrations-connected",
+      mockData: {
+        activeInsights: 24,
+        farmEfficiency: 94.2,
+        dataPoints: "12.8K",
+        predictions: 89,
+      },
+    });
 
   // Load historical grow data
   useEffect(() => {
@@ -131,7 +116,7 @@ const AnalyticsPage = () => {
         yield_kg: 2.3,
         duration_days: 35,
         target_duration_days: 35,
-        notes: "Excellent harvest - exceeded yield expectations"
+        notes: "Excellent harvest - exceeded yield expectations",
       },
       {
         id: "hist-2",
@@ -145,7 +130,7 @@ const AnalyticsPage = () => {
         yield_kg: 1.8,
         duration_days: 54,
         target_duration_days: 49,
-        notes: "Good quality, slightly longer than expected"
+        notes: "Good quality, slightly longer than expected",
       },
       {
         id: "hist-3",
@@ -158,7 +143,7 @@ const AnalyticsPage = () => {
         status: "aborted",
         duration_days: 39,
         target_duration_days: 35,
-        notes: "Pest infestation - had to abort"
+        notes: "Pest infestation - had to abort",
       },
       {
         id: "hist-4",
@@ -172,7 +157,7 @@ const AnalyticsPage = () => {
         yield_kg: 1.9,
         duration_days: 49,
         target_duration_days: 49,
-        notes: "Perfect harvest timing"
+        notes: "Perfect harvest timing",
       },
       {
         id: "hist-5",
@@ -186,8 +171,8 @@ const AnalyticsPage = () => {
         yield_kg: 2.1,
         duration_days: 38,
         target_duration_days: 35,
-        notes: "Good yield, slightly extended growing period"
-      }
+        notes: "Good yield, slightly extended growing period",
+      },
     ];
 
     setHistoricalGrows(mockHistory);
@@ -196,97 +181,114 @@ const AnalyticsPage = () => {
 
   // Create filter definitions for analytics data
   const filterDefinitions: FilterDefinition[] = useMemo(() => {
-    const uniqueSpecies = [...new Set(historicalGrows.map(grow => grow.species_name))];
-    const uniqueFarms = [...new Set(historicalGrows.map(grow => grow.farm_name))];
-    
+    const uniqueSpecies = [
+      ...new Set(historicalGrows.map((grow) => grow.species_name)),
+    ];
+    const uniqueFarms = [
+      ...new Set(historicalGrows.map((grow) => grow.farm_name)),
+    ];
+
     return [
       {
-        id: 'status',
-        label: 'Status',
-        placeholder: 'Filter by status',
+        id: "status",
+        label: "Status",
+        placeholder: "Filter by status",
         options: [
-          { value: 'all', label: 'All Statuses' },
-          { value: 'completed', label: 'Completed' },
-          { value: 'aborted', label: 'Aborted' }
+          { value: "all", label: "All Statuses" },
+          { value: "completed", label: "Completed" },
+          { value: "aborted", label: "Aborted" },
         ],
-        defaultValue: 'all'
+        defaultValue: "all",
       },
       {
-        id: 'species',
-        label: 'Species',
-        placeholder: 'Filter by species',
+        id: "species",
+        label: "Species",
+        placeholder: "Filter by species",
         options: [
-          { value: 'all', label: 'All Species' },
-          ...uniqueSpecies.map(species => ({
+          { value: "all", label: "All Species" },
+          ...uniqueSpecies.map((species) => ({
             value: species.toLowerCase(),
-            label: species
-          }))
+            label: species,
+          })),
         ],
-        defaultValue: 'all'
+        defaultValue: "all",
       },
       {
-        id: 'farm',
-        label: 'Farm',
-        placeholder: 'Filter by farm',
+        id: "farm",
+        label: "Farm",
+        placeholder: "Filter by farm",
         options: [
-          { value: 'all', label: 'All Farms' },
-          ...uniqueFarms.map(farm => ({
+          { value: "all", label: "All Farms" },
+          ...uniqueFarms.map((farm) => ({
             value: farm.toLowerCase(),
-            label: farm
-          }))
+            label: farm,
+          })),
         ],
-        defaultValue: 'all'
-      }
+        defaultValue: "all",
+      },
     ];
   }, [historicalGrows]);
 
   // Filter change handlers
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // Apply combined filtering
   const filteredGrows = useMemo(() => {
     let result = historicalGrows;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     return result;
   }, [historicalGrows, searchFilterItems, filterFilterItems]);
 
   const sortedGrows = useMemo(() => {
     return [...filteredGrows].sort((a, b) => {
       switch (sortBy) {
-        case 'yield':
+        case "yield":
           return (b.yield_kg || 0) - (a.yield_kg || 0);
-        case 'duration':
+        case "duration":
           return b.duration_days - a.duration_days;
-        case 'species':
+        case "species":
           return a.species_name.localeCompare(b.species_name);
         default: // end_date
-          return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
+          return (
+            new Date(b.end_date).getTime() - new Date(a.end_date).getTime()
+          );
       }
     });
   }, [filteredGrows, sortBy]);
 
   // Analytics calculations
   const totalGrows = filteredGrows.length;
-  const completedGrows = filteredGrows.filter(g => g.status === 'completed');
-  const totalYield = completedGrows.reduce((sum, grow) => sum + (grow.yield_kg || 0), 0);
-  const averageYield = completedGrows.length > 0 ? totalYield / completedGrows.length : 0;
-  const successRate = totalGrows > 0 ? (completedGrows.length / totalGrows) * 100 : 0;
+  const completedGrows = filteredGrows.filter((g) => g.status === "completed");
+  const totalYield = completedGrows.reduce(
+    (sum, grow) => sum + (grow.yield_kg || 0),
+    0,
+  );
+  const averageYield =
+    completedGrows.length > 0 ? totalYield / completedGrows.length : 0;
+  const successRate =
+    totalGrows > 0 ? (completedGrows.length / totalGrows) * 100 : 0;
 
   // Business calculations (enhanced with real data)
   const estimatedRevenue = totalYield * 15; // Assuming $15/kg average price
@@ -295,23 +297,23 @@ const AnalyticsPage = () => {
 
   // Mock farm data
   const farms = [
-    { value: 'all', label: 'All Farms' },
-    { value: 'greenhouse-alpha', label: 'Greenhouse Alpha' },
-    { value: 'hydroponic-bay-2', label: 'Hydroponic Bay 2' },
-    { value: 'vertical-tower-1', label: 'Vertical Tower 1' }
+    { value: "all", label: "All Farms" },
+    { value: "greenhouse-alpha", label: "Greenhouse Alpha" },
+    { value: "hydroponic-bay-2", label: "Hydroponic Bay 2" },
+    { value: "vertical-tower-1", label: "Vertical Tower 1" },
   ];
 
   const timeRangeOptions = [
-    { value: '1h', label: 'Last Hour' },
-    { value: '24h', label: 'Last 24 Hours' },
-    { value: '7d', label: 'Last 7 Days' },
-    { value: '30d', label: 'Last 30 Days' }
+    { value: "1h", label: "Last Hour" },
+    { value: "24h", label: "Last 24 Hours" },
+    { value: "7d", label: "Last 7 Days" },
+    { value: "30d", label: "Last 30 Days" },
   ];
 
   // Handle search result selection
   const handleSearchResult = (result: any) => {
-    console.log('Search result:', result);
-    if (result.type === 'farm') {
+    console.log("Search result:", result);
+    if (result.type === "farm") {
       setSelectedFarm(result.id);
     }
   };
@@ -321,27 +323,35 @@ const AnalyticsPage = () => {
   };
 
   // Helper function to map grow status to StatusBadge status type
-  const getGrowStatus = (status: HistoricalGrow['status']) => {
+  const getGrowStatus = (status: HistoricalGrow["status"]) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'aborted': return 'error';
-      default: return 'info';
+      case "completed":
+        return "success";
+      case "aborted":
+        return "error";
+      default:
+        return "info";
     }
   };
 
   // Helper function to map metric type to StatusBadge status
   const getMetricStatus = (metricType: string) => {
     switch (metricType) {
-      case 'success-rate': return 'success';
-      case 'efficiency': return 'success';
-      case 'insights': return 'info';
-      case 'data-points': return 'info';
-      default: return 'info';
+      case "success-rate":
+        return "success";
+      case "efficiency":
+        return "success";
+      case "insights":
+        return "info";
+      case "data-points":
+        return "info";
+      default:
+        return "info";
     }
   };
 
   const exportData = () => {
-    console.log('Exporting analytics data...');
+    console.log("Exporting analytics data...");
     // Add export functionality here
   };
 
@@ -419,7 +429,9 @@ const AnalyticsPage = () => {
                 {/* Time Range Selector */}
                 <FarmSelect
                   value={timeRange}
-                  onChange={(e) => setTimeRange(e.target.value as '1h' | '24h' | '7d' | '30d')}
+                  onChange={(e) =>
+                    setTimeRange(e.target.value as "1h" | "24h" | "7d" | "30d")
+                  }
                   options={timeRangeOptions}
                   placeholder="Time Range"
                 />
@@ -429,10 +441,10 @@ const AnalyticsPage = () => {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   options={[
-                    { value: 'end_date', label: 'Sort by Date' },
-                    { value: 'yield', label: 'Sort by Yield' },
-                    { value: 'duration', label: 'Sort by Duration' },
-                    { value: 'species', label: 'Sort by Species' }
+                    { value: "end_date", label: "Sort by Date" },
+                    { value: "yield", label: "Sort by Yield" },
+                    { value: "duration", label: "Sort by Duration" },
+                    { value: "species", label: "Sort by Species" },
                   ]}
                   placeholder="Sort by"
                 />
@@ -441,64 +453,115 @@ const AnalyticsPage = () => {
           </Card>
 
           {/* Use standardized MetricsGrid for basic metrics overview */}
-          <MetricsGrid 
+          <MetricsGrid
             columns={4}
             metrics={[
               {
-                id: 'active-insights',
-                label: 'Active Insights',
+                id: "active-insights",
+                label: "Active Insights",
                 value: analyticsData?.activeInsights?.toString() || "0",
-                icon: () => <FaBrain className="text-farm-accent" />
+                icon: () => <FaBrain className="text-farm-accent" />,
               },
               {
-                id: 'farm-efficiency',
-                label: 'Farm Efficiency',
+                id: "farm-efficiency",
+                label: "Farm Efficiency",
                 value: `${analyticsData?.farmEfficiency || 0}%`,
-                icon: () => <FaBullseye className="text-green-600" />
+                icon: () => <FaBullseye className="text-green-600" />,
               },
               {
-                id: 'data-points',
-                label: 'Data Points',
+                id: "data-points",
+                label: "Data Points",
                 value: analyticsData?.dataPoints || "0",
-                icon: () => <FaChartLine className="text-blue-600" />
+                icon: () => <FaChartLine className="text-blue-600" />,
               },
               {
-                id: 'ai-predictions',
-                label: 'AI Predictions',
+                id: "ai-predictions",
+                label: "AI Predictions",
                 value: `${analyticsData?.predictions || 0}%`,
-                icon: () => <FaFilter className="text-purple-600" />
-              }
+                icon: () => <FaFilter className="text-purple-600" />,
+              },
             ]}
           />
 
           {/* Dashboard Content */}
           <div className="space-y-6">
             <AnalyticsDashboard
-              farmId={selectedFarm === 'all' ? undefined : selectedFarm}
+              farmId={selectedFarm === "all" ? undefined : selectedFarm}
               timeRange={timeRange}
               onWidgetClick={handleWidgetClick}
               className="space-y-6"
             />
-            
+
             {/* Environmental Monitoring */}
             <Card className="card-shadow">
               <CardHeader>
-                <CardTitle className="text-farm-title">Environmental Conditions</CardTitle>
+                <CardTitle className="text-farm-title">
+                  Environmental Conditions
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <EnvironmentalChart
                   data={[
-                    { timestamp: '2024-01-01T08:00:00Z', temperature: 72.5, humidity: 65, lightLevel: 350, co2: 420, vpd: 1.2 },
-                    { timestamp: '2024-01-01T12:00:00Z', temperature: 75.4, humidity: 68, lightLevel: 420, co2: 415, vpd: 1.4 },
-                    { timestamp: '2024-01-01T16:00:00Z', temperature: 74.8, humidity: 70, lightLevel: 380, co2: 410, vpd: 1.3 },
-                    { timestamp: '2024-01-01T20:00:00Z', temperature: 72.0, humidity: 72, lightLevel: 150, co2: 425, vpd: 1.1 },
-                    { timestamp: '2024-01-02T00:00:00Z', temperature: 71.2, humidity: 75, lightLevel: 50, co2: 440, vpd: 0.9 },
-                    { timestamp: '2024-01-02T04:00:00Z', temperature: 70.7, humidity: 78, lightLevel: 20, co2: 450, vpd: 0.8 },
-                    { timestamp: '2024-01-02T08:00:00Z', temperature: 72.1, humidity: 76, lightLevel: 360, co2: 420, vpd: 1.0 }
+                    {
+                      timestamp: "2024-01-01T08:00:00Z",
+                      temperature: 72.5,
+                      humidity: 65,
+                      lightLevel: 350,
+                      co2: 420,
+                      vpd: 1.2,
+                    },
+                    {
+                      timestamp: "2024-01-01T12:00:00Z",
+                      temperature: 75.4,
+                      humidity: 68,
+                      lightLevel: 420,
+                      co2: 415,
+                      vpd: 1.4,
+                    },
+                    {
+                      timestamp: "2024-01-01T16:00:00Z",
+                      temperature: 74.8,
+                      humidity: 70,
+                      lightLevel: 380,
+                      co2: 410,
+                      vpd: 1.3,
+                    },
+                    {
+                      timestamp: "2024-01-01T20:00:00Z",
+                      temperature: 72.0,
+                      humidity: 72,
+                      lightLevel: 150,
+                      co2: 425,
+                      vpd: 1.1,
+                    },
+                    {
+                      timestamp: "2024-01-02T00:00:00Z",
+                      temperature: 71.2,
+                      humidity: 75,
+                      lightLevel: 50,
+                      co2: 440,
+                      vpd: 0.9,
+                    },
+                    {
+                      timestamp: "2024-01-02T04:00:00Z",
+                      temperature: 70.7,
+                      humidity: 78,
+                      lightLevel: 20,
+                      co2: 450,
+                      vpd: 0.8,
+                    },
+                    {
+                      timestamp: "2024-01-02T08:00:00Z",
+                      temperature: 72.1,
+                      humidity: 76,
+                      lightLevel: 360,
+                      co2: 420,
+                      vpd: 1.0,
+                    },
                   ]}
                   title="Environmental Conditions (Last 24h)"
                   height={350}
-                  selectedMetrics={['temperature', 'humidity', 'lightLevel']}
+                  selectedMetrics={["temperature", "humidity", "lightLevel"]}
                   className="bg-farm-white"
                 />
               </CardContent>
@@ -508,7 +571,7 @@ const AnalyticsPage = () => {
 
         <TabsContent value="performance" className="space-y-6">
           <PerformanceMetrics
-            farmId={selectedFarm === 'all' ? undefined : selectedFarm}
+            farmId={selectedFarm === "all" ? undefined : selectedFarm}
             timeframe={timeRange}
             showGoals={true}
             showTrends={true}
@@ -518,7 +581,7 @@ const AnalyticsPage = () => {
 
         <TabsContent value="insights" className="space-y-6">
           <SmartInsights
-            farmId={selectedFarm === 'all' ? undefined : selectedFarm}
+            farmId={selectedFarm === "all" ? undefined : selectedFarm}
             showPredictions={true}
             showRecommendations={true}
             showAnomalies={true}
@@ -531,23 +594,39 @@ const AnalyticsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="card-shadow">
               <CardHeader>
-                <CardTitle className="text-farm-title">Historical Yields</CardTitle>
-                <CardDescription className="text-control-label">Completed grows and harvest data</CardDescription>
+                <CardTitle className="text-farm-title">
+                  Historical Yields
+                </CardTitle>
+                <CardDescription className="text-control-label">
+                  Completed grows and harvest data
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {sortedGrows.slice(0, 5).map((grow) => (
-                    <div key={grow.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div
+                      key={grow.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    >
                       <div className="flex items-center space-x-3">
                         <FaLeaf className="text-green-600" />
                         <div>
-                          <p className="text-control-label font-medium">{grow.species_name}</p>
-                          <p className="text-control-label opacity-70">{grow.shelf_name}</p>
+                          <p className="text-control-label font-medium">
+                            {grow.species_name}
+                          </p>
+                          <p className="text-control-label opacity-70">
+                            {grow.shelf_name}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sensor-value">{grow.yield_kg ? `${grow.yield_kg} kg` : 'N/A'}</p>
-                        <StatusBadge status={getGrowStatus(grow.status)} size="sm">
+                        <p className="text-sensor-value">
+                          {grow.yield_kg ? `${grow.yield_kg} kg` : "N/A"}
+                        </p>
+                        <StatusBadge
+                          status={getGrowStatus(grow.status)}
+                          size="sm"
+                        >
                           {grow.status}
                         </StatusBadge>
                       </div>
@@ -559,8 +638,12 @@ const AnalyticsPage = () => {
 
             <Card className="card-shadow">
               <CardHeader>
-                <CardTitle className="text-farm-title">Performance Summary</CardTitle>
-                <CardDescription className="text-control-label">Key performance indicators</CardDescription>
+                <CardTitle className="text-farm-title">
+                  Performance Summary
+                </CardTitle>
+                <CardDescription className="text-control-label">
+                  Key performance indicators
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -568,27 +651,39 @@ const AnalyticsPage = () => {
                     <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <div className="flex items-center justify-between">
                         <p className="text-control-label">Success Rate</p>
-                        <StatusBadge status="success" size="sm">High</StatusBadge>
+                        <StatusBadge status="success" size="sm">
+                          High
+                        </StatusBadge>
                       </div>
-                      <p className="text-sensor-value">{successRate.toFixed(1)}%</p>
+                      <p className="text-sensor-value">
+                        {successRate.toFixed(1)}%
+                      </p>
                     </div>
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <div className="flex items-center justify-between">
                         <p className="text-control-label">Avg Yield</p>
-                        <StatusBadge status="info" size="sm">Data</StatusBadge>
+                        <StatusBadge status="info" size="sm">
+                          Data
+                        </StatusBadge>
                       </div>
-                      <p className="text-sensor-value">{averageYield.toFixed(1)} kg</p>
+                      <p className="text-sensor-value">
+                        {averageYield.toFixed(1)} kg
+                      </p>
                     </div>
                     <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <div className="flex items-center justify-between">
                         <p className="text-control-label">Total Grows</p>
-                        <StatusBadge status="info" size="sm">Count</StatusBadge>
+                        <StatusBadge status="info" size="sm">
+                          Count
+                        </StatusBadge>
                       </div>
                       <p className="text-sensor-value">{totalGrows}</p>
                     </div>
                     <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg state-maintenance">
                       <p className="text-control-label">Est. Revenue</p>
-                      <p className="text-sensor-value">${estimatedRevenue.toFixed(0)}</p>
+                      <p className="text-sensor-value">
+                        ${estimatedRevenue.toFixed(0)}
+                      </p>
                     </div>
                   </div>
                 </div>

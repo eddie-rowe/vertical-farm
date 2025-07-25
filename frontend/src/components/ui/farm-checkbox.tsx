@@ -1,9 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
 
 const farmCheckboxVariants = cva(
   "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground transition-all duration-150",
@@ -16,9 +17,12 @@ const farmCheckboxVariants = cva(
       },
       validation: {
         default: "",
-        success: "border-[--validation-success] data-[state=checked]:bg-[--validation-success]",
-        warning: "border-[--validation-warning] data-[state=checked]:bg-[--validation-warning]",
-        error: "border-[--validation-error] data-[state=checked]:bg-[--validation-error]",
+        success:
+          "border-[--validation-success] data-[state=checked]:bg-[--validation-success]",
+        warning:
+          "border-[--validation-warning] data-[state=checked]:bg-[--validation-warning]",
+        error:
+          "border-[--validation-error] data-[state=checked]:bg-[--validation-error]",
         info: "border-[--validation-info] data-[state=checked]:bg-[--validation-info]",
       },
     },
@@ -26,7 +30,7 @@ const farmCheckboxVariants = cva(
       inputSize: "default",
       validation: "default",
     },
-  }
+  },
 );
 
 export interface FarmCheckboxProps
@@ -39,29 +43,32 @@ export interface FarmCheckboxProps
 }
 
 const FarmCheckbox = React.forwardRef<HTMLInputElement, FarmCheckboxProps>(
-  ({ 
-    className, 
-    inputSize, 
-    validation, 
-    label, 
-    description, 
-    errorText, 
-    onCheckedChange,
-    onChange,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      inputSize,
+      validation,
+      label,
+      description,
+      errorText,
+      onCheckedChange,
+      onChange,
+      ...props
+    },
+    ref,
+  ) => {
     const checkboxId = React.useId();
     const descId = React.useId();
     const errorId = React.useId();
-    
+
     // Determine validation state based on error
     const actualValidation = errorText ? "error" : validation;
-    
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(event);
       onCheckedChange?.(event.target.checked);
     };
-    
+
     return (
       <div className="flex items-start space-x-3">
         <div className="relative flex items-center">
@@ -71,51 +78,50 @@ const FarmCheckbox = React.forwardRef<HTMLInputElement, FarmCheckboxProps>(
             className={cn(
               farmCheckboxVariants({ inputSize, validation: actualValidation }),
               "absolute opacity-0",
-              className
+              className,
             )}
             ref={ref}
             onChange={handleChange}
-            aria-describedby={cn(
-              description && descId,
-              errorText && errorId
-            )}
+            aria-describedby={cn(description && descId, errorText && errorId)}
             aria-invalid={errorText ? "true" : undefined}
             {...props}
           />
-          <div className={cn(
-            farmCheckboxVariants({ inputSize, validation: actualValidation }),
-            "flex items-center justify-center"
-          )}>
-            <Check 
+          <div
+            className={cn(
+              farmCheckboxVariants({ inputSize, validation: actualValidation }),
+              "flex items-center justify-center",
+            )}
+          >
+            <Check
               className={cn(
                 "text-current opacity-0 transition-opacity duration-150",
                 inputSize === "sm" && "h-2 w-2",
-                inputSize === "default" && "h-3 w-3", 
-                inputSize === "lg" && "h-4 w-4"
+                inputSize === "default" && "h-3 w-3",
+                inputSize === "lg" && "h-4 w-4",
               )}
               style={{
-                opacity: props.checked || props.defaultChecked ? 1 : 0
+                opacity: props.checked || props.defaultChecked ? 1 : 0,
               }}
             />
           </div>
         </div>
-        
+
         <div className="flex-1 space-y-1">
           {label && (
-            <label 
-              htmlFor={checkboxId} 
+            <label
+              htmlFor={checkboxId}
               className="form-label mb-0 cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {label}
             </label>
           )}
-          
+
           {description && !errorText && (
             <p id={descId} className="form-help">
               {description}
             </p>
           )}
-          
+
           {errorText && (
             <p id={errorId} className="form-error">
               {errorText}
@@ -124,9 +130,9 @@ const FarmCheckbox = React.forwardRef<HTMLInputElement, FarmCheckboxProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 FarmCheckbox.displayName = "FarmCheckbox";
 
-export { FarmCheckbox, farmCheckboxVariants }; 
+export { FarmCheckbox, farmCheckboxVariants };

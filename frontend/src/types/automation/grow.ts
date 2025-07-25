@@ -3,26 +3,36 @@
  * Types specific to grow automation rules, schedules, and conditions
  */
 
-import { UUID, BaseEntity, Priority } from '../common';
-import { DeviceAction, DeviceType, DeviceCapabilities, DeviceState } from '../devices/core';
+import { BaseEntity, Priority } from "../common";
+import {
+  DeviceAction,
+  DeviceType,
+  DeviceCapabilities,
+  DeviceState,
+} from "../devices/core";
 
 /** Types of grow automation rules */
-export type GrowAutomationRuleType = 'schedule' | 'condition' | 'event_trigger';
+export type GrowAutomationRuleType = "schedule" | "condition" | "event_trigger";
 
 /** Types of grow automation schedules */
-export type GrowScheduleType = 'daily' | 'weekly' | 'stage_based' | 'custom';
+export type GrowScheduleType = "daily" | "weekly" | "stage_based" | "custom";
 
 /** Types of grow automation conditions */
-export type GrowConditionType = 'above' | 'below' | 'between' | 'equals';
+export type GrowConditionType = "above" | "below" | "between" | "equals";
 
 /** Types of grow automation execution */
-export type GrowAutomationType = 'rule' | 'schedule' | 'condition' | 'manual';
+export type GrowAutomationType = "rule" | "schedule" | "condition" | "manual";
 
 /** Grow automation execution status */
-export type GrowExecutionStatus = 'pending' | 'success' | 'failed' | 'skipped';
+export type GrowExecutionStatus = "pending" | "success" | "failed" | "skipped";
 
 /** Grow status types */
-export type GrowStatus = 'planned' | 'active' | 'harvested' | 'failed' | 'paused';
+export type GrowStatus =
+  | "planned"
+  | "active"
+  | "harvested"
+  | "failed"
+  | "paused";
 
 /**
  * Grow automation rule
@@ -371,7 +381,8 @@ export interface CreateGrowAutomationCondition {
 /**
  * Update grow automation rule input
  */
-export interface UpdateGrowAutomationRule extends Partial<CreateGrowAutomationRule> {
+export interface UpdateGrowAutomationRule
+  extends Partial<CreateGrowAutomationRule> {
   /** Rule ID */
   id: string;
 }
@@ -379,7 +390,8 @@ export interface UpdateGrowAutomationRule extends Partial<CreateGrowAutomationRu
 /**
  * Update grow automation schedule input
  */
-export interface UpdateGrowAutomationSchedule extends Partial<CreateGrowAutomationSchedule> {
+export interface UpdateGrowAutomationSchedule
+  extends Partial<CreateGrowAutomationSchedule> {
   /** Schedule ID */
   id: string;
 }
@@ -387,7 +399,8 @@ export interface UpdateGrowAutomationSchedule extends Partial<CreateGrowAutomati
 /**
  * Update grow automation condition input
  */
-export interface UpdateGrowAutomationCondition extends Partial<CreateGrowAutomationCondition> {
+export interface UpdateGrowAutomationCondition
+  extends Partial<CreateGrowAutomationCondition> {
   /** Condition ID */
   id: string;
 }
@@ -408,11 +421,20 @@ export interface AutomationTemplate {
   /** Crop types this template works with */
   crop_types?: string[];
   /** Template schedules */
-  template_schedules: Omit<CreateGrowAutomationSchedule, 'grow_id' | 'device_assignment_id'>[];
+  template_schedules: Omit<
+    CreateGrowAutomationSchedule,
+    "grow_id" | "device_assignment_id"
+  >[];
   /** Template conditions */
-  template_conditions: Omit<CreateGrowAutomationCondition, 'grow_id' | 'device_assignment_id'>[];
+  template_conditions: Omit<
+    CreateGrowAutomationCondition,
+    "grow_id" | "device_assignment_id"
+  >[];
   /** Template rules */
-  template_rules: Omit<CreateGrowAutomationRule, 'grow_id' | 'device_assignment_id'>[];
+  template_rules: Omit<
+    CreateGrowAutomationRule,
+    "grow_id" | "device_assignment_id"
+  >[];
   /** Template category */
   category?: string;
   /** Template tags */
@@ -471,11 +493,19 @@ export interface GrowAutomationStatus {
  */
 export interface AutomationWebSocketMessage {
   /** Message type */
-  type: 'automation_execution' | 'automation_status' | 'automation_error' | 'schedule_updated';
+  type:
+    | "automation_execution"
+    | "automation_status"
+    | "automation_error"
+    | "schedule_updated";
   /** Grow ID */
   grow_id: string;
   /** Message data */
-  data: GrowAutomationExecution | GrowAutomationStatus | { error: string } | GrowAutomationSchedule;
+  data:
+    | GrowAutomationExecution
+    | GrowAutomationStatus
+    | { error: string }
+    | GrowAutomationSchedule;
   /** Message timestamp */
   timestamp: string;
 }
@@ -514,4 +544,4 @@ export interface CreateGrowAutomationResponse {
   created_conditions: GrowAutomationCondition[];
   /** Error messages if any */
   errors?: string[];
-} 
+}

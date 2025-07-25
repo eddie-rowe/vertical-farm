@@ -1,59 +1,88 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Loader2, Plus } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-
-import { GrowRecipe, Species } from '@/types/grow-recipes';
-import { createGrowRecipe, updateGrowRecipe } from '@/services/growRecipeService';
-import { createSpecies } from '@/services/growRecipeService';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  createGrowRecipe,
+  updateGrowRecipe,
+} from "@/services/growRecipeService";
+import { createSpecies } from "@/services/growRecipeService";
+import { GrowRecipe, Species } from "@/types/grow-recipes";
 
 // Form validation schema
 const growRecipeSchema = z.object({
-  name: z.string().min(1, 'Recipe name is required'),
-  species_id: z.string().min(1, 'Species selection is required'),
+  name: z.string().min(1, "Recipe name is required"),
+  species_id: z.string().min(1, "Species selection is required"),
   recipe_source: z.string().optional(),
-  
+
   // Basic growing parameters
-  grow_days: z.number().int().min(1).optional().or(z.literal('')),
-  light_hours_per_day: z.number().min(0).max(24).optional().or(z.literal('')),
-  watering_frequency_hours: z.number().min(0).optional().or(z.literal('')),
-  
+  grow_days: z.number().int().min(1).optional().or(z.literal("")),
+  light_hours_per_day: z.number().min(0).max(24).optional().or(z.literal("")),
+  watering_frequency_hours: z.number().min(0).optional().or(z.literal("")),
+
   // Environmental parameters
-  target_temperature_min: z.number().optional().or(z.literal('')),
-  target_temperature_max: z.number().optional().or(z.literal('')),
-  target_humidity_min: z.number().min(0).max(100).optional().or(z.literal('')),
-  target_humidity_max: z.number().min(0).max(100).optional().or(z.literal('')),
-  target_ph_min: z.number().min(0).max(14).optional().or(z.literal('')),
-  target_ph_max: z.number().min(0).max(14).optional().or(z.literal('')),
-  target_ec_min: z.number().min(0).optional().or(z.literal('')),
-  target_ec_max: z.number().min(0).optional().or(z.literal('')),
-  
+  target_temperature_min: z.number().optional().or(z.literal("")),
+  target_temperature_max: z.number().optional().or(z.literal("")),
+  target_humidity_min: z.number().min(0).max(100).optional().or(z.literal("")),
+  target_humidity_max: z.number().min(0).max(100).optional().or(z.literal("")),
+  target_ph_min: z.number().min(0).max(14).optional().or(z.literal("")),
+  target_ph_max: z.number().min(0).max(14).optional().or(z.literal("")),
+  target_ec_min: z.number().min(0).optional().or(z.literal("")),
+  target_ec_max: z.number().min(0).optional().or(z.literal("")),
+
   // Yield and seeding
-  average_yield: z.number().min(0).optional().or(z.literal('')),
-  sowing_rate: z.number().min(0).optional().or(z.literal('')),
-  
+  average_yield: z.number().min(0).optional().or(z.literal("")),
+  sowing_rate: z.number().min(0).optional().or(z.literal("")),
+
   // New grow recipe parameters
-  germination_days: z.number().int().min(0).optional().or(z.literal('')),
-  light_days: z.number().int().min(0).optional().or(z.literal('')),
-  total_grow_days: z.number().int().min(1).optional().or(z.literal('')),
+  germination_days: z.number().int().min(0).optional().or(z.literal("")),
+  light_days: z.number().int().min(0).optional().or(z.literal("")),
+  total_grow_days: z.number().int().min(1).optional().or(z.literal("")),
   top_coat: z.string().optional(),
-  pythium_risk: z.enum(['Low', 'Medium', 'High']).optional(),
-  water_intake: z.number().min(0).optional().or(z.literal('')),
+  pythium_risk: z.enum(["Low", "Medium", "High"]).optional(),
+  water_intake: z.number().min(0).optional().or(z.literal("")),
   water_frequency: z.string().optional(),
-  fridge_storage_temp: z.number().optional().or(z.literal('')),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional(),
+  fridge_storage_temp: z.number().optional().or(z.literal("")),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
 });
 
 type GrowRecipeFormData = z.infer<typeof growRecipeSchema>;
@@ -65,41 +94,46 @@ interface GrowRecipeFormProps {
   onCancel: () => void;
 }
 
-export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRecipeFormProps) {
+export function GrowRecipeForm({
+  recipe,
+  species,
+  onSuccess,
+  onCancel,
+}: GrowRecipeFormProps) {
   const [loading, setLoading] = useState(false);
   const [showSpeciesDialog, setShowSpeciesDialog] = useState(false);
-  const [newSpeciesName, setNewSpeciesName] = useState('');
-  const [newSpeciesDescription, setNewSpeciesDescription] = useState('');
+  const [newSpeciesName, setNewSpeciesName] = useState("");
+  const [newSpeciesDescription, setNewSpeciesDescription] = useState("");
   const [creatingSpecies, setCreatingSpecies] = useState(false);
   const [localSpecies, setLocalSpecies] = useState<Species[]>(species);
 
   const form = useForm<GrowRecipeFormData>({
     resolver: zodResolver(growRecipeSchema),
     defaultValues: {
-      name: recipe?.name || '',
-      species_id: recipe?.species_id || '',
-      recipe_source: recipe?.recipe_source || '',
-      grow_days: recipe?.grow_days || '',
-      light_hours_per_day: recipe?.light_hours_per_day || '',
-      watering_frequency_hours: recipe?.watering_frequency_hours || '',
-      target_temperature_min: recipe?.target_temperature_min || '',
-      target_temperature_max: recipe?.target_temperature_max || '',
-      target_humidity_min: recipe?.target_humidity_min || '',
-      target_humidity_max: recipe?.target_humidity_max || '',
-      target_ph_min: recipe?.target_ph_min || '',
-      target_ph_max: recipe?.target_ph_max || '',
-      target_ec_min: recipe?.target_ec_min || '',
-      target_ec_max: recipe?.target_ec_max || '',
-      average_yield: recipe?.average_yield || '',
-      sowing_rate: recipe?.sowing_rate || '',
-      germination_days: recipe?.germination_days || '',
-      light_days: recipe?.light_days || '',
-      total_grow_days: recipe?.total_grow_days || '',
-      top_coat: recipe?.top_coat || '',
+      name: recipe?.name || "",
+      species_id: recipe?.species_id || "",
+      recipe_source: recipe?.recipe_source || "",
+      grow_days: recipe?.grow_days || "",
+      light_hours_per_day: recipe?.light_hours_per_day || "",
+      watering_frequency_hours: recipe?.watering_frequency_hours || "",
+      target_temperature_min: recipe?.target_temperature_min || "",
+      target_temperature_max: recipe?.target_temperature_max || "",
+      target_humidity_min: recipe?.target_humidity_min || "",
+      target_humidity_max: recipe?.target_humidity_max || "",
+      target_ph_min: recipe?.target_ph_min || "",
+      target_ph_max: recipe?.target_ph_max || "",
+      target_ec_min: recipe?.target_ec_min || "",
+      target_ec_max: recipe?.target_ec_max || "",
+      average_yield: recipe?.average_yield || "",
+      sowing_rate: recipe?.sowing_rate || "",
+      germination_days: recipe?.germination_days || "",
+      light_days: recipe?.light_days || "",
+      total_grow_days: recipe?.total_grow_days || "",
+      top_coat: recipe?.top_coat || "",
       pythium_risk: recipe?.pythium_risk || undefined,
-      water_intake: recipe?.water_intake || '',
-      water_frequency: recipe?.water_frequency || '',
-      fridge_storage_temp: recipe?.fridge_storage_temp || '',
+      water_intake: recipe?.water_intake || "",
+      water_frequency: recipe?.water_frequency || "",
+      fridge_storage_temp: recipe?.fridge_storage_temp || "",
       difficulty: recipe?.difficulty || undefined,
     },
   });
@@ -113,18 +147,18 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
         name: newSpeciesName.trim(),
         description: newSpeciesDescription.trim() || undefined,
       });
-      
+
       if (newSpecies) {
         setLocalSpecies([...localSpecies, newSpecies]);
-        form.setValue('species_id', newSpecies.id);
+        form.setValue("species_id", newSpecies.id);
         setShowSpeciesDialog(false);
-        setNewSpeciesName('');
-        setNewSpeciesDescription('');
-        toast.success('Species created successfully');
+        setNewSpeciesName("");
+        setNewSpeciesDescription("");
+        toast.success("Species created successfully");
       }
     } catch (error) {
-      console.error('Error creating species:', error);
-      toast.error('Failed to create species');
+      console.error("Error creating species:", error);
+      toast.error("Failed to create species");
     } finally {
       setCreatingSpecies(false);
     }
@@ -138,27 +172,35 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
       const cleanedData = {
         name: data.name,
         species_id: data.species_id,
-        growth_stage: 'vegetative', // Default stage for the required field
+        growth_stage: "vegetative", // Default stage for the required field
         duration_days: data.total_grow_days || data.grow_days || 14, // Map to required duration_days
-        light_hours_per_day: data.light_hours_per_day === '' ? undefined : Number(data.light_hours_per_day),
-        water_frequency_hours: data.watering_frequency_hours === '' ? undefined : Number(data.watering_frequency_hours),
+        light_hours_per_day:
+          data.light_hours_per_day === ""
+            ? undefined
+            : Number(data.light_hours_per_day),
+        water_frequency_hours:
+          data.watering_frequency_hours === ""
+            ? undefined
+            : Number(data.watering_frequency_hours),
         nutrient_concentration: undefined, // Not captured in current form
-        ph_target: data.target_ph_min === '' ? undefined : Number(data.target_ph_min),
-        ec_target: data.target_ec_min === '' ? undefined : Number(data.target_ec_min),
+        ph_target:
+          data.target_ph_min === "" ? undefined : Number(data.target_ph_min),
+        ec_target:
+          data.target_ec_min === "" ? undefined : Number(data.target_ec_min),
       };
 
       if (recipe) {
         await updateGrowRecipe(recipe.id, cleanedData);
-        toast.success('Recipe updated successfully');
+        toast.success("Recipe updated successfully");
       } else {
         await createGrowRecipe(cleanedData);
-        toast.success('Recipe created successfully');
+        toast.success("Recipe created successfully");
       }
-      
+
       onSuccess();
     } catch (error) {
-      console.error('Error saving recipe:', error);
-      toast.error('Failed to save recipe');
+      console.error("Error saving recipe:", error);
+      toast.error("Failed to save recipe");
     } finally {
       setLoading(false);
     }
@@ -171,7 +213,9 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
-            <CardDescription>Essential recipe details and identification</CardDescription>
+            <CardDescription>
+              Essential recipe details and identification
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -181,7 +225,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                 <FormItem>
                   <FormLabel>Recipe Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Basil Genovese - High Yield" {...field} />
+                    <Input
+                      placeholder="e.g., Basil Genovese - High Yield"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -196,7 +243,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                   <FormLabel>Species *</FormLabel>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="flex-1">
                           <SelectValue placeholder="Select species" />
                         </SelectTrigger>
@@ -209,7 +259,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <Dialog open={showSpeciesDialog} onOpenChange={setShowSpeciesDialog}>
+                    <Dialog
+                      open={showSpeciesDialog}
+                      onOpenChange={setShowSpeciesDialog}
+                    >
                       <DialogTrigger asChild>
                         <Button type="button" variant="outline" size="sm">
                           <Plus className="h-4 w-4" />
@@ -228,16 +281,22 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             <Input
                               id="species-name"
                               value={newSpeciesName}
-                              onChange={(e) => setNewSpeciesName(e.target.value)}
+                              onChange={(e) =>
+                                setNewSpeciesName(e.target.value)
+                              }
                               placeholder="e.g., Basil Genovese"
                             />
                           </div>
                           <div>
-                            <Label htmlFor="species-description">Description</Label>
+                            <Label htmlFor="species-description">
+                              Description
+                            </Label>
                             <Input
                               id="species-description"
                               value={newSpeciesDescription}
-                              onChange={(e) => setNewSpeciesDescription(e.target.value)}
+                              onChange={(e) =>
+                                setNewSpeciesDescription(e.target.value)
+                              }
                               placeholder="Optional description"
                             />
                           </div>
@@ -252,9 +311,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             <Button
                               type="button"
                               onClick={handleCreateSpecies}
-                              disabled={!newSpeciesName.trim() || creatingSpecies}
+                              disabled={
+                                !newSpeciesName.trim() || creatingSpecies
+                              }
                             >
-                              {creatingSpecies && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              {creatingSpecies && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              )}
                               Create Species
                             </Button>
                           </div>
@@ -274,9 +337,14 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                 <FormItem>
                   <FormLabel>Recipe Source</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Supplier X, Internal R&D" {...field} />
+                    <Input
+                      placeholder="e.g., Supplier X, Internal R&D"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>Where did this recipe come from?</FormDescription>
+                  <FormDescription>
+                    Where did this recipe come from?
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -288,7 +356,9 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
         <Card>
           <CardHeader>
             <CardTitle>Growing Timeline</CardTitle>
-            <CardDescription>Duration and phases of the growing cycle</CardDescription>
+            <CardDescription>
+              Duration and phases of the growing cycle
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <FormField
@@ -303,7 +373,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                       min="0"
                       placeholder="3"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -323,7 +397,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                       min="0"
                       placeholder="10"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -343,10 +421,16 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                       min="1"
                       placeholder="14"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
                     />
                   </FormControl>
-                  <FormDescription>Auto-calculated if left empty</FormDescription>
+                  <FormDescription>
+                    Auto-calculated if left empty
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -366,7 +450,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                       step="0.5"
                       placeholder="16"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -380,7 +468,9 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
         <Card>
           <CardHeader>
             <CardTitle>Cultivation Parameters</CardTitle>
-            <CardDescription>Seeding, watering, and growing conditions</CardDescription>
+            <CardDescription>
+              Seeding, watering, and growing conditions
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -397,7 +487,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                         step="0.1"
                         placeholder="2.5"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -418,7 +512,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                         step="0.1"
                         placeholder="150"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -452,7 +550,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                         min="0"
                         placeholder="500"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -467,7 +569,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                   <FormItem>
                     <FormLabel>Water Frequency</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Once daily, Twice daily" {...field} />
+                      <Input
+                        placeholder="e.g., Once daily, Twice daily"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -486,7 +591,11 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                         step="0.1"
                         placeholder="4"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -503,7 +612,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                   <FormItem>
                     <FormLabel>Difficulty Level</FormLabel>
                     <FormControl>
-                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select difficulty" />
                         </SelectTrigger>
@@ -526,7 +638,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                   <FormItem>
                     <FormLabel>Pythium Risk</FormLabel>
                     <FormControl>
-                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select risk level" />
                         </SelectTrigger>
@@ -549,7 +664,9 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
         <Card>
           <CardHeader>
             <CardTitle>Environmental Ranges</CardTitle>
-            <CardDescription>Optimal growing conditions (all optional)</CardDescription>
+            <CardDescription>
+              Optimal growing conditions (all optional)
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -567,7 +684,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             type="number"
                             placeholder="Min"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -584,7 +707,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             type="number"
                             placeholder="Max"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -610,7 +739,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             max="100"
                             placeholder="Min"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -629,7 +764,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             max="100"
                             placeholder="Max"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -656,7 +797,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             step="0.1"
                             placeholder="Min"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -676,7 +823,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             step="0.1"
                             placeholder="Max"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -701,7 +854,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             min="0"
                             placeholder="Min"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -719,7 +878,13 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
                             min="0"
                             placeholder="Max"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -739,10 +904,10 @@ export function GrowRecipeForm({ recipe, species, onSuccess, onCancel }: GrowRec
           </Button>
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {recipe ? 'Update Recipe' : 'Create Recipe'}
+            {recipe ? "Update Recipe" : "Create Recipe"}
           </Button>
         </div>
       </form>
     </Form>
   );
-} 
+}

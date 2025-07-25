@@ -1,19 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Settings, 
-  Zap, 
-  Activity, 
+import {
+  Settings,
+  Zap,
+  Activity,
   Grid3X3,
   Layers,
   Archive,
@@ -30,12 +20,22 @@ import {
   Thermometer,
   Droplets,
   Sun,
-  Wind
-} from 'lucide-react';
-import { FarmPageData, UUID } from "@/types/farm";
+  Wind,
+} from "lucide-react";
+import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { FarmPageData } from "@/types/farm";
 
 interface SelectedElement {
-  type: 'farm' | 'row' | 'rack' | 'shelf' | 'device' | null;
+  type: "farm" | "row" | "rack" | "shelf" | "device" | null;
   id: string | null;
   data?: any;
 }
@@ -46,16 +46,20 @@ interface ContextualControlPanelProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onFarmPageDataChange: (newData: FarmPageData) => void;
-  onElementSelection: (elementType: 'farm' | 'row' | 'rack' | 'shelf' | 'device', elementId: string, elementData?: any) => void;
+  onElementSelection: (
+    elementType: "farm" | "row" | "rack" | "shelf" | "device",
+    elementId: string,
+    elementData?: any,
+  ) => void;
 }
 
-export default function ContextualControlPanel({ 
+export default function ContextualControlPanel({
   selectedElement,
-  farmPageData, 
-  activeTab, 
-  onTabChange, 
+  farmPageData,
+  activeTab,
+  onTabChange,
   onFarmPageDataChange,
-  onElementSelection
+  onElementSelection,
 }: ContextualControlPanelProps) {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -66,25 +70,38 @@ export default function ContextualControlPanel({
 
   const getElementIcon = () => {
     switch (selectedElement.type) {
-      case 'farm': return <Home className="h-4 w-4" />;
-      case 'row': return <Grid3X3 className="h-4 w-4" />;
-      case 'rack': return <Archive className="h-4 w-4" />;
-      case 'shelf': return <Layers className="h-4 w-4" />;
-      case 'device': return <Zap className="h-4 w-4" />;
-      default: return <Info className="h-4 w-4" />;
+      case "farm":
+        return <Home className="h-4 w-4" />;
+      case "row":
+        return <Grid3X3 className="h-4 w-4" />;
+      case "rack":
+        return <Archive className="h-4 w-4" />;
+      case "shelf":
+        return <Layers className="h-4 w-4" />;
+      case "device":
+        return <Zap className="h-4 w-4" />;
+      default:
+        return <Info className="h-4 w-4" />;
     }
   };
 
   const getElementTitle = () => {
-    if (!selectedElement.type || !selectedElement.data) return "Select an element";
-    
+    if (!selectedElement.type || !selectedElement.data)
+      return "Select an element";
+
     switch (selectedElement.type) {
-      case 'farm': return selectedElement.data.name || 'Unnamed Farm';
-      case 'row': return `Row ${selectedElement.data.id}`;
-      case 'rack': return `Rack ${selectedElement.data.id}`;
-      case 'shelf': return `Shelf ${selectedElement.data.id}`;
-      case 'device': return selectedElement.data.name || `Device ${selectedElement.data.id}`;
-      default: return "Unknown Element";
+      case "farm":
+        return selectedElement.data.name || "Unnamed Farm";
+      case "row":
+        return `Row ${selectedElement.data.id}`;
+      case "rack":
+        return `Rack ${selectedElement.data.id}`;
+      case "shelf":
+        return `Shelf ${selectedElement.data.id}`;
+      case "device":
+        return selectedElement.data.name || `Device ${selectedElement.data.id}`;
+      default:
+        return "Unknown Element";
     }
   };
 
@@ -94,7 +111,9 @@ export default function ContextualControlPanel({
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <Info className="h-12 w-12 mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No Selection</h3>
-          <p className="text-sm">Click on farm elements to view and edit their properties</p>
+          <p className="text-sm">
+            Click on farm elements to view and edit their properties
+          </p>
         </div>
       );
     }
@@ -109,113 +128,121 @@ export default function ContextualControlPanel({
             <h3 className="text-lg font-semibold">{getElementTitle()}</h3>
           </div>
           <Badge variant={editMode ? "default" : "secondary"}>
-            {editMode ? 'Editing' : 'Viewing'}
+            {editMode ? "Editing" : "Viewing"}
           </Badge>
         </div>
 
         <div className="space-y-3">
-          {type === 'farm' && (
+          {type === "farm" && (
             <>
               <div>
                 <Label>Farm Name</Label>
-                <Input 
-                  value={formData.name || data.name || ''} 
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                <Input
+                  value={formData.name || data.name || ""}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   disabled={!editMode}
                 />
               </div>
               <div>
                 <Label>Description</Label>
-                <Textarea 
-                  value={formData.description || data.description || ''} 
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                <Textarea
+                  value={formData.description || data.description || ""}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   disabled={!editMode}
                   rows={3}
                 />
               </div>
               <div>
                 <Label>Location</Label>
-                <Input 
-                  value={formData.location || data.location || ''} 
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+                <Input
+                  value={formData.location || data.location || ""}
+                  onChange={(e) =>
+                    handleInputChange("location", e.target.value)
+                  }
                   disabled={!editMode}
                 />
               </div>
             </>
           )}
 
-          {type === 'row' && (
+          {type === "row" && (
             <>
               <div>
                 <Label>Row ID</Label>
-                <Input value={data.id || ''} disabled />
+                <Input value={data.id || ""} disabled />
               </div>
               <div>
                 <Label>Row Width (cm)</Label>
-                <Input 
+                <Input
                   type="number"
-                  value={formData.width || data.width || ''} 
-                  onChange={(e) => handleInputChange('width', e.target.value)}
+                  value={formData.width || data.width || ""}
+                  onChange={(e) => handleInputChange("width", e.target.value)}
                   disabled={!editMode}
                 />
               </div>
               <div>
                 <Label>Row Length (cm)</Label>
-                <Input 
+                <Input
                   type="number"
-                  value={formData.length || data.length || ''} 
-                  onChange={(e) => handleInputChange('length', e.target.value)}
+                  value={formData.length || data.length || ""}
+                  onChange={(e) => handleInputChange("length", e.target.value)}
                   disabled={!editMode}
                 />
               </div>
             </>
           )}
 
-          {type === 'rack' && (
+          {type === "rack" && (
             <>
               <div>
                 <Label>Rack ID</Label>
-                <Input value={data.id || ''} disabled />
+                <Input value={data.id || ""} disabled />
               </div>
               <div>
                 <Label>Height (cm)</Label>
-                <Input 
+                <Input
                   type="number"
-                  value={formData.height || data.height || ''} 
-                  onChange={(e) => handleInputChange('height', e.target.value)}
+                  value={formData.height || data.height || ""}
+                  onChange={(e) => handleInputChange("height", e.target.value)}
                   disabled={!editMode}
                 />
               </div>
               <div>
                 <Label>Number of Shelves</Label>
-                <Input 
+                <Input
                   type="number"
-                  value={formData.shelveCount || data.shelves?.length || 0} 
-                  onChange={(e) => handleInputChange('shelveCount', e.target.value)}
+                  value={formData.shelveCount || data.shelves?.length || 0}
+                  onChange={(e) =>
+                    handleInputChange("shelveCount", e.target.value)
+                  }
                   disabled={!editMode}
                 />
               </div>
             </>
           )}
 
-          {type === 'device' && (
+          {type === "device" && (
             <>
               <div>
                 <Label>Device Name</Label>
-                <Input 
-                  value={formData.name || data.name || ''} 
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                <Input
+                  value={formData.name || data.name || ""}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   disabled={!editMode}
                 />
               </div>
               <div>
                 <Label>Device Type</Label>
-                <Input value={data.type || 'Unknown'} disabled />
+                <Input value={data.type || "Unknown"} disabled />
               </div>
               <div className="flex items-center space-x-2">
-                <Switch 
+                <Switch
                   checked={formData.active || data.active || false}
-                  onCheckedChange={(checked) => handleInputChange('active', checked)}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("active", checked)
+                  }
                   disabled={!editMode}
                 />
                 <Label>Active</Label>
@@ -232,29 +259,39 @@ export default function ContextualControlPanel({
 
     return (
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Quick Actions</h4>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          Quick Actions
+        </h4>
         <div className="grid grid-cols-2 gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setEditMode(!editMode)}
           >
-            {editMode ? <Eye className="h-3 w-3 mr-1" /> : <Edit2 className="h-3 w-3 mr-1" />}
-            {editMode ? 'View' : 'Edit'}
+            {editMode ? (
+              <Eye className="h-3 w-3 mr-1" />
+            ) : (
+              <Edit2 className="h-3 w-3 mr-1" />
+            )}
+            {editMode ? "View" : "Edit"}
           </Button>
-          
-          {selectedElement.type !== 'farm' && (
-            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+
+          {selectedElement.type !== "farm" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700"
+            >
               <Trash2 className="h-3 w-3 mr-1" />
               Delete
             </Button>
           )}
-          
+
           <Button variant="outline" size="sm">
             <Plus className="h-3 w-3 mr-1" />
             Add Child
           </Button>
-          
+
           <Button variant="outline" size="sm">
             <RotateCcw className="h-3 w-3 mr-1" />
             Reset
@@ -267,7 +304,11 @@ export default function ContextualControlPanel({
               <Save className="h-3 w-3 mr-1" />
               Save
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEditMode(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditMode(false)}
+            >
               Cancel
             </Button>
           </div>
@@ -288,7 +329,9 @@ export default function ContextualControlPanel({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">22.5°C</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Target: 22-24°C</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Target: 22-24°C
+            </p>
           </CardContent>
         </Card>
 
@@ -301,7 +344,9 @@ export default function ContextualControlPanel({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">65%</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Target: 60-70%</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Target: 60-70%
+            </p>
           </CardContent>
         </Card>
 
@@ -314,7 +359,9 @@ export default function ContextualControlPanel({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">450</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">PPFD μmol/m²/s</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              PPFD μmol/m²/s
+            </p>
           </CardContent>
         </Card>
 
@@ -350,15 +397,24 @@ export default function ContextualControlPanel({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="layout" className="flex items-center gap-1 text-xs">
+            <TabsTrigger
+              value="layout"
+              className="flex items-center gap-1 text-xs"
+            >
               <Settings className="h-3 w-3" />
               Layout
             </TabsTrigger>
-            <TabsTrigger value="devices" className="flex items-center gap-1 text-xs">
+            <TabsTrigger
+              value="devices"
+              className="flex items-center gap-1 text-xs"
+            >
               <Zap className="h-3 w-3" />
               Devices
             </TabsTrigger>
-            <TabsTrigger value="environment" className="flex items-center gap-1 text-xs">
+            <TabsTrigger
+              value="environment"
+              className="flex items-center gap-1 text-xs"
+            >
               <Activity className="h-3 w-3" />
               Environment
             </TabsTrigger>
@@ -374,18 +430,14 @@ export default function ContextualControlPanel({
               <CardHeader>
                 <CardTitle className="text-sm">Selected Element</CardTitle>
               </CardHeader>
-              <CardContent>
-                {renderElementDetails()}
-              </CardContent>
+              <CardContent>{renderElementDetails()}</CardContent>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Actions</CardTitle>
               </CardHeader>
-              <CardContent>
-                {renderQuickActions()}
-              </CardContent>
+              <CardContent>{renderQuickActions()}</CardContent>
             </Card>
           </TabsContent>
 
@@ -446,16 +498,18 @@ export default function ContextualControlPanel({
           <TabsContent value="environment" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Environmental Conditions</CardTitle>
+                <CardTitle className="text-sm">
+                  Environmental Conditions
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                {renderEnvironmentalControls()}
-              </CardContent>
+              <CardContent>{renderEnvironmentalControls()}</CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Alerts & Notifications</CardTitle>
+                <CardTitle className="text-sm">
+                  Alerts & Notifications
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -475,4 +529,4 @@ export default function ContextualControlPanel({
       </div>
     </div>
   );
-} 
+}

@@ -1,8 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
 
 const farmLayoutVariants = cva(
   "farm-grid", // Uses our new @utility farm-grid
@@ -12,57 +13,56 @@ const farmLayoutVariants = cva(
         grid: "", // Default farm-grid
         rack: "rack-layout", // Uses our @utility rack-layout
         row: "flex flex-col gap-4",
-        compact: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
+        compact: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3",
       },
       spacing: {
         tight: "[--spacing-row:1rem]",
         default: "", // Uses CSS custom property --spacing-row
-        loose: "[--spacing-row:3rem]"
-      }
+        loose: "[--spacing-row:3rem]",
+      },
     },
     defaultVariants: {
       layout: "grid",
-      spacing: "default"
+      spacing: "default",
     },
-  }
-)
+  },
+);
 
 export interface FarmLayoutProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof farmLayoutVariants> {
-  title?: string
-  subtitle?: string
-  headerActions?: React.ReactNode
+  title?: string;
+  subtitle?: string;
+  headerActions?: React.ReactNode;
 }
 
 const FarmLayout = React.forwardRef<HTMLDivElement, FarmLayoutProps>(
-  ({ 
-    className, 
-    layout, 
-    spacing, 
-    title,
-    subtitle,
-    headerActions,
-    children,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      layout,
+      spacing,
+      title,
+      subtitle,
+      headerActions,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div className="space-y-6" ref={ref} {...props}>
         {/* Header Section */}
         {(title || subtitle || headerActions) && (
           <div className="flex items-center justify-between">
             <div>
-              {title && (
-                <h2 className="text-farm-title">{title}</h2>
-              )}
+              {title && <h2 className="text-farm-title">{title}</h2>}
               {subtitle && (
                 <p className="text-control-label mt-1">{subtitle}</p>
               )}
             </div>
             {headerActions && (
-              <div className="flex items-center gap-2">
-                {headerActions}
-              </div>
+              <div className="flex items-center gap-2">{headerActions}</div>
             )}
           </div>
         )}
@@ -72,10 +72,10 @@ const FarmLayout = React.forwardRef<HTMLDivElement, FarmLayoutProps>(
           {children}
         </div>
       </div>
-    )
-  }
-)
-FarmLayout.displayName = "FarmLayout"
+    );
+  },
+);
+FarmLayout.displayName = "FarmLayout";
 
 // Specialized layout components for different farm sections
 const RackSection = React.forwardRef<
@@ -89,15 +89,13 @@ const RackSection = React.forwardRef<
       {...props}
     >
       {rackName && (
-        <div className="text-farm-title text-center mb-4">
-          {rackName}
-        </div>
+        <div className="text-farm-title text-center mb-4">{rackName}</div>
       )}
       {children}
     </div>
-  )
-})
-RackSection.displayName = "RackSection"
+  );
+});
+RackSection.displayName = "RackSection";
 
 const ShelfRow = React.forwardRef<
   HTMLDivElement,
@@ -107,7 +105,7 @@ const ShelfRow = React.forwardRef<
     <div
       className={cn(
         "gradient-shelf p-4 rounded-lg flex items-center gap-4 min-h-[80px]",
-        className
+        className,
       )}
       ref={ref}
       {...props}
@@ -117,17 +115,10 @@ const ShelfRow = React.forwardRef<
           Shelf {shelfNumber}
         </div>
       )}
-      <div className="flex-1 flex items-center gap-3 flex-wrap">
-        {children}
-      </div>
+      <div className="flex-1 flex items-center gap-3 flex-wrap">{children}</div>
     </div>
-  )
-})
-ShelfRow.displayName = "ShelfRow"
+  );
+});
+ShelfRow.displayName = "ShelfRow";
 
-export { 
-  FarmLayout, 
-  RackSection,
-  ShelfRow,
-  farmLayoutVariants 
-} 
+export { FarmLayout, RackSection, ShelfRow, farmLayoutVariants };

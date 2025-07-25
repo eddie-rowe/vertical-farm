@@ -1,36 +1,47 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FarmInput } from "@/components/ui/farm-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  Filter, 
-  Download, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  Filter,
+  Download,
   Clock,
-  Search,
   Thermometer,
   Droplets,
   Zap,
   Settings2,
-  Calendar
 } from "lucide-react";
+import { useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 // ✅ NEW: Import standardized search/filter components and hooks
-import { FarmSearchAndFilter, type FilterDefinition } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
+import {
+  FarmSearchAndFilter,
+  type FilterDefinition,
+} from "@/components/ui/farm-search-and-filter";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface AlertRecord {
   id: string;
   title: string;
   description: string;
-  type: 'critical' | 'warning' | 'info' | 'resolved';
-  category: 'environmental' | 'equipment' | 'growth' | 'maintenance' | 'security';
+  type: "critical" | "warning" | "info" | "resolved";
+  category:
+    | "environmental"
+    | "equipment"
+    | "growth"
+    | "maintenance"
+    | "security";
   source: string;
   location: string;
   timestamp: Date;
@@ -44,43 +55,55 @@ const mockAlertHistory: AlertRecord[] = [
   {
     id: "ALT-2024-001",
     title: "Temperature Critical Alert",
-    description: "Grow chamber 3 temperature exceeded 32°C for 15 minutes. Cooling system activated.",
+    description:
+      "Grow chamber 3 temperature exceeded 32°C for 15 minutes. Cooling system activated.",
     type: "critical",
-    category: "environmental", 
+    category: "environmental",
     source: "Environmental Control System",
     location: "Grow Chamber 3",
     timestamp: new Date(Date.now() - 5 * 60 * 1000),
     resolvedAt: new Date(Date.now() - 2 * 60 * 1000),
     acknowledgedBy: "Sarah Chen",
-    actions: ["Activated backup cooling", "Increased ventilation", "Monitored crop stress indicators"]
+    actions: [
+      "Activated backup cooling",
+      "Increased ventilation",
+      "Monitored crop stress indicators",
+    ],
   },
   {
     id: "ALT-2024-002",
     title: "Pump Maintenance Required",
-    description: "Nutrient pump P-204 flow rate dropped to 85% of normal. Scheduled for maintenance.",
+    description:
+      "Nutrient pump P-204 flow rate dropped to 85% of normal. Scheduled for maintenance.",
     type: "warning",
     category: "equipment",
     source: "Equipment Monitor",
     location: "Nutrient Station 2",
     timestamp: new Date(Date.now() - 45 * 60 * 1000),
     acknowledgedBy: "Mike Rodriguez",
-    actions: ["Scheduled maintenance for tomorrow", "Activated backup pump", "Documented performance data"]
+    actions: [
+      "Scheduled maintenance for tomorrow",
+      "Activated backup pump",
+      "Documented performance data",
+    ],
   },
   {
-    id: "ALT-2024-003", 
+    id: "ALT-2024-003",
     title: "Harvest Window Opening",
-    description: "Lettuce crop in Zone B reaching optimal harvest maturity in 48 hours.",
+    description:
+      "Lettuce crop in Zone B reaching optimal harvest maturity in 48 hours.",
     type: "info",
     category: "growth",
     source: "Growth Tracking System",
     location: "Growing Zone B",
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    actions: ["Notified harvest team", "Updated production schedule"]
+    actions: ["Notified harvest team", "Updated production schedule"],
   },
   {
     id: "ALT-2024-004",
-    title: "pH Level Fluctuation", 
-    description: "Nutrient solution pH varied outside optimal range (5.5-6.5) for 30 minutes.",
+    title: "pH Level Fluctuation",
+    description:
+      "Nutrient solution pH varied outside optimal range (5.5-6.5) for 30 minutes.",
     type: "resolved",
     category: "environmental",
     source: "Nutrient Management",
@@ -88,71 +111,79 @@ const mockAlertHistory: AlertRecord[] = [
     timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
     resolvedAt: new Date(Date.now() - 3.5 * 60 * 60 * 1000),
     acknowledgedBy: "Lisa Park",
-    actions: ["Adjusted pH buffer", "Calibrated sensors", "Increased monitoring frequency"]
+    actions: [
+      "Adjusted pH buffer",
+      "Calibrated sensors",
+      "Increased monitoring frequency",
+    ],
   },
   {
     id: "ALT-2024-005",
     title: "Security Door Alert",
     description: "Grow chamber access door left open for over 10 minutes.",
-    type: "warning", 
+    type: "warning",
     category: "security",
     source: "Security System",
     location: "Grow Chamber 1",
     timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
     resolvedAt: new Date(Date.now() - 5.8 * 60 * 60 * 1000),
     acknowledgedBy: "David Kim",
-    actions: ["Secured door", "Reviewed access logs", "Reminded staff of protocols"]
-  }
+    actions: [
+      "Secured door",
+      "Reviewed access logs",
+      "Reminded staff of protocols",
+    ],
+  },
 ];
 
-function getAlertIcon(type: AlertRecord['type']) {
+function getAlertIcon(type: AlertRecord["type"]) {
   switch (type) {
-    case 'critical':
+    case "critical":
       return <AlertTriangle className="h-4 w-4 text-red-600" />;
-    case 'warning':
+    case "warning":
       return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-    case 'info':
+    case "info":
       return <CheckCircle className="h-4 w-4 text-blue-500" />;
-    case 'resolved':
+    case "resolved":
       return <CheckCircle className="h-4 w-4 text-green-600" />;
   }
 }
 
-function getCategoryIcon(category: AlertRecord['category']) {
+function getCategoryIcon(category: AlertRecord["category"]) {
   switch (category) {
-    case 'environmental':
+    case "environmental":
       return <Thermometer className="h-4 w-4" />;
-    case 'equipment':
+    case "equipment":
       return <Settings2 className="h-4 w-4" />;
-    case 'growth':
+    case "growth":
       return <Droplets className="h-4 w-4" />;
-    case 'maintenance':
+    case "maintenance":
       return <Zap className="h-4 w-4" />;
-    case 'security':
+    case "security":
       return <AlertTriangle className="h-4 w-4" />;
   }
 }
 
-function getTypeStyles(type: AlertRecord['type']) {
+function getTypeStyles(type: AlertRecord["type"]) {
   switch (type) {
-    case 'critical':
+    case "critical":
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-    case 'warning':
+    case "warning":
       return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-    case 'info':
+    case "info":
       return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-    case 'resolved':
+    case "resolved":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
   }
 }
 
 function formatDateTime(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric', 
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   }).format(date);
 }
 
@@ -163,10 +194,10 @@ export default function AlertHistoryPage() {
     setSearchTerm,
     clearSearch,
     filterItems: searchFilterItems,
-    hasSearch
+    hasSearch,
   } = useFarmSearch<AlertRecord>({
-    searchFields: ['title', 'description', 'location'],
-    caseSensitive: false
+    searchFields: ["title", "description", "location"],
+    caseSensitive: false,
   });
 
   const {
@@ -176,69 +207,78 @@ export default function AlertHistoryPage() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<AlertRecord>();
 
   // ✅ NEW: Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'type',
-      label: 'Alert Type',
-      placeholder: 'Filter by type',
-      options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'critical', label: 'Critical' },
-        { value: 'warning', label: 'Warning' },
-        { value: 'info', label: 'Info' },
-        { value: 'resolved', label: 'Resolved' }
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'category',
-      label: 'Category',
-      placeholder: 'Filter by category',
-      options: [
-        { value: 'all', label: 'All Categories' },
-        { value: 'environmental', label: 'Environmental' },
-        { value: 'equipment', label: 'Equipment' },
-        { value: 'growth', label: 'Growth' },
-        { value: 'maintenance', label: 'Maintenance' },
-        { value: 'security', label: 'Security' }
-      ],
-      defaultValue: 'all'
-    }
-  ], []);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "type",
+        label: "Alert Type",
+        placeholder: "Filter by type",
+        options: [
+          { value: "all", label: "All Types" },
+          { value: "critical", label: "Critical" },
+          { value: "warning", label: "Warning" },
+          { value: "info", label: "Info" },
+          { value: "resolved", label: "Resolved" },
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "category",
+        label: "Category",
+        placeholder: "Filter by category",
+        options: [
+          { value: "all", label: "All Categories" },
+          { value: "environmental", label: "Environmental" },
+          { value: "equipment", label: "Equipment" },
+          { value: "growth", label: "Growth" },
+          { value: "maintenance", label: "Maintenance" },
+          { value: "security", label: "Security" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [],
+  );
 
   // ✅ NEW: Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // ✅ NEW: Apply combined filtering
   const filteredAlerts = useMemo(() => {
     let result = mockAlertHistory;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     return result;
   }, [searchFilterItems, filterFilterItems]);
 
   return (
     <div className="container mx-auto p-6">
-      <PageHeader 
+      <PageHeader
         title="Alert History"
         description="Operational alert log for compliance, troubleshooting, and system monitoring."
         size="md"
@@ -266,15 +306,23 @@ export default function AlertHistoryPage() {
             orientation="horizontal"
             showFilterChips={true}
           />
-          
+
           {/* Results summary */}
           {(hasSearch || hasActiveFilters) && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
-                Showing {filteredAlerts.length} of {mockAlertHistory.length} alerts
+                Showing {filteredAlerts.length} of {mockAlertHistory.length}{" "}
+                alerts
               </p>
               {(hasSearch || hasActiveFilters) && (
-                <Button size="sm" variant="outline" onClick={() => { clearSearch(); clearAllFilters(); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    clearSearch();
+                    clearAllFilters();
+                  }}
+                >
                   Clear all filters
                 </Button>
               )}
@@ -289,21 +337,25 @@ export default function AlertHistoryPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Alerts</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Alerts
+                </p>
                 <p className="text-2xl font-bold">{filteredAlerts.length}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-gray-400" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Critical</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Critical
+                </p>
                 <p className="text-2xl font-bold text-red-600">
-                  {filteredAlerts.filter(a => a.type === 'critical').length}
+                  {filteredAlerts.filter((a) => a.type === "critical").length}
                 </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-400" />
@@ -315,9 +367,11 @@ export default function AlertHistoryPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Resolved</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Resolved
+                </p>
                 <p className="text-2xl font-bold text-green-600">
-                  {filteredAlerts.filter(a => a.type === 'resolved').length}
+                  {filteredAlerts.filter((a) => a.type === "resolved").length}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-400" />
@@ -344,13 +398,14 @@ export default function AlertHistoryPage() {
         <CardHeader>
           <CardTitle>Alert Records</CardTitle>
           <CardDescription>
-            Showing {filteredAlerts.length} alert{filteredAlerts.length !== 1 ? 's' : ''}
+            Showing {filteredAlerts.length} alert
+            {filteredAlerts.length !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredAlerts.map((alert) => (
-              <div 
+              <div
                 key={alert.id}
                 className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
@@ -383,23 +438,29 @@ export default function AlertHistoryPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="font-medium text-gray-600 dark:text-gray-400">Source System</p>
+                    <p className="font-medium text-gray-600 dark:text-gray-400">
+                      Source System
+                    </p>
                     <p className="flex items-center gap-1">
                       {getCategoryIcon(alert.category)}
                       {alert.source}
                     </p>
                   </div>
-                  
+
                   {alert.acknowledgedBy && (
                     <div>
-                      <p className="font-medium text-gray-600 dark:text-gray-400">Acknowledged By</p>
+                      <p className="font-medium text-gray-600 dark:text-gray-400">
+                        Acknowledged By
+                      </p>
                       <p>{alert.acknowledgedBy}</p>
                     </div>
                   )}
 
                   {alert.resolvedAt && (
                     <div>
-                      <p className="font-medium text-gray-600 dark:text-gray-400">Resolved</p>
+                      <p className="font-medium text-gray-600 dark:text-gray-400">
+                        Resolved
+                      </p>
                       <p>{formatDateTime(alert.resolvedAt)}</p>
                     </div>
                   )}
@@ -407,7 +468,9 @@ export default function AlertHistoryPage() {
 
                 {alert.actions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <p className="font-medium text-gray-600 dark:text-gray-400 mb-2">Actions Taken</p>
+                    <p className="font-medium text-gray-600 dark:text-gray-400 mb-2">
+                      Actions Taken
+                    </p>
                     <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
                       {alert.actions.map((action, index) => (
                         <li key={index}>{action}</li>
@@ -434,4 +497,4 @@ export default function AlertHistoryPage() {
       </Card>
     </div>
   );
-} 
+}

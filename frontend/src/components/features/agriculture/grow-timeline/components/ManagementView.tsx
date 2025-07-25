@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { GrowTimelineItem } from '../types';
-import { STATUS_COLORS, STATUS_LABELS } from '../data';
+import React, { useState } from "react";
+
+import { STATUS_COLORS, STATUS_LABELS } from "../data";
+import { GrowTimelineItem } from "../types";
 
 interface ManagementViewProps {
   grows: GrowTimelineItem[];
@@ -17,34 +18,36 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
   onGrowAction,
   onBulkAction,
 }) => {
-  const [sortBy, setSortBy] = useState<'startDate' | 'progress' | 'daysRemaining' | 'environmentalScore'>('startDate');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<
+    "startDate" | "progress" | "daysRemaining" | "environmentalScore"
+  >("startDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   // Filter and sort grows
   const processedGrows = grows
-    .filter(grow => filterStatus === 'all' || grow.status === filterStatus)
+    .filter((grow) => filterStatus === "all" || grow.status === filterStatus)
     .sort((a, b) => {
       const aValue = a[sortBy];
       const bValue = b[sortBy];
-      
+
       let comparison = 0;
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (typeof aValue === "string" && typeof bValue === "string") {
         comparison = aValue.localeCompare(bValue);
-      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
         comparison = aValue - bValue;
       }
-      
-      return sortOrder === 'desc' ? -comparison : comparison;
+
+      return sortOrder === "desc" ? -comparison : comparison;
     });
 
   const handleSelectAll = () => {
     if (selectedGrows.length === processedGrows.length) {
       // Deselect all
-      processedGrows.forEach(grow => onGrowSelect(grow.id, true));
+      processedGrows.forEach((grow) => onGrowSelect(grow.id, true));
     } else {
       // Select all
-      processedGrows.forEach(grow => {
+      processedGrows.forEach((grow) => {
         if (!selectedGrows.includes(grow.id)) {
           onGrowSelect(grow.id, true);
         }
@@ -54,27 +57,27 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
 
   const handleBulkAction = (action: string) => {
     if (selectedGrows.length === 0) {
-      alert('Please select grows first');
+      alert("Please select grows first");
       return;
     }
 
     const confirmed = window.confirm(
-      `Are you sure you want to ${action} ${selectedGrows.length} selected grow(s)?`
+      `Are you sure you want to ${action} ${selectedGrows.length} selected grow(s)?`,
     );
-    
+
     if (confirmed) {
       if (onBulkAction) {
         onBulkAction(selectedGrows, action);
       } else {
         // Fallback to individual actions
-        selectedGrows.forEach(growId => onGrowAction(growId, action));
+        selectedGrows.forEach((growId) => onGrowAction(growId, action));
       }
     }
   };
 
   const getStatusCounts = () => {
     const counts = { planned: 0, active: 0, completed: 0, aborted: 0 };
-    grows.forEach(grow => counts[grow.status]++);
+    grows.forEach((grow) => counts[grow.status]++);
     return counts;
   };
 
@@ -86,7 +89,9 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
       <div className="p-6 border-b border-gray-200">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Grow Management</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Grow Management
+            </h2>
             <p className="text-sm text-gray-600">
               Manage and perform bulk operations on grows
             </p>
@@ -98,7 +103,10 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
               <div key={status} className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded"
-                  style={{ backgroundColor: STATUS_COLORS[status as keyof typeof STATUS_COLORS] }}
+                  style={{
+                    backgroundColor:
+                      STATUS_COLORS[status as keyof typeof STATUS_COLORS],
+                  }}
                 />
                 <span className="text-sm text-gray-700">
                   {STATUS_LABELS[status as keyof typeof STATUS_LABELS]}: {count}
@@ -115,7 +123,9 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
           {/* Filters and Sorting */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <label className="text-sm font-medium text-gray-700">
+                Status:
+              </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -130,7 +140,9 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Sort by:</label>
+              <label className="text-sm font-medium text-gray-700">
+                Sort by:
+              </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -142,10 +154,12 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
                 <option value="environmentalScore">Environmental Score</option>
               </select>
               <button
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
                 className="text-sm px-2 py-1 border border-gray-300 rounded hover:bg-gray-100"
               >
-                {sortOrder === 'asc' ? '↑' : '↓'}
+                {sortOrder === "asc" ? "↑" : "↓"}
               </button>
             </div>
           </div>
@@ -159,17 +173,19 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
               onClick={handleSelectAll}
               className="text-sm px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
             >
-              {selectedGrows.length === processedGrows.length ? 'Deselect All' : 'Select All'}
+              {selectedGrows.length === processedGrows.length
+                ? "Deselect All"
+                : "Select All"}
             </button>
             <button
-              onClick={() => handleBulkAction('abort')}
+              onClick={() => handleBulkAction("abort")}
               disabled={selectedGrows.length === 0}
               className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Abort Selected
             </button>
             <button
-              onClick={() => handleBulkAction('complete')}
+              onClick={() => handleBulkAction("complete")}
               disabled={selectedGrows.length === 0}
               className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -187,7 +203,10 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
               <th className="px-6 py-3 text-left">
                 <input
                   type="checkbox"
-                  checked={selectedGrows.length === processedGrows.length && processedGrows.length > 0}
+                  checked={
+                    selectedGrows.length === processedGrows.length &&
+                    processedGrows.length > 0
+                  }
                   onChange={handleSelectAll}
                   className="rounded border-gray-300"
                 />
@@ -221,11 +240,11 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {processedGrows.map((grow) => {
               const isSelected = selectedGrows.includes(grow.id);
-              
+
               return (
                 <tr
                   key={grow.id}
-                  className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
+                  className={`hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}
                 >
                   <td className="px-6 py-4">
                     <input
@@ -241,9 +260,7 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {grow.farmName}
-                    </div>
+                    <div className="text-sm text-gray-900">{grow.farmName}</div>
                     <div className="text-sm text-gray-500">
                       {grow.rowName} • {grow.rackName}
                     </div>
@@ -283,50 +300,55 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
                           }}
                         />
                       </div>
-                      <span className="text-sm text-gray-900">{grow.progress}%</span>
+                      <span className="text-sm text-gray-900">
+                        {grow.progress}%
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>Day {grow.daysElapsed} of {grow.totalDays}</div>
+                    <div>
+                      Day {grow.daysElapsed} of {grow.totalDays}
+                    </div>
                     <div className="text-xs text-gray-500">
-                      {grow.daysRemaining > 0 
+                      {grow.daysRemaining > 0
                         ? `${grow.daysRemaining} days left`
-                        : 'Completed'
-                      }
+                        : "Completed"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`text-sm font-medium ${
-                      grow.environmentalScore >= 80 
-                        ? 'text-green-600' 
-                        : grow.environmentalScore >= 60 
-                          ? 'text-yellow-600' 
-                          : 'text-red-600'
-                    }`}>
+                    <span
+                      className={`text-sm font-medium ${
+                        grow.environmentalScore >= 80
+                          ? "text-green-600"
+                          : grow.environmentalScore >= 60
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                      }`}
+                    >
                       {grow.environmentalScore}/100
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      {grow.status === 'active' && (
+                      {grow.status === "active" && (
                         <>
                           <button
-                            onClick={() => onGrowAction(grow.id, 'complete')}
+                            onClick={() => onGrowAction(grow.id, "complete")}
                             className="text-green-600 hover:text-green-900"
                           >
                             Complete
                           </button>
                           <button
-                            onClick={() => onGrowAction(grow.id, 'abort')}
+                            onClick={() => onGrowAction(grow.id, "abort")}
                             className="text-red-600 hover:text-red-900"
                           >
                             Abort
                           </button>
                         </>
                       )}
-                      {grow.status === 'planned' && (
+                      {grow.status === "planned" && (
                         <button
-                          onClick={() => onGrowAction(grow.id, 'start')}
+                          onClick={() => onGrowAction(grow.id, "start")}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Start
@@ -348,4 +370,4 @@ export const ManagementView: React.FC<ManagementViewProps> = ({
       )}
     </div>
   );
-}; 
+};

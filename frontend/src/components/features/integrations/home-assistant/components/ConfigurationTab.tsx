@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
-import { 
-  Save, 
-  TestTube, 
-  AlertCircle, 
+import {
+  Save,
+  TestTube,
+  AlertCircle,
   CheckCircle,
   Loader2,
   Info,
-  ExternalLink
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import type { HAConfig, HAConnectionStatus } from '@/services/homeAssistantService';
+  ExternalLink,
+} from "lucide-react";
+import React, { useState } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type {
+  HAConfig,
+  HAConnectionStatus,
+} from "@/services/homeAssistantService";
 
 interface ConfigurationTabProps {
   config: HAConfig | null;
@@ -34,24 +44,27 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
   isTesting,
   onSaveConfig,
   onTestConnection,
-  getStatusColor
+  getStatusColor,
 }) => {
   const [formData, setFormData] = useState<HAConfig>({
-    url: config?.url || '',
-    token: config?.token || '',
+    url: config?.url || "",
+    token: config?.token || "",
     enabled: config?.enabled ?? true,
-    cloudflare_client_id: config?.cloudflare_client_id || '',
-    cloudflare_client_secret: config?.cloudflare_client_secret || '',
-    name: config?.name || 'Home Assistant',
-    local_url: config?.local_url || ''
+    cloudflare_client_id: config?.cloudflare_client_id || "",
+    cloudflare_client_secret: config?.cloudflare_client_secret || "",
+    name: config?.name || "Home Assistant",
+    local_url: config?.local_url || "",
   });
-  
+
   const [testResult, setTestResult] = useState<HAConnectionStatus | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
-  const handleInputChange = (field: keyof HAConfig, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: keyof HAConfig,
+    value: string | boolean,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear test result when config changes
     setTestResult(null);
   };
@@ -60,7 +73,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
     if (!formData.url || !formData.token) {
       setTestResult({
         connected: false,
-        error: 'URL and access token are required'
+        error: "URL and access token are required",
       });
       return;
     }
@@ -74,7 +87,8 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
     } catch (error) {
       setTestResult({
         connected: false,
-        error: error instanceof Error ? error.message : 'Connection test failed'
+        error:
+          error instanceof Error ? error.message : "Connection test failed",
       });
     } finally {
       setIsTestingConnection(false);
@@ -85,7 +99,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
     if (!formData.url || !formData.token) {
       setTestResult({
         connected: false,
-        error: 'URL and access token are required'
+        error: "URL and access token are required",
       });
       return;
     }
@@ -95,7 +109,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
       await onSaveConfig(formData);
       setTestResult(null); // Clear test result after successful save
     } catch (error) {
-      console.error('Failed to save config:', error);
+      console.error("Failed to save config:", error);
     } finally {
       setIsSaving(false);
     }
@@ -120,25 +134,30 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
         <CardContent>
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${status.connected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div
+                className={`w-3 h-3 rounded-full ${status.connected ? "bg-green-500" : "bg-red-500"}`}
+              ></div>
               <div>
                 <p className="font-medium">
-                  {status.connected ? 'Connected' : 'Disconnected'}
+                  {status.connected ? "Connected" : "Disconnected"}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {status.connected ? `${status.device_count || 0} devices available` : 'No connection established'}
+                  {status.connected
+                    ? `${status.device_count || 0} devices available`
+                    : "No connection established"}
                 </p>
               </div>
             </div>
             <Badge className={getStatusColor(status.connected)}>
-              {status.connected ? 'Online' : 'Offline'}
+              {status.connected ? "Online" : "Offline"}
             </Badge>
           </div>
-          
+
           {status.version && (
             <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
               <p className="text-sm">
-                <span className="font-medium">Home Assistant Version:</span> {status.version}
+                <span className="font-medium">Home Assistant Version:</span>{" "}
+                {status.version}
               </p>
               {status.last_updated && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -168,7 +187,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Home Assistant"
             />
           </div>
@@ -179,7 +198,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
             <Input
               id="url"
               value={formData.url}
-              onChange={(e) => handleInputChange('url', e.target.value)}
+              onChange={(e) => handleInputChange("url", e.target.value)}
               placeholder="https://your-home-assistant.local:8123"
               type="url"
             />
@@ -194,7 +213,7 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
             <Input
               id="local_url"
               value={formData.local_url}
-              onChange={(e) => handleInputChange('local_url', e.target.value)}
+              onChange={(e) => handleInputChange("local_url", e.target.value)}
               placeholder="http://192.168.1.100:8123"
               type="url"
             />
@@ -210,31 +229,37 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
               id="token"
               type="password"
               value={formData.token}
-              onChange={(e) => handleInputChange('token', e.target.value)}
+              onChange={(e) => handleInputChange("token", e.target.value)}
               placeholder="Enter your Home Assistant access token"
             />
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <ExternalLink className="w-3 h-3" />
               <span>
-                Generate in Home Assistant: Profile → Security → Long-Lived Access Tokens
+                Generate in Home Assistant: Profile → Security → Long-Lived
+                Access Tokens
               </span>
             </div>
           </div>
 
           {/* Cloudflare Settings (Optional) */}
           <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <h4 className="font-medium text-sm">Cloudflare Tunnel (Optional)</h4>
+            <h4 className="font-medium text-sm">
+              Cloudflare Tunnel (Optional)
+            </h4>
             <p className="text-xs text-gray-500">
-              If you're using Cloudflare Access to secure your Home Assistant instance
+              If you're using Cloudflare Access to secure your Home Assistant
+              instance
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cloudflare_client_id">Client ID</Label>
                 <Input
                   id="cloudflare_client_id"
                   value={formData.cloudflare_client_id}
-                  onChange={(e) => handleInputChange('cloudflare_client_id', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("cloudflare_client_id", e.target.value)
+                  }
                   placeholder="Cloudflare client ID"
                 />
               </div>
@@ -244,7 +269,12 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
                   id="cloudflare_client_secret"
                   type="password"
                   value={formData.cloudflare_client_secret}
-                  onChange={(e) => handleInputChange('cloudflare_client_secret', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "cloudflare_client_secret",
+                      e.target.value,
+                    )
+                  }
                   placeholder="Cloudflare client secret"
                 />
               </div>
@@ -256,24 +286,37 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
             <Switch
               id="enabled"
               checked={formData.enabled}
-              onCheckedChange={(checked) => handleInputChange('enabled', checked)}
+              onCheckedChange={(checked) =>
+                handleInputChange("enabled", checked)
+              }
             />
             <Label htmlFor="enabled">Enable this integration</Label>
           </div>
 
           {/* Test Result */}
           {testResult && (
-            <Alert className={testResult.connected ? 'border-green-200 bg-green-50 dark:bg-green-900/20' : 'border-red-200 bg-red-50 dark:bg-red-900/20'}>
+            <Alert
+              className={
+                testResult.connected
+                  ? "border-green-200 bg-green-50 dark:bg-green-900/20"
+                  : "border-red-200 bg-red-50 dark:bg-red-900/20"
+              }
+            >
               {testResult.connected ? (
                 <CheckCircle className="h-4 w-4 text-green-600" />
               ) : (
                 <AlertCircle className="h-4 w-4 text-red-600" />
               )}
-              <AlertDescription className={testResult.connected ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
-                {testResult.connected 
-                  ? `Connection successful! Found ${testResult.device_count || 0} devices.`
-                  : `Connection failed: ${testResult.error}`
+              <AlertDescription
+                className={
+                  testResult.connected
+                    ? "text-green-800 dark:text-green-200"
+                    : "text-red-800 dark:text-red-200"
                 }
+              >
+                {testResult.connected
+                  ? `Connection successful! Found ${testResult.device_count || 0} devices.`
+                  : `Connection failed: ${testResult.error}`}
               </AlertDescription>
             </Alert>
           )}
@@ -291,7 +334,9 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
               ) : (
                 <TestTube className="w-4 h-4" />
               )}
-              <span>{isTestingConnection ? 'Testing...' : 'Test Connection'}</span>
+              <span>
+                {isTestingConnection ? "Testing..." : "Test Connection"}
+              </span>
             </Button>
 
             <Button
@@ -304,11 +349,11 @@ export const ConfigurationTab: React.FC<ConfigurationTabProps> = ({
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              <span>{isSaving ? 'Saving...' : 'Save Configuration'}</span>
+              <span>{isSaving ? "Saving..." : "Save Configuration"}</span>
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-}; 
+};

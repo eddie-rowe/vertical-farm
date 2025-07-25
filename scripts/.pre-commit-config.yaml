@@ -1,0 +1,222 @@
+repos:
+  # =============================================================================
+  # General File Quality Checks
+  # =============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--unsafe']
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # =============================================================================
+  # Python Backend Quality Checks
+  # =============================================================================
+  
+  # Code Formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        name: "Backend: Format code (Black)"
+        files: ^backend/
+        args: ['--line-length=88']
+
+  # Import Sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: "Backend: Sort imports (isort)"
+        files: ^backend/
+        args: ['--profile=black', '--line-length=88']
+
+  # Linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        name: "Backend: Lint code (flake8)"
+        files: ^backend/
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+        additional_dependencies: [flake8-docstrings, flake8-import-order]
+
+  # Type Checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: "Backend: Type checking (mypy)"
+        files: ^backend/src/
+        args: ['--ignore-missing-imports', '--no-strict-optional']
+        additional_dependencies: [types-requests, types-redis, types-PyYAML]
+
+  # Security Scanning
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        name: "Backend: Security scan (Bandit)"
+        files: ^backend/src/
+        args: ['--skip=B101,B601']  # Skip assert and shell injection in tests
+
+  # Dependency Security
+  - repo: https://github.com/pyupio/safety
+    rev: 3.0.1
+    hooks:
+      - id: safety
+        name: "Backend: Dependency security (Safety)"
+        files: ^backend/
+        args: ['--json', '--ignore=70612']  # Ignore false positives if needed
+
+  # =============================================================================
+  # Frontend/JavaScript Quality Checks
+  # =============================================================================
+
+  # Code Formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: "Frontend: Format code (Prettier)"
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx, json, css, scss, html, markdown]
+        exclude: '(package-lock\.json|\.next/|node_modules/)'
+
+  # Linting & Type Checking
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        name: "Frontend: Lint code (ESLint)"
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        args: ['--fix', '--max-warnings=0']
+        additional_dependencies:
+          - '@typescript-eslint/parser@^6.0.0'
+          - '@typescript-eslint/eslint-plugin@^6.0.0'
+          - 'eslint-plugin-react@^7.0.0'
+          - 'eslint-plugin-react-hooks@^4.0.0'
+
+  # TypeScript Type Checking
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: "Frontend: TypeScript checking (tsc)"
+        entry: bash -c 'cd frontend && npx tsc --noEmit --skipLibCheck'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+  # =============================================================================
+  # Security & Secrets Scanning
+  # =============================================================================
+
+  # Secret Detection
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.63.2
+    hooks:
+      - id: trufflehog
+        name: "Security: Detect secrets (TruffleHog)"
+        entry: trufflehog filesystem --directory=. --only-verified
+        language: system
+        stages: [commit]
+
+  # Additional Secret Detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: "Security: Detect secrets (detect-secrets)"
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '(package-lock\.json|\.lock$|\.git/)'
+
+  # =============================================================================
+  # Documentation & Configuration
+  # =============================================================================
+
+  # YAML Linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        name: "Config: YAML linting"
+        args: ['-d', 'relaxed']
+
+  # Dockerfile Linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        name: "Docker: Dockerfile linting"
+        files: Dockerfile.*
+
+  # =============================================================================
+  # Performance & Bundle Checks (Local Hooks)
+  # =============================================================================
+
+  - repo: local
+    hooks:
+      # Frontend dependency check
+      - id: frontend-dep-check
+        name: "Frontend: Dependency analysis"
+        entry: bash -c 'cd frontend && npm audit --audit-level=high'
+        language: system
+        files: ^frontend/package\.json$
+        pass_filenames: false
+
+      # Backend dependency check
+      - id: backend-dep-check
+        name: "Backend: Dependency analysis"
+        entry: bash -c 'cd backend && pip-audit --format=json --output=audit.json || true'
+        language: system
+        files: ^backend/(requirements\.txt|pyproject\.toml)$
+        pass_filenames: false
+
+      # License compliance check
+      - id: license-check
+        name: "Legal: License compliance"
+        entry: bash -c 'cd frontend && npx license-checker --production --summary'
+        language: system
+        files: ^frontend/package\.json$
+        pass_filenames: false
+
+  # =============================================================================
+  # Git Commit Message Validation
+  # =============================================================================
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.0.0
+    hooks:
+      - id: conventional-pre-commit
+        name: "Git: Conventional commit format"
+        stages: [commit-msg]
+
+# =============================================================================
+# Configuration
+# =============================================================================
+default_stages: [commit]
+fail_fast: false  # Run all hooks even if some fail
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [typescript-check, frontend-dep-check, backend-dep-check, license-check]
+  submodules: false 

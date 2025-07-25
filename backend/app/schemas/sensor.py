@@ -7,20 +7,22 @@ history, and static data endpoints.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel
 
 
 class SensorReadingResponse(BaseModel):
     """Response model for individual sensor readings"""
+
     id: int
     device_assignment_id: str
     reading_type: str
     value: float
     unit: str
     timestamp: datetime
-    device_name: Optional[str] = None
-    location: Optional[str] = None
+    device_name: str | None = None
+    location: str | None = None
     cached: bool = False
 
     class Config:
@@ -29,10 +31,11 @@ class SensorReadingResponse(BaseModel):
 
 class SensorHistoryResponse(BaseModel):
     """Response model for sensor reading history"""
+
     device_id: str
     sensor_type: str
     period_hours: int
-    readings: List[SensorReadingResponse]
+    readings: list[SensorReadingResponse]
     total_readings: int
     cached: bool = False
 
@@ -42,6 +45,7 @@ class SensorHistoryResponse(BaseModel):
 
 class SensorAggregateResponse(BaseModel):
     """Response model for sensor data aggregates"""
+
     device_assignment_id: str
     sensor_type: str
     avg_value: float
@@ -59,11 +63,12 @@ class SensorAggregateResponse(BaseModel):
 
 class StaticDataResponse(BaseModel):
     """Response model for static data (species, varieties, recipes)"""
+
     data_type: str
-    items: List[Dict[str, Any]]
+    items: list[dict[str, Any]]
     total_count: int
     cached: bool = False
-    cache_timestamp: Optional[datetime] = None
+    cache_timestamp: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -71,6 +76,7 @@ class StaticDataResponse(BaseModel):
 
 class CacheStatsResponse(BaseModel):
     """Response model for cache performance statistics"""
+
     cache_type: str
     hit_rate: float
     total_requests: int
@@ -85,10 +91,11 @@ class CacheStatsResponse(BaseModel):
 
 class CacheInvalidationResponse(BaseModel):
     """Response model for cache invalidation operations"""
+
     success: bool
     message: str
-    invalidated_keys: List[str]
+    invalidated_keys: list[str]
     timestamp: datetime
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

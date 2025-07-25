@@ -1,23 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  squareService, 
-  SquareConfig, 
+import { useState, useEffect, useCallback } from "react";
+
+import {
+  squareService,
+  SquareConfig,
   SquareConfigCreate,
   SquareConfigUpdate,
-  SquareConnectionStatus, 
-  SquareLocation
-} from '@/services/squareService';
-import { 
-  SyncStatus, 
-  ConnectionHealth, 
-  SyncSettings, 
-  TestResult 
-} from '../types';
-import { 
-  DEFAULT_SYNC_STATUSES, 
-  DEFAULT_CONNECTION_HEALTH, 
-  DEFAULT_SYNC_SETTINGS 
-} from '../data';
+  SquareConnectionStatus,
+  SquareLocation,
+} from "@/services/squareService";
+
+import {
+  DEFAULT_SYNC_STATUSES,
+  DEFAULT_CONNECTION_HEALTH,
+  DEFAULT_SYNC_SETTINGS,
+} from "../data";
+import {
+  SyncStatus,
+  ConnectionHealth,
+  SyncSettings,
+  TestResult,
+} from "../types";
 
 export const useSquareIntegration = () => {
   // Configuration state
@@ -25,12 +27,14 @@ export const useSquareIntegration = () => {
   const [activeConfig, setActiveConfig] = useState<SquareConfig | null>(null);
   const [configsLoading, setConfigsLoading] = useState(true);
   const [newConfig, setNewConfig] = useState<SquareConfigCreate>({
-    name: '',
-    application_id: '',
-    access_token: '',
-    environment: 'sandbox'
+    name: "",
+    application_id: "",
+    access_token: "",
+    environment: "sandbox",
   });
-  const [editingConfig, setEditingConfig] = useState<SquareConfigUpdate & { id: string } | null>(null);
+  const [editingConfig, setEditingConfig] = useState<
+    (SquareConfigUpdate & { id: string }) | null
+  >(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,7 +43,10 @@ export const useSquareIntegration = () => {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   // Connection state
-  const [status, setStatus] = useState<SquareConnectionStatus>({ connected: false, environment: 'sandbox' });
+  const [status, setStatus] = useState<SquareConnectionStatus>({
+    connected: false,
+    environment: "sandbox",
+  });
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Data state
@@ -49,12 +56,18 @@ export const useSquareIntegration = () => {
   const [showSetupGuide, setShowSetupGuide] = useState(false);
 
   // Integration management state
-  const [connectionHealth, setConnectionHealth] = useState<ConnectionHealth>(DEFAULT_CONNECTION_HEALTH);
-  const [syncStatuses, setSyncStatuses] = useState<SyncStatus[]>(DEFAULT_SYNC_STATUSES);
+  const [connectionHealth, setConnectionHealth] = useState<ConnectionHealth>(
+    DEFAULT_CONNECTION_HEALTH,
+  );
+  const [syncStatuses, setSyncStatuses] = useState<SyncStatus[]>(
+    DEFAULT_SYNC_STATUSES,
+  );
   const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
-  const [syncSettings, setSyncSettings] = useState<SyncSettings>(DEFAULT_SYNC_SETTINGS);
+  const [syncSettings, setSyncSettings] = useState<SyncSettings>(
+    DEFAULT_SYNC_SETTINGS,
+  );
 
   // Load all configurations
   const loadConfigs = useCallback(async () => {
@@ -62,19 +75,20 @@ export const useSquareIntegration = () => {
       setConfigsLoading(true);
       const configsData = await squareService.getConfigs();
       setConfigs(configsData);
-      
+
       // Set the first active config as the active one, or first config if none active
-      const active = configsData.find(c => c.is_active) || configsData[0] || null;
+      const active =
+        configsData.find((c) => c.is_active) || configsData[0] || null;
       setActiveConfig(active);
-      
+
       // Load status for active config
       if (active?.id) {
         const statusData = await squareService.testConnection(active.id);
         setStatus(statusData);
       }
     } catch (error) {
-      console.error('Error loading Square configs:', error);
-      setConnectionError('Failed to load Square configurations');
+      console.error("Error loading Square configs:", error);
+      setConnectionError("Failed to load Square configurations");
     } finally {
       setConfigsLoading(false);
     }
@@ -83,40 +97,48 @@ export const useSquareIntegration = () => {
   // Load Square data for the active configuration
   const loadSquareData = useCallback(async () => {
     if (!activeConfig?.id) return;
-    
+
     try {
       // Load locations for location filtering in Advanced tab
       const locationsData = await squareService.getLocations(activeConfig.id);
       setLocations(locationsData);
     } catch (error) {
-      console.error('Error loading Square data:', error);
-      setConnectionError('Failed to load Square data');
+      console.error("Error loading Square data:", error);
+      setConnectionError("Failed to load Square data");
     }
   }, [activeConfig?.id]);
 
   // Configuration management functions
   const handleCreateConfiguration = async () => {
-    if (!newConfig.name || !newConfig.application_id || !newConfig.access_token) {
-      setConnectionError('Please fill in all required fields');
+    if (
+      !newConfig.name ||
+      !newConfig.application_id ||
+      !newConfig.access_token
+    ) {
+      setConnectionError("Please fill in all required fields");
       return;
     }
 
     setIsSaving(true);
     setConnectionError(null);
-    
+
     try {
       await squareService.createConfig(newConfig);
       await loadConfigs();
       setNewConfig({
-        name: '',
-        application_id: '',
-        access_token: '',
-        environment: 'sandbox'
+        name: "",
+        application_id: "",
+        access_token: "",
+        environment: "sandbox",
       });
       setShowCreateDialog(false);
-      setSaveSuccess('Configuration created successfully');
+      setSaveSuccess("Configuration created successfully");
     } catch (error) {
-      setConnectionError(error instanceof Error ? error.message : 'Failed to create configuration');
+      setConnectionError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create configuration",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -127,15 +149,19 @@ export const useSquareIntegration = () => {
 
     setIsSaving(true);
     setConnectionError(null);
-    
+
     try {
       await squareService.updateConfig(editingConfig.id, editingConfig);
       await loadConfigs();
       setEditingConfig(null);
       setShowEditDialog(false);
-      setSaveSuccess('Configuration updated successfully');
+      setSaveSuccess("Configuration updated successfully");
     } catch (error) {
-      setConnectionError(error instanceof Error ? error.message : 'Failed to update configuration');
+      setConnectionError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update configuration",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -144,13 +170,17 @@ export const useSquareIntegration = () => {
   const handleDeleteConfiguration = async (configId: string) => {
     setIsDeleting(configId);
     setConnectionError(null);
-    
+
     try {
       await squareService.deleteConfig(configId);
       await loadConfigs();
-      setSaveSuccess('Configuration deleted successfully');
+      setSaveSuccess("Configuration deleted successfully");
     } catch (error) {
-      setConnectionError(error instanceof Error ? error.message : 'Failed to delete configuration');
+      setConnectionError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete configuration",
+      );
     } finally {
       setIsDeleting(null);
     }
@@ -160,18 +190,21 @@ export const useSquareIntegration = () => {
     setIsTesting(true);
     setConnectionError(null);
     setTestResult(null);
-    
+
     try {
       const result = await squareService.testConnection(configId);
       setStatus(result);
       setTestResult({
-        type: 'success',
-        message: result.connected ? 'Connection successful!' : 'Connection failed'
+        type: "success",
+        message: result.connected
+          ? "Connection successful!"
+          : "Connection failed",
       });
     } catch (error) {
       setTestResult({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Connection test failed'
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Connection test failed",
       });
     } finally {
       setIsTesting(false);
@@ -180,13 +213,17 @@ export const useSquareIntegration = () => {
 
   const handleSetActiveConfig = async (configId: string) => {
     setConnectionError(null);
-    
+
     try {
       await squareService.setActiveConfig(configId);
       await loadConfigs();
-      setSaveSuccess('Active configuration updated');
+      setSaveSuccess("Active configuration updated");
     } catch (error) {
-      setConnectionError(error instanceof Error ? error.message : 'Failed to set active configuration');
+      setConnectionError(
+        error instanceof Error
+          ? error.message
+          : "Failed to set active configuration",
+      );
     }
   };
 
@@ -196,51 +233,57 @@ export const useSquareIntegration = () => {
       name: config.name,
       application_id: config.application_id,
       access_token: config.access_token,
-      environment: config.environment
+      environment: config.environment,
     });
     setShowEditDialog(true);
   };
 
   const checkConnectionHealth = async () => {
     if (!activeConfig?.id) return;
-    
+
     try {
       const result = await squareService.testConnection(activeConfig.id);
-      setConnectionHealth(prev => ({
+      setConnectionHealth((prev) => ({
         ...prev,
-        status: result.connected ? 'connected' : 'disconnected',
+        status: result.connected ? "connected" : "disconnected",
         lastCheck: new Date().toLocaleString(),
-        responseTime: Math.floor(Math.random() * 100) + 50 // Mock response time
+        responseTime: Math.floor(Math.random() * 100) + 50, // Mock response time
       }));
     } catch (error) {
-      setConnectionHealth(prev => ({
+      setConnectionHealth((prev) => ({
         ...prev,
-        status: 'error',
-        lastCheck: new Date().toLocaleString()
+        status: "error",
+        lastCheck: new Date().toLocaleString(),
       }));
     }
   };
 
   const handleManualSync = async () => {
     if (!activeConfig?.id) return;
-    
+
     setIsManualSyncing(true);
-    
+
     try {
       // Mock sync process
-      setSyncStatuses(prev => prev.map(sync => ({ ...sync, status: 'syncing' as const })));
-      
+      setSyncStatuses((prev) =>
+        prev.map((sync) => ({ ...sync, status: "syncing" as const })),
+      );
+
       // Simulate sync delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Update sync statuses
-      setSyncStatuses(prev => prev.map(sync => ({
-        ...sync,
-        status: 'success' as const,
-        lastSync: 'Just now'
-      })));
+      setSyncStatuses((prev) =>
+        prev.map((sync) => ({
+          ...sync,
+          status: "success" as const,
+          lastSync: "Just now",
+        })),
+      );
     } catch (error) {
-      setSyncStatuses(prev => prev.map(sync => ({ ...sync, status: 'error' as const })));
+      setSyncStatuses((prev) =>
+        prev.map((sync) => ({ ...sync, status: "error" as const })),
+      );
     } finally {
       setIsManualSyncing(false);
     }
@@ -257,21 +300,21 @@ export const useSquareIntegration = () => {
   // Utility functions
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected':
-      case 'success':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'syncing':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'error':
-      case 'disconnected':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "connected":
+      case "success":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "syncing":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "error":
+      case "disconnected":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getStatusBadge = (connected: boolean) => {
-    return connected ? 'Connected' : 'Disconnected';
+    return connected ? "Connected" : "Disconnected";
   };
 
   // Initial load
@@ -344,4 +387,4 @@ export const useSquareIntegration = () => {
     getStatusColor,
     getStatusBadge,
   };
-}; 
+};

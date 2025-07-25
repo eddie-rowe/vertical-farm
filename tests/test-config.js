@@ -16,7 +16,7 @@ if (missingVars.length > 0) {
     console.error('Please create a .env file with:');
     console.error('SUPABASE_URL=your_supabase_url');
     console.error('SUPABASE_ANON_KEY=your_anon_key');
-    console.error('SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional)');
+    console.error('SUPABASE_SERVICE_KEY=your_service_role_key (optional)');
     process.exit(1);
 }
 
@@ -33,8 +33,8 @@ export const supabase = createClient(
 );
 
 // Service role client for admin operations (if available)
-// Check for either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+// Check for either SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_KEY
+const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY;
 export const supabaseAdmin = serviceKey 
     ? createClient(
         process.env.SUPABASE_URL,

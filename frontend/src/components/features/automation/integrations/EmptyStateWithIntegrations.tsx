@@ -1,19 +1,26 @@
-import React from 'react';
-import { ChartBarIcon, Cog6ToothIcon, BeakerIcon, CloudIcon, TruckIcon } from '@heroicons/react/24/outline';
-import IntegrationCard from './IntegrationCard';
+import {
+  ChartBarIcon,
+  Cog6ToothIcon,
+  BeakerIcon,
+  CloudIcon,
+  TruckIcon,
+} from "@heroicons/react/24/outline";
+import React from "react";
+
+import IntegrationCard from "./IntegrationCard";
 
 interface Integration {
   name: string;
   icon: string;
   benefit: string;
   setupTime?: string;
-  status: 'available' | 'connected' | 'coming-soon';
-  difficulty?: 'easy' | 'medium' | 'advanced';
+  status: "available" | "connected" | "coming-soon";
+  difficulty?: "easy" | "medium" | "advanced";
   onConnect?: () => void;
 }
 
 interface EmptyStateWithIntegrationsProps {
-  pageType: 'business' | 'devices' | 'ai' | 'environmental' | 'inventory';
+  pageType: "business" | "devices" | "ai" | "environmental" | "inventory";
   title: string;
   description: string;
   integrations: Integration[];
@@ -25,21 +32,21 @@ const EmptyStateWithIntegrations: React.FC<EmptyStateWithIntegrationsProps> = ({
   title,
   description,
   integrations,
-  customIcon: CustomIcon
+  customIcon: CustomIcon,
 }) => {
   const getPageIcon = () => {
     if (CustomIcon) return CustomIcon;
-    
+
     switch (pageType) {
-      case 'business':
+      case "business":
         return ChartBarIcon;
-      case 'devices':
+      case "devices":
         return Cog6ToothIcon;
-      case 'ai':
+      case "ai":
         return BeakerIcon;
-      case 'environmental':
+      case "environmental":
         return CloudIcon;
-      case 'inventory':
+      case "inventory":
         return TruckIcon;
       default:
         return ChartBarIcon;
@@ -52,11 +59,13 @@ const EmptyStateWithIntegrations: React.FC<EmptyStateWithIntegrationsProps> = ({
     <div className="flex flex-col items-center justify-center p-8 text-center bg-farm-white rounded-lg border-2 border-dashed border-farm-border min-h-[400px] state-active">
       {/* Icon */}
       <PageIcon className="w-16 h-16 text-control-label mb-6 gradient-icon" />
-      
+
       {/* Title and Description */}
       <h3 className="text-xl font-semibold text-farm-title mb-3">{title}</h3>
-      <p className="text-control-content mb-8 max-w-md leading-relaxed">{description}</p>
-      
+      <p className="text-control-content mb-8 max-w-md leading-relaxed">
+        {description}
+      </p>
+
       {/* Integration Cards Grid */}
       <div className="w-full max-w-4xl">
         <h4 className="text-sm font-medium text-control-label mb-4 text-left">
@@ -89,4 +98,4 @@ const EmptyStateWithIntegrations: React.FC<EmptyStateWithIntegrationsProps> = ({
   );
 };
 
-export default EmptyStateWithIntegrations; 
+export default EmptyStateWithIntegrations;

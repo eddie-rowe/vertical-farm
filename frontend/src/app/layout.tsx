@@ -1,16 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
 // import Header from "../components/Header"; // Removed
 // import Sidebar from "../components/Sidebar"; // Removed
-import { ThemeProvider } from "../contexts/ThemeContext";
+import { Toaster } from "react-hot-toast";
+
+import InstallPrompt from "../components/InstallPrompt";
+import NotificationManager from "../components/NotificationManager";
+import PWAStatus from "../components/PWAStatus";
 import { AuthProvider } from "../contexts/AuthContext"; // Re-added for global access
 import { RealtimeProvider } from "../contexts/RealtimeContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
+
 import DatadogInit from "./datadog-init";
-import { Toaster } from "react-hot-toast";
-import InstallPrompt from "../components/InstallPrompt";
-import PWAStatus from "../components/PWAStatus";
-import NotificationManager from "../components/NotificationManager";
 
 // Optimized font loading with preload and display swap
 const geistSans = Geist({
@@ -31,19 +34,29 @@ const geistMono = Geist_Mono({
 
 // Comprehensive metadata for SEO and social sharing
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NODE_ENV === 'production' 
-    ? 'https://vertical-farm.goodgoodgreens.org' 
-    : 'http://localhost:3000'),
+  metadataBase: new URL(
+    process.env.NODE_ENV === "production"
+      ? "https://vertical-farm.goodgoodgreens.org"
+      : "http://localhost:3000",
+  ),
   title: {
     default: "Vertical Farm Management System",
     template: "%s | Vertical Farm",
   },
-  description: "Advanced control, monitoring, and management system for your vertical farming operations. Optimize growth conditions, track plant health, and maximize yields.",
-  keywords: ["vertical farming", "agriculture", "hydroponics", "IoT", "smart farming", "crop management"],
+  description:
+    "Advanced control, monitoring, and management system for your vertical farming operations. Optimize growth conditions, track plant health, and maximize yields.",
+  keywords: [
+    "vertical farming",
+    "agriculture",
+    "hydroponics",
+    "IoT",
+    "smart farming",
+    "crop management",
+  ],
   authors: [{ name: "Good Good Greens" }],
   creator: "Good Good Greens",
   publisher: "Good Good Greens",
-  
+
   // Open Graph metadata for social sharing
   openGraph: {
     type: "website",
@@ -51,7 +64,8 @@ export const metadata: Metadata = {
     url: "https://vertical-farm.goodgoodgreens.org",
     siteName: "Vertical Farm Management System",
     title: "Vertical Farm Management System",
-    description: "Advanced control, monitoring, and management system for your vertical farming operations.",
+    description:
+      "Advanced control, monitoring, and management system for your vertical farming operations.",
     images: [
       {
         url: "/images/og-image.png",
@@ -66,7 +80,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Vertical Farm Management System",
-    description: "Advanced control, monitoring, and management system for your vertical farming operations.",
+    description:
+      "Advanced control, monitoring, and management system for your vertical farming operations.",
     creator: "@goodgoodgreens",
     images: ["/images/twitter-image.png"],
   },
@@ -97,13 +112,13 @@ export const metadata: Metadata = {
       { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#059669" },
     ],
   },
-  
+
   manifest: "/manifest.json",
-  
+
   // Additional meta tags
   category: "agriculture",
   classification: "business",
-  
+
   // Verification
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
@@ -134,17 +149,25 @@ export default function RootLayout({
         {/* DNS prefetch for external domains */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//api.goodgoodgreens.org" />
-        
+
         {/* Preconnect for critical resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+
         {/* Additional meta tags */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        
+
         {/* Schema.org structured data */}
         <script
           type="application/ld+json"
@@ -152,19 +175,20 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "Vertical Farm Management System",
-              "description": "Advanced control, monitoring, and management system for vertical farming operations",
-              "url": "https://vertical-farm.goodgoodgreens.org",
-              "applicationCategory": "BusinessApplication",
-              "operatingSystem": "Web Browser",
-              "author": {
+              name: "Vertical Farm Management System",
+              description:
+                "Advanced control, monitoring, and management system for vertical farming operations",
+              url: "https://vertical-farm.goodgoodgreens.org",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web Browser",
+              author: {
                 "@type": "Organization",
-                "name": "Good Good Greens"
-              }
-            })
+                name: "Good Good Greens",
+              },
+            }),
           }}
         />
-        
+
         {/* Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{
@@ -180,7 +204,7 @@ export default function RootLayout({
                     });
                 });
               }
-            `
+            `,
           }}
         />
       </head>
@@ -188,25 +212,25 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <DatadogInit />
-        <Toaster 
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
             style: {
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-              border: '1px solid var(--border)',
+              background: "var(--background)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
             },
             success: {
               iconTheme: {
-                primary: 'var(--primary)',
-                secondary: 'var(--primary-foreground)',
+                primary: "var(--primary)",
+                secondary: "var(--primary-foreground)",
               },
             },
             error: {
               iconTheme: {
-                primary: 'var(--destructive)',
-                secondary: 'var(--destructive-foreground)',
+                primary: "var(--destructive)",
+                secondary: "var(--destructive-foreground)",
               },
             },
           }}

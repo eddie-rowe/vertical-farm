@@ -1,12 +1,12 @@
 /**
  * Row Service - Migrated to Supabase PostGREST
- * 
+ *
  * This service replaces FastAPI endpoints with direct Supabase calls,
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '@/lib/supabaseClient';
-import { UUID } from '@/types/farm-layout';
+import { supabase } from "@/lib/supabaseClient";
+import { UUID } from "@/types/farm-layout";
 
 // =====================================================
 // TYPES
@@ -34,9 +34,12 @@ export interface UpdateRowData {
 // =====================================================
 
 const requireAuth = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw error;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) throw new Error("User not authenticated");
   return user;
 };
 
@@ -50,18 +53,18 @@ const requireAuth = async () => {
  */
 export const createRow = async (rowData: CreateRowData): Promise<Row> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
+    .from("rows")
     .insert([rowData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating row:', error);
+    console.error("Error creating row:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -71,18 +74,18 @@ export const createRow = async (rowData: CreateRowData): Promise<Row> => {
  */
 export const getRowById = async (rowId: UUID): Promise<Row> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
-    .select('*')
-    .eq('id', rowId)
+    .from("rows")
+    .select("*")
+    .eq("id", rowId)
     .single();
-  
+
   if (error) {
     console.error(`Error fetching row ${rowId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -92,18 +95,18 @@ export const getRowById = async (rowId: UUID): Promise<Row> => {
  */
 export const getRowsByFarmId = async (farmId: UUID): Promise<Row[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
-    .select('*')
-    .eq('farm_id', farmId)
-    .order('created_at', { ascending: true });
-  
+    .from("rows")
+    .select("*")
+    .eq("farm_id", farmId)
+    .order("created_at", { ascending: true });
+
   if (error) {
     console.error(`Error fetching rows for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -111,21 +114,24 @@ export const getRowsByFarmId = async (farmId: UUID): Promise<Row[]> => {
  * Update an existing row
  * Replaces: PUT /api/v1/rows/{row_id}
  */
-export const updateRow = async (rowId: UUID, rowData: UpdateRowData): Promise<Row> => {
+export const updateRow = async (
+  rowId: UUID,
+  rowData: UpdateRowData,
+): Promise<Row> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
+    .from("rows")
     .update(rowData)
-    .eq('id', rowId)
+    .eq("id", rowId)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`Error updating row ${rowId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -135,12 +141,9 @@ export const updateRow = async (rowId: UUID, rowData: UpdateRowData): Promise<Ro
  */
 export const deleteRow = async (rowId: UUID): Promise<void> => {
   await requireAuth();
-  
-  const { error } = await supabase
-    .from('rows')
-    .delete()
-    .eq('id', rowId);
-  
+
+  const { error } = await supabase.from("rows").delete().eq("id", rowId);
+
   if (error) {
     console.error(`Error deleting row ${rowId}:`, error);
     throw error;
@@ -159,17 +162,17 @@ export const deleteRow = async (rowId: UUID): Promise<void> => {
  */
 export const getRowCount = async (farmId: UUID): Promise<number> => {
   await requireAuth();
-  
+
   const { count, error } = await supabase
-    .from('rows')
-    .select('*', { count: 'exact', head: true })
-    .eq('farm_id', farmId);
-  
+    .from("rows")
+    .select("*", { count: "exact", head: true })
+    .eq("farm_id", farmId);
+
   if (error) {
     console.error(`Error getting row count for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return count || 0;
 };
 
@@ -181,38 +184,38 @@ export const getRowCount = async (farmId: UUID): Promise<number> => {
  */
 export const generateUniqueRowName = async (farmId: UUID): Promise<string> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('rows')
-    .select('name')
-    .eq('farm_id', farmId);
-  
+    .from("rows")
+    .select("name")
+    .eq("farm_id", farmId);
+
   if (error) {
     console.error(`Error getting row names for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   if (!data || data.length === 0) {
-    return 'Row 1'; // First row
+    return "Row 1"; // First row
   }
-  
+
   // Extract existing row numbers from names that match "Row X" pattern
   const existingNumbers = new Set<number>();
   const rowPattern = /^Row (\d+)$/i;
-  
-  data.forEach(row => {
+
+  data.forEach((row) => {
     const match = row.name.match(rowPattern);
     if (match) {
       existingNumbers.add(parseInt(match[1], 10));
     }
   });
-  
+
   // Find the next available number starting from 1
   let nextNumber = 1;
   while (existingNumbers.has(nextNumber)) {
     nextNumber++;
   }
-  
+
   return `Row ${nextNumber}`;
 };
 
@@ -223,4 +226,4 @@ export const generateUniqueRowName = async (farmId: UUID): Promise<string> => {
 // Export aliases for any existing code that might use different names
 export { createRow as addRow };
 export { getRowsByFarmId as getRowsByFarm };
-export { deleteRow as removeRow }; 
+export { deleteRow as removeRow };

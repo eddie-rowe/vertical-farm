@@ -1,13 +1,13 @@
-'use server';
+"use server";
 
-import webPush from 'web-push';
+import webPush from "web-push";
 
 // Configure web-push with VAPID keys
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webPush.setVapidDetails(
-    'mailto:support@goodgoodgreens.org',
+    "mailto:support@goodgoodgreens.org",
     process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
+    process.env.VAPID_PRIVATE_KEY,
   );
 }
 
@@ -35,29 +35,33 @@ export interface NotificationPayload {
  */
 export async function subscribeToPushNotifications(
   subscription: PushSubscription,
-  userId?: string
+  userId?: string,
 ) {
   try {
     // TODO: Store subscription in database with user ID
     // For now, we'll just validate the subscription
-    if (!subscription.endpoint || !subscription.keys.p256dh || !subscription.keys.auth) {
-      throw new Error('Invalid subscription object');
+    if (
+      !subscription.endpoint ||
+      !subscription.keys.p256dh ||
+      !subscription.keys.auth
+    ) {
+      throw new Error("Invalid subscription object");
     }
 
-    console.log('Push subscription stored for user:', userId);
-    
+    console.log("Push subscription stored for user:", userId);
+
     // Send welcome notification
     await sendPushNotification(subscription, {
-      title: 'Welcome to Vertical Farm Alerts!',
-      body: 'You\'ll now receive important notifications about your farm.',
-      icon: '/android-chrome-192x192.png',
-      tag: 'welcome',
+      title: "Welcome to Vertical Farm Alerts!",
+      body: "You'll now receive important notifications about your farm.",
+      icon: "/android-chrome-192x192.png",
+      tag: "welcome",
     });
 
     return { success: true };
   } catch (error) {
-    console.error('Failed to subscribe to push notifications:', error);
-    return { success: false, error: 'Failed to subscribe to notifications' };
+    console.error("Failed to subscribe to push notifications:", error);
+    return { success: false, error: "Failed to subscribe to notifications" };
   }
 }
 
@@ -66,15 +70,18 @@ export async function subscribeToPushNotifications(
  */
 export async function unsubscribeFromPushNotifications(
   subscription: PushSubscription,
-  userId?: string
+  userId?: string,
 ) {
   try {
     // TODO: Remove subscription from database
-    console.log('Push subscription removed for user:', userId);
+    console.log("Push subscription removed for user:", userId);
     return { success: true };
   } catch (error) {
-    console.error('Failed to unsubscribe from push notifications:', error);
-    return { success: false, error: 'Failed to unsubscribe from notifications' };
+    console.error("Failed to unsubscribe from push notifications:", error);
+    return {
+      success: false,
+      error: "Failed to unsubscribe from notifications",
+    };
   }
 }
 
@@ -83,21 +90,21 @@ export async function unsubscribeFromPushNotifications(
  */
 export async function sendPushNotification(
   subscription: PushSubscription,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ) {
   try {
     if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-      throw new Error('VAPID keys not configured');
+      throw new Error("VAPID keys not configured");
     }
 
     const notificationPayload = JSON.stringify({
       title: payload.title,
       body: payload.body,
-      icon: payload.icon || '/android-chrome-192x192.png',
-      badge: payload.badge || '/favicon-32x32.png',
-      tag: payload.tag || 'farm-notification',
+      icon: payload.icon || "/android-chrome-192x192.png",
+      badge: payload.badge || "/favicon-32x32.png",
+      tag: payload.tag || "farm-notification",
       data: {
-        url: payload.url || '/',
+        url: payload.url || "/",
         timestamp: Date.now(),
         ...payload.data,
       },
@@ -105,11 +112,11 @@ export async function sendPushNotification(
     });
 
     await webPush.sendNotification(subscription, notificationPayload);
-    console.log('Push notification sent successfully');
+    console.log("Push notification sent successfully");
     return { success: true };
   } catch (error) {
-    console.error('Failed to send push notification:', error);
-    return { success: false, error: 'Failed to send notification' };
+    console.error("Failed to send push notification:", error);
+    return { success: false, error: "Failed to send notification" };
   }
 }
 
@@ -120,27 +127,29 @@ export async function broadcastNotification(payload: NotificationPayload) {
   try {
     // TODO: Get all subscriptions from database
     const subscriptions: PushSubscription[] = [];
-    
+
     const results = await Promise.allSettled(
-      subscriptions.map(subscription => 
-        sendPushNotification(subscription, payload)
-      )
+      subscriptions.map((subscription) =>
+        sendPushNotification(subscription, payload),
+      ),
     );
 
-    const successful = results.filter(result => 
-      result.status === 'fulfilled' && result.value.success
+    const successful = results.filter(
+      (result) => result.status === "fulfilled" && result.value.success,
     ).length;
 
-    console.log(`Broadcast notification sent to ${successful}/${subscriptions.length} subscribers`);
-    
-    return { 
-      success: true, 
-      sent: successful, 
-      total: subscriptions.length 
+    console.log(
+      `Broadcast notification sent to ${successful}/${subscriptions.length} subscribers`,
+    );
+
+    return {
+      success: true,
+      sent: successful,
+      total: subscriptions.length,
     };
   } catch (error) {
-    console.error('Failed to broadcast notification:', error);
-    return { success: false, error: 'Failed to broadcast notification' };
+    console.error("Failed to broadcast notification:", error);
+    return { success: false, error: "Failed to broadcast notification" };
   }
 }
 
@@ -148,41 +157,41 @@ export async function broadcastNotification(payload: NotificationPayload) {
  * Send farm-specific alert notifications
  */
 export async function sendFarmAlert(
-  alertType: 'critical' | 'warning' | 'info',
+  alertType: "critical" | "warning" | "info",
   message: string,
   details?: {
     sensorId?: string;
     value?: number;
     threshold?: number;
     url?: string;
-  }
+  },
 ) {
   const alertConfig = {
     critical: {
-      title: '🚨 Critical Farm Alert',
+      title: "🚨 Critical Farm Alert",
       urgent: true,
-      tag: 'critical-alert',
+      tag: "critical-alert",
     },
     warning: {
-      title: '⚠️ Farm Warning',
+      title: "⚠️ Farm Warning",
       urgent: false,
-      tag: 'warning-alert',
+      tag: "warning-alert",
     },
     info: {
-      title: '📊 Farm Update',
+      title: "📊 Farm Update",
       urgent: false,
-      tag: 'info-alert',
+      tag: "info-alert",
     },
   };
 
   const config = alertConfig[alertType];
-  
+
   return await broadcastNotification({
     title: config.title,
     body: message,
     tag: config.tag,
     urgent: config.urgent,
-    url: details?.url || '/dashboard',
+    url: details?.url || "/dashboard",
     data: {
       alertType,
       sensorId: details?.sensorId,
@@ -197,4 +206,4 @@ export async function sendFarmAlert(
  */
 export async function getVapidPublicKey() {
   return process.env.VAPID_PUBLIC_KEY || null;
-} 
+}

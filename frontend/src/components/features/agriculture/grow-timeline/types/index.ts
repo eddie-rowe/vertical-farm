@@ -9,7 +9,7 @@ export interface GrowTimelineItem {
   speciesName: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'active' | 'completed' | 'aborted';
+  status: "planned" | "active" | "completed" | "aborted";
   progress: number;
   daysElapsed: number;
   daysRemaining: number;
@@ -28,11 +28,16 @@ export interface InteractiveGrowTimelineProps {
   timeRange?: number; // days
 }
 
-export type ViewMode = 'timeline' | 'spatial' | 'status' | 'management';
+export type ViewMode = "timeline" | "spatial" | "status" | "management";
 
-export type SortField = 'startDate' | 'progress' | 'daysRemaining' | 'environmentalScore' | 'shelfName';
+export type SortField =
+  | "startDate"
+  | "progress"
+  | "daysRemaining"
+  | "environmentalScore"
+  | "shelfName";
 
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 export interface TimelineState {
   grows: GrowTimelineItem[];
@@ -68,4 +73,4 @@ export interface FarmGroups {
       [rackName: string]: GrowTimelineItem[];
     };
   };
-} 
+}

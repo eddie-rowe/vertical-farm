@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { BaseService } from './BaseService';
-import { ErrorHandler } from '../utils/errorHandler';
+import { ErrorHandler } from "../utils/errorHandler";
+
+import { BaseService } from "./BaseService";
 
 export interface RealtimeSubscription {
   id: string;
@@ -40,41 +41,41 @@ export abstract class BaseRealtimeService extends BaseService {
     }
 
     this.isConnecting = true;
-    
+
     try {
       const url = this.getWebSocketUrl();
       const headers = await this.getAuthHeaders();
-      
+
       this.connectionConfig = {
         url,
         protocols: [],
         headers,
         reconnectInterval: 5000,
         maxReconnectAttempts: 5,
-        ...config
+        ...config,
       };
 
       await this.createWebSocketConnection();
     } catch (error) {
       this.isConnecting = false;
-      return ErrorHandler.handle(error, 'WebSocket connection');
+      return ErrorHandler.handle(error, "WebSocket connection");
     }
   }
 
   protected async createWebSocketConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.connectionConfig) {
-        reject(new Error('No connection configuration'));
+        reject(new Error("No connection configuration"));
         return;
       }
 
       this.websocket = new WebSocket(
         this.connectionConfig.url,
-        this.connectionConfig.protocols
+        this.connectionConfig.protocols,
       );
 
       this.websocket.onopen = () => {
-        this.logOperation('WebSocket connected');
+        this.logOperation("WebSocket connected");
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.onConnectionOpen();
@@ -86,14 +87,17 @@ export abstract class BaseRealtimeService extends BaseService {
       };
 
       this.websocket.onclose = (event) => {
-        this.logOperation('WebSocket closed', { code: event.code, reason: event.reason });
+        this.logOperation("WebSocket closed", {
+          code: event.code,
+          reason: event.reason,
+        });
         this.isConnecting = false;
         this.onConnectionClose(event);
         this.attemptReconnect();
       };
 
       this.websocket.onerror = (error) => {
-        this.logOperation('WebSocket error', error);
+        this.logOperation("WebSocket error", error);
         this.isConnecting = false;
         this.onConnectionError(error);
         reject(error);
@@ -106,13 +110,13 @@ export abstract class BaseRealtimeService extends BaseService {
       const data = JSON.parse(event.data);
       this.processMessage(data);
     } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
+      console.error("Error parsing WebSocket message:", error);
     }
   }
 
   protected processMessage(data: any): void {
     // Override in subclasses to handle specific message types
-    this.logOperation('Received message', data);
+    this.logOperation("Received message", data);
   }
 
   protected onConnectionOpen(): void {
@@ -129,18 +133,20 @@ export abstract class BaseRealtimeService extends BaseService {
 
   protected attemptReconnect(): void {
     if (!this.connectionConfig) return;
-    
+
     if (this.reconnectAttempts >= this.connectionConfig.maxReconnectAttempts!) {
-      this.logOperation('Max reconnect attempts reached');
+      this.logOperation("Max reconnect attempts reached");
       return;
     }
 
     this.reconnectAttempts++;
-    this.logOperation(`Attempting reconnect ${this.reconnectAttempts}/${this.connectionConfig.maxReconnectAttempts}`);
-    
+    this.logOperation(
+      `Attempting reconnect ${this.reconnectAttempts}/${this.connectionConfig.maxReconnectAttempts}`,
+    );
+
     this.reconnectTimer = setTimeout(() => {
-      this.createWebSocketConnection().catch(error => {
-        console.error('Reconnect failed:', error);
+      this.createWebSocketConnection().catch((error) => {
+        console.error("Reconnect failed:", error);
       });
     }, this.connectionConfig.reconnectInterval!);
   }
@@ -149,11 +155,11 @@ export abstract class BaseRealtimeService extends BaseService {
     const subscription: RealtimeSubscription = {
       id,
       channel,
-      callback
+      callback,
     };
 
     this.subscriptions.set(id, subscription);
-    this.logOperation('Subscribed to channel', { id, channel });
+    this.logOperation("Subscribed to channel", { id, channel });
   }
 
   unsubscribe(id: string): void {
@@ -161,7 +167,10 @@ export abstract class BaseRealtimeService extends BaseService {
     if (subscription) {
       subscription.cleanup?.();
       this.subscriptions.delete(id);
-      this.logOperation('Unsubscribed from channel', { id, channel: subscription.channel });
+      this.logOperation("Unsubscribed from channel", {
+        id,
+        channel: subscription.channel,
+      });
     }
   }
 
@@ -169,7 +178,7 @@ export abstract class BaseRealtimeService extends BaseService {
     if (this.websocket?.readyState === WebSocket.OPEN) {
       this.websocket.send(JSON.stringify(data));
     } else {
-      console.warn('WebSocket not connected, cannot send message');
+      console.warn("WebSocket not connected, cannot send message");
     }
   }
 
@@ -187,19 +196,19 @@ export abstract class BaseRealtimeService extends BaseService {
     this.subscriptions.clear();
     this.isConnecting = false;
     this.reconnectAttempts = 0;
-    this.logOperation('Disconnected from WebSocket');
+    this.logOperation("Disconnected from WebSocket");
   }
 
   protected setupCleanup(): void {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", () => {
         this.disconnect();
       });
 
-      window.addEventListener('online', () => {
+      window.addEventListener("online", () => {
         if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
-          this.connect().catch(error => {
-            console.error('Failed to reconnect on online event:', error);
+          this.connect().catch((error) => {
+            console.error("Failed to reconnect on online event:", error);
           });
         }
       });
@@ -211,14 +220,19 @@ export abstract class BaseRealtimeService extends BaseService {
   }
 
   getConnectionState(): string {
-    if (!this.websocket) return 'DISCONNECTED';
-    
+    if (!this.websocket) return "DISCONNECTED";
+
     switch (this.websocket.readyState) {
-      case WebSocket.CONNECTING: return 'CONNECTING';
-      case WebSocket.OPEN: return 'CONNECTED';
-      case WebSocket.CLOSING: return 'CLOSING';
-      case WebSocket.CLOSED: return 'CLOSED';
-      default: return 'UNKNOWN';
+      case WebSocket.CONNECTING:
+        return "CONNECTING";
+      case WebSocket.OPEN:
+        return "CONNECTED";
+      case WebSocket.CLOSING:
+        return "CLOSING";
+      case WebSocket.CLOSED:
+        return "CLOSED";
+      default:
+        return "UNKNOWN";
     }
   }
-} 
+}
