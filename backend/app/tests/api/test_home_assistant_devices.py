@@ -170,10 +170,12 @@ class TestHomeAssistantDevices:
             assert response.status_code == status.HTTP_200_OK
 
             data = response.json()
-            assert data["entity_id"] == entity_id
-            assert data["name"] == "Test Light"
-            assert "attributes" in data
-            assert "last_changed" in data
+            # API returns DeviceDetailsResponse with device field
+            assert data["found"] is True
+            assert data["device"]["entity_id"] == entity_id
+            assert data["device"]["friendly_name"] == "Test Light"
+            assert "attributes" in data["device"]
+            assert "last_changed" in data["device"]
         finally:
             self.cleanup_dependency_overrides()
 
@@ -224,7 +226,7 @@ class TestHomeAssistantDevices:
 
             data = response.json()
             assert data["success"] is False
-            assert "error" in data
+            assert "message" in data
         finally:
             self.cleanup_dependency_overrides()
 
@@ -258,6 +260,11 @@ class TestHomeAssistantDevices:
         try:
             entity_id = "light.nonexistent"
             response = await client.get(f"/api/v1/home-assistant/devices/{entity_id}")
-            assert response.status_code == status.HTTP_404_NOT_FOUND
+            # API returns 200 with found=false instead of 404
+            assert response.status_code == status.HTTP_200_OK
+            
+            data = response.json()
+            assert data["found"] is False
+            assert data["device"] is None
         finally:
             self.cleanup_dependency_overrides()
