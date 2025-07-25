@@ -133,11 +133,9 @@ class Settings(BaseSettings):
     @field_validator("SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY")
     @classmethod
     def validate_supabase_keys(cls, v: str, info) -> str:
-        """Validate that Supabase keys are not empty and have a reasonable length."""
-        if not v or len(v.strip()) < 20:  # Typical Supabase keys are longer
-            raise ValueError(
-                f"{info.field_name} must be a valid non-empty string of sufficient length"
-            )
+        """Validate that Supabase keys are not empty."""
+        if not v:
+            raise ValueError(f"{info.field_name} must be set")
         return v.strip()
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
