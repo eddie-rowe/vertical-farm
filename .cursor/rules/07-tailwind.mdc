@@ -1,0 +1,418 @@
+---
+description: Tailwind CSS v4 patterns, design tokens, utility classes, and responsive design
+globs: "**/*.{tsx,jsx,css}, frontend/tailwind.config.{js,ts}, frontend/src/app/globals.css"
+alwaysApply: false
+---
+
+# Tailwind CSS v4 Best Practices - Vertical Farm Frontend
+
+## 🎨 Tailwind CSS v4 Features
+
+### Configuration Setup
+```typescript
+// tailwind.config.ts
+export default {
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
+  theme: {
+    extend: {
+      // Farm-specific design tokens
+      spacing: {
+        'plant': '0.75rem',
+        'row': '1.5rem',
+        'rack': '2rem',
+        'shelf': '1rem',
+        'sensor': '0.5rem',
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+    },
+  },
+}
+```
+
+### Custom Utilities (@utility directive)
+```css
+/* ✅ DO: Use @utility for custom classes in v4 */
+@utility gradient-farm {
+  background: linear-gradient(135deg, #c3dafe 0%, #e0e7ff 100%);
+  
+  .dark & {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  }
+}
+
+@utility glass {
+  backdrop-filter: blur(10px);
+  background-color: rgb(255 255 255 / 0.1);
+  
+  .dark & {
+    background-color: rgb(0 0 0 / 0.1);
+  }
+}
+
+/* ❌ DON'T: Use @layer utilities (v3 syntax) */
+@layer utilities {
+  .glass { /* Old v3 pattern */ }
+}
+```
+
+### CSS Variables Integration
+```css
+/* ✅ DO: Use Tailwind CSS variables */
+@theme inline {
+  --color-farm-primary: var(--primary);
+  --color-farm-secondary: var(--secondary);
+  --radius-farm: var(--radius);
+  --spacing-farm-unit: var(--spacing-plant);
+}
+
+/* Use in components */
+.farm-card {
+  border-radius: var(--radius-farm);
+  padding: var(--spacing-farm-unit);
+}
+```
+
+## 🧩 Component Design System
+
+### Button Component Architecture
+```typescript
+// ✅ DO: Use CVA (Class Variance Authority) for systematic variants
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+
+const buttonVariants = cva(
+  // Base styles
+  'inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        // Farm-specific variants
+        growing: 'bg-green-500 text-white hover:bg-green-600 animate-pulse-slow',
+        maintenance: 'bg-yellow-500 text-white hover:bg-yellow-600',
+        offline: 'bg-gray-500 text-white opacity-70 cursor-not-allowed',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 px-3',
+        lg: 'h-11 px-8',
+        // Touch-friendly sizes (44px minimum)
+        control: 'h-11 px-6',          // 44px height
+        'control-icon': 'h-11 w-11',   // 44px square
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'default',
+    },
+  }
+)
+
+// Usage
+<Button variant="growing" size="control">Start Growing Cycle</Button>
+<Button variant="destructive" size="control-icon"><TrashIcon /></Button>
+
+// ❌ DON'T: Hardcode styles or use arbitrary values
+<button className="bg-green-500 hover:bg-green-600 h-[44px]">Wrong</button>
+```
+
+### Form Component Patterns
+```typescript
+// ✅ DO: Consistent form styling with accessibility
+export const farmInputVariants = cva(
+  'flex w-full rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+  {
+    variants: {
+      size: {
+        default: 'h-10 px-3 py-2',
+        sm: 'h-9 px-3',
+        lg: 'h-11 px-4',  // 44px touch target
+      },
+      state: {
+        default: '',
+        error: 'border-destructive focus-visible:ring-destructive',
+        success: 'border-green-500 focus-visible:ring-green-500',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+      state: 'default',
+    },
+  }
+)
+
+// Usage with icons
+<div className="relative">
+  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+  <Input className={cn(farmInputVariants({ size: 'lg' }), 'pl-10')} placeholder="Search farms..." />
+</div>
+```
+
+## 🎭 Dark Mode Implementation
+
+### Color System
+```css
+/* globals.css - Using OKLCH for better color perception */
+:root {
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.205 0 0);
+  --primary: oklch(0.416 0.164 264.535);
+  --destructive: oklch(0.557 0.238 25.545);
+}
+
+.dark {
+  --background: #222;  /* Fallback for older browsers */
+  --background: oklch(0.205 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.692 0.165 264.522);
+  --destructive: oklch(0.704 0.191 22.216);
+}
+```
+
+### Dark Mode Utilities
+```typescript
+// ✅ DO: Use dark variant for conditional styling
+<div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    Farm Dashboard
+  </h2>
+</div>
+
+// ✅ DO: Use CSS variables for complex components
+<div className="bg-background text-foreground">
+  <!-- Automatically adapts to dark mode -->
+</div>
+
+// ❌ DON'T: Hardcode both light and dark colors
+<div className="bg-white" data-dark="bg-gray-800">Wrong approach</div>
+```
+
+## 📱 Responsive Design Patterns
+
+### Mobile-First Approach
+```typescript
+// ✅ DO: Build mobile-first with progressive enhancement
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  {/* Farm cards */}
+</div>
+
+// ✅ DO: Use container queries for component-level responsiveness
+<div className="@container">
+  <div className="grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3 gap-4">
+    {/* Responds to container size, not viewport */}
+  </div>
+</div>
+
+// ✅ DO: Responsive text sizing
+<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+  Vertical Farm Control System
+</h1>
+```
+
+### Touch Targets (44px minimum)
+```typescript
+// ✅ DO: Ensure all interactive elements meet touch target requirements
+<button className="min-h-[44px] min-w-[44px] p-2">
+  <Icon className="h-6 w-6" />
+</button>
+
+// ✅ DO: Use tap targets with proper spacing
+<div className="flex gap-2">
+  <Button size="control">Action 1</Button>  {/* 44px height */}
+  <Button size="control">Action 2</Button>  {/* 44px height */}
+</div>
+
+// ❌ DON'T: Create small touch targets
+<button className="h-8 w-8 p-1">Too Small</button>
+```
+
+## 🌾 Farm-Specific Design Patterns
+
+### Farm Hierarchy Components
+```typescript
+// ✅ DO: Use semantic utility combinations
+<div className="gradient-farm farm-shadow rounded-lg p-6">
+  <h2 className="text-xl font-semibold text-farm-primary">Farm Alpha</h2>
+  
+  <div className="mt-4 space-y-3">
+    <div className="gradient-row rack-shadow rounded-md p-4">
+      <h3 className="font-medium">Row 1</h3>
+      
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="gradient-rack shelf-shadow rounded p-3">
+          <span className="text-sm font-medium">Rack A1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+// ✅ DO: State-based styling
+<div className={cn(
+  "rounded-lg border-2 p-4 transition-all",
+  {
+    "state-active": device.status === 'active',
+    "state-maintenance": device.status === 'maintenance',
+    "state-offline": device.status === 'offline',
+    "state-growing": device.status === 'growing',
+  }
+)}>
+  {/* Device content */}
+</div>
+```
+
+### Sensor Display Patterns
+```typescript
+// ✅ DO: Consistent sensor panels
+<div className="sensor-panel">
+  <ThermometerIcon className="h-5 w-5 text-blue-500" />
+  <div className="flex flex-col">
+    <span className="text-sm font-medium">Temperature</span>
+    <span className="text-lg font-semibold">24.5°C</span>
+  </div>
+</div>
+
+// ✅ DO: Real-time data indicators
+<div className="relative">
+  <div className="sensor-value">{temperature}°C</div>
+  {isLive && (
+    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+    </span>
+  )}
+</div>
+```
+
+## ⚡ Performance Optimization
+
+### Dynamic Imports for Large Components
+```typescript
+// ✅ DO: Lazy load heavy components
+const FarmVisualization = dynamic(() => import('./FarmVisualization'), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-200 rounded-lg" />,
+})
+
+// ✅ DO: Code split route components
+const DeviceSettings = lazy(() => import('@/components/features/devices/DeviceSettings'))
+```
+
+### Optimize Class Names
+```typescript
+// ✅ DO: Use cn() utility for conditional classes
+import { cn } from '@/lib/utils'
+
+<div className={cn(
+  "rounded-lg p-4",
+  isActive && "ring-2 ring-blue-500",
+  isDisabled && "opacity-50 cursor-not-allowed"
+)} />
+
+// ❌ DON'T: String concatenation for classes
+<div className={`rounded-lg p-4 ${isActive ? 'ring-2 ring-blue-500' : ''}`} />
+```
+
+### CSS-in-JS for Dynamic Styles
+```typescript
+// ✅ DO: Use CSS variables for truly dynamic values
+<div
+  className="relative h-full bg-gradient-to-r from-green-400 to-blue-500"
+  style={{
+    '--progress': `${progress}%`,
+    backgroundSize: 'var(--progress) 100%',
+  }}
+/>
+
+// ✅ DO: Arbitrary values for one-off styles
+<div className="w-[384px] h-[216px]">
+  {/* Specific dimensions that don't fit the scale */}
+</div>
+```
+
+## 🔍 Common Patterns & Anti-Patterns
+
+### DO's ✅
+```typescript
+// Semantic HTML with proper Tailwind classes
+<main className="container mx-auto px-4 py-8">
+  <article className="prose prose-lg dark:prose-invert">
+    {/* Content */}
+  </article>
+</main>
+
+// Accessible interactive elements
+<button className="focus-visible:ring-2 focus-visible:ring-offset-2">
+  Click me
+</button>
+
+// Consistent spacing using design tokens
+<div className="space-y-4 p-6">
+  <div className="mt-row">...</div>
+</div>
+```
+
+### DON'T's ❌
+```typescript
+// Avoid important flags
+<div className="!mt-4">Bad practice</div>
+
+// Don't mix Tailwind with inline styles unnecessarily
+<div className="mt-4" style={{ marginTop: '20px' }}>Conflicting styles</div>
+
+// Avoid overly specific selectors
+<div className="sm:md:lg:xl:text-2xl">Too specific</div>
+
+// Don't recreate existing utilities
+<div style={{ display: 'flex', gap: '1rem' }}>
+  Use className="flex gap-4" instead
+</div>
+```
+
+## 🛠️ Tooling & Configuration
+
+### Prettier Plugin
+```json
+// .prettierrc
+{
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindConfig": "./tailwind.config.ts",
+  "tailwindFunctions": ["cn", "cva"]
+}
+```
+
+### ESLint Configuration
+```javascript
+// eslint.config.js
+{
+  extends: ['plugin:tailwindcss/recommended'],
+  rules: {
+    'tailwindcss/no-custom-classname': 'warn',
+    'tailwindcss/classnames-order': 'warn',
+  }
+}
+```
+
+### VS Code Settings
+```json
+// .vscode/settings.json
+{
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  }
+}
+```
+
+## 📚 Reference Links
+
+- [Component Architecture](mdc:.cursor/rules/component-architecture.mdc) - Component patterns and organization
+- [Frontend Architecture](mdc:.cursor/rules/02-frontend-architecture.mdc) - React and Next.js patterns
+- [Import Organization](mdc:.cursor/rules/import-organization.mdc) - Import structure and conventions 

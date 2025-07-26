@@ -1,0 +1,1111 @@
+---
+description: Service layer patterns for both frontend and backend - mandatory for all data operations
+globs: "**/services/**/*.{ts,tsx,py}, **/service.{ts,tsx,py}, **/Service.{ts,tsx,py}"
+alwaysApply: false
+---
+
+# Service Layer Architecture - Vertical Farm Project
+
+## 🎯 Core Principles
+
+### Service Layer Mandate
+- **MANDATORY**: All data operations MUST go through service layer
+- **PROHIBITED**: Direct database/API calls in components or endpoints
+- **PATTERN**: Components → Services → Database/External APIs
+- **BENEFITS**: Centralized error handling, consistent patterns, testability
+
+### Singleton Pattern (Required)
+- **ALL services MUST implement singleton pattern**
+- **Private constructor, static getInstance() method**
+- **Consistent state management and connection pooling**
+- **Memory efficiency and predictable behavior**
+
+### Base Class Inheritance
+- **Frontend**: Extend BaseService, BaseCRUDService, BaseRealtimeService
+- **Backend**: Inherit from BaseService for common functionality
+- **Custom services**: Create domain-specific base classes as needed
+- **NEVER create services without extending base classes**
+
+## 📁 Service Organization
+
+### Frontend Structure
+```
+frontend/src/services/
+├── core/                          # Base classes and utilities
+│   ├── base/
+│   │   ├── BaseService.ts        # Base service class
+│   │   ├── BaseCRUDService.ts    # CRUD operations base
+│   │   └── BaseRealtimeService.ts # Real-time operations base
+│   ├── auth/
+│   │   └── AuthService.ts        # Authentication service
+│   └── error/
+│       └── ErrorService.ts       # Error handling utilities
+└── domain/                       # Domain-specific services
+    ├── farm/
+    │   ├── FarmService.ts        # Farm management
+    │   ├── RowService.ts         # Row operations
+    │   ├── RackService.ts        # Rack operations
+    │   ├── ShelfService.ts       # Shelf operations
+    │   └── types.ts              # Domain types
+    ├── devices/
+    │   ├── DeviceService.ts      # Device control
+    │   ├── SensorService.ts      # Sensor data
+    │   └── types.ts              # Device types
+    └── integrations/
+        ├── HomeAssistantService.ts    # HA integration
+        └── HomeAssistantWebSocketService.ts  # HA real-time
+```
+
+### Backend Structure
+```
+backend/app/services/
+├── base_service.py               # Base service class
+├── auth_service.py               # Authentication
+├── cache_service.py              # Caching layer
+├── user_home_assistant_service.py # HA user configs
+├── supabase_background_service.py # Background tasks
+└── domain/
+    ├── farm_service.py           # Farm operations
+    ├── device_service.py         # Device operations
+    └── sensor_service.py         # Sensor management
+```
+
+## 🏗️ Frontend Service Implementation
+
+### Base Service Class
+```typescript
+// services/core/base/BaseService.ts
+export abstract class BaseService {
+  protected constructor() {}
+  
+  /**
+   * Get Supabase client with proper context handling
+   */
+  protected async getSupabaseClient() {
+    if (typeof window !== 'undefined') {
+      // Browser context - use client-side auth
+      const { createClient } = await import('@/utils/supabase/client')
+      return createClient()
+    } else {
+      // Server context - use server-side auth with cookies
+      const { createClient } = await import('@/utils/supabase/server')
+      return await createClient()
+    }
+  }
+  
+  /**
+   * Handle Supabase operation results with typed errors
+   */
+  protected handleResult<T>(data: T | null, error: any): T {
+    if (error) {
+      this.handleError(error)
+    }
+    if (!data) {
+      throw new Error('No data returned')
+    }
+    return data
+  }
+  
+  /**
+   * Centralized error handling with specific error types
+   */
+  protected handleError(error: any): never {
+    console.error('Service error:', error)
+    
+    // Row Level Security violations
+    if (error?.code === 'PGRST301') {
+      throw new Error('You do not have permission to perform this action')
+    }
+    
+    // Duplicate entry errors
+    if (error?.code === '23505') {
+      throw new Error('This item already exists')
+    }
+    
+    // Foreign key violations
+    if (error?.code === '23503') {
+      throw new Error('Cannot perform this action due to existing relationships')
+    }
+    
+    // Custom error messages from database
+    if (error?.message) {
+      throw new Error(error.message)
+    }
+    
+    throw new Error('An unexpected error occurred')
+  }
+  
+  /**
+   * Validation helpers
+   */
+  protected validateRequired(value: any, field: string): void {
+    if (value === null || value === undefined || value === '') {
+      throw new Error(`${field} is required`)
+    }
+  }
+  
+  protected validateId(id: string, field: string = 'ID'): void {
+    if (!id || typeof id !== 'string') {
+      throw new Error(`Valid ${field} is required`)
+    }
+    
+    // UUID v4 format validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      throw new Error(`${field} must be a valid UUID`)
+    }
+  }
+  
+  protected validateEmail(email: string): void {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email address')
+    }
+  }
+}
+```
+
+### Base CRUD Service
+```typescript
+// services/core/base/BaseCRUDService.ts
+import { BaseService } from './BaseService'
+
+export interface BaseEntity {
+  id: string
+  created_at: string
+  updated_at: string
+}
+
+export abstract class BaseCRUDService<T extends BaseEntity> extends BaseService {
+  protected abstract readonly tableName: string
+  
+  /**
+   * Get all entities with optional filtering
+   */
+  async getAll(options?: {
+    orderBy?: keyof T
+    ascending?: boolean
+    limit?: number
+    offset?: number
+  }): Promise<T[]> {
+    const supabase = await this.getSupabaseClient()
+    
+    let query = supabase.from(this.tableName).select('*')
+    
+    if (options?.orderBy) {
+      query = query.order(options.orderBy as string, { 
+        ascending: options.ascending ?? false 
+      })
+    } else {
+      query = query.order('created_at', { ascending: false })
+    }
+    
+    if (options?.limit) {
+      query = query.limit(options.limit)
+    }
+    
+    if (options?.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 10) - 1)
+    }
+    
+    const { data, error } = await query
+    
+    return this.handleResult(data, error) as T[]
+  }
+  
+  /**
+   * Get entity by ID
+   */
+  async getById(id: string): Promise<T | null> {
+    this.validateId(id)
+    
+    const supabase = await this.getSupabaseClient()
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error?.code === 'PGRST116') {
+      return null // Not found is not an error
+    }
+    
+    return this.handleResult(data, error) as T
+  }
+  
+  /**
+   * Create new entity
+   */
+  async create(data: Omit<T, 'id' | 'created_at' | 'updated_at'>): Promise<T> {
+    this.validateCreateData(data)
+    
+    const supabase = await this.getSupabaseClient()
+    const { data: created, error } = await supabase
+      .from(this.tableName)
+      .insert(data)
+      .select()
+      .single()
+    
+    return this.handleResult(created, error) as T
+  }
+  
+  /**
+   * Update entity
+   */
+  async update(id: string, data: Partial<Omit<T, 'id' | 'created_at' | 'updated_at'>>): Promise<T> {
+    this.validateId(id)
+    this.validateUpdateData(data)
+    
+    const supabase = await this.getSupabaseClient()
+    const { data: updated, error } = await supabase
+      .from(this.tableName)
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    return this.handleResult(updated, error) as T
+  }
+  
+  /**
+   * Delete entity
+   */
+  async delete(id: string): Promise<void> {
+    this.validateId(id)
+    
+    const supabase = await this.getSupabaseClient()
+    const { error } = await supabase
+      .from(this.tableName)
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      this.handleError(error)
+    }
+  }
+  
+  /**
+   * Batch operations
+   */
+  async createMany(items: Omit<T, 'id' | 'created_at' | 'updated_at'>[]): Promise<T[]> {
+    if (!items.length) {
+      return []
+    }
+    
+    items.forEach(item => this.validateCreateData(item))
+    
+    const supabase = await this.getSupabaseClient()
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .insert(items)
+      .select()
+    
+    return this.handleResult(data, error) as T[]
+  }
+  
+  /**
+   * Override in subclasses for custom validation
+   */
+  protected abstract validateCreateData(data: any): void
+  protected abstract validateUpdateData(data: any): void
+}
+```
+
+### Real-time Service Base
+```typescript
+// services/core/base/BaseRealtimeService.ts
+import { BaseService } from './BaseService'
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+
+export interface RealtimeConfig {
+  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*'
+  schema?: string
+  table?: string
+  filter?: string
+}
+
+export abstract class BaseRealtimeService extends BaseService {
+  protected subscriptions: Map<string, RealtimeChannel> = new Map()
+  
+  /**
+   * Create a real-time subscription
+   */
+  protected async createSubscription<T>(
+    channelName: string,
+    config: RealtimeConfig,
+    callback: (payload: RealtimePostgresChangesPayload<T>) => void
+  ): Promise<() => void> {
+    // Clean up existing subscription if any
+    await this.unsubscribe(channelName)
+    
+    const supabase = await this.getSupabaseClient()
+    
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: config.event || '*',
+          schema: config.schema || 'public',
+          table: config.table || '',
+          filter: config.filter
+        },
+        callback
+      )
+      .subscribe()
+    
+    this.subscriptions.set(channelName, channel)
+    
+    // Return unsubscribe function
+    return () => this.unsubscribe(channelName)
+  }
+  
+  /**
+   * Create a presence subscription for real-time collaboration
+   */
+  protected async createPresenceSubscription(
+    channelName: string,
+    onSync: (state: any) => void,
+    onJoin?: (event: any) => void,
+    onLeave?: (event: any) => void
+  ): Promise<() => void> {
+    const supabase = await this.getSupabaseClient()
+    
+    const channel = supabase.channel(channelName)
+    
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState()
+      onSync(state)
+    })
+    
+    if (onJoin) {
+      channel.on('presence', { event: 'join' }, onJoin)
+    }
+    
+    if (onLeave) {
+      channel.on('presence', { event: 'leave' }, onLeave)
+    }
+    
+    channel.subscribe()
+    
+    this.subscriptions.set(channelName, channel)
+    
+    return () => this.unsubscribe(channelName)
+  }
+  
+  /**
+   * Unsubscribe from a channel
+   */
+  protected async unsubscribe(channelName: string): Promise<void> {
+    const channel = this.subscriptions.get(channelName)
+    if (channel) {
+      await channel.unsubscribe()
+      this.subscriptions.delete(channelName)
+    }
+  }
+  
+  /**
+   * Clean up all subscriptions
+   */
+  async cleanup(): Promise<void> {
+    const unsubscribePromises = Array.from(this.subscriptions.keys()).map(
+      name => this.unsubscribe(name)
+    )
+    await Promise.all(unsubscribePromises)
+  }
+}
+```
+
+### Domain Service Example
+```typescript
+// services/domain/farm/FarmService.ts
+import { BaseCRUDService } from '@/services/core/base/BaseCRUDService'
+import type { Farm, FarmWithDetails, FarmStatistics } from './types'
+
+export class FarmService extends BaseCRUDService<Farm> {
+  protected readonly tableName = 'farms'
+  private static instance: FarmService
+  
+  private constructor() {
+    super()
+  }
+  
+  /**
+   * Singleton getInstance
+   */
+  static getInstance(): FarmService {
+    if (!FarmService.instance) {
+      FarmService.instance = new FarmService()
+    }
+    return FarmService.instance
+  }
+  
+  /**
+   * Get farms for a specific user
+   */
+  async getFarmsByUser(userId: string): Promise<Farm[]> {
+    this.validateId(userId, 'User ID')
+    
+    const supabase = await this.getSupabaseClient()
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    return this.handleResult(data, error) as Farm[]
+  }
+  
+  /**
+   * Get farm with all related entities
+   */
+  async getFarmWithDetails(id: string): Promise<FarmWithDetails> {
+    this.validateId(id)
+    
+    const supabase = await this.getSupabaseClient()
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(`
+        *,
+        rows:rows (
+          *,
+          racks:racks (
+            *,
+            shelves:shelves (
+              *,
+              plants:plants (*)
+            )
+          )
+        ),
+        devices:devices (*),
+        sensor_readings:sensor_readings (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    return this.handleResult(data, error) as FarmWithDetails
+  }
+  
+  /**
+   * Get farm statistics
+   */
+  async getFarmStatistics(id: string): Promise<FarmStatistics> {
+    this.validateId(id)
+    
+    const farm = await this.getFarmWithDetails(id)
+    
+    // Calculate statistics
+    const totalRows = farm.rows?.length || 0
+    const totalRacks = farm.rows?.reduce((sum, row) => sum + (row.racks?.length || 0), 0) || 0
+    const totalShelves = farm.rows?.reduce((sum, row) => 
+      sum + (row.racks?.reduce((rackSum, rack) => 
+        rackSum + (rack.shelves?.length || 0), 0) || 0), 0) || 0
+    const totalPlants = farm.rows?.reduce((sum, row) => 
+      sum + (row.racks?.reduce((rackSum, rack) => 
+        rackSum + (rack.shelves?.reduce((shelfSum, shelf) => 
+          shelfSum + (shelf.plants?.length || 0), 0) || 0), 0) || 0), 0) || 0
+    const activeDevices = farm.devices?.filter(d => d.status === 'online').length || 0
+    const totalDevices = farm.devices?.length || 0
+    
+    return {
+      farmId: id,
+      totalRows,
+      totalRacks,
+      totalShelves,
+      totalPlants,
+      activeDevices,
+      totalDevices,
+      lastUpdated: new Date().toISOString()
+    }
+  }
+  
+  /**
+   * Validation methods
+   */
+  protected validateCreateData(data: any): void {
+    this.validateRequired(data.name, 'Farm name')
+    this.validateRequired(data.user_id, 'User ID')
+    
+    if (data.name.length > 100) {
+      throw new Error('Farm name must be 100 characters or less')
+    }
+    
+    if (data.location && data.location.length > 255) {
+      throw new Error('Farm location must be 255 characters or less')
+    }
+  }
+  
+  protected validateUpdateData(data: any): void {
+    if (data.name !== undefined) {
+      this.validateRequired(data.name, 'Farm name')
+      
+      if (data.name.length > 100) {
+        throw new Error('Farm name must be 100 characters or less')
+      }
+    }
+    
+    if (data.location !== undefined && data.location !== null && data.location.length > 255) {
+      throw new Error('Farm location must be 255 characters or less')
+    }
+  }
+}
+```
+
+## 🐍 Backend Service Implementation
+
+### Python Base Service
+```python
+# services/base_service.py
+from typing import Optional, Dict, Any, List, TypeVar, Generic
+from abc import ABC, abstractmethod
+import logging
+from datetime import datetime
+import uuid
+
+from supabase import AsyncClient
+from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=BaseModel)
+
+class BaseService(ABC, Generic[T]):
+    """Base service class for all services"""
+    
+    def __init__(self, supabase: AsyncClient):
+        self.supabase = supabase
+        self.logger = logger.getChild(self.__class__.__name__)
+    
+    def _handle_error(self, error: Exception, operation: str) -> None:
+        """Centralized error handling"""
+        self.logger.error(f"Error in {operation}: {str(error)}")
+        
+        # Handle specific database errors
+        error_msg = str(error)
+        
+        if "23505" in error_msg:
+            raise ValueError("Duplicate entry exists")
+        elif "23503" in error_msg:
+            raise ValueError("Cannot perform operation due to existing relationships")
+        elif "PGRST301" in error_msg:
+            raise PermissionError("Insufficient permissions")
+        elif "PGRST116" in error_msg:
+            raise ValueError("Item not found")
+        
+        # Re-raise original error if not handled
+        raise error
+    
+    def _validate_uuid(self, value: str, field_name: str = "ID") -> None:
+        """Validate UUID format"""
+        try:
+            uuid.UUID(value)
+        except ValueError:
+            raise ValueError(f"{field_name} must be a valid UUID")
+    
+    def _validate_required(self, value: Any, field_name: str) -> None:
+        """Validate required fields"""
+        if value is None or (isinstance(value, str) and not value.strip()):
+            raise ValueError(f"{field_name} is required")
+
+
+class BaseCRUDService(BaseService[T]):
+    """Base CRUD service with common operations"""
+    
+    @abstractmethod
+    @property
+    def table_name(self) -> str:
+        """Table name for this service"""
+        pass
+    
+    @abstractmethod
+    @property
+    def model_class(self) -> type[T]:
+        """Pydantic model class for this service"""
+        pass
+    
+    async def get_all(
+        self, 
+        order_by: str = "created_at",
+        ascending: bool = False,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None
+    ) -> List[T]:
+        """Get all entities"""
+        try:
+            query = self.supabase.table(self.table_name).select("*")
+            
+            query = query.order(order_by, desc=not ascending)
+            
+            if limit:
+                query = query.limit(limit)
+            
+            if offset:
+                query = query.range(offset, offset + (limit or 10) - 1)
+            
+            response = await query.execute()
+            
+            return [self.model_class(**item) for item in response.data]
+            
+        except Exception as e:
+            self._handle_error(e, "get_all")
+    
+    async def get_by_id(self, id: str) -> Optional[T]:
+        """Get entity by ID"""
+        self._validate_uuid(id)
+        
+        try:
+            response = await self.supabase.table(self.table_name)\
+                .select("*")\
+                .eq("id", id)\
+                .single()\
+                .execute()
+            
+            if response.data:
+                return self.model_class(**response.data)
+            return None
+            
+        except Exception as e:
+            if "PGRST116" in str(e):
+                return None
+            self._handle_error(e, "get_by_id")
+    
+    async def create(self, data: Dict[str, Any]) -> T:
+        """Create new entity"""
+        self._validate_create_data(data)
+        
+        try:
+            response = await self.supabase.table(self.table_name)\
+                .insert(data)\
+                .execute()
+            
+            if response.data and len(response.data) > 0:
+                return self.model_class(**response.data[0])
+            
+            raise ValueError("Failed to create entity")
+            
+        except Exception as e:
+            self._handle_error(e, "create")
+    
+    async def update(self, id: str, data: Dict[str, Any]) -> T:
+        """Update entity"""
+        self._validate_uuid(id)
+        self._validate_update_data(data)
+        
+        try:
+            response = await self.supabase.table(self.table_name)\
+                .update(data)\
+                .eq("id", id)\
+                .execute()
+            
+            if response.data and len(response.data) > 0:
+                return self.model_class(**response.data[0])
+            
+            raise ValueError("Entity not found")
+            
+        except Exception as e:
+            self._handle_error(e, "update")
+    
+    async def delete(self, id: str) -> None:
+        """Delete entity"""
+        self._validate_uuid(id)
+        
+        try:
+            await self.supabase.table(self.table_name)\
+                .delete()\
+                .eq("id", id)\
+                .execute()
+                
+        except Exception as e:
+            self._handle_error(e, "delete")
+    
+    @abstractmethod
+    def _validate_create_data(self, data: Dict[str, Any]) -> None:
+        """Validate data for create operation"""
+        pass
+    
+    @abstractmethod
+    def _validate_update_data(self, data: Dict[str, Any]) -> None:
+        """Validate data for update operation"""
+        pass
+```
+
+### Domain Service Example (Python)
+```python
+# services/domain/farm_service.py
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+
+from app.services.base_service import BaseCRUDService
+from app.schemas.farm import Farm, FarmCreate, FarmUpdate
+
+class FarmService(BaseCRUDService[Farm]):
+    """Service for farm operations"""
+    
+    @property
+    def table_name(self) -> str:
+        return "farms"
+    
+    @property
+    def model_class(self) -> type[Farm]:
+        return Farm
+    
+    async def get_farms_by_user(self, user_id: str) -> List[Farm]:
+        """Get all farms for a specific user"""
+        self._validate_uuid(user_id, "User ID")
+        
+        try:
+            response = await self.supabase.table(self.table_name)\
+                .select("*")\
+                .eq("user_id", user_id)\
+                .order("created_at", desc=True)\
+                .execute()
+            
+            return [Farm(**farm) for farm in response.data]
+            
+        except Exception as e:
+            self._handle_error(e, "get_farms_by_user")
+    
+    async def get_farm_with_details(self, farm_id: str) -> Optional[Dict[str, Any]]:
+        """Get farm with all related entities"""
+        self._validate_uuid(farm_id)
+        
+        try:
+            response = await self.supabase.table(self.table_name)\
+                .select("""
+                    *,
+                    rows:rows (
+                        *,
+                        racks:racks (
+                            *,
+                            shelves:shelves (*)
+                        )
+                    ),
+                    devices:devices (*),
+                    sensor_readings:sensor_readings (*)
+                """)\
+                .eq("id", farm_id)\
+                .single()\
+                .execute()
+            
+            return response.data
+            
+        except Exception as e:
+            if "PGRST116" in str(e):
+                return None
+            self._handle_error(e, "get_farm_with_details")
+    
+    def _validate_create_data(self, data: Dict[str, Any]) -> None:
+        """Validate farm creation data"""
+        self._validate_required(data.get("name"), "Farm name")
+        self._validate_required(data.get("user_id"), "User ID")
+        
+        if len(data.get("name", "")) > 100:
+            raise ValueError("Farm name must be 100 characters or less")
+        
+        if data.get("location") and len(data["location"]) > 255:
+            raise ValueError("Farm location must be 255 characters or less")
+    
+    def _validate_update_data(self, data: Dict[str, Any]) -> None:
+        """Validate farm update data"""
+        if "name" in data:
+            self._validate_required(data["name"], "Farm name")
+            if len(data["name"]) > 100:
+                raise ValueError("Farm name must be 100 characters or less")
+        
+        if "location" in data and data["location"] and len(data["location"]) > 255:
+            raise ValueError("Farm location must be 255 characters or less")
+```
+
+## 💡 Component Usage Patterns
+
+### React/Next.js Components
+```typescript
+// ✅ DO: Use service layer with proper error handling
+'use client'
+
+import { useState, useEffect } from 'react'
+import { FarmService } from '@/services/domain/farm/FarmService'
+import { toast } from 'react-hot-toast'
+
+export function FarmList({ userId }: { userId: string }) {
+  const [farms, setFarms] = useState<Farm[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    loadFarms()
+  }, [userId])
+  
+  const loadFarms = async () => {
+    try {
+      const farmService = FarmService.getInstance()
+      const data = await farmService.getFarmsByUser(userId)
+      setFarms(data)
+    } catch (error) {
+      toast.error(error.message || 'Failed to load farms')
+      console.error('Error loading farms:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleDelete = async (farmId: string) => {
+    try {
+      const farmService = FarmService.getInstance()
+      await farmService.delete(farmId)
+      toast.success('Farm deleted successfully')
+      await loadFarms() // Reload list
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete farm')
+    }
+  }
+  
+  // Component render...
+}
+
+// ❌ DON'T: Direct Supabase calls in components
+export function BadFarmList() {
+  useEffect(() => {
+    // ❌ Wrong - bypasses service layer
+    const supabase = createClient()
+    supabase.from('farms').select('*').then(/* ... */)
+  }, [])
+}
+```
+
+### Server Components
+```typescript
+// ✅ DO: Use services in server components
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export default async function FarmPage({ params }: { params: { farmId: string } }) {
+  const farmService = FarmService.getInstance()
+  const farm = await farmService.getFarmWithDetails(params.farmId)
+  
+  if (!farm) {
+    notFound()
+  }
+  
+  return <FarmDetails farm={farm} />
+}
+
+// ✅ DO: Parallel data fetching
+export default async function Dashboard({ userId }: { userId: string }) {
+  const farmService = FarmService.getInstance()
+  const deviceService = DeviceService.getInstance()
+  
+  const [farms, activeDevices] = await Promise.all([
+    farmService.getFarmsByUser(userId),
+    deviceService.getActiveDevicesByUser(userId)
+  ])
+  
+  return <DashboardView farms={farms} devices={activeDevices} />
+}
+```
+
+### API Route Handlers
+```typescript
+// ✅ DO: Use services in API routes
+// app/api/farms/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { FarmService } from '@/services/domain/farm/FarmService'
+import { getUser } from '@/utils/auth'
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const farmService = FarmService.getInstance()
+    const farms = await farmService.getFarmsByUser(user.id)
+    
+    return NextResponse.json(farms)
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+## 🔄 Migration Strategy
+
+### Frontend Migration
+```typescript
+// Old pattern (to be replaced)
+import { createClient } from '@/utils/supabase/client'
+
+export async function getFarms() {
+  const supabase = createClient()
+  const { data, error } = await supabase.from('farms').select('*')
+  if (error) throw error
+  return data
+}
+
+// New pattern (use this)
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export async function getFarms() {
+  const farmService = FarmService.getInstance()
+  return await farmService.getAll()
+}
+```
+
+### Backend Migration
+```python
+# Old pattern (to be replaced)
+async def get_farms(db: AsyncSession, user_id: str):
+    result = await db.execute(
+        select(Farm).where(Farm.user_id == user_id)
+    )
+    return result.scalars().all()
+
+# New pattern (use this)
+from app.services.domain.farm_service import FarmService
+
+async def get_farms(
+    user_id: str,
+    farm_service: FarmService = Depends(get_farm_service)
+):
+    return await farm_service.get_farms_by_user(user_id)
+```
+
+## ⚡ Performance Considerations
+
+### Service Layer Caching
+```typescript
+// Add caching to frequently accessed data
+export class CachedFarmService extends FarmService {
+  private cache = new Map<string, { data: any; timestamp: number }>()
+  private cacheTTL = 5 * 60 * 1000 // 5 minutes
+  
+  async getById(id: string): Promise<Farm | null> {
+    const cacheKey = `farm:${id}`
+    const cached = this.cache.get(cacheKey)
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+      return cached.data
+    }
+    
+    const farm = await super.getById(id)
+    
+    if (farm) {
+      this.cache.set(cacheKey, { data: farm, timestamp: Date.now() })
+    }
+    
+    return farm
+  }
+  
+  // Clear cache on mutations
+  async update(id: string, data: any): Promise<Farm> {
+    const result = await super.update(id, data)
+    this.cache.delete(`farm:${id}`)
+    return result
+  }
+}
+```
+
+### Connection Pooling
+```typescript
+// Reuse Supabase client instances
+let cachedClient: SupabaseClient | null = null
+
+protected async getSupabaseClient() {
+  if (typeof window !== 'undefined') {
+    // Browser - reuse client
+    if (!cachedClient) {
+      const { createClient } = await import('@/utils/supabase/client')
+      cachedClient = createClient()
+    }
+    return cachedClient
+  } else {
+    // Server - create per request
+    const { createClient } = await import('@/utils/supabase/server')
+    return await createClient()
+  }
+}
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### Service Anti-Patterns
+```typescript
+// ❌ DON'T: Export service instances
+export const farmService = new FarmService() // Wrong!
+
+// ❌ DON'T: Create services without base class
+export class DirectDBService {
+  async getData() {
+    const supabase = createClient() // Wrong!
+    return supabase.from('data').select('*')
+  }
+}
+
+// ❌ DON'T: Mix concerns in services
+export class KitchenSinkService {
+  async getFarms() { }      // Farm logic
+  async sendEmail() { }     // Email logic
+  async processPayment() { } // Payment logic
+}
+
+// ❌ DON'T: Expose Supabase client
+export class BadService {
+  getClient() {
+    return this.supabase // Never expose internals!
+  }
+}
+```
+
+### Component Anti-Patterns
+```typescript
+// ❌ DON'T: Try/catch in every component
+function EveryComponent() {
+  const handleClick = async () => {
+    try {
+      await farmService.create(data)
+    } catch (error) {
+      // Services already handle errors!
+      console.error(error)
+    }
+  }
+}
+
+// ❌ DON'T: Direct database queries
+function BadComponent() {
+  useEffect(() => {
+    // Never bypass service layer!
+    supabase.from('farms').select('*')
+  }, [])
+}
+```
+
+## 📋 Service Layer Checklist
+
+Before implementing services:
+- [ ] **Extend appropriate base class**
+- [ ] **Implement singleton pattern**
+- [ ] **Add proper validation methods**
+- [ ] **Handle errors at service level**
+- [ ] **Never expose Supabase client**
+- [ ] **Keep services focused (single responsibility)**
+- [ ] **Add TypeScript/Python types**
+- [ ] **Document complex methods**
+- [ ] **Consider caching for performance**
+- [ ] **Write unit tests for services**
+
+## 🔗 Related Documentation
+
+- **Database Patterns**: See [11-database-patterns.mdc](mdc:.cursor/rules/11-database-patterns.mdc)
+- **Testing Services**: See [12-testing-strategy.mdc](mdc:.cursor/rules/12-testing-strategy.mdc)
+- **Real-time Patterns**: See [real-time-patterns.mdc](mdc:.cursor/rules/real-time-patterns.mdc)
+- **Frontend Architecture**: See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- **Backend Architecture**: See [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc)
+
+Remember: **The service layer is the heart of the application. It ensures consistency, maintainability, and testability across the entire codebase!**
+description:
+globs:
+alwaysApply: false
+---

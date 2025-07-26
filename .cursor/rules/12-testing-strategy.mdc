@@ -1,0 +1,690 @@
+---
+
+
+description: Testing patterns for unit, integration, and E2E tests across frontend and backend
+globs: "**/*.test.{ts,tsx,js,jsx}, **/*.spec.{ts,tsx,js,jsx}, **/tests/**/*.{ts,tsx,js,jsx,py}, **/__tests__/**/*"
+alwaysApply: false
+---
+
+# Testing Strategy - Full Stack
+
+## 🎯 Testing Philosophy
+
+### Core Principles
+1. **Test Pyramid**: More unit tests, fewer integration tests, minimal E2E tests
+2. **Fast Feedback**: Unit tests < 100ms, integration < 2s, E2E < 30s
+3. **Service Layer Focus**: Test business logic in services, not UI
+4. **Mock External Dependencies**: Isolate tests from external systems
+5. **Coverage Goals**: 80% for critical paths, 60% overall
+
+### What to Test
+- **Business Logic**: Service methods, data transformations
+- **Error Handling**: Edge cases, validation, error states
+- **User Flows**: Critical paths through the application
+- **Integration Points**: API contracts, database operations
+- **Security**: Authentication, authorization, input validation
+
+### What NOT to Test
+- **Framework Code**: Don't test Next.js or FastAPI internals
+- **Simple Getters/Setters**: Unless they contain logic
+- **Third-party Libraries**: Trust external dependencies
+- **UI Implementation Details**: Test behavior, not implementation
+
+## 🎨 Frontend Testing (Next.js/React)
+
+### Test Organization
+```
+frontend/
+├── __tests__/
+│   ├── unit/               # Component and service tests
+│   ├── integration/        # Multi-component tests
+│   └── utils/              # Test utilities
+├── e2e/                    # Playwright E2E tests
+└── src/
+    ├── components/
+    │   └── Button/
+    │       ├── Button.tsx
+    │       └── Button.test.tsx  # Co-located tests
+    └── services/
+        └── __tests__/      # Service tests
+```
+
+### Unit Testing with Vitest
+
+#### Component Testing
+```typescript
+// src/components/features/farms/FarmCard.test.tsx
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { FarmCard } from './FarmCard'
+import type { Farm } from '@/types/farm'
+
+// Mock the router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    prefetch: vi.fn()
+  })
+}))
+
+describe('FarmCard', () => {
+  const mockFarm: Farm = {
+    id: 'farm-1',
+    name: 'Test Farm',
+    location: 'Test Location',
+    status: 'active',
+    device_count: 5
+  }
+  
+  it('renders farm information correctly', () => {
+    render(<FarmCard farm={mockFarm} />)
+    
+    expect(screen.getByText('Test Farm')).toBeInTheDocument()
+    expect(screen.getByText('Test Location')).toBeInTheDocument()
+    expect(screen.getByText('5 devices')).toBeInTheDocument()
+  })
+  
+  it('calls onClick handler when clicked', async () => {
+    const handleClick = vi.fn()
+    render(<FarmCard farm={mockFarm} onClick={handleClick} />)
+    
+    fireEvent.click(screen.getByRole('article'))
+    
+    expect(handleClick).toHaveBeenCalledWith(mockFarm)
+  })
+  
+  it('shows loading state correctly', () => {
+    render(<FarmCard farm={mockFarm} isLoading />)
+    
+    expect(screen.getByTestId('farm-card-skeleton')).toBeInTheDocument()
+  })
+})
+```
+
+#### Service Testing
+```typescript
+// src/services/__tests__/FarmService.test.ts
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { FarmService } from '../domain/farm/FarmService'
+
+// Mock Supabase client
+vi.mock('@/utils/supabase/client', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+      execute: vi.fn()
+    }))
+  }))
+}))
+
+describe('FarmService', () => {
+  let service: FarmService
+  
+  beforeEach(() => {
+    vi.clearAllMocks()
+    service = FarmService.getInstance()
+  })
+  
+  describe('create', () => {
+    it('validates required fields', async () => {
+      await expect(service.create({})).rejects.toThrow('name is required')
+    })
+    
+    it('creates farm with valid data', async () => {
+      const farmData = { name: 'New Farm', location: 'Test Location' }
+      const mockResponse = { id: '123', ...farmData }
+      
+      vi.mocked(service['getSupabaseClient']).mockResolvedValue({
+        from: () => ({
+          insert: () => ({
+            single: () => ({
+              execute: () => ({ data: mockResponse, error: null })
+            })
+          })
+        })
+      })
+      
+      const result = await service.create(farmData)
+      
+      expect(result).toEqual(mockResponse)
+    })
+  })
+})
+```
+
+#### Hook Testing
+```typescript
+// src/hooks/__tests__/useFarmData.test.ts
+import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { useFarmData } from '../useFarmData'
+
+vi.mock('@/services/domain/farm/FarmService')
+
+describe('useFarmData', () => {
+  it('fetches farm data on mount', async () => {
+    const mockFarm = { id: '1', name: 'Test Farm' }
+    const mockGetFarm = vi.fn().mockResolvedValue(mockFarm)
+    
+    vi.mocked(FarmService.getInstance).mockReturnValue({
+      getFarm: mockGetFarm
+    })
+    
+    const { result } = renderHook(() => useFarmData('1'))
+    
+    expect(result.current.loading).toBe(true)
+    
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+      expect(result.current.data).toEqual(mockFarm)
+    })
+    
+    expect(mockGetFarm).toHaveBeenCalledWith('1')
+  })
+})
+```
+
+### E2E Testing with Playwright
+
+```typescript
+// e2e/tests/farm-management.spec.ts
+import { test, expect } from '@playwright/test'
+import { loginUser, createTestFarm } from '../utils/test-helpers'
+
+test.describe('Farm Management', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginUser(page, 'test@example.com', 'password')
+  })
+  
+  test('user can create a new farm', async ({ page }) => {
+    // Navigate to farms page
+    await page.goto('/farms')
+    
+    // Click create button
+    await page.getByRole('button', { name: 'Create Farm' }).click()
+    
+    // Fill form
+    await page.getByLabel('Farm Name').fill('E2E Test Farm')
+    await page.getByLabel('Location').fill('Test Location')
+    await page.getByLabel('Size (m²)').fill('500')
+    
+    // Submit form
+    await page.getByRole('button', { name: 'Save' }).click()
+    
+    // Verify redirect and success message
+    await expect(page).toHaveURL(/\/farms\/[a-z0-9-]+/)
+    await expect(page.getByText('Farm created successfully')).toBeVisible()
+  })
+  
+  test('user can view farm dashboard', async ({ page }) => {
+    const farmId = await createTestFarm()
+    
+    await page.goto(`/farms/${farmId}`)
+    
+    // Check dashboard elements
+    await expect(page.getByRole('heading', { name: 'E2E Test Farm' })).toBeVisible()
+    await expect(page.getByTestId('sensor-chart')).toBeVisible()
+    await expect(page.getByTestId('device-grid')).toBeVisible()
+  })
+})
+```
+
+## 🐍 Backend Testing (FastAPI/Python)
+
+### Test Organization
+```
+backend/app/tests/
+├── unit/                   # Isolated unit tests
+│   └── test_crud_operations.py
+├── integration/            # Multi-component tests
+│   └── test_integration_features.py
+├── api/                    # HTTP endpoint tests
+│   ├── test_home_assistant_endpoints.py
+│   └── test_square_endpoints.py
+├── schemas/                # Pydantic model tests
+│   └── test_device_schemas.py
+├── performance/            # Load and performance tests
+└── conftest.py            # Shared fixtures
+```
+
+### Unit Testing with Pytest
+
+#### Service Testing
+```python
+# app/tests/unit/test_home_assistant_service.py
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+from app.services.user_home_assistant_service import UserHomeAssistantService
+from app.core.exceptions import ValidationError, NotFoundError
+
+@pytest.fixture
+def mock_supabase():
+    """Mock Supabase client"""
+    mock = MagicMock()
+    mock.table.return_value.select.return_value.eq.return_value.single.return_value.execute = AsyncMock()
+    return mock
+
+@pytest.fixture
+def ha_service(mock_supabase):
+    """Create service with mocked dependencies"""
+    return UserHomeAssistantService(mock_supabase)
+
+class TestUserHomeAssistantService:
+    @pytest.mark.asyncio
+    async def test_control_device_success(self, ha_service, mock_supabase):
+        """Test successful device control"""
+        # Arrange
+        mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = MagicMock(
+            data={"url": "http://ha.local", "token": "test-token"}
+        )
+        
+        ha_service._get_user_device = AsyncMock(
+            return_value={"id": "device-1", "entity_id": "light.test"}
+        )
+        ha_service._execute_ha_command = AsyncMock(
+            return_value={"state": {"power": "on", "brightness": 80}}
+        )
+        ha_service._update_device_state = AsyncMock()
+        
+        # Act
+        result = await ha_service.control_device(
+            user_id="user-1",
+            device_id="device-1",
+            action="turn_on",
+            value={"brightness": 80}
+        )
+        
+        # Assert
+        assert result["status"] == "success"
+        assert result["state"]["power"] == "on"
+        assert result["state"]["brightness"] == 80
+        ha_service._update_device_state.assert_called_once()
+    
+    @pytest.mark.asyncio
+    async def test_control_device_not_found(self, ha_service):
+        """Test device not found error"""
+        # Arrange
+        ha_service._get_user_ha_config = AsyncMock(
+            return_value={"url": "http://ha.local", "token": "test-token"}
+        )
+        ha_service._get_user_device = AsyncMock(return_value=None)
+        
+        # Act & Assert
+        with pytest.raises(ValueError, match="Device device-1 not found"):
+            await ha_service.control_device(
+                user_id="user-1",
+                device_id="device-1",
+                action="turn_on"
+            )
+```
+
+#### API Endpoint Testing
+```python
+# app/tests/api/test_home_assistant_endpoints.py
+import pytest
+from httpx import AsyncClient
+from app.main import app
+from app.core.security import create_access_token
+
+@pytest.fixture
+async def async_client():
+    """Create async test client"""
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+@pytest.fixture
+def auth_headers():
+    """Create authenticated headers"""
+    token = create_access_token({"sub": "test-user-id"})
+    return {"Authorization": f"Bearer {token}"}
+
+class TestHomeAssistantEndpoints:
+    @pytest.mark.asyncio
+    async def test_list_devices(self, async_client, auth_headers, mock_ha_service):
+        """Test device listing endpoint"""
+        # Arrange
+        mock_ha_service.list_user_devices.return_value = [
+            {"id": "1", "name": "Living Room Light", "type": "light"},
+            {"id": "2", "name": "Kitchen Switch", "type": "switch"}
+        ]
+        
+        # Act
+        response = await async_client.get(
+            "/api/v1/home-assistant/devices",
+            headers=auth_headers
+        )
+        
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["devices"]) == 2
+        assert data["devices"][0]["name"] == "Living Room Light"
+    
+    @pytest.mark.asyncio
+    async def test_control_device_validation(self, async_client, auth_headers):
+        """Test request validation"""
+        # Act
+        response = await async_client.post(
+            "/api/v1/home-assistant/devices/light-1/control",
+            json={"action": "invalid_action"},  # Invalid action
+            headers=auth_headers
+        )
+        
+        # Assert
+        assert response.status_code == 422
+        assert "Action must be one of" in response.json()["detail"][0]["msg"]
+```
+
+#### Schema Testing
+```python
+# app/tests/schemas/test_device_schemas.py
+import pytest
+from pydantic import ValidationError
+from app.models.home_assistant import DeviceControlRequest, DeviceType
+
+class TestDeviceSchemas:
+    def test_device_control_request_valid(self):
+        """Test valid control request"""
+        request = DeviceControlRequest(
+            action="turn_on",
+            value={"brightness": 50}
+        )
+        assert request.action == "turn_on"
+        assert request.value["brightness"] == 50
+    
+    def test_device_control_request_invalid_action(self):
+        """Test invalid action validation"""
+        with pytest.raises(ValidationError) as exc_info:
+            DeviceControlRequest(action="invalid_action")
+        
+        assert "Action must be one of" in str(exc_info.value)
+    
+    def test_device_type_enum(self):
+        """Test device type enumeration"""
+        assert DeviceType.LIGHT == "light"
+        assert DeviceType.SWITCH == "switch"
+        assert "invalid" not in DeviceType.__members__.values()
+```
+
+### Integration Testing
+
+```python
+# app/tests/integration/test_farm_automation.py
+import pytest
+from app.services.supabase_background_service import supabase_background_service
+from app.services.user_home_assistant_service import UserHomeAssistantService
+
+@pytest.mark.asyncio
+class TestFarmAutomation:
+    async def test_automation_workflow(self, test_db, test_user):
+        """Test complete automation workflow"""
+        # Create test data
+        farm = await test_db.create_farm(test_user.id, "Integration Test Farm")
+        device = await test_db.create_device(farm.id, "Irrigation Pump", "switch")
+        
+        # Set up automation rule
+        rule = await test_db.create_automation_rule(
+            farm_id=farm.id,
+            trigger_type="schedule",
+            trigger_config={"time": "06:00"},
+            action_type="device_control",
+            action_config={"device_id": device.id, "action": "turn_on"}
+        )
+        
+        # Enqueue automation task
+        task_id = await supabase_background_service.enqueue_task(
+            task_type="process_automation",
+            payload={"rule_id": rule.id}
+        )
+        
+        # Wait for task completion
+        await asyncio.sleep(1)
+        
+        # Verify device state changed
+        updated_device = await test_db.get_device(device.id)
+        assert updated_device.state["power"] == "on"
+```
+
+## 🧪 Test Utilities & Fixtures
+
+### Frontend Test Utilities
+```typescript
+// __tests__/utils/test-utils.tsx
+import { render, RenderOptions } from '@testing-library/react'
+import { ReactElement } from 'react'
+import { AuthProvider } from '@/context/AuthContext'
+
+// Mock providers
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  )
+}
+
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { wrapper: AllTheProviders, ...options })
+
+export * from '@testing-library/react'
+export { customRender as render }
+
+// Mock service factory
+export function createMockService<T>(methods: Partial<T>): T {
+  return {
+    getInstance: () => methods,
+    ...methods
+  } as T
+}
+```
+
+### Backend Test Fixtures
+```python
+# app/tests/conftest.py
+import pytest
+from typing import AsyncGenerator
+from httpx import AsyncClient
+from app.main import app
+from app.db.supabase_client import get_async_rls_client
+
+@pytest.fixture
+async def test_client() -> AsyncGenerator[AsyncClient, None]:
+    """Create test client"""
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+@pytest.fixture
+async def test_db():
+    """Create test database connection"""
+    client = await get_async_rls_client()
+    yield TestDatabase(client)
+    # Cleanup after tests
+    await client.close()
+
+@pytest.fixture
+def mock_ha_websocket():
+    """Mock Home Assistant WebSocket"""
+    mock = AsyncMock()
+    mock.connect = AsyncMock()
+    mock.send_message = AsyncMock(return_value={"success": True})
+    mock.subscribe = AsyncMock()
+    return mock
+
+class TestDatabase:
+    """Test database helper"""
+    def __init__(self, client):
+        self.client = client
+    
+    async def create_test_user(self, email="test@example.com"):
+        """Create test user"""
+        result = await self.client.table("users").insert({
+            "email": email,
+            "role": "user"
+        }).execute()
+        return result.data[0]
+```
+
+## 📊 Test Coverage & CI/CD
+
+### Coverage Configuration
+
+#### Frontend (vitest.config.ts)
+```typescript
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/mockData.ts'
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
+})
+```
+
+#### Backend (pytest.ini)
+```ini
+[tool:pytest]
+testpaths = app/tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+asyncio_mode = auto
+
+# Coverage settings
+addopts = 
+    --cov=app
+    --cov-report=html
+    --cov-report=term-missing
+    --cov-fail-under=80
+    -v
+
+# Exclude from coverage
+[coverage:run]
+omit = 
+    */tests/*
+    */migrations/*
+    */__pycache__/*
+    */venv/*
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/test.yml
+name: Test Suite
+
+on: [push, pull_request]
+
+jobs:
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: cd frontend && npm ci
+        
+      - name: Run unit tests
+        run: cd frontend && npm run test:unit
+        
+      - name: Run E2E tests
+        run: cd frontend && npm run test:e2e
+        
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/lcov.info
+  
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+          
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run tests
+        run: cd backend && pytest
+        
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/htmlcov/coverage.xml
+```
+
+## 📋 Testing Best Practices
+
+### General Guidelines
+1. **AAA Pattern**: Arrange, Act, Assert
+2. **One Assertion**: One logical assertion per test
+3. **Descriptive Names**: Test names should describe behavior
+4. **Independent Tests**: Tests should not depend on each other
+5. **Fast Tests**: Keep tests fast, mock external dependencies
+
+### Frontend Specific
+- **User-centric**: Test from user perspective
+- **Avoid Implementation Details**: Don't test state, test behavior
+- **Mock Services**: Always mock service layer in components
+- **Test Accessibility**: Include ARIA and keyboard navigation tests
+
+### Backend Specific
+- **Fixture Reuse**: Use pytest fixtures for common setup
+- **Async Testing**: Use pytest-asyncio for async tests
+- **Database Isolation**: Use transactions or test databases
+- **API Contract Testing**: Validate request/response schemas
+
+## 🔗 Related Documentation
+
+- **Frontend Architecture**: See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- **Backend Architecture**: See [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc)
+- **Service Layer**: See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+- **CI/CD**: See deployment documentation
+description:
+globs:
+alwaysApply: false
+---

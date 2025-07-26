@@ -1,0 +1,515 @@
+---
+description: React component architecture, composition patterns, and feature-based organization
+globs: "frontend/src/components/**/*.{tsx,jsx}, frontend/src/app/**/*.{tsx,jsx}"
+alwaysApply: false
+---
+
+# React Component Patterns - Vertical Farm Project
+
+## 🎯 Core Principles
+
+### Component Philosophy
+- **Single Responsibility**: Each component does one thing well
+- **Composition over Inheritance**: Build complex UIs from simple pieces
+- **Props over State**: Prefer controlled components
+- **Colocate Related Code**: Keep styles, tests, and types near components
+
+### Modern React Approach
+- **Server Components by Default**: Start with RSC, add client interactivity as needed
+- **Hooks over Classes**: Function components with hooks
+- **Suspense for Async**: Leverage React 19's improved Suspense
+- **Error Boundaries**: Graceful error handling at component level
+
+## 📁 Component Organization
+
+### Directory Structure
+```
+src/
+├── components/
+│   ├── features/           # Domain-specific components
+│   │   ├── agriculture/    # Farming domain
+│   │   │   ├── farm-core/
+│   │   │   │   ├── FarmList/
+│   │   │   │   │   ├── index.tsx
+│   │   │   │   │   ├── FarmList.test.tsx
+│   │   │   │   │   └── FarmList.module.css
+│   │   │   │   └── FarmDetails/
+│   │   │   └── sensors/
+│   │   │       ├── SensorChart/
+│   │   │       └── SensorReadings/
+│   │   ├── automation/     # Automation domain
+│   │   │   ├── integrations/
+│   │   │   │   ├── HomeAssistantConfigManager/
+│   │   │   │   └── DeviceAssignmentWizard/
+│   │   │   └── schedules/
+│   │   └── business/       # Business logic
+│   │       ├── analytics/
+│   │       └── reports/
+│   ├── ui/                 # Reusable UI components
+│   │   ├── Button/
+│   │   ├── Card/
+│   │   ├── Modal/
+│   │   └── Form/
+│   └── layout/            # Layout components
+│       ├── Header/
+│       ├── Sidebar/
+│       └── PageLayout/
+└── app/                   # Next.js app directory
+    ├── (app)/            # Authenticated routes
+    └── (auth)/           # Public routes
+```
+
+### Component File Structure
+```typescript
+// ✅ DO: Consistent file organization
+// components/features/agriculture/farm-core/FarmList/index.tsx
+export { FarmList } from './FarmList'
+export type { FarmListProps } from './types'
+
+// FarmList.tsx
+import { Suspense } from 'react'
+import { FarmService } from '@/services/domain/farm/FarmService'
+import { FarmListSkeleton } from './FarmListSkeleton'
+import { FarmListView } from './FarmListView'
+import type { FarmListProps } from './types'
+
+export async function FarmList({ userId }: FarmListProps) {
+  const farms = await FarmService.getInstance().getFarmsByUser(userId)
+  
+  return (
+    <Suspense fallback={<FarmListSkeleton />}>
+      <FarmListView farms={farms} />
+    </Suspense>
+  )
+}
+```
+
+## 🏗️ Component Patterns
+
+### Server Components (Default)
+```typescript
+// ✅ DO: Server Component for data fetching
+export default async function FarmDashboard({ farmId }: { farmId: string }) {
+  // Direct data access - no useEffect needed
+  const farmService = FarmService.getInstance()
+  const [farm, devices, readings] = await Promise.all([
+    farmService.getById(farmId),
+    farmService.getDevices(farmId),
+    farmService.getLatestReadings(farmId)
+  ])
+  
+  return (
+    <DashboardLayout>
+      <FarmHeader farm={farm} />
+      <Suspense fallback={<DeviceGridSkeleton />}>
+        <DeviceGrid devices={devices} />
+      </Suspense>
+      <Suspense fallback={<ReadingsChartSkeleton />}>
+        <ReadingsChart readings={readings} />
+      </Suspense>
+    </DashboardLayout>
+  )
+}
+
+// ✅ DO: Granular Suspense boundaries
+export async function DeviceList({ farmId }: { farmId: string }) {
+  const devices = await fetchDevices(farmId)
+  
+  return (
+    <div className="grid gap-4">
+      {devices.map(device => (
+        <Suspense key={device.id} fallback={<DeviceCardSkeleton />}>
+          <DeviceCard deviceId={device.id} />
+        </Suspense>
+      ))}
+    </div>
+  )
+}
+```
+
+### Client Components
+```typescript
+// ✅ DO: Mark interactive components as client
+'use client'
+
+import { useState, useTransition, useOptimistic } from 'react'
+import { toggleDevice } from './actions'
+
+export function DeviceControl({ device }: { device: Device }) {
+  const [isPending, startTransition] = useTransition()
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    device.status,
+    (_, newStatus: DeviceStatus) => newStatus
+  )
+  
+  const handleToggle = () => {
+    startTransition(async () => {
+      setOptimisticStatus(optimisticStatus === 'on' ? 'off' : 'on')
+      await toggleDevice(device.id)
+    })
+  }
+  
+  return (
+    <Switch
+      checked={optimisticStatus === 'on'}
+      onCheckedChange={handleToggle}
+      disabled={isPending}
+      aria-label={`Toggle ${device.name}`}
+    />
+  )
+}
+
+// ✅ DO: Real-time subscriptions in client components
+'use client'
+
+import { useEffect, useState } from 'react'
+import { HomeAssistantService } from '@/services/domain/integrations/HomeAssistantService'
+
+export function LiveSensorReading({ sensorId }: { sensorId: string }) {
+  const [reading, setReading] = useState<SensorReading | null>(null)
+  
+  useEffect(() => {
+    const service = HomeAssistantService.getInstance()
+    const subscription = service.subscribeToSensor(sensorId, setReading)
+    
+    return () => subscription.unsubscribe()
+  }, [sensorId])
+  
+  if (!reading) return <ReadingSkeleton />
+  
+  return <ReadingDisplay value={reading.value} unit={reading.unit} />
+}
+```
+
+### Component Composition
+```typescript
+// ✅ DO: Compose components for flexibility
+export function FarmCard({ farm }: { farm: Farm }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{farm.name}</CardTitle>
+        <CardDescription>{farm.location}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FarmStats farmId={farm.id} />
+      </CardContent>
+      <CardFooter>
+        <FarmActions farm={farm} />
+      </CardFooter>
+    </Card>
+  )
+}
+
+// ✅ DO: Compound components for complex UIs
+export const DataTable = {
+  Root: TableRoot,
+  Header: TableHeader,
+  Body: TableBody,
+  Row: TableRow,
+  Cell: TableCell,
+  Pagination: TablePagination
+}
+
+// Usage
+<DataTable.Root>
+  <DataTable.Header columns={columns} />
+  <DataTable.Body>
+    {data.map(row => (
+      <DataTable.Row key={row.id}>
+        {columns.map(col => (
+          <DataTable.Cell key={col.id}>
+            {row[col.accessor]}
+          </DataTable.Cell>
+        ))}
+      </DataTable.Row>
+    ))}
+  </DataTable.Body>
+  <DataTable.Pagination {...paginationProps} />
+</DataTable.Root>
+```
+
+### Error Handling
+```typescript
+// ✅ DO: Component-level error boundaries
+'use client'
+
+import { Component, ReactNode } from 'react'
+import { ErrorFallback } from './ErrorFallback'
+
+interface Props {
+  children: ReactNode
+  fallback?: ComponentType<{ error: Error; reset: () => void }>
+}
+
+export class ErrorBoundary extends Component<Props, { error: Error | null }> {
+  state = { error: null }
+  
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Component error:', error, info)
+    // Log to monitoring service
+  }
+  
+  render() {
+    if (this.state.error) {
+      const Fallback = this.props.fallback || ErrorFallback
+      return <Fallback error={this.state.error} reset={() => this.setState({ error: null })} />
+    }
+    
+    return this.props.children
+  }
+}
+
+// ✅ DO: Async error boundaries with React 19
+export function AsyncBoundary({ children }: { children: ReactNode }) {
+  return (
+    <ErrorBoundary fallback={ErrorFallback}>
+      <Suspense fallback={<LoadingSpinner />}>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  )
+}
+```
+
+### State Management Patterns
+```typescript
+// ✅ DO: Colocate state with usage
+'use client'
+
+export function FarmForm({ onSubmit }: { onSubmit: (data: FarmData) => Promise<void> }) {
+  // Local UI state
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Form state with reducer for complex logic
+  const [formState, dispatch] = useReducer(formReducer, initialState)
+  
+  // Derived state
+  const isValid = useMemo(() => validateForm(formState), [formState])
+  
+  // Stable callbacks
+  const handleSubmit = useCallback(async (e: FormEvent) => {
+    e.preventDefault()
+    if (!isValid) return
+    
+    setIsSubmitting(true)
+    try {
+      await onSubmit(formState)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [formState, isValid, onSubmit])
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Form fields */}
+    </form>
+  )
+}
+
+// ✅ DO: Lift state only when necessary
+export function DeviceManager() {
+  // Shared state lifted to parent
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
+  
+  return (
+    <div className="grid grid-cols-2">
+      <DeviceList onSelect={setSelectedDevice} />
+      <DeviceDetails device={selectedDevice} />
+    </div>
+  )
+}
+```
+
+### Performance Optimization
+```typescript
+// ✅ DO: Memoize expensive computations
+'use client'
+
+import { useMemo } from 'react'
+
+export function SensorChart({ readings }: { readings: SensorReading[] }) {
+  const chartData = useMemo(() => 
+    processReadingsForChart(readings),
+    [readings]
+  )
+  
+  const averages = useMemo(() => 
+    calculateAverages(readings),
+    [readings]
+  )
+  
+  return <Chart data={chartData} annotations={averages} />
+}
+
+// ✅ DO: Optimize re-renders with memo
+import { memo } from 'react'
+
+export const ExpensiveComponent = memo(function ExpensiveComponent({ data }: Props) {
+  return <ComplexVisualization data={data} />
+}, (prevProps, nextProps) => {
+  // Custom comparison if needed
+  return prevProps.data.id === nextProps.data.id &&
+         prevProps.data.version === nextProps.data.version
+})
+
+// ✅ DO: Dynamic imports for code splitting
+import dynamic from 'next/dynamic'
+
+const HeavyChart = dynamic(
+  () => import('@/components/features/analytics/HeavyChart'),
+  { 
+    loading: () => <ChartSkeleton />,
+    ssr: false // Client-only component
+  }
+)
+```
+
+### React 19 Patterns
+```typescript
+// ✅ DO: Use the new use() hook
+'use client'
+
+import { use, Suspense } from 'react'
+
+function DeviceStatus({ devicePromise }: { devicePromise: Promise<Device> }) {
+  const device = use(devicePromise)
+  return <StatusIndicator status={device.status} />
+}
+
+// Usage with streaming
+export function DeviceMonitor({ deviceId }: { deviceId: string }) {
+  const devicePromise = fetchDevice(deviceId)
+  
+  return (
+    <Suspense fallback={<StatusSkeleton />}>
+      <DeviceStatus devicePromise={devicePromise} />
+    </Suspense>
+  )
+}
+
+// ✅ DO: Server Actions for mutations
+async function updateDevice(deviceId: string, formData: FormData) {
+  'use server'
+  
+  const name = formData.get('name') as string
+  const location = formData.get('location') as string
+  
+  const service = DeviceService.getInstance()
+  await service.update(deviceId, { name, location })
+  
+  revalidatePath(`/devices/${deviceId}`)
+}
+
+// Client component using server action
+'use client'
+
+export function DeviceEditForm({ device }: { device: Device }) {
+  return (
+    <form action={updateDevice.bind(null, device.id)}>
+      <input name="name" defaultValue={device.name} />
+      <input name="location" defaultValue={device.location} />
+      <button type="submit">Save</button>
+    </form>
+  )
+}
+```
+
+### Testing Patterns
+```typescript
+// ✅ DO: Test components in isolation
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+
+describe('DeviceControl', () => {
+  it('toggles device status optimistically', async () => {
+    const device = { id: '1', name: 'Light', status: 'off' as const }
+    const user = userEvent.setup()
+    
+    render(<DeviceControl device={device} />)
+    
+    const toggle = screen.getByRole('switch', { name: /toggle light/i })
+    expect(toggle).not.toBeChecked()
+    
+    await user.click(toggle)
+    expect(toggle).toBeChecked()
+  })
+})
+
+// ✅ DO: Mock service layer
+jest.mock('@/services/domain/devices/DeviceService', () => ({
+  DeviceService: {
+    getInstance: () => ({
+      toggleStatus: jest.fn().mockResolvedValue({ status: 'on' })
+    })
+  }
+}))
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### Component Anti-Patterns
+```typescript
+// ❌ DON'T: Mix server and client logic
+export default function BadComponent() {
+  // This won't work - useState in server component
+  const [data, setData] = useState(null)
+  
+  // This won't work either - direct DB access in same component
+  const farms = await db.farms.findMany()
+}
+
+// ❌ DON'T: Fetch in client components
+'use client'
+export function BadClientComponent() {
+  useEffect(() => {
+    // Avoid - causes waterfalls
+    fetch('/api/data').then(res => res.json()).then(setData)
+  }, [])
+}
+
+// ❌ DON'T: Over-wrap with Suspense
+<Suspense fallback={<Loading />}>
+  <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loading />}>
+      <Component />
+    </Suspense>
+  </Suspense>
+</Suspense>
+
+// ❌ DON'T: Ignore error boundaries
+export function UnsafeComponent() {
+  // This could crash the entire app
+  const data = JSON.parse(unsafeString)
+  return <div>{data.value}</div>
+}
+
+// ❌ DON'T: Premature optimization
+const SimpleComponent = memo(() => {
+  // Don't memo everything by default
+  return <div>Hello</div>
+})
+```
+
+## 📋 Component Checklist
+
+Before creating a component, ensure:
+- [ ] **Clear single responsibility**
+- [ ] **Proper server/client separation**
+- [ ] **Error boundary coverage**
+- [ ] **Loading states with Suspense**
+- [ ] **Accessibility attributes**
+- [ ] **TypeScript types defined**
+- [ ] **Service layer integration**
+- [ ] **Performance considered**
+- [ ] **Tests written**
+
+Remember: **Start simple, compose for complexity, optimize when measured!**
+description:
+globs:
+alwaysApply: false
+---

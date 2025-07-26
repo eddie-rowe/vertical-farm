@@ -1,0 +1,483 @@
+---
+description: Next.js 15 and frontend-specific architectural patterns, component organization, and service integration
+globs: "frontend/**/*.{ts,tsx,js,jsx}, src/app/**/*.{ts,tsx}, src/components/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Frontend Architecture - Next.js 15 & React 19
+
+## 🚀 Core Principles
+
+### 1. App Router First
+- **REQUIRED**: Use app directory structure for all features
+- **File Conventions**: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`
+- **Route Groups**: `(auth)` for public, `(app)` for authenticated
+- **Dynamic Routes**: `[param]`, `[...slug]`, `[[...optional]]`
+
+### 2. Server Components by Default
+- **Default**: All components are Server Components unless marked 'use client'
+- **Benefits**: Reduced JS bundle, direct database access, better SEO
+- **Pattern**: Push client components to the leaves of component tree
+
+### 3. Service Layer Integration
+- **MANDATORY**: All data operations through service layer
+- **Pattern**: Services handle Supabase, components handle UI
+- **Dynamic Imports**: For code splitting and performance
+
+## 📁 Component Organization
+
+```typescript
+frontend/src/
+├── app/                   # App Router
+│   ├── (auth)/            # Public routes
+│   │   ├── login/
+│   │   └── signup/
+│   ├── (app)/             # Authenticated routes
+│   │   ├── layout.tsx     # Protected layout with auth check
+│   │   ├── dashboard/
+│   │   └── farms/
+│   └── api/               # API routes
+├── components/
+│   ├── features/          # Domain-specific components
+│   │   ├── farms/
+│   │   └── devices/
+│   ├── ui/                # Reusable UI components
+│   └── layout/            # Layout components
+└── services/              # Service layer (see service rules)
+```
+
+## 🎯 Next.js 15 Features
+
+### "use cache" Directive
+```typescript
+// ✅ DO: Cache expensive operations
+"use cache"
+
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export async function getCachedFarmData(farmId: string) {
+  const service = FarmService.getInstance()
+  return await service.getFarmWithDetails(farmId)
+}
+
+// Use in components
+export default async function FarmPage({ params }: { params: { id: string } }) {
+  const farm = await getCachedFarmData(params.id)
+  return <FarmDetails farm={farm} />
+}
+```
+
+### cacheLife Configuration
+```typescript
+// next.config.js
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      // Farm data - moderate updates
+      farms: {
+        stale: 300,      // 5 minutes
+        revalidate: 60,  // 1 minute
+        expire: 3600     // 1 hour
+      },
+      // Sensor data - frequent updates
+      sensors: {
+        stale: 10,       // 10 seconds
+        revalidate: 5,   // 5 seconds
+        expire: 60       // 1 minute
+      }
+    }
+  }
+}
+
+// Usage
+"use cache"
+export async function getFarmSensors(farmId: string) {
+  cacheLife('sensors')
+  const service = SensorService.getInstance()
+  return await service.getLatestReadings(farmId)
+}
+```
+
+### Data Fetching Patterns
+```typescript
+// ✅ DO: Fetch data in Server Components
+export default async function FarmList() {
+  const farmService = FarmService.getInstance()
+  const farms = await farmService.getAllFarms()
+  
+  return (
+    <div className="farm-grid">
+      {farms.map(farm => <FarmCard key={farm.id} farm={farm} />)}
+    </div>
+  )
+}
+
+// ✅ DO: Use fetch with caching options
+async function getFarmWeather(farmId: string) {
+  const res = await fetch(`https://api.weather.com/farm/${farmId}`, {
+    next: { revalidate: 3600 }, // Cache for 1 hour
+    cache: 'force-cache' // Explicit caching
+  })
+  return res.json()
+}
+
+// ❌ DON'T: Fetch in Client Components without reason
+'use client'
+export function BadComponent() {
+  const [data, setData] = useState()
+  useEffect(() => {
+    fetch('/api/data').then(/*...*/) // Avoid this pattern
+  }, [])
+}
+```
+
+## 🎨 React 19 Features
+
+### Server Actions
+```typescript
+// actions/farm-actions.ts
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export async function createFarm(formData: FormData) {
+  const service = FarmService.getInstance()
+  
+  try {
+    const farm = await service.create({
+      name: formData.get('name') as string,
+      location: formData.get('location') as string
+    })
+    
+    revalidatePath('/farms')
+    redirect(`/farms/${farm.id}`)
+  } catch (error) {
+    return { error: error.message }
+  }
+}
+
+// Component using Server Action
+export function CreateFarmForm() {
+  return (
+    <form action={createFarm}>
+      <input name="name" required />
+      <input name="location" required />
+      <button type="submit">Create Farm</button>
+    </form>
+  )
+}
+```
+
+### useActionState Hook
+```typescript
+'use client'
+import { useActionState } from 'react'
+import { updateFarmSettings } from './actions'
+
+export function FarmSettingsForm({ farmId }: { farmId: string }) {
+  const [state, formAction, pending] = useActionState(
+    updateFarmSettings.bind(null, farmId),
+    { message: '', errors: {} }
+  )
+  
+  return (
+    <form action={formAction}>
+      <input name="name" />
+      {state.errors?.name && <p className="error">{state.errors.name}</p>}
+      
+      <button disabled={pending}>
+        {pending ? 'Saving...' : 'Save Settings'}
+      </button>
+      
+      {state.message && <p className="success">{state.message}</p>}
+    </form>
+  )
+}
+```
+
+### useOptimistic Hook
+```typescript
+'use client'
+import { useOptimistic } from 'react'
+import { toggleDeviceStatus } from './actions'
+
+export function DeviceList({ devices }: { devices: Device[] }) {
+  const [optimisticDevices, updateOptimisticDevice] = useOptimistic(
+    devices,
+    (state, { id, status }) => 
+      state.map(device => 
+        device.id === id ? { ...device, status } : device
+      )
+  )
+  
+  const handleToggle = async (device: Device) => {
+    const newStatus = device.status === 'on' ? 'off' : 'on'
+    updateOptimisticDevice({ id: device.id, status: newStatus })
+    await toggleDeviceStatus(device.id, newStatus)
+  }
+  
+  return (
+    <div className="device-grid">
+      {optimisticDevices.map(device => (
+        <DeviceCard 
+          key={device.id} 
+          device={device}
+          onToggle={() => handleToggle(device)}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+## 🧩 Component Patterns
+
+### Server Component with Suspense
+```typescript
+import { Suspense } from 'react'
+
+export default function FarmDashboard({ farmId }: { farmId: string }) {
+  return (
+    <div className="dashboard-grid">
+      <Suspense fallback={<SensorChartSkeleton />}>
+        <SensorChart farmId={farmId} />
+      </Suspense>
+      
+      <Suspense fallback={<DeviceGridSkeleton />}>
+        <DeviceGrid farmId={farmId} />
+      </Suspense>
+      
+      <Suspense fallback={<AlertsPanelSkeleton />}>
+        <AlertsPanel farmId={farmId} />
+      </Suspense>
+    </div>
+  )
+}
+
+// Async Server Component
+async function SensorChart({ farmId }: { farmId: string }) {
+  const sensorService = SensorService.getInstance()
+  const data = await sensorService.getChartData(farmId)
+  return <Chart data={data} />
+}
+```
+
+### Client Component with Service
+```typescript
+'use client'
+import { useState, useTransition } from 'react'
+
+export function FarmControlPanel({ farmId }: { farmId: string }) {
+  const [isPending, startTransition] = useTransition()
+  const [settings, setSettings] = useState<FarmSettings>()
+  
+  const updateSettings = async (newSettings: FarmSettings) => {
+    startTransition(async () => {
+      // Dynamic import for code splitting
+      const { FarmService } = await import('@/services/domain/farm/FarmService')
+      const service = FarmService.getInstance()
+      
+      const updated = await service.updateSettings(farmId, newSettings)
+      setSettings(updated)
+    })
+  }
+  
+  return (
+    <div className={isPending ? 'opacity-50' : ''}>
+      <SettingsForm 
+        settings={settings} 
+        onUpdate={updateSettings}
+        disabled={isPending}
+      />
+    </div>
+  )
+}
+```
+
+### Error Boundaries
+```typescript
+// app/(app)/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    // Log to error reporting service
+    console.error('Application error:', error)
+  }, [error])
+  
+  return (
+    <div className="error-container">
+      <h2>Something went wrong!</h2>
+      <p>{error.message}</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )
+}
+```
+
+### Loading States
+```typescript
+// app/(app)/farms/loading.tsx
+export default function Loading() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-8 bg-gray-200 rounded w-1/4 mb-4" />
+      <div className="grid grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-32 bg-gray-200 rounded" />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## 🚦 Route Protection
+
+```typescript
+// app/(app)/layout.tsx
+import { redirect } from 'next/navigation'
+import { AuthService } from '@/services/core/AuthService'
+
+export default async function ProtectedLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const authService = AuthService.getInstance()
+  const user = await authService.getCurrentUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+  
+  return (
+    <div className="app-layout">
+      <Sidebar user={user} />
+      <main>{children}</main>
+    </div>
+  )
+}
+```
+
+## 📊 Metadata & SEO
+
+```typescript
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { id: string } 
+}): Promise<Metadata> {
+  const farmService = FarmService.getInstance()
+  const farm = await farmService.getFarm(params.id)
+  
+  return {
+    title: `${farm.name} - Vertical Farm`,
+    description: `Manage ${farm.name} vertical farm operations`,
+    openGraph: {
+      title: farm.name,
+      description: `Vertical farm in ${farm.location}`,
+      images: [farm.imageUrl]
+    }
+  }
+}
+```
+
+## ⚡ Performance Patterns
+
+### Dynamic Imports
+```typescript
+// ✅ DO: Dynamic import for heavy components
+const ChartComponent = dynamic(
+  () => import('@/components/features/analytics/ChartComponent'),
+  { 
+    loading: () => <ChartSkeleton />,
+    ssr: false // Disable SSR for client-only components
+  }
+)
+
+// ✅ DO: Dynamic service imports
+const handleExport = async () => {
+  const { ExportService } = await import('@/services/domain/export/ExportService')
+  const service = ExportService.getInstance()
+  await service.exportFarmData(farmId)
+}
+```
+
+### Image Optimization
+```typescript
+import Image from 'next/image'
+
+export function FarmImage({ farm }: { farm: Farm }) {
+  return (
+    <Image
+      src={farm.imageUrl}
+      alt={farm.name}
+      width={800}
+      height={600}
+      priority={false} // true for above-the-fold
+      placeholder="blur"
+      blurDataURL={farm.blurHash}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  )
+}
+```
+
+## ❌ Common Pitfalls
+
+```typescript
+// ❌ DON'T: Mix Server and Client improperly
+export default async function BadComponent() {
+  const data = await fetchData() // Server
+  
+  return (
+    <button onClick={() => console.log(data)}>  {/* Error: onClick needs client */}
+      Click me
+    </button>
+  )
+}
+
+// ✅ DO: Separate concerns
+export default async function GoodComponent() {
+  const data = await fetchData()
+  return <ClientButton data={data} />
+}
+
+'use client'
+function ClientButton({ data }) {
+  return <button onClick={() => console.log(data)}>Click me</button>
+}
+
+// ❌ DON'T: Import server-only code in client components
+'use client'
+import { cookies } from 'next/headers' // Error!
+
+// ❌ DON'T: Use dynamic href with Link
+<Link href={{ pathname: '/farm/[id]', query: { id: '1' } }}>  {/* Not supported */}
+
+// ✅ DO: Use static href
+<Link href="/farm/1">Farm 1</Link>
+```
+
+## 🔗 Related Documentation
+
+- **Service Patterns**: See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+- **Component Patterns**: See [30-component-patterns.mdc](mdc:.cursor/rules/30-component-patterns.mdc)
+- **Performance**: See [40-performance-optimization.mdc](mdc:.cursor/rules/40-performance-optimization.mdc)
+- **Testing**: See [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+description:
+globs:
+alwaysApply: false
+---

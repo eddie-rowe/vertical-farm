@@ -1,0 +1,520 @@
+---
+description: Next.js 15 specific features, app router patterns, server components, and caching strategies
+globs: "frontend/src/app/**/*.{ts,tsx}, frontend/next.config.{js,ts}, frontend/middleware.ts"
+alwaysApply: false
+---
+
+# Next.js 15 Best Practices - Vertical Farm Frontend
+
+## 🚀 Next.js 15 App Router
+
+### Core Principles
+- **Server-first**: Default to Server Components
+- **Client when needed**: Use Client Components for interactivity
+- **Streaming**: Leverage Suspense for progressive rendering
+- **Type-safe**: Full TypeScript integration
+
+### Directory Structure
+```
+frontend/
+├── src/
+│   ├── app/                    # App Router
+│   │   ├── (app)/             # Authenticated routes group
+│   │   │   ├── dashboard/     # Dashboard pages
+│   │   │   └── farms/         # Farm management
+│   │   ├── (auth)/            # Auth routes group
+│   │   │   ├── login/
+│   │   │   └── register/
+│   │   ├── api/               # API routes
+│   │   ├── layout.tsx         # Root layout
+│   │   └── page.tsx           # Home page
+│   ├── components/            # React components
+│   ├── lib/                   # Utilities
+│   └── services/              # Service layer
+└── public/                    # Static assets
+```
+
+## 📁 Route Organization
+
+### Route Groups
+```typescript
+// ✅ DO: Use route groups for organization
+app/
+  (app)/              # Protected routes
+    layout.tsx        # Auth check wrapper
+    dashboard/
+    farms/
+  (auth)/             # Public auth routes
+    layout.tsx        # Guest-only wrapper
+    login/
+    register/
+  (marketing)/        # Public marketing pages
+    about/
+    pricing/
+```
+
+### Dynamic Routes
+```typescript
+// ✅ DO: Type-safe dynamic routes
+// app/farms/[farmId]/page.tsx
+export default async function FarmPage({
+  params
+}: {
+  params: Promise<{ farmId: string }>
+}) {
+  const { farmId } = await params
+  const farm = await getFarm(farmId)
+  return <FarmDetails farm={farm} />
+}
+
+// ❌ DON'T: Access params without awaiting
+export default async function FarmPage({ params }) {
+  // Wrong - params is a Promise in Next.js 15
+  const farm = await getFarm(params.farmId)
+}
+```
+
+## 🎯 Server Components (Default)
+
+### Data Fetching
+```typescript
+// ✅ DO: Fetch data directly in Server Components
+export default async function FarmsPage() {
+  const farmService = FarmService.getInstance()
+  const farms = await farmService.getAll()
+  
+  return <FarmsList farms={farms} />
+}
+
+// ✅ DO: Parallel data fetching
+export default async function Dashboard() {
+  // Parallel requests for better performance
+  const [farms, devices, alerts] = await Promise.all([
+    farmService.getAll(),
+    deviceService.getActive(),
+    alertService.getRecent()
+  ])
+  
+  return (
+    <DashboardLayout>
+      <FarmStats farms={farms} />
+      <DeviceStatus devices={devices} />
+      <AlertsList alerts={alerts} />
+    </DashboardLayout>
+  )
+}
+```
+
+### Server Actions
+```typescript
+// ✅ DO: Define Server Actions with proper validation
+async function createFarm(formData: FormData) {
+  'use server'
+  
+  const schema = z.object({
+    name: z.string().min(1),
+    location: z.string().optional()
+  })
+  
+  const validated = schema.parse({
+    name: formData.get('name'),
+    location: formData.get('location')
+  })
+  
+  const farmService = FarmService.getInstance()
+  const farm = await farmService.create(validated)
+  
+  revalidatePath('/farms')
+  redirect(`/farms/${farm.id}`)
+}
+
+// ✅ DO: Pass Server Actions to Client Components
+export default async function Page() {
+  return <FarmForm action={createFarm} />
+}
+```
+
+## 💻 Client Components
+
+### When to Use
+```typescript
+// ✅ DO: Use Client Components for interactivity
+'use client'
+
+import { useState, useTransition } from 'react'
+import { updateDeviceStatus } from './actions'
+
+export function DeviceControl({ device }: { device: Device }) {
+  const [isPending, startTransition] = useTransition()
+  const [status, setStatus] = useState(device.status)
+  
+  const handleToggle = () => {
+    startTransition(async () => {
+      const newStatus = await updateDeviceStatus(device.id, !status)
+      setStatus(newStatus)
+    })
+  }
+  
+  return (
+    <Switch
+      checked={status}
+      onCheckedChange={handleToggle}
+      disabled={isPending}
+    />
+  )
+}
+```
+
+### Context Providers
+```typescript
+// ✅ DO: Create Client Component wrappers for context
+'use client'
+
+import { createContext, useContext } from 'react'
+
+const ThemeContext = createContext<Theme>({} as Theme)
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeContext.Provider value={theme}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+// Use in Server Component layout
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+## 🚄 Streaming & Suspense
+
+### Progressive Rendering
+```typescript
+// ✅ DO: Use Suspense for streaming
+import { Suspense } from 'react'
+
+export default function Dashboard() {
+  return (
+    <>
+      {/* Static header loads immediately */}
+      <DashboardHeader />
+      
+      {/* Stream dynamic content */}
+      <Suspense fallback={<FarmsSkeleton />}>
+        <FarmsList />
+      </Suspense>
+      
+      <Suspense fallback={<DevicesSkeleton />}>
+        <DevicesGrid />
+      </Suspense>
+    </>
+  )
+}
+
+// ✅ DO: Granular loading states
+async function FarmsList() {
+  const farms = await farmService.getAll()
+  return <FarmsGrid farms={farms} />
+}
+```
+
+### Error Boundaries
+```typescript
+// ✅ DO: Implement error boundaries
+// app/farms/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+  
+  return (
+    <div className="error-container">
+      <h2>Something went wrong!</h2>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )
+}
+```
+
+## 🗄️ Caching Strategies
+
+### Data Cache
+```typescript
+// ✅ DO: Use unstable_cache for expensive operations
+import { unstable_cache } from 'next/cache'
+
+const getCachedFarmStats = unstable_cache(
+  async (farmId: string) => {
+    const service = FarmService.getInstance()
+    return service.getDetailedStats(farmId)
+  },
+  ['farm-stats'],
+  {
+    revalidate: 3600, // 1 hour
+    tags: ['farm-stats']
+  }
+)
+
+// ✅ DO: Use fetch with caching options
+async function getWeatherData(location: string) {
+  const res = await fetch(`https://api.weather.com/${location}`, {
+    next: { 
+      revalidate: 300, // 5 minutes
+      tags: ['weather']
+    }
+  })
+  return res.json()
+}
+```
+
+### On-Demand Revalidation
+```typescript
+// ✅ DO: Revalidate specific paths or tags
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+async function updateFarm(farmId: string, data: UpdateFarmData) {
+  'use server'
+  
+  const farmService = FarmService.getInstance()
+  await farmService.update(farmId, data)
+  
+  // Revalidate specific paths
+  revalidatePath(`/farms/${farmId}`)
+  revalidatePath('/dashboard')
+  
+  // Or revalidate by tag
+  revalidateTag('farm-stats')
+}
+```
+
+## 🔐 Authentication Patterns
+
+### Middleware Protection
+```typescript
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  const session = await getSession(request)
+  
+  // Protect app routes
+  if (request.nextUrl.pathname.startsWith('/app')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+  
+  // Redirect authenticated users from auth pages
+  if (request.nextUrl.pathname.startsWith('/login')) {
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+  
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ['/app/:path*', '/login', '/register']
+}
+```
+
+### Server Component Auth
+```typescript
+// ✅ DO: Check auth in Server Components
+import { redirect } from 'next/navigation'
+
+export default async function ProtectedPage() {
+  const session = await getServerSession()
+  
+  if (!session) {
+    redirect('/login')
+  }
+  
+  return <AuthenticatedContent user={session.user} />
+}
+```
+
+## 🎨 Metadata & SEO
+
+### Dynamic Metadata
+```typescript
+// ✅ DO: Generate metadata dynamically
+import type { Metadata } from 'next'
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ farmId: string }>
+}): Promise<Metadata> {
+  const { farmId } = await params
+  const farm = await getFarm(farmId)
+  
+  return {
+    title: `${farm.name} - Vertical Farm`,
+    description: farm.description,
+    openGraph: {
+      title: farm.name,
+      description: farm.description,
+      images: [farm.image],
+    },
+  }
+}
+```
+
+### Static Metadata
+```typescript
+// ✅ DO: Export metadata for static pages
+export const metadata: Metadata = {
+  title: 'Dashboard - Vertical Farm',
+  description: 'Manage your vertical farming operations',
+}
+```
+
+## ⚡ Performance Optimization
+
+### Image Optimization
+```typescript
+// ✅ DO: Use Next.js Image component
+import Image from 'next/image'
+
+export function FarmImage({ farm }: { farm: Farm }) {
+  return (
+    <Image
+      src={farm.image}
+      alt={farm.name}
+      width={800}
+      height={600}
+      priority={false}
+      placeholder="blur"
+      blurDataURL={farm.blurDataURL}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  )
+}
+```
+
+### Bundle Optimization
+```typescript
+// ✅ DO: Use dynamic imports for heavy components
+import dynamic from 'next/dynamic'
+
+const HeavyChart = dynamic(
+  () => import('@/components/charts/SensorChart'),
+  { 
+    loading: () => <ChartSkeleton />,
+    ssr: false // Disable SSR for client-only components
+  }
+)
+```
+
+### Prefetching
+```typescript
+// ✅ DO: Control prefetching behavior
+import Link from 'next/link'
+
+// Prefetch on hover (default in production)
+<Link href="/farms">View Farms</Link>
+
+// Disable prefetching for rarely visited pages
+<Link href="/settings" prefetch={false}>Settings</Link>
+```
+
+## 🛠️ Development Tools
+
+### Debugging
+```typescript
+// ✅ DO: Use server/client console logs appropriately
+// Server Component (logs in terminal)
+console.log('Server:', { farms })
+
+// Client Component (logs in browser)
+'use client'
+useEffect(() => {
+  console.log('Client:', { mounted: true })
+}, [])
+```
+
+### Type Safety
+```typescript
+// ✅ DO: Type all props and returns
+interface PageProps {
+  params: Promise<{ farmId: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function Page({ params, searchParams }: PageProps) {
+  const { farmId } = await params
+  const { sort } = await searchParams
+  // ...
+}
+```
+
+## 🚫 Common Pitfalls
+
+### Avoid These Patterns
+```typescript
+// ❌ DON'T: Use 'use client' unnecessarily
+'use client' // Wrong - this could be a Server Component
+export function StaticHeader() {
+  return <h1>Welcome</h1>
+}
+
+// ❌ DON'T: Fetch in Client Components
+'use client'
+export function BadComponent() {
+  const [data, setData] = useState(null)
+  
+  useEffect(() => {
+    fetch('/api/data') // Wrong - fetch in Server Components
+      .then(res => res.json())
+      .then(setData)
+  }, [])
+}
+
+// ❌ DON'T: Block rendering with sequential fetches
+export default async function SlowPage() {
+  const a = await fetchA() // Blocks
+  const b = await fetchB() // Blocks
+  const c = await fetchC() // Blocks
+  return <div>{/* ... */}</div>
+}
+
+// ❌ DON'T: Import server-only code in Client Components
+'use client'
+import { sql } from '@/lib/db' // Error - database code in client
+```
+
+## 📋 Migration Checklist
+
+When migrating or creating new features:
+1. Default to Server Components
+2. Add 'use client' only when needed
+3. Move data fetching to Server Components
+4. Replace API routes with Server Actions
+5. Use Suspense for loading states
+6. Implement error boundaries
+7. Add proper TypeScript types
+8. Optimize images with next/image
+9. Configure caching strategies
+10. Test streaming and progressive enhancement 
+- **Middleware** → Use for global auth and redirects 

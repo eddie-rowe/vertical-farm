@@ -1,0 +1,606 @@
+---
+description: React 19 patterns, hooks best practices, component lifecycle, and state management
+globs: "frontend/src/**/*.{tsx,jsx}, frontend/src/components/**/*.{tsx,jsx}, frontend/src/hooks/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# React Best Practices - Vertical Farm Project
+
+## 🎯 Core React Principles
+
+### React Philosophy
+- **Declarative UI**: Describe what the UI should look like, not how to achieve it
+- **Composition over Inheritance**: Build complex UIs from simple pieces
+- **Unidirectional Data Flow**: Data flows down, events flow up
+- **Pure Components**: Same inputs = same outputs
+
+Remember: **React is a library for building user interfaces. Keep it simple, compose complex UIs from simple parts, and let React handle the rendering optimizations!**
+
+### Rules of React
+- **Components and Hooks must be pure**: No side effects during render
+- **React calls components and Hooks**: Never call them yourself
+- **Rules of Hooks**: Always call at the top level, only from React functions
+
+## 🪝 Hooks Best Practices
+
+### Rules of Hooks
+```typescript
+// ✅ DO: Call hooks at the top level
+function FarmDashboard() {
+  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null)
+  const farms = useFarmData()
+  
+  useEffect(() => {
+    // Effect logic
+  }, [])
+  
+  return <div>...</div>
+}
+
+// ❌ DON'T: Call hooks conditionally or in loops
+function BadComponent({ shouldLoad }: { shouldLoad: boolean }) {
+  if (shouldLoad) {
+    // ❌ Conditional hook call
+    const data = useState(null)
+  }
+  
+  for (let i = 0; i < 3; i++) {
+    // ❌ Hook in loop
+    useEffect(() => {}, [])
+  }
+}
+```
+
+### State Management Hooks
+```typescript
+// ✅ DO: Use the right hook for the job
+export function DeviceManager() {
+  // Simple state
+  const [isLoading, setIsLoading] = useState(false)
+  
+  // Complex state with reducer
+  const [state, dispatch] = useReducer(deviceReducer, initialState)
+  
+  // Deferred state for performance
+  const [query, setQuery] = useState('')
+  const deferredQuery = useDeferredValue(query)
+  
+  // External store subscription
+  const onlineStatus = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  )
+}
+
+// ✅ DO: State updater functions for derived state
+function TemperatureControl({ initial }: { initial: number }) {
+  const [temp, setTemp] = useState(initial)
+  
+  const increase = () => {
+    // Use updater function when new state depends on old
+    setTemp(prev => prev + 1)
+  }
+  
+  const setToMax = () => {
+    // Direct value when state doesn't depend on previous
+    setTemp(30)
+  }
+}
+```
+
+### Effect Hooks
+```typescript
+// ✅ DO: Specify all dependencies
+export function SensorMonitor({ sensorId }: { sensorId: string }) {
+  const [data, setData] = useState<SensorData | null>(null)
+  
+  useEffect(() => {
+    let cancelled = false
+    
+    async function fetchData() {
+      const result = await getSensorData(sensorId)
+      if (!cancelled) {
+        setData(result)
+      }
+    }
+    
+    fetchData()
+    
+    // Cleanup function
+    return () => {
+      cancelled = true
+    }
+  }, [sensorId]) // All dependencies listed
+}
+
+// ✅ DO: Separate effects by concern
+export function FarmConnection({ farmId }: { farmId: string }) {
+  // Effect 1: Data fetching
+  useEffect(() => {
+    fetchFarmData(farmId)
+  }, [farmId])
+  
+  // Effect 2: WebSocket connection
+  useEffect(() => {
+    const ws = connectToFarmWebSocket(farmId)
+    return () => ws.close()
+  }, [farmId])
+  
+  // Effect 3: Analytics
+  useEffect(() => {
+    trackPageView('farm_dashboard', { farmId })
+  }, [farmId])
+}
+
+// ❌ DON'T: Create effect chains
+function BadEffectChain() {
+  const [data, setData] = useState(null)
+  const [processed, setProcessed] = useState(null)
+  
+  // ❌ Effect depends on state set by another effect
+  useEffect(() => {
+    fetchData().then(setData)
+  }, [])
+  
+  useEffect(() => {
+    if (data) {
+      setProcessed(processData(data))
+    }
+  }, [data])
+}
+```
+
+### Performance Hooks
+```typescript
+// ✅ DO: Memoize expensive calculations
+export function FarmAnalytics({ readings }: { readings: SensorReading[] }) {
+  const stats = useMemo(() => {
+    return calculateStatistics(readings)
+  }, [readings])
+  
+  const chartConfig = useMemo(() => {
+    return generateChartConfig(stats)
+  }, [stats])
+  
+  return <AnalyticsChart config={chartConfig} />
+}
+
+// ✅ DO: Stable callbacks with useCallback
+export function DeviceList({ devices }: { devices: Device[] }) {
+  const [selected, setSelected] = useState<string[]>([])
+  
+  const handleSelect = useCallback((deviceId: string) => {
+    setSelected(prev => [...prev, deviceId])
+  }, [])
+  
+  const handleSelectAll = useCallback(() => {
+    setSelected(devices.map(d => d.id))
+  }, [devices])
+  
+  return devices.map(device => (
+    <DeviceItem
+      key={device.id}
+      device={device}
+      onSelect={handleSelect}
+    />
+  ))
+}
+
+// ✅ DO: Use React Compiler instead of manual memoization when available
+// The compiler will handle memoization automatically
+```
+
+### Ref Hooks
+```typescript
+// ✅ DO: Use refs for DOM access
+export function FocusableInput() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+  
+  return <input ref={inputRef} />
+}
+
+// ✅ DO: Use refs for mutable values
+export function Timer() {
+  const [seconds, setSeconds] = useState(0)
+  const intervalRef = useRef<NodeJS.Timeout>()
+  
+  const start = () => {
+    intervalRef.current = setInterval(() => {
+      setSeconds(s => s + 1)
+    }, 1000)
+  }
+  
+  const stop = () => {
+    clearInterval(intervalRef.current)
+  }
+  
+  return (
+    <div>
+      <span>{seconds}s</span>
+      <button onClick={start}>Start</button>
+      <button onClick={stop}>Stop</button>
+    </div>
+  )
+}
+
+// ✅ DO: Use callback refs for dynamic measurements
+export function MeasuredComponent() {
+  const [height, setHeight] = useState(0)
+  
+  const measureRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      const resizeObserver = new ResizeObserver(entries => {
+        setHeight(entries[0].contentRect.height)
+      })
+      resizeObserver.observe(node)
+      
+      return () => resizeObserver.disconnect()
+    }
+  }, [])
+  
+  return <div ref={measureRef}>Height: {height}px</div>
+}
+```
+
+### Custom Hooks
+```typescript
+// ✅ DO: Create focused, reusable custom hooks
+export function useFarmData(farmId: string) {
+  const [farm, setFarm] = useState<Farm | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    
+    FarmService.getInstance()
+      .getById(farmId)
+      .then(data => {
+        if (!cancelled) {
+          setFarm(data)
+          setError(null)
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setError(err)
+          setFarm(null)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      })
+    
+    return () => {
+      cancelled = true
+    }
+  }, [farmId])
+  
+  return { farm, loading, error }
+}
+
+// ✅ DO: Compose custom hooks
+export function useLiveSensorData(sensorId: string) {
+  const { data: initialData } = useSensorData(sensorId)
+  const liveData = useWebSocketSubscription(`sensor:${sensorId}`)
+  
+  return liveData || initialData
+}
+
+// ❌ DON'T: Create "lifecycle" hooks
+function useMount(callback: () => void) {
+  useEffect(() => {
+    callback()
+  }, []) // ❌ Missing dependency
+}
+```
+
+## 🌍 Context API
+
+### Context Creation
+```typescript
+// ✅ DO: Type contexts properly
+interface AuthContextType {
+  user: User | null
+  login: (credentials: Credentials) => Promise<void>
+  logout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// ✅ DO: Create a typed hook for context consumption
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return context
+}
+
+// ✅ DO: Split contexts by concern
+const ThemeContext = createContext<Theme>('light')
+const UserContext = createContext<User | null>(null)
+const SettingsContext = createContext<Settings>(defaultSettings)
+```
+
+### Context Providers
+```typescript
+// ✅ DO: Memoize context values
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  
+  const login = useCallback(async (credentials: Credentials) => {
+    const user = await authService.login(credentials)
+    setUser(user)
+  }, [])
+  
+  const logout = useCallback(async () => {
+    await authService.logout()
+    setUser(null)
+  }, [])
+  
+  const value = useMemo(
+    () => ({ user, login, logout }),
+    [user, login, logout]
+  )
+  
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+// ✅ DO: Use multiple contexts to prevent unnecessary re-renders
+export function AppProviders({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
+      </ThemeProvider>
+    </AuthProvider>
+  )
+}
+```
+
+## 🔄 Concurrent Features
+
+### Transitions
+```typescript
+// ✅ DO: Use transitions for non-urgent updates
+export function SearchableList({ items }: { items: Item[] }) {
+  const [query, setQuery] = useState('')
+  const [isPending, startTransition] = useTransition()
+  
+  const filteredItems = useMemo(
+    () => items.filter(item => item.name.includes(query)),
+    [items, query]
+  )
+  
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    
+    // Urgent: Update the input value immediately
+    setQuery(value)
+    
+    // Non-urgent: Update the filtered list
+    startTransition(() => {
+      // Heavy computation happens here
+    })
+  }
+  
+  return (
+    <>
+      <input value={query} onChange={handleSearch} />
+      {isPending && <Spinner />}
+      <ItemList items={filteredItems} />
+    </>
+  )
+}
+```
+
+### Suspense Integration
+```typescript
+// ✅ DO: Integrate with Suspense for data fetching
+const FarmDataResource = {
+  read(farmId: string) {
+    return use(FarmService.getInstance().getById(farmId))
+  }
+}
+
+export function FarmDetails({ farmId }: { farmId: string }) {
+  const farm = FarmDataResource.read(farmId)
+  return <div>{farm.name}</div>
+}
+
+// Usage with Suspense boundary (in parent)
+<Suspense fallback={<FarmSkeleton />}>
+  <FarmDetails farmId={farmId} />
+</Suspense>
+```
+
+## 🛡️ Strict Mode
+
+### Development Checks
+```typescript
+// ✅ DO: Wrap your app in StrictMode during development
+import { StrictMode } from 'react'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+)
+
+// Strict Mode helps detect:
+// - Components with unsafe lifecycles
+// - Legacy API usage
+// - Unexpected side effects
+// - Double-invoking functions to detect impurity
+```
+
+### Handling Double Invocation
+```typescript
+// ✅ DO: Make your effects resilient to double mounting
+export function useWebSocket(url: string) {
+  useEffect(() => {
+    const ws = new WebSocket(url)
+    
+    ws.onmessage = (event) => {
+      // Handle message
+    }
+    
+    // Cleanup properly handles double mounting
+    return () => {
+      ws.close()
+    }
+  }, [url])
+}
+
+// ✅ DO: Use refs for single initialization
+export function useAnalytics() {
+  const initialized = useRef(false)
+  
+  useEffect(() => {
+    if (!initialized.current) {
+      initializeAnalytics()
+      initialized.current = true
+    }
+  }, [])
+}
+```
+
+## 🎭 React 19 Features
+
+### use() Hook
+```typescript
+// ✅ DO: Use the use() hook for promises and context
+export function ModernComponent({ dataPromise }: { dataPromise: Promise<Data> }) {
+  // Can be called conditionally!
+  const data = someCondition ? use(dataPromise) : null
+  
+  // Works with context too
+  const theme = use(ThemeContext)
+  
+  return <div>{data?.value}</div>
+}
+```
+
+### Form Actions
+```typescript
+// ✅ DO: Use form actions with useActionState
+export function DeviceForm() {
+  const [state, formAction, isPending] = useActionState(
+    async (previousState: FormState, formData: FormData) => {
+      const name = formData.get('name') as string
+      const result = await createDevice({ name })
+      
+      if (result.error) {
+        return { error: result.error }
+      }
+      
+      return { success: true, device: result.data }
+    },
+    { error: null, success: false }
+  )
+  
+  return (
+    <form action={formAction}>
+      <input name="name" required />
+      <button disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create Device'}
+      </button>
+      {state.error && <p className="error">{state.error}</p>}
+    </form>
+  )
+}
+```
+
+### Optimistic Updates
+```typescript
+// ✅ DO: Use useOptimistic for immediate feedback
+export function TodoList({ todos }: { todos: Todo[] }) {
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+    todos,
+    (state, newTodo: Todo) => [...state, { ...newTodo, pending: true }]
+  )
+  
+  async function formAction(formData: FormData) {
+    const title = formData.get('title') as string
+    addOptimisticTodo({ id: crypto.randomUUID(), title, completed: false })
+    await createTodo({ title })
+  }
+  
+  return (
+    <>
+      <form action={formAction}>
+        <input name="title" />
+        <button>Add</button>
+      </form>
+      <ul>
+        {optimisticTodos.map(todo => (
+          <li key={todo.id} style={{ opacity: todo.pending ? 0.5 : 1 }}>
+            {todo.title}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+## 🚫 Common Pitfalls
+
+### Hook Pitfalls
+```typescript
+// ❌ DON'T: Forget effect dependencies
+useEffect(() => {
+  doSomething(value) // ❌ 'value' not in dependencies
+}, [])
+
+// ❌ DON'T: Use objects/arrays as dependencies without memoization
+const config = { limit: 10 } // Creates new object every render
+useEffect(() => {
+  fetchData(config)
+}, [config]) // ❌ Effect runs every render
+
+// ❌ DON'T: Set state immediately after mount
+useEffect(() => {
+  setState(someValue) // ❌ Causes extra render
+}, [])
+
+// Better: Initialize state correctly
+const [state] = useState(someValue)
+```
+
+### Context Pitfalls
+```typescript
+// ❌ DON'T: Create new objects in context value
+<MyContext.Provider value={{ user, settings }}>
+  {/* ❌ New object every render */}
+</MyContext.Provider>
+
+// ❌ DON'T: Use multiple contexts in one provider
+<CombinedContext.Provider value={{ auth, theme, settings }}>
+  {/* ❌ All consumers re-render on any change */}
+</CombinedContext.Provider>
+```
+
+## 📋 React Checklist
+
+Before implementing React features:
+- [ ] **Follow Rules of Hooks**
+- [ ] **Keep components and hooks pure**
+- [ ] **Specify all effect dependencies**
+- [ ] **Memoize expensive computations**
+- [ ] **Clean up effects properly**
+- [ ] **Type all hooks and contexts**
+- [ ] **Use Suspense for async operations**
+- [ ] **Handle errors with boundaries**
+- [ ] **Test with StrictMode enabled**

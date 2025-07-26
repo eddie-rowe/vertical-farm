@@ -1,0 +1,721 @@
+---
+description: Supabase integration patterns, RLS policies, authentication, and real-time features
+globs: "**/*supabase*.{ts,tsx,py,sql}, supabase/**/*.sql, **/migrations/*.sql"
+alwaysApply: false
+---
+
+# Supabase Integration Rules - Vertical Farm Platform
+
+## 🚨 Critical Security Requirements
+
+### 1. Row Level Security (RLS) - MANDATORY
+```sql
+-- ✅ CORRECT: Enable RLS on EVERY table
+ALTER TABLE farms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sensor_readings ENABLE ROW LEVEL SECURITY;
+
+-- ✅ CORRECT: Optimize RLS with SELECT wrapper (caches function result)
+CREATE POLICY "Users see own farms" ON farms
+FOR SELECT TO authenticated
+USING ((SELECT auth.uid()) = user_id);
+
+-- ❌ WRONG: Without SELECT wrapper (calls auth.uid() for each row)
+CREATE POLICY "bad_policy" ON farms
+USING (auth.uid() = user_id);
+
+-- ✅ CORRECT: Use security definer functions for complex logic
+CREATE FUNCTION user_farm_ids() RETURNS uuid[]
+SECURITY DEFINER SET search_path = ''
+AS $$
+  SELECT ARRAY(
+    SELECT id FROM farms WHERE user_id = auth.uid()
+  );
+$$ LANGUAGE sql STABLE;
+
+CREATE POLICY "Access farm devices" ON devices
+USING (farm_id = ANY(SELECT user_farm_ids()));
+```
+
+### 2. Authentication Security
+```typescript
+// ✅ CORRECT: Always use getUser() for secure auth checks
+const { data: { user }, error } = await supabase.auth.getUser()
+if (!user) throw new Error('Unauthorized')
+
+// ❌ WRONG: getSession() can be spoofed client-side
+const { data: { session } } = await supabase.auth.getSession()
+
+// ✅ CORRECT: Verify JWT in middleware
+export async function middleware(request: NextRequest) {
+  const supabase = createServerClient(...)
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+}
+```
+
+## 📦 Modern Client Setup (@supabase/ssr)
+
+### Browser Client (Client Components)
+```typescript
+// utils/supabase/client.ts
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
+
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+```
+
+### Server Client (Server Components/Actions)
+```typescript
+// utils/supabase/server.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import type { Database } from '@/types/database'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component - ignore if middleware refreshes sessions
+          }
+        }
+      }
+    }
+  )
+}
+```
+
+### Edge/Middleware Client
+```typescript
+// utils/supabase/middleware.ts
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value)
+          })
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        }
+      }
+    }
+  )
+
+  // ALWAYS verify user for security
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protected routes
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  return supabaseResponse
+}
+```
+
+## 🏗️ Service Layer Architecture
+
+### Base Service with Context-Aware Client
+```typescript
+// services/core/base/BaseSupabaseService.ts
+export abstract class BaseSupabaseService {
+  protected async getSupabaseClient() {
+    if (typeof window !== 'undefined') {
+      // Browser context
+      const { createClient } = await import('@/utils/supabase/client')
+      return createClient()
+    } else {
+      // Server context
+      const { createClient } = await import('@/utils/supabase/server')
+      return await createClient()
+    }
+  }
+
+  protected handleSupabaseError(error: any): never {
+    if (error?.code === 'PGRST301') {
+      throw new ValidationError('Row Level Security violation')
+    }
+    if (error?.code === '23505') {
+      throw new ValidationError('Duplicate entry')
+    }
+    if (error?.code === '42501') {
+      throw new UnauthorizedError('Insufficient permissions')
+    }
+    throw new ServiceError('Database operation failed', error)
+  }
+}
+```
+
+### Domain Service Implementation
+```typescript
+// services/domain/farm/FarmService.ts
+export class FarmService extends BaseCRUDService<Farm> {
+  protected readonly tableName = 'farms'
+  private static instance: FarmService
+
+  static getInstance(): FarmService {
+    if (!FarmService.instance) {
+      FarmService.instance = new FarmService()
+    }
+    return FarmService.instance
+  }
+
+  async getFarmWithDevices(farmId: string): Promise<FarmWithDevices> {
+    const supabase = await this.getSupabaseClient()
+    
+    const { data, error } = await supabase
+      .from('farms')
+      .select(`
+        *,
+        devices (
+          *,
+          latest_readings:sensor_readings(
+            temperature,
+            humidity,
+            created_at
+          )
+        )
+      `)
+      .eq('id', farmId)
+      .single()
+
+    return this.handleResult(data, error)
+  }
+
+  // Custom validation
+  protected async validateCreateData(data: CreateFarmData): Promise<void> {
+    this.validateRequired(data.name, 'name')
+    this.validateRequired(data.location, 'location')
+    
+    if (data.name.length < 3) {
+      throw new ValidationError('Farm name must be at least 3 characters')
+    }
+  }
+}
+```
+
+## 🔄 Realtime Integration
+
+### Realtime Service with Type Safety
+```typescript
+// services/domain/realtime/FarmRealtimeService.ts
+export class FarmRealtimeService extends BaseRealtimeService {
+  private static instance: FarmRealtimeService
+
+  static getInstance(): FarmRealtimeService {
+    if (!FarmRealtimeService.instance) {
+      FarmRealtimeService.instance = new FarmRealtimeService()
+    }
+    return FarmRealtimeService.instance
+  }
+
+  async subscribeFarmUpdates(
+    farmId: string,
+    callbacks: {
+      onDeviceUpdate?: (device: Device) => void
+      onSensorReading?: (reading: SensorReading) => void
+      onAlert?: (alert: Alert) => void
+    }
+  ): Promise<() => void> {
+    const supabase = await this.getSupabaseClient()
+    
+    const channel = supabase
+      .channel(`farm:${farmId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'devices',
+          filter: `farm_id=eq.${farmId}`
+        },
+        (payload) => {
+          if (callbacks.onDeviceUpdate) {
+            callbacks.onDeviceUpdate(payload.new as Device)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sensor_readings',
+          filter: `device_id=in.(SELECT id FROM devices WHERE farm_id='${farmId}')`
+        },
+        (payload) => {
+          if (callbacks.onSensorReading) {
+            callbacks.onSensorReading(payload.new as SensorReading)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }
+
+  // Broadcast pattern for device control
+  async broadcastDeviceCommand(
+    farmId: string,
+    deviceId: string,
+    command: DeviceCommand
+  ): Promise<void> {
+    const supabase = await this.getSupabaseClient()
+    
+    const channel = supabase.channel(`farm:${farmId}:control`)
+    
+    await channel.send({
+      type: 'broadcast',
+      event: 'device_command',
+      payload: {
+        device_id: deviceId,
+        command,
+        timestamp: new Date().toISOString()
+      }
+    })
+  }
+}
+```
+
+### Component Integration
+```typescript
+// components/features/farm/FarmDashboard.tsx
+export function FarmDashboard({ farmId }: { farmId: string }) {
+  const [devices, setDevices] = useState<Device[]>([])
+  const [latestReadings, setLatestReadings] = useState<Map<string, SensorReading>>()
+
+  useEffect(() => {
+    const service = FarmRealtimeService.getInstance()
+    
+    const unsubscribe = service.subscribeFarmUpdates(farmId, {
+      onDeviceUpdate: (device) => {
+        setDevices(prev => {
+          const index = prev.findIndex(d => d.id === device.id)
+          if (index >= 0) {
+            const updated = [...prev]
+            updated[index] = device
+            return updated
+          }
+          return [...prev, device]
+        })
+      },
+      onSensorReading: (reading) => {
+        setLatestReadings(prev => {
+          const map = new Map(prev)
+          map.set(reading.device_id, reading)
+          return map
+        })
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [farmId])
+
+  // Component implementation...
+}
+```
+
+## 📊 Database Patterns
+
+### Migration Best Practices
+```sql
+-- supabase/migrations/20250120000000_create_farm_schema.sql
+
+-- Create enum types
+CREATE TYPE device_status AS ENUM ('active', 'maintenance', 'offline');
+CREATE TYPE alert_severity AS ENUM ('info', 'warning', 'critical');
+
+-- Create tables with proper constraints
+CREATE TABLE farms (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL CHECK (char_length(name) >= 3),
+  location TEXT NOT NULL,
+  settings JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_farms_user_id ON farms(user_id);
+CREATE INDEX idx_farms_created_at ON farms(created_at DESC);
+
+-- Enable RLS
+ALTER TABLE farms ENABLE ROW LEVEL SECURITY;
+
+-- Create optimized RLS policies
+CREATE POLICY "Users manage own farms" ON farms
+  FOR ALL TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
+
+-- Create update trigger
+CREATE TRIGGER update_farms_updated_at
+  BEFORE UPDATE ON farms
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+```
+
+### Advanced RLS Patterns
+```sql
+-- Multi-tenant with organization support
+CREATE TABLE organizations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  owner_id UUID REFERENCES auth.users(id) NOT NULL
+);
+
+CREATE TABLE organization_members (
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'member')),
+  PRIMARY KEY (organization_id, user_id)
+);
+
+-- Function to get user's organizations
+CREATE FUNCTION user_organizations() RETURNS uuid[]
+SECURITY DEFINER SET search_path = ''
+AS $$
+  SELECT ARRAY(
+    SELECT organization_id 
+    FROM organization_members 
+    WHERE user_id = auth.uid()
+  );
+$$ LANGUAGE sql STABLE;
+
+-- RLS policy using the function
+CREATE POLICY "Access organization farms" ON farms
+  FOR ALL TO authenticated
+  USING (organization_id = ANY(SELECT user_organizations()));
+```
+
+## 🗄️ Storage Integration
+
+### Storage Service
+```typescript
+// services/domain/storage/FarmStorageService.ts
+export class FarmStorageService extends BaseStorageService {
+  private static instance: FarmStorageService
+  private readonly buckets = {
+    farmImages: 'farm-images',
+    devicePhotos: 'device-photos',
+    harvestDocuments: 'harvest-documents'
+  }
+
+  static getInstance(): FarmStorageService {
+    if (!FarmStorageService.instance) {
+      FarmStorageService.instance = new FarmStorageService()
+    }
+    return FarmStorageService.instance
+  }
+
+  async uploadFarmImage(
+    farmId: string,
+    file: File,
+    type: 'layout' | 'photo'
+  ): Promise<string> {
+    const supabase = await this.getSupabaseClient()
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${farmId}/${type}/${Date.now()}.${fileExt}`
+
+    const { data, error } = await supabase.storage
+      .from(this.buckets.farmImages)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) this.handleSupabaseError(error)
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(this.buckets.farmImages)
+      .getPublicUrl(fileName)
+
+    return publicUrl
+  }
+
+  async deleteImages(paths: string[]): Promise<void> {
+    const supabase = await this.getSupabaseClient()
+    
+    const { error } = await supabase.storage
+      .from(this.buckets.farmImages)
+      .remove(paths)
+
+    if (error) this.handleSupabaseError(error)
+  }
+}
+```
+
+### Storage RLS Policies
+```sql
+-- Storage bucket policies
+CREATE POLICY "Users can upload farm images" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'farm-images' AND
+  (storage.foldername(name))[1] IN (
+    SELECT id::text FROM farms WHERE user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Farm images are publicly viewable" ON storage.objects
+FOR SELECT TO public
+USING (bucket_id = 'farm-images');
+
+CREATE POLICY "Users can delete own farm images" ON storage.objects
+FOR DELETE TO authenticated
+USING (
+  bucket_id = 'farm-images' AND
+  (storage.foldername(name))[1] IN (
+    SELECT id::text FROM farms WHERE user_id = auth.uid()
+  )
+);
+```
+
+## 🚀 Edge Functions
+
+### Edge Function for Automated Tasks
+```typescript
+// supabase/functions/process-sensor-alerts/index.ts
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // Get sensor readings that exceed thresholds
+    const { data: readings, error } = await supabase
+      .from('sensor_readings')
+      .select(`
+        *,
+        device:devices(
+          *,
+          farm:farms(*)
+        )
+      `)
+      .or('temperature.gt.30,humidity.lt.40,humidity.gt.80')
+      .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+
+    if (error) throw error
+
+    // Create alerts for threshold violations
+    const alerts = readings.map(reading => ({
+      farm_id: reading.device.farm_id,
+      device_id: reading.device_id,
+      severity: reading.temperature > 35 ? 'critical' : 'warning',
+      type: 'threshold_exceeded',
+      message: `${reading.device.name}: Temperature ${reading.temperature}°C, Humidity ${reading.humidity}%`,
+      metadata: {
+        reading_id: reading.id,
+        values: {
+          temperature: reading.temperature,
+          humidity: reading.humidity
+        }
+      }
+    }))
+
+    if (alerts.length > 0) {
+      const { error: insertError } = await supabase
+        .from('alerts')
+        .insert(alerts)
+
+      if (insertError) throw insertError
+    }
+
+    return new Response(
+      JSON.stringify({ processed: readings.length, alerts: alerts.length }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+})
+```
+
+### Schedule Edge Function
+```bash
+# Deploy function
+supabase functions deploy process-sensor-alerts
+
+# Schedule to run every 5 minutes
+supabase functions schedule create process-sensor-alerts \
+  --schedule "*/5 * * * *" \
+  --payload '{"trigger": "scheduled"}'
+```
+
+## 🔐 Advanced Security Patterns
+
+### JWT Claims for Multi-tenancy
+```sql
+-- Add custom claims to JWT
+CREATE OR REPLACE FUNCTION custom_access_token_hook(event jsonb)
+RETURNS jsonb
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  claims jsonb;
+  user_organizations uuid[];
+BEGIN
+  -- Get user's organizations
+  SELECT ARRAY(
+    SELECT organization_id 
+    FROM organization_members 
+    WHERE user_id = (event->>'user_id')::uuid
+  ) INTO user_organizations;
+
+  claims := event->'claims';
+  
+  -- Add custom claims
+  claims := jsonb_set(claims, '{organizations}', to_jsonb(user_organizations));
+  claims := jsonb_set(claims, '{primary_org}', to_jsonb(user_organizations[1]));
+  
+  -- Update event
+  event := jsonb_set(event, '{claims}', claims);
+  
+  RETURN event;
+END;
+$$;
+```
+
+### Realtime Authorization
+```sql
+-- Control who can subscribe to realtime events
+CREATE POLICY "Authorized realtime access" ON realtime.messages
+FOR SELECT TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM farms
+    WHERE id::text = split_part(realtime.topic(), ':', 2)
+    AND user_id = auth.uid()
+  )
+);
+```
+
+## 🧪 Testing Patterns
+
+### Service Testing with Mocked Supabase
+```typescript
+// __tests__/services/FarmService.test.ts
+import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+vi.mock('@/utils/supabase/client', () => ({
+  createClient: () => ({
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({
+            data: { id: '123', name: 'Test Farm' },
+            error: null
+          }))
+        }))
+      }))
+    }))
+  })
+}))
+
+describe('FarmService', () => {
+  let service: FarmService
+
+  beforeEach(() => {
+    service = FarmService.getInstance()
+  })
+
+  it('should fetch farm by id', async () => {
+    const farm = await service.getById('123')
+    expect(farm).toMatchObject({
+      id: '123',
+      name: 'Test Farm'
+    })
+  })
+})
+```
+
+## 🚫 Migration from Deprecated Patterns
+
+### Remove auth-helpers-nextjs
+```bash
+# Uninstall deprecated package
+npm uninstall @supabase/auth-helpers-nextjs
+
+# Install modern SSR package
+npm install @supabase/ssr
+```
+
+### Update imports throughout codebase
+```typescript
+// ❌ OLD - Remove these
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+
+// ✅ NEW - Use these
+import { createClient } from '@/utils/supabase/client'  // Browser
+import { createClient } from '@/utils/supabase/server'  // Server
+```
+
+## 📚 Reference Links
+
+- [Service Architecture](mdc:.cursor/rules/10-service-layer.mdc) - Service layer patterns
+- [Database Patterns](mdc:.cursor/rules/11-database-patterns.mdc) - Database best practices
+- [Backend Architecture](mdc:.cursor/rules/03-backend-architecture.mdc) - FastAPI integration 
+- Implement proper versioning
+- Handle errors properly
+- Document schema properly
+- Monitor database health 

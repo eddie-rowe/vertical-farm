@@ -1,0 +1,620 @@
+---
+description: FastAPI backend patterns, Python project structure, and API design principles
+globs: "backend/**/*.py, backend/app/**/*.py, backend/tests/**/*.py"
+alwaysApply: false
+---
+
+# Backend Architecture - FastAPI & Python 3.13.3
+
+## 🚀 Core Principles
+
+### 1. FastAPI Modern Patterns
+- **Framework**: FastAPI with async/await by default
+- **Validation**: Pydantic models for request/response
+- **Documentation**: Auto-generated OpenAPI/Swagger
+- **Type Safety**: Python type hints everywhere
+
+### 2. Modular Architecture
+- **Routers**: Organized by domain/feature
+- **Services**: Business logic separated from endpoints
+- **Models**: Pydantic schemas and database models
+- **Dependencies**: Dependency injection for services
+
+### 3. Supabase Integration
+- **Client**: Async Supabase client with RLS
+- **Auth**: JWT validation with Supabase
+- **Database**: PostgreSQL via Supabase
+- **Real-time**: Background tasks via Supabase
+
+## 📁 Project Structure
+
+```python
+backend/
+├── app/
+│   ├── api/v1/
+│   │   ├── api.py                  # Main API router
+│   │   ├── endpoints/              # API endpoints
+│   │   │   ├── home_assistant.py   # HA integration
+│   │   │   ├── square.py           # Payment integration
+│   │   │   └── supabase_background_tasks.py
+│   │   ├── sensors_cached.py       # Cached sensor endpoints
+│   │   ├── grow_automation.py      # Grow automation
+│   │   └── farm_automation.py      # Farm automation
+│   ├── core/
+│   │   ├── config.py               # Settings management
+│   │   ├── security.py             # Auth & security
+│   │   └── exceptions.py           # Custom exceptions
+│   ├── crud/                       # Data access layer
+│   ├── db/
+│   │   └── supabase_client.py      # Database client
+│   ├── models/                     # Pydantic models
+│   ├── schemas/                    # Request/response schemas
+│   ├── services/                   # Business logic
+│   └── tests/                      # Test organization
+│       ├── unit/                   # Fast isolated tests
+│       ├── integration/            # Component tests
+│       ├── api/                    # Endpoint tests
+│       └── performance/            # Load tests
+├── requirements.txt                # Dependencies
+└── pyproject.toml                  # Project config
+```
+
+## 🎯 FastAPI Patterns
+
+### API Router Organization
+```python
+# app/api/v1/api.py
+from fastapi import APIRouter
+from app.api.v1.endpoints import home_assistant, square
+
+api_router = APIRouter()
+
+# Include domain routers
+api_router.include_router(
+    home_assistant.router, 
+    prefix="/home-assistant", 
+    tags=["Home Assistant"]
+)
+
+api_router.include_router(
+    square.router, 
+    prefix="/square", 
+    tags=["Square Integration"]
+)
+
+# ✅ DO: Organize by business domain
+# ✅ DO: Use descriptive prefixes and tags
+# ❌ DON'T: Create generic CRUD endpoints
+```
+
+### Endpoint Patterns
+```python
+# app/api/v1/endpoints/home_assistant.py
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.models.home_assistant import DeviceControlRequest, DeviceControlResponse
+from app.services.user_home_assistant_service import get_user_home_assistant_service
+from app.core.security import get_current_active_user
+
+router = APIRouter()
+
+@router.post(
+    "/devices/{device_id}/control",
+    response_model=DeviceControlResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Control a Home Assistant device",
+    description="Send control commands to a specific device"
+)
+async def control_device(
+    device_id: str,
+    request: DeviceControlRequest,
+    service = Depends(get_user_home_assistant_service),
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Control a Home Assistant device.
+    
+    - **device_id**: The unique identifier of the device
+    - **request**: Control parameters (action, value, etc.)
+    
+    Returns the device's new state after the control action.
+    """
+    try:
+        result = await service.control_device(
+            user_id=current_user.id,
+            device_id=device_id,
+            action=request.action,
+            value=request.value
+        )
+        return DeviceControlResponse(**result)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Device control error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to control device"
+        )
+```
+
+### Pydantic Models
+```python
+# app/models/home_assistant.py
+from pydantic import BaseModel, Field, validator
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+from enum import Enum
+
+class DeviceType(str, Enum):
+    """Supported device types"""
+    LIGHT = "light"
+    SWITCH = "switch"
+    SENSOR = "sensor"
+    FAN = "fan"
+    CLIMATE = "climate"
+
+class DeviceControlRequest(BaseModel):
+    """Request model for device control"""
+    action: str = Field(..., description="Control action (e.g., 'turn_on', 'set_temperature')")
+    value: Optional[Any] = Field(None, description="Action value (e.g., brightness level)")
+    
+    @validator('action')
+    def validate_action(cls, v):
+        allowed_actions = ['turn_on', 'turn_off', 'toggle', 'set_brightness', 'set_temperature']
+        if v not in allowed_actions:
+            raise ValueError(f"Action must be one of {allowed_actions}")
+        return v
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "action": "turn_on",
+                "value": {"brightness": 80}
+            }
+        }
+
+class DeviceControlResponse(BaseModel):
+    """Response model for device control"""
+    device_id: str
+    status: str
+    state: Dict[str, Any]
+    last_updated: datetime
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "device_id": "light.living_room",
+                "status": "success",
+                "state": {"power": "on", "brightness": 80},
+                "last_updated": "2024-01-20T12:00:00Z"
+            }
+        }
+```
+
+### Service Layer Pattern
+```python
+# app/services/user_home_assistant_service.py
+from typing import Optional, Dict, Any
+import logging
+from app.db.supabase_client import get_async_rls_client
+from supabase import AClient
+
+logger = logging.getLogger(__name__)
+
+class UserHomeAssistantService:
+    """Service for user-specific Home Assistant operations"""
+    
+    def __init__(self, supabase: AClient):
+        self.supabase = supabase
+        self._websocket_connections = {}
+    
+    async def control_device(
+        self, 
+        user_id: str,
+        device_id: str, 
+        action: str, 
+        value: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Control a Home Assistant device for a specific user.
+        
+        Args:
+            user_id: The user's ID
+            device_id: The device identifier
+            action: The control action
+            value: Optional action value
+            
+        Returns:
+            Device state after control action
+            
+        Raises:
+            ValueError: If device not found or action invalid
+            ConnectionError: If HA connection fails
+        """
+        # Get user's HA configuration
+        config = await self._get_user_ha_config(user_id)
+        if not config:
+            raise ValueError("Home Assistant not configured")
+        
+        # Validate device ownership
+        device = await self._get_user_device(user_id, device_id)
+        if not device:
+            raise ValueError(f"Device {device_id} not found")
+        
+        # Execute control action
+        try:
+            result = await self._execute_ha_command(
+                config['url'],
+                config['token'],
+                device_id,
+                action,
+                value
+            )
+            
+            # Update device state in database
+            await self._update_device_state(device_id, result['state'])
+            
+            return {
+                "device_id": device_id,
+                "status": "success",
+                "state": result['state'],
+                "last_updated": datetime.utcnow()
+            }
+        except Exception as e:
+            logger.error(f"HA control error: {e}")
+            raise ConnectionError(f"Failed to control device: {str(e)}")
+    
+    async def _get_user_ha_config(self, user_id: str) -> Optional[Dict]:
+        """Get user's Home Assistant configuration"""
+        result = await self.supabase.table('user_home_assistant_configs') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .single() \
+            .execute()
+        return result.data
+```
+
+### Dependency Injection
+```python
+# app/dependencies.py
+from fastapi import Depends
+from app.db.supabase_client import get_async_rls_client
+from app.services.user_home_assistant_service import UserHomeAssistantService
+
+async def get_user_home_assistant_service(
+    supabase = Depends(get_async_rls_client)
+) -> UserHomeAssistantService:
+    """Dependency for Home Assistant service"""
+    return UserHomeAssistantService(supabase)
+
+# Usage in endpoint
+@router.get("/devices")
+async def list_devices(
+    service = Depends(get_user_home_assistant_service),
+    current_user = Depends(get_current_active_user)
+):
+    devices = await service.list_user_devices(current_user.id)
+    return devices
+```
+
+### Error Handling
+```python
+# app/core/exceptions.py
+from fastapi import HTTPException, status
+
+class BaseAPIException(HTTPException):
+    """Base exception for API errors"""
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = "Internal server error"
+    
+    def __init__(self, detail: str = None):
+        super().__init__(
+            status_code=self.status_code,
+            detail=detail or self.detail
+        )
+
+class NotFoundError(BaseAPIException):
+    """Resource not found"""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Resource not found"
+
+class ValidationError(BaseAPIException):
+    """Validation error"""
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    detail = "Validation error"
+
+class AuthenticationError(BaseAPIException):
+    """Authentication required"""
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Authentication required"
+
+# Global exception handler
+@app.exception_handler(BaseAPIException)
+async def api_exception_handler(request, exc: BaseAPIException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.__class__.__name__,
+            "detail": exc.detail,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    )
+```
+
+### Background Tasks
+```python
+# app/services/supabase_background_service.py
+from typing import Dict, Any
+import asyncio
+import logging
+
+class SupabaseBackgroundService:
+    """Background task processing with Supabase"""
+    
+    def __init__(self):
+        self.tasks: Dict[str, asyncio.Task] = {}
+        self.running = False
+        
+    async def start(self):
+        """Start background service"""
+        self.running = True
+        logger.info("Background service started")
+        
+    async def stop(self):
+        """Stop background service"""
+        self.running = False
+        # Cancel all running tasks
+        for task_id, task in self.tasks.items():
+            task.cancel()
+        await asyncio.gather(*self.tasks.values(), return_exceptions=True)
+        logger.info("Background service stopped")
+        
+    async def enqueue_task(
+        self, 
+        task_type: str, 
+        payload: Dict[str, Any],
+        priority: int = 5
+    ) -> str:
+        """Enqueue a background task"""
+        task_id = f"{task_type}_{datetime.utcnow().timestamp()}"
+        
+        # Create async task
+        task = asyncio.create_task(
+            self._process_task(task_id, task_type, payload)
+        )
+        self.tasks[task_id] = task
+        
+        return task_id
+        
+    async def _process_task(
+        self, 
+        task_id: str, 
+        task_type: str, 
+        payload: Dict[str, Any]
+    ):
+        """Process a background task"""
+        try:
+            logger.info(f"Processing task {task_id}: {task_type}")
+            
+            if task_type == "sync_devices":
+                await self._sync_devices(payload)
+            elif task_type == "update_sensor_data":
+                await self._update_sensor_data(payload)
+            else:
+                logger.warning(f"Unknown task type: {task_type}")
+                
+        except Exception as e:
+            logger.error(f"Task {task_id} failed: {e}")
+        finally:
+            # Clean up task reference
+            self.tasks.pop(task_id, None)
+
+# Global instance
+supabase_background_service = SupabaseBackgroundService()
+```
+
+## 🧪 Testing Patterns
+
+### Unit Tests
+```python
+# app/tests/unit/test_home_assistant_service.py
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+from app.services.user_home_assistant_service import UserHomeAssistantService
+
+@pytest.fixture
+def mock_supabase():
+    """Mock Supabase client"""
+    mock = MagicMock()
+    mock.table.return_value.select.return_value.eq.return_value.single.return_value.execute = AsyncMock(
+        return_value=MagicMock(data={"url": "http://ha.local", "token": "test-token"})
+    )
+    return mock
+
+@pytest.fixture
+def ha_service(mock_supabase):
+    """Home Assistant service with mocked dependencies"""
+    return UserHomeAssistantService(mock_supabase)
+
+@pytest.mark.asyncio
+async def test_control_device_success(ha_service):
+    """Test successful device control"""
+    # Arrange
+    ha_service._execute_ha_command = AsyncMock(
+        return_value={"state": {"power": "on"}}
+    )
+    ha_service._get_user_device = AsyncMock(
+        return_value={"id": "device-1", "entity_id": "light.test"}
+    )
+    ha_service._update_device_state = AsyncMock()
+    
+    # Act
+    result = await ha_service.control_device(
+        user_id="user-1",
+        device_id="device-1",
+        action="turn_on"
+    )
+    
+    # Assert
+    assert result["status"] == "success"
+    assert result["state"]["power"] == "on"
+    ha_service._update_device_state.assert_called_once()
+```
+
+### API Tests
+```python
+# app/tests/api/test_home_assistant_endpoints.py
+import pytest
+from httpx import AsyncClient
+from app.main import app
+
+@pytest.mark.asyncio
+async def test_control_device_endpoint(
+    async_client: AsyncClient,
+    authenticated_headers: dict
+):
+    """Test device control endpoint"""
+    response = await async_client.post(
+        "/api/v1/home-assistant/devices/light-1/control",
+        json={"action": "turn_on", "value": {"brightness": 80}},
+        headers=authenticated_headers
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["device_id"] == "light-1"
+    assert data["status"] == "success"
+```
+
+## ⚙️ Configuration
+
+### Settings Management
+```python
+# app/core/config.py
+from pydantic_settings import BaseSettings
+from typing import List, Optional
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    """Application settings with validation"""
+    
+    # API Configuration
+    PROJECT_NAME: str = "Vertical Farm API"
+    API_V1_STR: str = "/api/v1"
+    DEBUG: bool = False
+    
+    # Database
+    SUPABASE_URL: str
+    SUPABASE_ANON_KEY: str
+    SUPABASE_SERVICE_KEY: str
+    
+    # CORS
+    BACKEND_CORS_ORIGINS: List[str] = []
+    FRONTEND_HOST: Optional[str] = None
+    
+    # Security
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Home Assistant
+    HA_DEFAULT_TIMEOUT: int = 30
+    HA_MAX_RETRIES: int = 3
+    
+    @property
+    def all_cors_origins(self) -> List[str]:
+        """Compute all CORS origins"""
+        origins = self.BACKEND_CORS_ORIGINS.copy()
+        if self.FRONTEND_HOST:
+            origins.append(self.FRONTEND_HOST)
+        return origins
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached settings instance"""
+    return Settings()
+
+settings = get_settings()
+```
+
+## 🔐 Security
+
+### Authentication
+```python
+# app/core/security.py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from app.core.config import settings
+
+security = HTTPBearer()
+
+async def get_current_active_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    supabase = Depends(get_async_rls_client)
+):
+    """Validate JWT and get current user"""
+    token = credentials.credentials
+    
+    try:
+        # Verify JWT with Supabase
+        user = await supabase.auth.get_user(token)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
+        return user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
+        )
+```
+
+## 📋 Best Practices
+
+### Code Style
+- **Black**: Code formatting (line length 88)
+- **isort**: Import sorting
+- **mypy**: Type checking
+- **flake8**: Linting
+
+### Naming Conventions
+- **Functions/Variables**: snake_case
+- **Classes**: PascalCase
+- **Constants**: UPPER_SNAKE_CASE
+- **Private**: _leading_underscore
+
+### Async Patterns
+```python
+# ✅ DO: Use async/await properly
+async def get_data():
+    async with httpx.AsyncClient() as client:
+        response = await client.get("https://api.example.com")
+        return response.json()
+
+# ❌ DON'T: Block the event loop
+def bad_sync_in_async():
+    time.sleep(1)  # Blocks event loop!
+    
+# ✅ DO: Use asyncio.sleep for delays
+async def good_async_delay():
+    await asyncio.sleep(1)
+```
+
+## 🔗 Related Documentation
+
+- **API Design**: See OpenAPI documentation at `/docs`
+- **Database**: See [11-database-patterns.mdc](mdc:.cursor/rules/11-database-patterns.mdc)
+- **Testing**: See [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+- **Deployment**: See backend deployment guides
+description:
+globs:
+alwaysApply: false
+---
