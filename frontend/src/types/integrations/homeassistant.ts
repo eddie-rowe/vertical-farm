@@ -1,5 +1,3 @@
-import { ReactNode } from 'react';
-
 // Core Home Assistant Device Interface (consolidated)
 export interface HADevice {
   entity_id: string;
@@ -64,21 +62,25 @@ export interface HAImportedDevice {
 }
 
 // Connection States
-export type ConnectionState = 'not-configured' | 'connecting' | 'connected' | 'error';
+export type ConnectionState =
+  | "not-configured"
+  | "connecting"
+  | "connected"
+  | "error";
 
 // UI Filter Components
 export interface FilterChip {
   id: string;
   label: string;
-  type: 'status' | 'type' | 'assignment';
+  type: "status" | "type" | "assignment";
   value: string;
 }
 
 // Setup Workflow Steps
-export type SetupStep = 'connection' | 'test' | 'discovery' | 'complete';
+export type SetupStep = "connection" | "test" | "discovery" | "complete";
 
 // UI View Types
-export type ViewType = 'grid' | 'list' | 'farm';
+export type ViewType = "grid" | "list" | "farm";
 
 // Device Statistics
 export interface DeviceStats {
@@ -98,7 +100,7 @@ export interface AssignmentForm {
 
 // Device Control Actions
 export interface DeviceControlAction {
-  action: 'turn_on' | 'turn_off' | 'toggle';
+  action: "turn_on" | "turn_off" | "toggle";
   entity_id: string;
 }
 
@@ -120,14 +122,17 @@ export interface HAContextType {
   connectionState: ConnectionState;
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   loadDevices: () => Promise<void>;
   testConnection: () => Promise<void>;
   saveConfiguration: (config: HAConfig) => Promise<void>;
   discoverDevices: () => Promise<void>;
   importDevice: (device: HADevice) => Promise<void>;
-  controlDevice: (device: HADevice, action: DeviceControlAction['action']) => Promise<void>;
+  controlDevice: (
+    device: HADevice,
+    action: DeviceControlAction["action"],
+  ) => Promise<void>;
   assignDevice: (entityId: string, assignment: AssignmentForm) => Promise<void>;
   setConnectionState: (state: ConnectionState) => void;
 }
@@ -157,7 +162,7 @@ export interface DeviceFilter {
   type?: string;
   domain?: string;
   area?: string;
-  status?: 'online' | 'offline' | 'unavailable';
+  status?: "online" | "offline" | "unavailable";
   assigned?: boolean;
 }
 
@@ -177,14 +182,14 @@ export interface DeviceBrowserState {
   searchTerm: string;
   selectedFilters: DeviceFilter;
   showOnlyUnassigned: boolean;
-  sortBy: 'name' | 'type' | 'status' | 'area';
-  sortOrder: 'asc' | 'desc';
+  sortBy: "name" | "type" | "status" | "area";
+  sortOrder: "asc" | "desc";
 }
 
-export type ElementType = 'farm' | 'row' | 'rack' | 'shelf';
+export type ElementType = "farm" | "row" | "rack" | "shelf";
 
 export interface AssignmentTarget {
   type: ElementType;
   id: string;
   name: string;
-} 
+}

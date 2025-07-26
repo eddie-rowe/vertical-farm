@@ -1,0 +1,407 @@
+---
+description: Import statement organization patterns for consistent code structure
+globs: "**/*.{ts,tsx,js,jsx,py}"
+alwaysApply: false
+---
+
+# Import Organization
+
+## 🎯 Universal Principles
+
+### 1. Consistent Order
+- **Group by source**: External → Internal → Local
+- **Sort alphabetically**: Within each group
+- **Separate concerns**: Types from implementations
+- **Clear sections**: Visual separation between groups
+
+### 2. Path Resolution
+- **Absolute imports**: For all internal modules
+- **Relative imports**: Only for co-located files
+- **No deep nesting**: Avoid `../../../` patterns
+- **Consistent aliases**: Use project-defined aliases
+
+### 3. Performance
+- **Static imports**: For always-used modules
+- **Dynamic imports**: For conditional/heavy modules
+- **Type-only imports**: When importing only types
+- **Lazy loading**: For code splitting
+
+## 📝 TypeScript/JavaScript Import Order
+
+### Standard Import Order
+```typescript
+// 1. Node built-ins
+import fs from 'fs'
+import path from 'path'
+import { promisify } from 'util'
+
+// 2. External packages - React/Next.js first
+import React, { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import type { NextPage } from 'next'
+
+// 3. External packages - Third party
+import { createClient } from '@supabase/supabase-js'
+import { format } from 'date-fns'
+import clsx from 'clsx'
+
+// 4. Internal - Services
+import { FarmService } from '@/services/domain/farm/FarmService'
+import { DeviceService } from '@/services/domain/device/DeviceService'
+import { AuthService } from '@/services/core/AuthService'
+
+// 5. Internal - Types/Interfaces
+import type { Farm, FarmSettings } from '@/types/farm'
+import type { Device, DeviceStatus } from '@/types/device'
+import type { User } from '@/types/user'
+
+// 6. Internal - Components
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { FarmCard } from '@/components/features/farms/FarmCard'
+
+// 7. Internal - Hooks
+import { useFarmData } from '@/hooks/useFarmData'
+import { useAuth } from '@/hooks/useAuth'
+
+// 8. Internal - Utils/Helpers
+import { formatCurrency } from '@/utils/format'
+import { validateEmail } from '@/utils/validation'
+
+// 9. Relative imports (co-located files)
+import { FarmListHeader } from './FarmListHeader'
+import { FarmListItem } from './FarmListItem'
+import styles from './FarmList.module.css'
+
+// 10. Side effects (must be last)
+import '@/styles/globals.css'
+import './local-styles.css'
+```
+
+### Type-Only Imports
+```typescript
+// ✅ DO: Separate type imports
+import type { Farm, Row, Rack } from '@/types/farm'
+import type { ComponentProps, ReactNode } from 'react'
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+import { FarmService } from '@/services/domain/farm/FarmService'
+import { useState } from 'react'
+
+// ❌ DON'T: Mix types with values unnecessarily
+import { Farm, Row, FarmService } from '@/services/farm' // Avoid
+```
+
+### Dynamic Import Patterns
+```typescript
+// ✅ DO: Dynamic imports for code splitting
+// Heavy component
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/features/analytics/AnalyticsDashboard'),
+  { 
+    loading: () => <AnalyticsSkeleton />,
+    ssr: false 
+  }
+)
+
+// Conditional service loading
+const handleExport = async () => {
+  const { ExportService } = await import('@/services/domain/export/ExportService')
+  const service = ExportService.getInstance()
+  await service.exportData()
+}
+
+// Named exports with dynamic import
+const Chart = dynamic(
+  () => import('@/components/charts').then(mod => mod.LineChart),
+  { loading: () => <ChartSkeleton /> }
+)
+```
+
+## 🐍 Python Import Order
+
+### Standard Import Order
+```python
+# 1. Future imports (Python 2/3 compatibility)
+from __future__ import annotations
+
+# 2. Standard library imports
+import os
+import sys
+from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
+
+# 3. Third-party imports
+import asyncio
+import httpx
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel, Field
+from supabase import create_client, Client
+
+# 4. Local application imports - absolute
+from app.core.config import settings
+from app.core.security import get_current_user
+from app.db.supabase_client import get_async_rls_client
+
+# 5. Local application imports - services
+from app.services.base_service import BaseService
+from app.services.user_home_assistant_service import UserHomeAssistantService
+
+# 6. Local application imports - models/schemas
+from app.models.farm import Farm, FarmCreate, FarmUpdate
+from app.schemas.device import DeviceSchema, DeviceStatusEnum
+
+# 7. Relative imports (only for packages)
+from .utils import process_data
+from .helpers import validate_input
+```
+
+### Import Formatting
+```python
+# ✅ DO: Group related imports
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    status,
+)
+
+from app.models.home_assistant import (
+    DeviceControlRequest,
+    DeviceControlResponse,
+    DeviceListResponse,
+    HomeAssistantDevice,
+)
+
+# ❌ DON'T: Long single-line imports
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response, Body, Path  # Too long
+
+# ✅ DO: Explicit imports
+from app.services.farm_service import FarmService
+from app.services.device_service import DeviceService
+
+# ❌ DON'T: Wildcard imports
+from app.services import *  # Avoid
+```
+
+### Type Annotations Import
+```python
+# ✅ DO: Import from typing for annotations
+from typing import TYPE_CHECKING
+
+# Conditional imports for type checking only
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.services.complex_service import ComplexService
+
+# Use string annotations for forward references
+async def get_user() -> "User":
+    pass
+```
+
+## 🛠️ Framework-Specific Patterns
+
+### Next.js App Router
+```typescript
+// Server Component
+import { headers, cookies } from 'next/headers'
+import { notFound, redirect } from 'next/navigation'
+import { Metadata } from 'next'
+
+// Client Component
+'use client'
+
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useFormStatus, useFormState } from 'react-dom'
+```
+
+### React Server Components
+```typescript
+// Server-only imports
+import 'server-only'
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
+
+// Client-only imports
+import 'client-only'
+import { useState, useEffect } from 'react'
+```
+
+### FastAPI Endpoints
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+
+from app.api.deps import get_current_active_user
+from app.core.security import verify_password
+from app.models.user import User
+from app.schemas.farm import FarmResponse, FarmCreate
+
+router = APIRouter()
+```
+
+## 📦 Module Organization
+
+### Index Exports (TypeScript)
+```typescript
+// services/domain/farm/index.ts
+export { FarmService } from './FarmService'
+export { RowService } from './RowService'
+export { RackService } from './RackService'
+export { ShelfService } from './ShelfService'
+
+// Re-export types
+export type {
+  Farm,
+  Row,
+  Rack,
+  Shelf,
+  CreateFarmData,
+  UpdateFarmData
+} from './types'
+
+// Usage
+import { FarmService, RowService, type Farm } from '@/services/domain/farm'
+```
+
+### Package Exports (Python)
+```python
+# app/services/__init__.py
+from .base_service import BaseService
+from .user_home_assistant_service import UserHomeAssistantService
+from .supabase_background_service import supabase_background_service
+
+__all__ = [
+    "BaseService",
+    "UserHomeAssistantService",
+    "supabase_background_service",
+]
+
+# Usage
+from app.services import UserHomeAssistantService
+```
+
+## 🔧 Configuration Files
+
+### ESLint Import Rules
+```json
+{
+  "rules": {
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/services/**",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/types/**",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/components/**",
+            "group": "internal"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
+  }
+}
+```
+
+### Python isort Configuration
+```ini
+# .isort.cfg or pyproject.toml
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+known_third_party = ["fastapi", "pydantic", "supabase", "httpx"]
+known_first_party = ["app"]
+skip_glob = ["**/migrations/*"]
+```
+
+## 🚫 Anti-Patterns
+
+### Common Mistakes
+```typescript
+// ❌ DON'T: Circular imports
+// file: services/FarmService.ts
+import { DeviceService } from './DeviceService'
+// file: services/DeviceService.ts
+import { FarmService } from './FarmService' // Circular!
+
+// ✅ DO: Use dependency injection or events
+export class FarmService {
+  constructor(private deviceService?: DeviceService) {}
+}
+
+// ❌ DON'T: Import entire libraries
+import * as React from 'react' // Imports everything
+import _ from 'lodash' // Imports entire lodash
+
+// ✅ DO: Import specific items
+import { useState, useEffect } from 'react'
+import debounce from 'lodash/debounce'
+
+// ❌ DON'T: Mix import styles
+const React = require('react') // CommonJS in ES modules
+import { useState } from 'react' // ES modules
+
+// ✅ DO: Use consistent import style
+import React, { useState } from 'react'
+```
+
+## 📋 Import Checklist
+
+- [ ] Imports are grouped by category
+- [ ] Groups are separated by blank lines
+- [ ] Imports within groups are alphabetically sorted
+- [ ] Type-only imports use `import type`
+- [ ] No unused imports
+- [ ] No circular dependencies
+- [ ] Path aliases are used consistently
+- [ ] Dynamic imports are used for code splitting
+- [ ] Side-effect imports are last
+- [ ] Import order matches project standards
+
+## 🔗 Related Documentation
+
+- **TypeScript Config**: See `tsconfig.json` for path aliases
+- **Python Config**: See `pyproject.toml` for import settings
+- **ESLint Config**: See `.eslintrc.js` for import rules
+- **Service Architecture**: See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+description:
+globs:
+alwaysApply: false
+---

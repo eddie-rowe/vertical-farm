@@ -1,63 +1,94 @@
-import React, { useState, useMemo, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { MapPin, Plus, Search, Info, Edit, Trash2 } from 'lucide-react'
-import { toast } from 'react-hot-toast'
-import { DeviceAssignment } from '@/types/device-assignment'
-import deviceAssignmentService from '@/services/deviceAssignmentService'
-import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter'
-import { useFarmSearch, useFarmFilters } from '@/hooks'
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter'
+import { MapPin, Plus, Search, Info, Edit, Trash2 } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+import { toast } from "react-hot-toast";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import { DeviceAssignment } from "@/types/device-assignment";
 
 interface AssignmentTabProps {
-  assignments: DeviceAssignment[]
-  onRefresh: () => void
+  assignments: DeviceAssignment[];
+  onRefresh: () => void;
 }
 
 // Mock farm structure data - in real app this would come from props or API
 const mockFarms = [
-  { id: '1', name: 'Main Greenhouse' },
-  { id: '2', name: 'Secondary Greenhouse' },
+  { id: "1", name: "Main Greenhouse" },
+  { id: "2", name: "Secondary Greenhouse" },
 ];
 
 const mockRows = [
-  { id: '1', name: 'Row A', farm_id: '1' },
-  { id: '2', name: 'Row B', farm_id: '1' },
-  { id: '3', name: 'Row A', farm_id: '2' },
+  { id: "1", name: "Row A", farm_id: "1" },
+  { id: "2", name: "Row B", farm_id: "1" },
+  { id: "3", name: "Row A", farm_id: "2" },
 ];
 
 const mockRacks = [
-  { id: '1', name: 'Rack 1', row_id: '1' },
-  { id: '2', name: 'Rack 2', row_id: '1' },
-  { id: '3', name: 'Rack 1', row_id: '2' },
-  { id: '4', name: 'Rack 1', row_id: '3' },
+  { id: "1", name: "Rack 1", row_id: "1" },
+  { id: "2", name: "Rack 2", row_id: "1" },
+  { id: "3", name: "Rack 1", row_id: "2" },
+  { id: "4", name: "Rack 1", row_id: "3" },
 ];
 
 const mockShelves = [
-  { id: '1', name: 'Shelf A', rack_id: '1' },
-  { id: '2', name: 'Shelf B', rack_id: '1' },
-  { id: '3', name: 'Shelf A', rack_id: '2' },
-  { id: '4', name: 'Shelf A', rack_id: '3' },
-  { id: '5', name: 'Shelf A', rack_id: '4' },
+  { id: "1", name: "Shelf A", rack_id: "1" },
+  { id: "2", name: "Shelf B", rack_id: "1" },
+  { id: "3", name: "Shelf A", rack_id: "2" },
+  { id: "4", name: "Shelf A", rack_id: "3" },
+  { id: "5", name: "Shelf A", rack_id: "4" },
 ];
 
 export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   assignments,
-  onRefresh
+  onRefresh,
 }) => {
   // Standardized search and filter hooks
-  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<DeviceAssignment>({
-    searchFields: ['friendly_name', 'entity_id'],
-    caseSensitive: false
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    hasSearch,
+    filterItems: searchFilterItems,
+  } = useFarmSearch<DeviceAssignment>({
+    searchFields: ["friendly_name", "entity_id"],
+    caseSensitive: false,
   });
-  
+
   const {
     filters,
     setFilter,
@@ -65,48 +96,65 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<DeviceAssignment>();
 
   // Additional filter states
-  const [locationFilter, setLocationFilter] = useState<string>('all');
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("all");
 
   // Dialog and form states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingAssignment, setEditingAssignment] = useState<DeviceAssignment | null>(null);
+  const [editingAssignment, setEditingAssignment] =
+    useState<DeviceAssignment | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state for creating/editing assignments
-  const [selectedDevice, setSelectedDevice] = useState<string>('');
-  const [selectedFarm, setSelectedFarm] = useState<string>('');
-  const [selectedRow, setSelectedRow] = useState<string>('');
-  const [selectedRack, setSelectedRack] = useState<string>('');
-  const [selectedShelf, setSelectedShelf] = useState<string>('');
+  const [selectedDevice, setSelectedDevice] = useState<string>("");
+  const [selectedFarm, setSelectedFarm] = useState<string>("");
+  const [selectedRow, setSelectedRow] = useState<string>("");
+  const [selectedRack, setSelectedRack] = useState<string>("");
+  const [selectedShelf, setSelectedShelf] = useState<string>("");
 
   // Mock data for devices - in real app this would come from props or API
   const importedDevices = [
-    { entity_id: 'light.grow_light_1', name: 'Grow Light 1', device_type: 'light' },
-    { entity_id: 'switch.irrigation_pump', name: 'Irrigation Pump', device_type: 'switch' },
-    { entity_id: 'fan.exhaust_fan_1', name: 'Exhaust Fan 1', device_type: 'fan' },
+    {
+      entity_id: "light.grow_light_1",
+      name: "Grow Light 1",
+      device_type: "light",
+    },
+    {
+      entity_id: "switch.irrigation_pump",
+      name: "Irrigation Pump",
+      device_type: "switch",
+    },
+    {
+      entity_id: "fan.exhaust_fan_1",
+      name: "Exhaust Fan 1",
+      device_type: "fan",
+    },
   ];
 
   // Calculate unassigned devices
   const unassignedDevices = useMemo(() => {
-    const assignedEntityIds = new Set(assignments.map(a => a.entity_id));
-    return importedDevices.filter(device => !assignedEntityIds.has(device.entity_id));
+    const assignedEntityIds = new Set(assignments.map((a) => a.entity_id));
+    return importedDevices.filter(
+      (device) => !assignedEntityIds.has(device.entity_id),
+    );
   }, [assignments]);
 
   // Handler functions
-  const onCreateAssignment = async (assignment: Omit<DeviceAssignment, 'id' | 'created_at' | 'updated_at'>) => {
+  const onCreateAssignment = async (
+    assignment: Omit<DeviceAssignment, "id" | "created_at" | "updated_at">,
+  ) => {
     try {
       // In real app, call the API service
       // await deviceAssignmentService.createAssignment(assignment);
-      toast.success('Assignment created successfully');
+      toast.success("Assignment created successfully");
       onRefresh();
     } catch (error) {
-      toast.error('Failed to create assignment');
-      console.error('Create assignment error:', error);
+      toast.error("Failed to create assignment");
+      console.error("Create assignment error:", error);
     }
   };
 
@@ -114,11 +162,11 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
     try {
       // In real app, call the API service
       // await deviceAssignmentService.updateAssignment(assignment);
-      toast.success('Assignment updated successfully');
+      toast.success("Assignment updated successfully");
       onRefresh();
     } catch (error) {
-      toast.error('Failed to update assignment');
-      console.error('Update assignment error:', error);
+      toast.error("Failed to update assignment");
+      console.error("Update assignment error:", error);
     }
   };
 
@@ -126,97 +174,112 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
     try {
       // In real app, call the API service
       // await deviceAssignmentService.deleteAssignment(entityId);
-      toast.success('Assignment deleted successfully');
+      toast.success("Assignment deleted successfully");
       onRefresh();
     } catch (error) {
-      toast.error('Failed to delete assignment');
-      console.error('Delete assignment error:', error);
+      toast.error("Failed to delete assignment");
+      console.error("Delete assignment error:", error);
     }
   };
 
   // Get unique device types for filter
   const deviceTypes = useMemo(() => {
-    const types = new Set(assignments.map(a => a.entity_type));
+    const types = new Set(assignments.map((a) => a.entity_type));
     return Array.from(types).sort();
   }, [assignments]);
 
   // Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'farm_id',
-      label: 'Farm Location',
-      placeholder: 'Filter by farm',
-      options: [
-        { value: 'all', label: 'All Farms' },
-        ...mockFarms.map(farm => ({
-          value: farm.id,
-          label: farm.name
-        }))
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'entity_type',
-      label: 'Device Type',
-      placeholder: 'Filter by device type',
-      options: [
-        { value: 'all', label: 'All Types' },
-        ...deviceTypes.map(type => ({
-          value: type,
-          label: type.charAt(0).toUpperCase() + type.slice(1)
-        }))
-      ],
-      defaultValue: 'all'
-    }
-  ], [deviceTypes]);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "farm_id",
+        label: "Farm Location",
+        placeholder: "Filter by farm",
+        options: [
+          { value: "all", label: "All Farms" },
+          ...mockFarms.map((farm) => ({
+            value: farm.id,
+            label: farm.name,
+          })),
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "entity_type",
+        label: "Device Type",
+        placeholder: "Filter by device type",
+        options: [
+          { value: "all", label: "All Types" },
+          ...deviceTypes.map((type) => ({
+            value: type,
+            label: type.charAt(0).toUpperCase() + type.slice(1),
+          })),
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [deviceTypes],
+  );
 
   // Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // Apply combined filtering using standardized hooks
   const filteredAssignments = useMemo(() => {
     let result = assignments;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     return result;
   }, [assignments, searchFilterItems, filterFilterItems]);
 
   // Get filtered rows based on selected farm
   const availableRows = useMemo(() => {
-    return selectedFarm ? mockRows.filter(row => row.farm_id === selectedFarm) : [];
+    return selectedFarm
+      ? mockRows.filter((row) => row.farm_id === selectedFarm)
+      : [];
   }, [selectedFarm]);
 
   // Get filtered racks based on selected row
   const availableRacks = useMemo(() => {
-    return selectedRow ? mockRacks.filter(rack => rack.row_id === selectedRow) : [];
+    return selectedRow
+      ? mockRacks.filter((rack) => rack.row_id === selectedRow)
+      : [];
   }, [selectedRow]);
 
   // Get filtered shelves based on selected rack
   const availableShelves = useMemo(() => {
-    return selectedRack ? mockShelves.filter(shelf => shelf.rack_id === selectedRack) : [];
+    return selectedRack
+      ? mockShelves.filter((shelf) => shelf.rack_id === selectedRack)
+      : [];
   }, [selectedRack]);
 
   const resetForm = () => {
-    setSelectedDevice('');
-    setSelectedFarm('');
-    setSelectedRow('');
-    setSelectedRack('');
-    setSelectedShelf('');
+    setSelectedDevice("");
+    setSelectedFarm("");
+    setSelectedRow("");
+    setSelectedRack("");
+    setSelectedShelf("");
     setEditingAssignment(null);
   };
 
@@ -225,10 +288,15 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
 
     setIsSubmitting(true);
     try {
-      const device = importedDevices.find(d => d.entity_id === selectedDevice);
+      const device = importedDevices.find(
+        (d) => d.entity_id === selectedDevice,
+      );
       if (!device) return;
 
-      const assignment: Omit<DeviceAssignment, 'id' | 'created_at' | 'updated_at'> = {
+      const assignment: Omit<
+        DeviceAssignment,
+        "id" | "created_at" | "updated_at"
+      > = {
         entity_id: device.entity_id,
         entity_type: device.device_type,
         friendly_name: device.name,
@@ -249,10 +317,10 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   const handleEditAssignment = (assignment: DeviceAssignment) => {
     setEditingAssignment(assignment);
     setSelectedDevice(assignment.entity_id);
-    setSelectedFarm(assignment.farm_id || '');
-    setSelectedRow(assignment.row_id || '');
-    setSelectedRack(assignment.rack_id || '');
-    setSelectedShelf(assignment.shelf_id || '');
+    setSelectedFarm(assignment.farm_id || "");
+    setSelectedRow(assignment.row_id || "");
+    setSelectedRack(assignment.rack_id || "");
+    setSelectedShelf(assignment.shelf_id || "");
     setShowCreateDialog(true);
   };
 
@@ -279,20 +347,20 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
 
   const getLocationBreadcrumb = (assignment: DeviceAssignment) => {
     const parts: string[] = [];
-    
-    const farm = mockFarms.find(f => f.id === assignment.farm_id);
+
+    const farm = mockFarms.find((f) => f.id === assignment.farm_id);
     if (farm) parts.push(farm.name);
-    
-    const row = mockRows.find(r => r.id === assignment.row_id);
+
+    const row = mockRows.find((r) => r.id === assignment.row_id);
     if (row) parts.push(row.name);
-    
-    const rack = mockRacks.find(r => r.id === assignment.rack_id);
+
+    const rack = mockRacks.find((r) => r.id === assignment.rack_id);
     if (rack) parts.push(rack.name);
-    
-    const shelf = mockShelves.find(s => s.id === assignment.shelf_id);
+
+    const shelf = mockShelves.find((s) => s.id === assignment.shelf_id);
     if (shelf) parts.push(shelf.name);
-    
-    return parts.join(' > ') || 'No location assigned';
+
+    return parts.join(" > ") || "No location assigned";
   };
 
   const getLocationIcon = (assignment: DeviceAssignment) => {
@@ -315,17 +383,23 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="text-orange-600 border-orange-200">
+              <Badge
+                variant="outline"
+                className="text-orange-600 border-orange-200"
+              >
                 {assignments.length} assignments
               </Badge>
-              <Badge variant="outline" className="text-gray-600 border-gray-200">
+              <Badge
+                variant="outline"
+                className="text-gray-600 border-gray-200"
+              >
                 {unassignedDevices.length} unassigned devices
               </Badge>
             </div>
 
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button 
+                <Button
                   className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700"
                   disabled={unassignedDevices.length === 0}
                   onClick={resetForm}
@@ -337,13 +411,14 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingAssignment ? 'Edit Assignment' : 'Create Device Assignment'}
+                    {editingAssignment
+                      ? "Edit Assignment"
+                      : "Create Device Assignment"}
                   </DialogTitle>
                   <DialogDescription>
-                    {editingAssignment 
-                      ? 'Update the location assignment for this device'
-                      : 'Assign an imported device to a farm location'
-                    }
+                    {editingAssignment
+                      ? "Update the location assignment for this device"
+                      : "Assign an imported device to a farm location"}
                   </DialogDescription>
                 </DialogHeader>
 
@@ -351,8 +426,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                   {/* Device Selection */}
                   <div className="space-y-2">
                     <Label>Device</Label>
-                    <Select 
-                      value={selectedDevice} 
+                    <Select
+                      value={selectedDevice}
                       onValueChange={setSelectedDevice}
                       disabled={!!editingAssignment}
                     >
@@ -360,8 +435,14 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                         <SelectValue placeholder="Select a device" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(editingAssignment ? importedDevices : unassignedDevices).map(device => (
-                          <SelectItem key={device.entity_id} value={device.entity_id}>
+                        {(editingAssignment
+                          ? importedDevices
+                          : unassignedDevices
+                        ).map((device) => (
+                          <SelectItem
+                            key={device.entity_id}
+                            value={device.entity_id}
+                          >
                             <div className="flex items-center space-x-2">
                               <span>{device.name}</span>
                               <Badge variant="outline" className="text-xs">
@@ -377,12 +458,15 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                   {/* Farm Selection */}
                   <div className="space-y-2">
                     <Label>Farm *</Label>
-                    <Select value={selectedFarm} onValueChange={setSelectedFarm}>
+                    <Select
+                      value={selectedFarm}
+                      onValueChange={setSelectedFarm}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a farm" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockFarms.map(farm => (
+                        {mockFarms.map((farm) => (
                           <SelectItem key={farm.id} value={farm.id}>
                             {farm.name}
                           </SelectItem>
@@ -394,8 +478,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                   {/* Row Selection */}
                   <div className="space-y-2">
                     <Label>Row (Optional)</Label>
-                    <Select 
-                      value={selectedRow} 
+                    <Select
+                      value={selectedRow}
                       onValueChange={setSelectedRow}
                       disabled={!selectedFarm}
                     >
@@ -404,7 +488,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableRows.map(row => (
+                        {availableRows.map((row) => (
                           <SelectItem key={row.id} value={row.id}>
                             {row.name}
                           </SelectItem>
@@ -416,8 +500,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                   {/* Rack Selection */}
                   <div className="space-y-2">
                     <Label>Rack (Optional)</Label>
-                    <Select 
-                      value={selectedRack} 
+                    <Select
+                      value={selectedRack}
                       onValueChange={setSelectedRack}
                       disabled={!selectedRow}
                     >
@@ -426,7 +510,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableRacks.map(rack => (
+                        {availableRacks.map((rack) => (
                           <SelectItem key={rack.id} value={rack.id}>
                             {rack.name}
                           </SelectItem>
@@ -438,8 +522,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                   {/* Shelf Selection */}
                   <div className="space-y-2">
                     <Label>Shelf (Optional)</Label>
-                    <Select 
-                      value={selectedShelf} 
+                    <Select
+                      value={selectedShelf}
                       onValueChange={setSelectedShelf}
                       disabled={!selectedRack}
                     >
@@ -448,7 +532,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableShelves.map(shelf => (
+                        {availableShelves.map((shelf) => (
                           <SelectItem key={shelf.id} value={shelf.id}>
                             {shelf.name}
                           </SelectItem>
@@ -469,11 +553,21 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       Cancel
                     </Button>
                     <Button
-                      onClick={editingAssignment ? handleUpdateAssignment : handleCreateAssignment}
-                      disabled={!selectedDevice || !selectedFarm || isSubmitting}
+                      onClick={
+                        editingAssignment
+                          ? handleUpdateAssignment
+                          : handleCreateAssignment
+                      }
+                      disabled={
+                        !selectedDevice || !selectedFarm || isSubmitting
+                      }
                       className="bg-orange-600 hover:bg-orange-700"
                     >
-                      {isSubmitting ? 'Saving...' : (editingAssignment ? 'Update' : 'Create')}
+                      {isSubmitting
+                        ? "Saving..."
+                        : editingAssignment
+                          ? "Update"
+                          : "Create"}
                     </Button>
                   </div>
                 </div>
@@ -511,7 +605,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Locations</SelectItem>
-                  {mockFarms.map(farm => (
+                  {mockFarms.map((farm) => (
                     <SelectItem key={farm.id} value={farm.id}>
                       {farm.name}
                     </SelectItem>
@@ -523,13 +617,16 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
             {/* Device Type Filter */}
             <div className="space-y-2">
               <Label>Device Type</Label>
-              <Select value={deviceTypeFilter} onValueChange={setDeviceTypeFilter}>
+              <Select
+                value={deviceTypeFilter}
+                onValueChange={setDeviceTypeFilter}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  {deviceTypes.map(type => (
+                  {deviceTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </SelectItem>
@@ -549,10 +646,9 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  {assignments.length === 0 
-                    ? 'No device assignments created yet. Create an assignment to get started.'
-                    : 'No assignments match your current filters.'
-                  }
+                  {assignments.length === 0
+                    ? "No device assignments created yet. Create an assignment to get started."
+                    : "No assignments match your current filters."}
                 </AlertDescription>
               </Alert>
             </div>
@@ -571,7 +667,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
               <TableBody>
                 {filteredAssignments.map((assignment) => {
                   const LocationIcon = getLocationIcon(assignment);
-                  
+
                   return (
                     <TableRow key={assignment.entity_id}>
                       <TableCell>
@@ -599,15 +695,16 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-gray-500">
-                          {assignment.assigned_by || 'System'}
+                          {assignment.assigned_by || "System"}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-gray-500">
-                          {assignment.created_at 
-                            ? new Date(assignment.created_at).toLocaleDateString()
-                            : 'Unknown'
-                          }
+                          {assignment.created_at
+                            ? new Date(
+                                assignment.created_at,
+                              ).toLocaleDateString()
+                            : "Unknown"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -622,7 +719,9 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onDeleteAssignment(assignment.entity_id)}
+                            onClick={() =>
+                              onDeleteAssignment(assignment.entity_id)
+                            }
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -639,4 +738,4 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
       </Card>
     </div>
   );
-}; 
+};

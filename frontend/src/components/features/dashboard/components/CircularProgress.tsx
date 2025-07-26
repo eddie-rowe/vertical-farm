@@ -1,42 +1,39 @@
-import React from 'react';
-import { CircularProgressProps } from '../types';
+import React from "react";
 
-export const CircularProgress: React.FC<CircularProgressProps> = ({ 
-  value, 
-  size = 120, 
-  strokeWidth = 8, 
+import { CircularProgressProps } from "../types";
+
+export const CircularProgress: React.FC<CircularProgressProps> = ({
+  value,
+  size = 120,
+  strokeWidth = 8,
   className = "",
-  showLabel = true 
+  showLabel = true,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (value / 100) * circumference;
 
   const getColor = (val: number) => {
-    if (val >= 80) return '#10B981'; // green-500
-    if (val >= 60) return '#F59E0B'; // yellow-500
-    if (val >= 40) return '#EF4444'; // red-500
-    return '#6B7280'; // gray-500
+    if (val >= 80) return "#10B981"; // green-500
+    if (val >= 60) return "#F59E0B"; // yellow-500
+    if (val >= 40) return "#EF4444"; // red-500
+    return "#6B7280"; // gray-500
   };
 
   const getTextColor = (val: number) => {
-    if (val >= 80) return 'text-green-600 dark:text-green-400';
-    if (val >= 60) return 'text-yellow-600 dark:text-yellow-400';
-    if (val >= 40) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    if (val >= 80) return "text-green-600 dark:text-green-400";
+    if (val >= 60) return "text-yellow-600 dark:text-yellow-400";
+    if (val >= 40) return "text-red-600 dark:text-red-400";
+    return "text-gray-600 dark:text-gray-400";
   };
 
   // Dynamic background stroke color for dark mode
-  const backgroundStroke = 'stroke-gray-200 dark:stroke-gray-700';
+  const backgroundStroke = "stroke-gray-200 dark:stroke-gray-700";
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <div className="relative">
-        <svg
-          width={size}
-          height={size}
-          className="transform -rotate-90"
-        >
+        <svg width={size} height={size} className="transform -rotate-90">
           {/* Background circle */}
           <circle
             cx={size / 2}
@@ -46,7 +43,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
             strokeWidth={strokeWidth}
             fill="none"
           />
-          
+
           {/* Progress circle */}
           <circle
             cx={size / 2}
@@ -61,7 +58,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
             className="transition-all duration-300 ease-out"
           />
         </svg>
-        
+
         {showLabel && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
@@ -74,4 +71,4 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
       </div>
     </div>
   );
-}; 
+};

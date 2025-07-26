@@ -1,11 +1,12 @@
 "use client";
 
+import { Activity, Settings, Zap } from "lucide-react";
 import * as React from "react";
-import { FarmInput } from "./farm-input";
-import { FarmSelect, type FarmSelectOption } from "./farm-select";
-import { FarmRangeSlider } from "./farm-range-slider";
+
 import { FarmCheckbox } from "./farm-checkbox";
-import { Activity, AlertTriangle, Settings, Zap } from "lucide-react";
+import { FarmInput } from "./farm-input";
+import { FarmRangeSlider } from "./farm-range-slider";
+import { FarmSelect, type FarmSelectOption } from "./farm-select";
 
 export interface SensorCalibration {
   sensorId: string;
@@ -168,13 +169,19 @@ export function SensorCalibrationForm({
     notes: initialData.notes || "",
   });
 
-  const [errors, setErrors] = React.useState<Partial<Record<keyof SensorCalibration, string>>>({});
+  const [errors, setErrors] = React.useState<
+    Partial<Record<keyof SensorCalibration, string>>
+  >({});
 
   // Update thresholds and unit when sensor type changes
   React.useEffect(() => {
-    if (formData.type && SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS]) {
-      const config = SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS];
-      setFormData(prev => ({
+    if (
+      formData.type &&
+      SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS]
+    ) {
+      const config =
+        SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS];
+      setFormData((prev) => ({
         ...prev,
         measurementUnit: config.unit,
         minThreshold: config.defaultMin,
@@ -184,7 +191,9 @@ export function SensorCalibrationForm({
     }
   }, [formData.type]);
 
-  const sensorConfig = formData.type ? SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS] : null;
+  const sensorConfig = formData.type
+    ? SENSOR_CONFIGS[formData.type as keyof typeof SENSOR_CONFIGS]
+    : null;
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof SensorCalibration, string>> = {};
@@ -211,11 +220,13 @@ export function SensorCalibrationForm({
     }
 
     if (formData.warningThreshold < formData.maxThreshold) {
-      newErrors.warningThreshold = "Warning threshold should be above max threshold";
+      newErrors.warningThreshold =
+        "Warning threshold should be above max threshold";
     }
 
     if (formData.samplingInterval < 10) {
-      newErrors.samplingInterval = "Sampling interval must be at least 10 seconds";
+      newErrors.samplingInterval =
+        "Sampling interval must be at least 10 seconds";
     }
 
     setErrors(newErrors);
@@ -231,12 +242,12 @@ export function SensorCalibrationForm({
 
   const updateField = <K extends keyof SensorCalibration>(
     field: K,
-    value: SensorCalibration[K]
+    value: SensorCalibration[K],
   ) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when field is updated
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -247,7 +258,7 @@ export function SensorCalibrationForm({
           <Activity className="h-5 w-5 text-blue-600" />
           Sensor Information
         </h3>
-        
+
         <div className="mobile-grid gap-4">
           <FarmInput
             label="Sensor ID"
@@ -259,7 +270,7 @@ export function SensorCalibrationForm({
             required
             helpText="Unique identifier for this sensor"
           />
-          
+
           <FarmInput
             label="Sensor Name"
             placeholder="e.g., Greenhouse 1 Temperature"
@@ -268,7 +279,7 @@ export function SensorCalibrationForm({
             errorText={errors.name}
             required
           />
-          
+
           <FarmSelect
             label="Sensor Type"
             options={SENSOR_TYPE_OPTIONS}
@@ -277,7 +288,7 @@ export function SensorCalibrationForm({
             errorText={errors.type}
             required
           />
-          
+
           <FarmSelect
             label="Location"
             options={LOCATION_OPTIONS}
@@ -286,7 +297,7 @@ export function SensorCalibrationForm({
             errorText={errors.location}
             required
           />
-          
+
           <FarmInput
             label="Measurement Unit"
             value={formData.measurementUnit}
@@ -303,7 +314,7 @@ export function SensorCalibrationForm({
             <Settings className="h-5 w-5 text-green-600" />
             Threshold Configuration
           </h3>
-          
+
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FarmRangeSlider
@@ -317,7 +328,7 @@ export function SensorCalibrationForm({
                 errorText={errors.minThreshold}
                 helpText="Lower boundary for normal operation"
               />
-              
+
               <FarmRangeSlider
                 label="Maximum Threshold"
                 min={sensorConfig.min}
@@ -330,7 +341,7 @@ export function SensorCalibrationForm({
                 helpText="Upper boundary for normal operation"
               />
             </div>
-            
+
             <FarmRangeSlider
               label="Warning Threshold"
               min={sensorConfig.min}
@@ -342,7 +353,7 @@ export function SensorCalibrationForm({
               errorText={errors.warningThreshold}
               helpText="Trigger warning before reaching critical levels"
             />
-            
+
             <FarmRangeSlider
               label="Calibration Offset"
               min={-10}
@@ -362,7 +373,7 @@ export function SensorCalibrationForm({
           <Zap className="h-5 w-5 text-orange-600" />
           Monitoring Configuration
         </h3>
-        
+
         <div className="space-y-6">
           <FarmRangeSlider
             label="Sampling Interval"
@@ -381,29 +392,35 @@ export function SensorCalibrationForm({
               { value: 3600, label: "1h" },
             ]}
           />
-          
+
           <div className="space-y-4">
             <FarmCheckbox
               label="Enable Alerts"
               description="Send notifications when thresholds are exceeded"
               checked={formData.enableAlerts}
-              onCheckedChange={(checked) => updateField("enableAlerts", checked)}
+              onCheckedChange={(checked) =>
+                updateField("enableAlerts", checked)
+              }
               inputSize="lg"
             />
-            
+
             <FarmCheckbox
               label="Enable Data Logging"
               description="Store sensor readings in the database for analysis"
               checked={formData.enableLogging}
-              onCheckedChange={(checked) => updateField("enableLogging", checked)}
+              onCheckedChange={(checked) =>
+                updateField("enableLogging", checked)
+              }
               inputSize="lg"
             />
-            
+
             <FarmCheckbox
               label="Auto-Calibration"
               description="Automatically adjust calibration based on reference sensors"
               checked={formData.autoCalibration}
-              onCheckedChange={(checked) => updateField("autoCalibration", checked)}
+              onCheckedChange={(checked) =>
+                updateField("autoCalibration", checked)
+              }
               inputSize="lg"
             />
           </div>
@@ -411,10 +428,8 @@ export function SensorCalibrationForm({
       </div>
 
       <div className="gradient-shelf rounded-lg p-6">
-        <h3 className="text-farm-title font-semibold mb-4">
-          Additional Notes
-        </h3>
-        
+        <h3 className="text-farm-title font-semibold mb-4">Additional Notes</h3>
+
         <FarmInput
           label="Notes"
           placeholder="Installation notes, maintenance schedule, or special considerations..."
@@ -435,7 +450,7 @@ export function SensorCalibrationForm({
             Cancel
           </button>
         )}
-        
+
         <button
           type="submit"
           disabled={isLoading}
@@ -456,4 +471,4 @@ export function SensorCalibrationForm({
       </div>
     </form>
   );
-} 
+}

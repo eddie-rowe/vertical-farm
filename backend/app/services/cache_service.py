@@ -5,11 +5,10 @@ This module provides a centralized cache service that can be used
 across the application for storing and retrieving cached data.
 """
 
-import asyncio
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
+from typing import Any
 
 from ..core.cache import CacheManager
 
@@ -19,12 +18,12 @@ logger = logging.getLogger(__name__)
 class CacheService:
     """
     Service for managing application caching operations.
-    
+
     This service provides high-level caching operations and statistics
     for the application.
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.cache_manager = CacheManager()
         self._stats = {
             "hits": 0,
@@ -32,16 +31,16 @@ class CacheService:
             "sets": 0,
             "deletes": 0,
             "clears": 0,
-            "start_time": time.time()
+            "start_time": time.time(),
         }
-    
-    async def get(self, key: str) -> Optional[Any]:
+
+    async def get(self, key: str) -> Any | None:
         """
         Get a value from the cache.
-        
+
         Args:
             key: The cache key
-            
+
         Returns:
             The cached value if found, None otherwise
         """
@@ -58,21 +57,16 @@ class CacheService:
             logger.error(f"Error getting cache key {key}: {e}")
             self._stats["misses"] += 1
             return None
-    
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        ttl: Optional[int] = None
-    ) -> bool:
+
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Set a value in the cache.
-        
+
         Args:
             key: The cache key
             value: The value to cache
             ttl: Time to live in seconds
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -84,14 +78,14 @@ class CacheService:
         except Exception as e:
             logger.error(f"Error setting cache key {key}: {e}")
             return False
-    
+
     async def delete(self, key: str) -> bool:
         """
         Delete a value from the cache.
-        
+
         Args:
             key: The cache key to delete
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -103,11 +97,11 @@ class CacheService:
         except Exception as e:
             logger.error(f"Error deleting cache key {key}: {e}")
             return False
-    
+
     async def clear(self) -> bool:
         """
         Clear all cached values.
-        
+
         Returns:
             True if successful, False otherwise
         """
@@ -119,22 +113,24 @@ class CacheService:
         except Exception as e:
             logger.error(f"Error clearing cache: {e}")
             return False
-    
-    async def get_stats(self) -> Dict[str, Any]:
+
+    async def get_stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
-        
+
         Returns:
             Dictionary containing cache statistics
         """
         current_time = time.time()
         uptime = current_time - self._stats["start_time"]
-        
+
         total_requests = self._stats["hits"] + self._stats["misses"]
-        hit_rate = (self._stats["hits"] / total_requests * 100) if total_requests > 0 else 0
-        
+        hit_rate = (
+            (self._stats["hits"] / total_requests * 100) if total_requests > 0 else 0
+        )
+
         cache_size = await self.cache_manager.size()
-        
+
         return {
             "hits": self._stats["hits"],
             "misses": self._stats["misses"],
@@ -145,13 +141,13 @@ class CacheService:
             "total_requests": total_requests,
             "cache_size": cache_size,
             "uptime_seconds": round(uptime, 2),
-            "start_time": datetime.fromtimestamp(self._stats["start_time"]).isoformat()
+            "start_time": datetime.fromtimestamp(self._stats["start_time"]).isoformat(),
         }
-    
-    async def health_check(self) -> Dict[str, Any]:
+
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform a health check on the cache service.
-        
+
         Returns:
             Dictionary containing health status
         """
@@ -159,62 +155,62 @@ class CacheService:
             # Test basic cache operations
             test_key = "__health_check__"
             test_value = {"timestamp": time.time()}
-            
+
             # Test set operation
             set_success = await self.set(test_key, test_value, ttl=60)
             if not set_success:
                 return {
                     "healthy": False,
                     "error": "Failed to set test value",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
-            
+
             # Test get operation
             retrieved_value = await self.get(test_key)
             if retrieved_value != test_value:
                 return {
                     "healthy": False,
                     "error": "Failed to retrieve test value",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
-            
+
             # Test delete operation
             delete_success = await self.delete(test_key)
             if not delete_success:
                 return {
                     "healthy": False,
                     "error": "Failed to delete test value",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
-            
+
             # Get current stats
             stats = await self.get_stats()
-            
+
             return {
                 "healthy": True,
                 "cache_size": stats["cache_size"],
                 "hit_rate_percent": stats["hit_rate_percent"],
                 "uptime_seconds": stats["uptime_seconds"],
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
-            
+
         except Exception as e:
             logger.error(f"Cache health check failed: {e}")
             return {
                 "healthy": False,
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
 
 # Global cache service instance
-_cache_service: Optional[CacheService] = None
+_cache_service: CacheService | None = None
 
 
 async def get_cache_service() -> CacheService:
     """
     Get the global cache service instance.
-    
+
     Returns:
         The cache service instance
     """
@@ -225,4 +221,4 @@ async def get_cache_service() -> CacheService:
 
 
 # For backward compatibility
-cache_service = get_cache_service 
+cache_service = get_cache_service

@@ -1,11 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
+import {
   FaSeedling,
   FaLeaf,
   FaCalendarAlt,
@@ -17,8 +12,19 @@ import {
   FaPlus,
   FaEye,
   FaTools,
-  FaChartLine
+  FaChartLine,
 } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 // Mock data for demonstration
 const dashboardData = {
@@ -26,7 +32,7 @@ const dashboardData = {
     totalActiveGrows: 24,
     germinationSuccessRate: 94,
     daysToNextHarvest: 3,
-    systemHealthScore: 98
+    systemHealthScore: 98,
   },
   germinationTents: [
     {
@@ -38,10 +44,10 @@ const dashboardData = {
       expectedTransplantDate: "2025-01-22",
       status: "healthy",
       temperature: 22.5,
-      humidity: 75
+      humidity: 75,
     },
     {
-      id: "GT-02", 
+      id: "GT-02",
       name: "Germination Tent 2",
       cropType: "Radish Microgreens",
       daysSinceSeeding: 2,
@@ -49,7 +55,7 @@ const dashboardData = {
       expectedTransplantDate: "2025-01-25",
       status: "healthy",
       temperature: 21.8,
-      humidity: 72
+      humidity: 72,
     },
     {
       id: "GT-03",
@@ -60,7 +66,7 @@ const dashboardData = {
       expectedTransplantDate: "2025-01-20",
       status: "ready_for_transplant",
       temperature: 23.1,
-      humidity: 78
+      humidity: 78,
     },
     {
       id: "GT-04",
@@ -71,8 +77,8 @@ const dashboardData = {
       expectedTransplantDate: null,
       status: "empty",
       temperature: 20.0,
-      humidity: 60
-    }
+      humidity: 60,
+    },
   ],
   growingAreas: [
     {
@@ -83,17 +89,17 @@ const dashboardData = {
       growthStage: "vegetative",
       expectedHarvestDate: "2025-01-23",
       status: "healthy",
-      occupancyRate: 100
+      occupancyRate: 100,
     },
     {
       id: "GA-A2",
-      name: "Growing Area A - Rack 2", 
+      name: "Growing Area A - Rack 2",
       cropType: "Lettuce Mix",
       daysSinceTransplant: 8,
       growthStage: "early_vegetative",
       expectedHarvestDate: "2025-01-27",
       status: "healthy",
-      occupancyRate: 85
+      occupancyRate: 85,
     },
     {
       id: "GA-B1",
@@ -103,7 +109,7 @@ const dashboardData = {
       growthStage: "mature",
       expectedHarvestDate: "2025-01-21",
       status: "ready_for_harvest",
-      occupancyRate: 100
+      occupancyRate: 100,
     },
     {
       id: "GA-B2",
@@ -113,8 +119,8 @@ const dashboardData = {
       growthStage: "empty",
       expectedHarvestDate: null,
       status: "empty",
-      occupancyRate: 0
-    }
+      occupancyRate: 0,
+    },
   ],
   todaysTasks: [
     {
@@ -123,15 +129,15 @@ const dashboardData = {
       priority: "high",
       estimatedTime: "2 hours",
       status: "pending",
-      dueTime: "10:00 AM"
+      dueTime: "10:00 AM",
     },
     {
       id: 2,
       task: "Transplant Sunflower Shoots from GT-03",
-      priority: "high", 
+      priority: "high",
       estimatedTime: "1.5 hours",
       status: "pending",
-      dueTime: "2:00 PM"
+      dueTime: "2:00 PM",
     },
     {
       id: 3,
@@ -139,16 +145,16 @@ const dashboardData = {
       priority: "medium",
       estimatedTime: "45 minutes",
       status: "in_progress",
-      dueTime: "4:00 PM"
+      dueTime: "4:00 PM",
     },
     {
       id: 4,
       task: "Clean and sanitize GT-04",
       priority: "low",
-      estimatedTime: "30 minutes", 
+      estimatedTime: "30 minutes",
       status: "pending",
-      dueTime: "End of day"
-    }
+      dueTime: "End of day",
+    },
   ],
   alerts: [
     {
@@ -156,26 +162,26 @@ const dashboardData = {
       type: "system",
       severity: "medium",
       message: "Temperature sensor in GT-02 showing slight variance",
-      timestamp: "2 hours ago"
+      timestamp: "2 hours ago",
     },
     {
       id: 2,
       type: "crop",
       severity: "low",
       message: "Lettuce Mix in GA-A2 growth rate slightly below average",
-      timestamp: "6 hours ago"
-    }
-  ]
+      timestamp: "6 hours ago",
+    },
+  ],
 };
 
 // Component for metric cards
-const MetricCard = ({ 
-  title, 
-  value, 
-  unit, 
-  icon: Icon, 
-  trend, 
-  color = "blue" 
+const MetricCard = ({
+  title,
+  value,
+  unit,
+  icon: Icon,
+  trend,
+  color = "blue",
 }: {
   title: string;
   value: number | string;
@@ -186,9 +192,9 @@ const MetricCard = ({
 }) => {
   const colorClasses = {
     blue: "text-blue-600 bg-blue-50",
-    green: "text-green-600 bg-green-50", 
+    green: "text-green-600 bg-green-50",
     orange: "text-orange-600 bg-orange-50",
-    red: "text-red-600 bg-red-50"
+    red: "text-red-600 bg-red-50",
   };
 
   return (
@@ -212,11 +218,11 @@ const MetricCard = ({
 };
 
 // Component for status overview cards
-const StatusCard = ({ 
-  title, 
-  items, 
+const StatusCard = ({
+  title,
+  items,
   type,
-  onViewAll 
+  onViewAll,
 }: {
   title: string;
   items: any[];
@@ -225,23 +231,35 @@ const StatusCard = ({
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "healthy": return "text-green-600 bg-green-50";
-      case "ready_for_transplant": return "text-blue-600 bg-blue-50";
-      case "ready_for_harvest": return "text-purple-600 bg-purple-50";
-      case "needs_attention": return "text-orange-600 bg-orange-50";
-      case "empty": return "text-gray-400 bg-gray-50";
-      default: return "text-gray-400 bg-gray-50";
+      case "healthy":
+        return "text-green-600 bg-green-50";
+      case "ready_for_transplant":
+        return "text-blue-600 bg-blue-50";
+      case "ready_for_harvest":
+        return "text-purple-600 bg-purple-50";
+      case "needs_attention":
+        return "text-orange-600 bg-orange-50";
+      case "empty":
+        return "text-gray-400 bg-gray-50";
+      default:
+        return "text-gray-400 bg-gray-50";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "healthy": return "Healthy";
-      case "ready_for_transplant": return "Ready to Transplant";
-      case "ready_for_harvest": return "Ready to Harvest";
-      case "needs_attention": return "Needs Attention";
-      case "empty": return "Empty";
-      default: return status;
+      case "healthy":
+        return "Healthy";
+      case "ready_for_transplant":
+        return "Ready to Transplant";
+      case "ready_for_harvest":
+        return "Ready to Harvest";
+      case "needs_attention":
+        return "Needs Attention";
+      case "empty":
+        return "Empty";
+      default:
+        return status;
     }
   };
 
@@ -259,7 +277,10 @@ const StatusCard = ({
       <CardContent>
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-3 rounded-lg border"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-sm">{item.name}</span>
@@ -272,7 +293,8 @@ const StatusCard = ({
                     <>
                       {item.cropType !== "Empty" ? (
                         <>
-                          {item.cropType} • Day {item.daysSinceSeeding} • {item.germinationRate}% germination
+                          {item.cropType} • Day {item.daysSinceSeeding} •{" "}
+                          {item.germinationRate}% germination
                         </>
                       ) : (
                         "Available for seeding"
@@ -282,7 +304,8 @@ const StatusCard = ({
                     <>
                       {item.cropType !== "Empty" ? (
                         <>
-                          {item.cropType} • Day {item.daysSinceTransplant} • {item.growthStage.replace("_", " ")}
+                          {item.cropType} • Day {item.daysSinceTransplant} •{" "}
+                          {item.growthStage.replace("_", " ")}
                         </>
                       ) : (
                         "Available for transplanting"
@@ -305,28 +328,36 @@ const StatusCard = ({
 };
 
 // Component for tasks
-const TasksCard = ({ 
-  tasks, 
-  onViewAll 
+const TasksCard = ({
+  tasks,
+  onViewAll,
 }: {
   tasks: any[];
   onViewAll: () => void;
 }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high": return "text-red-600 bg-red-50";
-      case "medium": return "text-orange-600 bg-orange-50";
-      case "low": return "text-green-600 bg-green-50";
-      default: return "text-gray-400 bg-gray-50";
+      case "high":
+        return "text-red-600 bg-red-50";
+      case "medium":
+        return "text-orange-600 bg-orange-50";
+      case "low":
+        return "text-green-600 bg-green-50";
+      default:
+        return "text-gray-400 bg-gray-50";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "completed": return <FaCheckCircle className="h-4 w-4 text-green-600" />;
-      case "in_progress": return <FaClock className="h-4 w-4 text-blue-600" />;
-      case "pending": return <FaClock className="h-4 w-4 text-gray-400" />;
-      default: return <FaClock className="h-4 w-4 text-gray-400" />;
+      case "completed":
+        return <FaCheckCircle className="h-4 w-4 text-green-600" />;
+      case "in_progress":
+        return <FaClock className="h-4 w-4 text-blue-600" />;
+      case "pending":
+        return <FaClock className="h-4 w-4 text-gray-400" />;
+      default:
+        return <FaClock className="h-4 w-4 text-gray-400" />;
     }
   };
 
@@ -344,12 +375,17 @@ const TasksCard = ({
       <CardContent>
         <div className="space-y-3">
           {tasks.map((task) => (
-            <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border">
+            <div
+              key={task.id}
+              className="flex items-center gap-3 p-3 rounded-lg border"
+            >
               {getStatusIcon(task.status)}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-sm">{task.task}</span>
-                  <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                  <Badge
+                    className={`text-xs ${getPriorityColor(task.priority)}`}
+                  >
                     {task.priority}
                   </Badge>
                 </div>
@@ -369,18 +405,25 @@ const TasksCard = ({
 const AlertsCard = ({ alerts }: { alerts: any[] }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "high": return "text-red-600 bg-red-50 border-red-200";
-      case "medium": return "text-orange-600 bg-orange-50 border-orange-200";
-      case "low": return "text-blue-600 bg-blue-50 border-blue-200";
-      default: return "text-gray-400 bg-gray-50 border-gray-200";
+      case "high":
+        return "text-red-600 bg-red-50 border-red-200";
+      case "medium":
+        return "text-orange-600 bg-orange-50 border-orange-200";
+      case "low":
+        return "text-blue-600 bg-blue-50 border-blue-200";
+      default:
+        return "text-gray-400 bg-gray-50 border-gray-200";
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "system": return <FaTools className="h-4 w-4" />;
-      case "crop": return <FaLeaf className="h-4 w-4" />;
-      default: return <FaExclamationTriangle className="h-4 w-4" />;
+      case "system":
+        return <FaTools className="h-4 w-4" />;
+      case "crop":
+        return <FaLeaf className="h-4 w-4" />;
+      default:
+        return <FaExclamationTriangle className="h-4 w-4" />;
     }
   };
 
@@ -393,11 +436,16 @@ const AlertsCard = ({ alerts }: { alerts: any[] }) => {
         {alerts.length > 0 ? (
           <div className="space-y-3">
             {alerts.map((alert) => (
-              <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg border ${getSeverityColor(alert.severity)}`}>
+              <div
+                key={alert.id}
+                className={`flex items-start gap-3 p-3 rounded-lg border ${getSeverityColor(alert.severity)}`}
+              >
                 {getTypeIcon(alert.type)}
                 <div className="flex-1">
                   <p className="text-sm font-medium">{alert.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{alert.timestamp}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {alert.timestamp}
+                  </p>
                 </div>
               </div>
             ))}
@@ -414,9 +462,9 @@ const AlertsCard = ({ alerts }: { alerts: any[] }) => {
 };
 
 // Component for quick actions
-const QuickActionsCard = ({ 
-  onNavigateToTab 
-}: { 
+const QuickActionsCard = ({
+  onNavigateToTab,
+}: {
   onNavigateToTab: (tab: string) => void;
 }) => {
   const actions = [
@@ -425,29 +473,29 @@ const QuickActionsCard = ({
       description: "Set up a new growing cycle",
       icon: FaPlus,
       color: "bg-green-500 hover:bg-green-600",
-      tab: "setup"
+      tab: "setup",
     },
     {
       title: "Germination Overview",
       description: "Monitor all germination tents",
       icon: FaSeedling,
       color: "bg-blue-500 hover:bg-blue-600",
-      tab: "germination"
+      tab: "germination",
     },
     {
-      title: "Transplant Manager", 
+      title: "Transplant Manager",
       description: "Manage seedling transplants",
       icon: FaArrowRight,
       color: "bg-purple-500 hover:bg-purple-600",
-      tab: "transplant"
+      tab: "transplant",
     },
     {
       title: "Parameters & Recipes",
       description: "Adjust growing parameters",
       icon: FaChartLine,
       color: "bg-orange-500 hover:bg-orange-600",
-      tab: "parameters"
-    }
+      tab: "parameters",
+    },
   ];
 
   return (
@@ -481,12 +529,13 @@ const QuickActionsCard = ({
 };
 
 // Main dashboard component
-export const GrowOperationsDashboard = ({ 
-  onNavigateToTab 
-}: { 
+export const GrowOperationsDashboard = ({
+  onNavigateToTab,
+}: {
   onNavigateToTab: (tab: string) => void;
 }) => {
-  const { keyMetrics, germinationTents, growingAreas, todaysTasks, alerts } = dashboardData;
+  const { keyMetrics, germinationTents, growingAreas, todaysTasks, alerts } =
+    dashboardData;
 
   const handleViewGermination = () => onNavigateToTab("germination");
   const handleViewGrowing = () => onNavigateToTab("parameters");
@@ -543,10 +592,7 @@ export const GrowOperationsDashboard = ({
 
       {/* Tasks and Alerts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TasksCard
-          tasks={todaysTasks}
-          onViewAll={handleViewTasks}
-        />
+        <TasksCard tasks={todaysTasks} onViewAll={handleViewTasks} />
         <AlertsCard alerts={alerts} />
       </div>
 
@@ -554,4 +600,4 @@ export const GrowOperationsDashboard = ({
       <QuickActionsCard onNavigateToTab={onNavigateToTab} />
     </div>
   );
-}; 
+};

@@ -6,8 +6,8 @@ This document demonstrates how to migrate from the old service pattern to the ne
 
 ```typescript
 // Old farmService.ts (150 lines)
-'use client';
-import { supabase } from '@/lib/supabaseClient';
+"use client";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface Farm {
   id?: string;
@@ -19,16 +19,20 @@ export interface Farm {
 }
 
 export const getFarms = async (): Promise<Farm[]> => {
-  const { data, error } = await supabase.from('farms').select('*');
+  const { data, error } = await supabase.from("farms").select("*");
   if (error) {
-    console.error('Error fetching farms direct from Supabase:', error);
+    console.error("Error fetching farms direct from Supabase:", error);
     throw error;
   }
   return data || [];
 };
 
 export const getFarmById = async (id: string): Promise<Farm | null> => {
-  const { data, error } = await supabase.from('farms').select('*').eq('id', id).single();
+  const { data, error } = await supabase
+    .from("farms")
+    .select("*")
+    .eq("id", id)
+    .single();
   if (error) {
     console.error(`Error fetching farm ${id} direct from Supabase:`, error);
     throw error;
@@ -36,18 +40,20 @@ export const getFarmById = async (id: string): Promise<Farm | null> => {
   return data;
 };
 
-export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Farm | null> => {
+export const createFarm = async (
+  farmData: Omit<Farm, "id" | "created_at" | "updated_at" | "user_id">,
+): Promise<Farm | null> => {
   const { data, error } = await supabase
-    .from('farms')
+    .from("farms")
     .insert([farmData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating farm via Supabase:', error);
+    console.error("Error creating farm via Supabase:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -55,6 +61,7 @@ export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'upd
 ```
 
 ### Issues with the old pattern:
+
 - ❌ No error handling consistency
 - ❌ No authentication management
 - ❌ Repetitive CRUD patterns
@@ -67,11 +74,11 @@ export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'upd
 
 ```typescript
 // New domain/farm/FarmService.ts (100 lines)
-import { BaseCRUDService } from '../../core/base/BaseCRUDService';
-import { Farm, FarmStatistics } from './types';
+import { BaseCRUDService } from "../../core/base/BaseCRUDService";
+import { Farm, FarmStatistics } from "./types";
 
 export class FarmService extends BaseCRUDService<Farm> {
-  protected readonly tableName = 'farms';
+  protected readonly tableName = "farms";
   private static instance: FarmService;
 
   static getInstance(): FarmService {
@@ -82,34 +89,38 @@ export class FarmService extends BaseCRUDService<Farm> {
   }
 
   protected validateCreateData(data: any): void {
-    this.validateRequired(data.name, 'name');
-    
+    this.validateRequired(data.name, "name");
+
     if (data.name.length > 100) {
-      throw new Error('Farm name must be 100 characters or less');
+      throw new Error("Farm name must be 100 characters or less");
     }
   }
 
   async getFarmsByUser(userId: string): Promise<Farm[]> {
-    this.validateId(userId, 'userId');
-    return this.findByField('user_id', userId);
+    this.validateId(userId, "userId");
+    return this.findByField("user_id", userId);
   }
 
   async searchFarms(query: string): Promise<Farm[]> {
-    this.validateRequired(query, 'query');
-    
+    this.validateRequired(query, "query");
+
     return this.executeQuery(async () => {
       const result = await this.getSupabaseClient()
         .from(this.tableName)
         .select(this.selectFields)
         .or(`name.ilike.%${query}%,location.ilike.%${query}%`);
-      
-      return { data: (result.data || []) as unknown as Farm[], error: result.error };
-    }, 'Search farms');
+
+      return {
+        data: (result.data || []) as unknown as Farm[],
+        error: result.error,
+      };
+    }, "Search farms");
   }
 }
 ```
 
 ### Benefits of the new pattern:
+
 - ✅ **Centralized error handling** - All errors handled consistently
 - ✅ **Authentication management** - Built into base classes
 - ✅ **DRY principle** - No more repetitive CRUD code
@@ -123,42 +134,44 @@ export class FarmService extends BaseCRUDService<Farm> {
 ## Usage Comparison
 
 ### Old Usage:
+
 ```typescript
 // Component using old service
 try {
   const farms = await getFarms();
-  const farm = await getFarmById('123');
-  const newFarm = await createFarm({ name: 'Test Farm' });
+  const farm = await getFarmById("123");
+  const newFarm = await createFarm({ name: "Test Farm" });
 } catch (error) {
   // Manual error handling in every component
-  console.error('Error:', error);
-  toast.error('Something went wrong');
+  console.error("Error:", error);
+  toast.error("Something went wrong");
 }
 ```
 
 ### New Usage:
+
 ```typescript
 // Component using new service
 const farmService = FarmService.getInstance();
 
 // All methods have built-in error handling, auth, validation, logging
 const farms = await farmService.getAll();
-const farm = await farmService.getById('123');
-const newFarm = await farmService.create({ name: 'Test Farm' });
-const userFarms = await farmService.getFarmsByUser('user-123');
-const searchResults = await farmService.searchFarms('greenhouse');
+const farm = await farmService.getById("123");
+const newFarm = await farmService.create({ name: "Test Farm" });
+const userFarms = await farmService.getFarmsByUser("user-123");
+const searchResults = await farmService.searchFarms("greenhouse");
 ```
 
 ## Code Reduction
 
-| Metric | Old Pattern | New Pattern | Improvement |
-|--------|-------------|-------------|-------------|
-| Lines of code | 150 | 100 | 33% reduction |
-| Error handling | Manual in each function | Centralized | 90% reduction |
-| Auth checks | None | Built-in | 100% improvement |
-| Validation | None | Built-in | 100% improvement |
-| Logging | Manual console.log | Automatic | 100% improvement |
-| Type safety | Partial | Complete | 100% improvement |
+| Metric         | Old Pattern             | New Pattern | Improvement      |
+| -------------- | ----------------------- | ----------- | ---------------- |
+| Lines of code  | 150                     | 100         | 33% reduction    |
+| Error handling | Manual in each function | Centralized | 90% reduction    |
+| Auth checks    | None                    | Built-in    | 100% improvement |
+| Validation     | None                    | Built-in    | 100% improvement |
+| Logging        | Manual console.log      | Automatic   | 100% improvement |
+| Type safety    | Partial                 | Complete    | 100% improvement |
 
 ## Migration Steps
 
@@ -171,12 +184,14 @@ const searchResults = await farmService.searchFarms('greenhouse');
 ## Next Steps
 
 This pattern can be applied to all existing services:
+
 - `rackService.ts` → `RackService` class
-- `shelfService.ts` → `ShelfService` class  
+- `shelfService.ts` → `ShelfService` class
 - `rowService.ts` → `RowService` class
 - `deviceAssignmentService.ts` → `DeviceAssignmentService` class
 
 Large services like `homeAssistantService.ts` should be broken into:
+
 - `HomeAssistantWebSocketService` (WebSocket management)
 - `HomeAssistantDeviceService` (Device operations)
-- `HomeAssistantConfigService` (Configuration management) 
+- `HomeAssistantConfigService` (Configuration management)

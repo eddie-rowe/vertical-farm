@@ -1,6 +1,10 @@
-import React from 'react';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { EmptyStateWithIntegrations, IntegrationHint } from '@/components/features/automation';
+import React from "react";
+
+import {
+  EmptyStateWithIntegrations,
+  IntegrationHint,
+} from "@/components/features/automation";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // Integration interface for empty state component
 interface Integration {
@@ -8,8 +12,8 @@ interface Integration {
   icon: string;
   benefit: string;
   setupTime?: string;
-  status: 'available' | 'connected' | 'coming-soon';
-  difficulty?: 'easy' | 'medium' | 'advanced';
+  status: "available" | "connected" | "coming-soon";
+  difficulty?: "easy" | "medium" | "advanced";
   onConnect?: () => void;
 }
 
@@ -36,7 +40,7 @@ export interface IntegrationHintProps {
   /** Page context for integration hints */
   pageContext: any;
   /** Hint variant style */
-  variant?: 'info' | 'warning' | 'success';
+  variant?: "info" | "warning" | "success";
 }
 
 /**
@@ -76,7 +80,7 @@ const DefaultLoadingComponent: React.FC = () => (
 
 /**
  * Standardized page layout component
- * 
+ *
  * This component provides a consistent structure for all pages including:
  * - Loading states
  * - Empty states with integration prompts
@@ -94,7 +98,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   integrationHintProps,
   children,
   loadingComponent,
-  className = ''
+  className = "",
 }) => {
   // Show loading state
   if (isLoading) {
@@ -105,10 +109,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   if (!hasData && emptyStateProps) {
     return (
       <div className={`space-y-6 ${className}`}>
-        <PageHeader
-          title={title}
-          description={description}
-        />
+        <PageHeader title={title} description={description} />
 
         <EmptyStateWithIntegrations
           pageType={emptyStateProps.pageType}
@@ -124,10 +125,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Page Header */}
-      <PageHeader
-        title={title}
-        description={description}
-      />
+      <PageHeader title={title} description={description} />
 
       {/* Integration Hint (only show if we have data and integration hint props) */}
       {hasData && integrationHintProps && (
@@ -135,7 +133,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           message={integrationHintProps.message}
           integrations={integrationHintProps.integrationNames}
           pageContext={integrationHintProps.pageContext}
-          variant={integrationHintProps.variant || 'info'}
+          variant={integrationHintProps.variant || "info"}
         />
       )}
 
@@ -151,11 +149,11 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
 export const createEmptyStateProps = (
   pageType: "business" | "devices" | "ai" | "environmental" | "inventory",
   title: string,
-  description: string
+  description: string,
 ): EmptyStateProps => ({
   pageType,
   title,
-  description
+  description,
 });
 
 /**
@@ -165,10 +163,10 @@ export const createIntegrationHintProps = (
   message: any,
   integrationNames: string[],
   pageContext: any,
-  variant: 'info' | 'warning' | 'success' = 'info'
+  variant: "info" | "warning" | "success" = "info",
 ): IntegrationHintProps => ({
   message,
   integrationNames,
   pageContext,
-  variant
-}); 
+  variant,
+});

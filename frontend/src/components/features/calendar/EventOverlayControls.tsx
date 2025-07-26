@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { FaSeedling, FaCog, FaUsers, FaTruck } from 'react-icons/fa';
-import type { EventOverlay, EventType } from '@/types/calendar';
+import React from "react";
+import { FaSeedling, FaCog, FaUsers, FaTruck } from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import type { EventOverlay, EventType } from "@/types/calendar";
 
 interface EventOverlayControlsProps {
   overlays: EventOverlay[];
@@ -19,7 +20,10 @@ const ICON_MAP = {
   FaTruck: FaTruck,
 };
 
-export function EventOverlayControls({ overlays, onToggle }: EventOverlayControlsProps) {
+export function EventOverlayControls({
+  overlays,
+  onToggle,
+}: EventOverlayControlsProps) {
   return (
     <Card>
       <CardHeader>
@@ -31,8 +35,9 @@ export function EventOverlayControls({ overlays, onToggle }: EventOverlayControl
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {overlays.map((overlay) => {
-            const IconComponent = ICON_MAP[overlay.icon as keyof typeof ICON_MAP];
-            
+            const IconComponent =
+              ICON_MAP[overlay.icon as keyof typeof ICON_MAP];
+
             return (
               <div
                 key={overlay.id}
@@ -40,28 +45,32 @@ export function EventOverlayControls({ overlays, onToggle }: EventOverlayControl
               >
                 <div className="flex items-center space-x-3 flex-1">
                   {IconComponent && (
-                    <div 
+                    <div
                       className="p-2 rounded-md"
-                      style={{ 
-                        backgroundColor: overlay.enabled ? overlay.color : '#e5e7eb',
-                        color: overlay.enabled ? 'white' : '#6b7280'
+                      style={{
+                        backgroundColor: overlay.enabled
+                          ? overlay.color
+                          : "#e5e7eb",
+                        color: overlay.enabled ? "white" : "#6b7280",
                       }}
                     >
                       <IconComponent className="w-4 h-4" />
                     </div>
                   )}
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-sm">{overlay.label}</span>
+                      <span className="font-medium text-sm">
+                        {overlay.label}
+                      </span>
                       {overlay.enabled && (
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="text-xs"
-                          style={{ 
+                          style={{
                             backgroundColor: `${overlay.color}20`,
                             color: overlay.color,
-                            borderColor: overlay.color
+                            borderColor: overlay.color,
                           }}
                         >
                           Active
@@ -73,7 +82,7 @@ export function EventOverlayControls({ overlays, onToggle }: EventOverlayControl
                     </p>
                   </div>
                 </div>
-                
+
                 <Switch
                   checked={overlay.enabled}
                   onCheckedChange={(checked) => onToggle(overlay.id, checked)}
@@ -83,26 +92,27 @@ export function EventOverlayControls({ overlays, onToggle }: EventOverlayControl
             );
           })}
         </div>
-        
+
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
-              {overlays.filter(o => o.enabled).length} of {overlays.length} event types enabled
+              {overlays.filter((o) => o.enabled).length} of {overlays.length}{" "}
+              event types enabled
             </span>
             <button
               onClick={() => {
-                const allEnabled = overlays.every(o => o.enabled);
-                overlays.forEach(overlay => {
+                const allEnabled = overlays.every((o) => o.enabled);
+                overlays.forEach((overlay) => {
                   onToggle(overlay.id, !allEnabled);
                 });
               }}
               className="text-primary hover:text-primary/80 font-medium"
             >
-              {overlays.every(o => o.enabled) ? 'Hide All' : 'Show All'}
+              {overlays.every((o) => o.enabled) ? "Hide All" : "Show All"}
             </button>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

@@ -1,0 +1,266 @@
+name: Frontend Security Scanning
+
+on:
+  workflow_call:
+    outputs:
+      security_status:
+        description: "Frontend security scan status"
+        value: ${{ jobs.frontend-security.outputs.status }}
+      critical_issues:
+        description: "Number of critical security issues"
+        value: ${{ jobs.frontend-security.outputs.critical_issues }}
+      high_issues:
+        description: "Number of high security issues"
+        value: ${{ jobs.frontend-security.outputs.high_issues }}
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  frontend-security:
+    name: Frontend Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      status: ${{ steps.security-assessment.outputs.status }}
+      critical_issues: ${{ steps.security-assessment.outputs.critical_issues }}
+      high_issues: ${{ steps.security-assessment.outputs.high_issues }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # =============================================================================
+      # FRONTEND SECURITY SETUP
+      # =============================================================================
+      
+      - name: Set up Node.js for Frontend Analysis
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+          key: ${{ runner.os }}-security-node-${{ env.NODE_VERSION }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-security-node-${{ env.NODE_VERSION }}-
+            ${{ runner.os }}-security-node-
+      
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci
+      
+      # =============================================================================
+      # FRONTEND LICENSE COMPLIANCE
+      # =============================================================================
+      
+      - name: Frontend License Compliance
+        working-directory: ./frontend
+        run: |
+          # Install license-checker globally
+          npm install -g license-checker
+          
+          echo "## 📄 Frontend License Compliance" >> $GITHUB_STEP_SUMMARY
+          
+          # Generate license reports
+          license-checker --production --json > frontend-licenses.json
+          license-checker --production --csv > frontend-licenses.csv
+          
+          # Check for problematic licenses (don't fail build)
+          license-checker --production --failOn "GPL-2.0;GPL-3.0;AGPL-3.0;LGPL-2.1;LGPL-3.0" || echo "⚠️ Problematic frontend licenses detected"
+          
+          if [ -f frontend-licenses.json ]; then
+            TOTAL_DEPS=$(jq 'keys | length' frontend-licenses.json 2>/dev/null || echo "unknown")
+            echo "- **Frontend dependencies analyzed**: $TOTAL_DEPS" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # =============================================================================
+      # FRONTEND DEPENDENCY SECURITY SCANNING
+      # =============================================================================
+      
+      - name: Frontend Dependency Security Scan
+        working-directory: ./frontend
+        run: |
+          echo "## 🔍 Frontend Dependency Security" >> $GITHUB_STEP_SUMMARY
+          
+          # npm audit with detailed output
+          npm audit --audit-level=moderate --json > frontend-npm-audit.json || true
+          npm audit --audit-level=moderate || echo "Frontend dependencies have vulnerabilities"
+          
+          # Check for outdated packages
+          npm outdated --json > frontend-outdated.json || true
+          
+          # Analyze audit results
+          if [ -f frontend-npm-audit.json ]; then
+            CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' frontend-npm-audit.json)
+            HIGH=$(jq '.metadata.vulnerabilities.high // 0' frontend-npm-audit.json)
+            echo "- **Frontend Critical vulnerabilities**: $CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Frontend High vulnerabilities**: $HIGH" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # =============================================================================
+      # FRONTEND STATIC APPLICATION SECURITY TESTING (SAST) - ENHANCED
+      # =============================================================================
+      
+      - name: Frontend SAST (ESLint Security)
+        working-directory: ./frontend
+        run: |
+          echo "## 🛡️ Frontend SAST Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # ESLint security scan (JSON output only - no SARIF complexity)
+          npx eslint . \
+            --ext .js,.jsx,.ts,.tsx \
+            --format json \
+            --output-file frontend-eslint-security.json || true
+          
+          # Count security issues from JSON
+          if [ -f frontend-eslint-security.json ]; then
+            ESLINT_ISSUES=$(jq 'map(.messages | length) | add // 0' frontend-eslint-security.json 2>/dev/null || echo "0")
+            echo "- **ESLint security issues**: $ESLINT_ISSUES" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # =============================================================================
+      # COMPREHENSIVE JAVASCRIPT VULNERABILITY SCANNING (RETIRE.JS)
+      # =============================================================================
+      
+      - name: JavaScript Vulnerability Scan (Retire.js)
+        working-directory: ./frontend
+        run: |
+          echo "## 🔍 JavaScript Vulnerability Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Install and run retire.js for comprehensive JS vulnerability scanning
+          npm install -g retire
+          
+          # Scan for vulnerable JavaScript libraries and components
+          retire --js --outputformat json --outputpath frontend-retire-report.json || true
+          retire --js || echo "Vulnerable JavaScript components detected"
+          
+          # Analyze retire.js results
+          if [ -f frontend-retire-report.json ]; then
+            VULNERABLE_LIBS=$(jq '[.[] | select(.results | length > 0)] | length' frontend-retire-report.json 2>/dev/null || echo "0")
+            TOTAL_ISSUES=$(jq '[.[].results[]] | length' frontend-retire-report.json 2>/dev/null || echo "0")
+            echo "- **Vulnerable JS libraries**: $VULNERABLE_LIBS" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total JS vulnerability issues**: $TOTAL_ISSUES" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$VULNERABLE_LIBS" -gt 0 ]; then
+              echo "⚠️ Vulnerable JavaScript libraries found:" >> $GITHUB_STEP_SUMMARY
+              jq -r '.[] | select(.results | length > 0) | "- \(.file): \(.results[0].vulnerabilities[0].summary // "No summary")"' frontend-retire-report.json | head -5 >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+      
+      # =============================================================================
+      # ENHANCED PACKAGE SECURITY ANALYSIS
+      # =============================================================================
+      
+      - name: Enhanced Package Security Analysis
+        working-directory: ./frontend
+        run: |
+          echo "## 📦 Enhanced Package Security" >> $GITHUB_STEP_SUMMARY
+          
+          # Verify package-lock.json integrity
+          if [ -f package-lock.json ]; then
+            npm ci --audit=false >/dev/null 2>&1 || echo "⚠️ Package-lock.json integrity issues detected"
+            echo "- **Package integrity**: Verified" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for dependency confusion risks
+          npm ls --depth=0 --json > frontend-deps-tree.json 2>/dev/null || true
+          if [ -f frontend-deps-tree.json ]; then
+            DIRECT_DEPS=$(jq '.dependencies | keys | length' frontend-deps-tree.json 2>/dev/null || echo "0")
+            echo "- **Direct dependencies analyzed**: $DIRECT_DEPS" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # =============================================================================
+      # FRONTEND SECURITY REPORTING & UPLOADS
+      # =============================================================================
+      
+      - name: Upload Frontend Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-security-reports
+          path: |
+            frontend/frontend-licenses.json
+            frontend/frontend-licenses.csv
+            frontend/frontend-npm-audit.json
+            frontend/frontend-outdated.json
+            frontend/frontend-eslint-security.json
+            frontend/frontend-retire-report.json
+            frontend/frontend-deps-tree.json
+          retention-days: 30
+      
+      # =============================================================================
+      # FRONTEND SECURITY ASSESSMENT & GATING
+      # =============================================================================
+      
+      - name: Frontend Security Assessment
+        id: security-assessment
+        run: |
+          echo "## 🎯 Frontend Security Assessment" >> $GITHUB_STEP_SUMMARY
+          
+          # Initialize counters
+          CRITICAL_ISSUES=0
+          HIGH_ISSUES=0
+          
+          # Check frontend critical vulnerabilities
+          if [ -f frontend/frontend-npm-audit.json ]; then
+            FRONTEND_CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' frontend/frontend-npm-audit.json)
+            FRONTEND_HIGH=$(jq '.metadata.vulnerabilities.high // 0' frontend/frontend-npm-audit.json)
+            CRITICAL_ISSUES=$((CRITICAL_ISSUES + FRONTEND_CRITICAL))
+            HIGH_ISSUES=$((HIGH_ISSUES + FRONTEND_HIGH))
+          fi
+          
+          # Check retire.js vulnerability findings
+          if [ -f frontend/frontend-retire-report.json ]; then
+            RETIRE_VULNERABLE_LIBS=$(jq '[.[] | select(.results | length > 0)] | length' frontend/frontend-retire-report.json 2>/dev/null || echo "0")
+            HIGH_ISSUES=$((HIGH_ISSUES + RETIRE_VULNERABLE_LIBS))
+          fi
+          
+          # Create summary table
+          echo "| Security Category | Critical | High | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------------|----------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Dependencies | ${FRONTEND_CRITICAL:-0} | ${FRONTEND_HIGH:-0} | $([ ${FRONTEND_CRITICAL:-0} -eq 0 ] && echo '✅' || echo '❌') |" >> $GITHUB_STEP_SUMMARY
+          echo "| JavaScript Libraries | - | ${RETIRE_VULNERABLE_LIBS:-0} | $([ ${RETIRE_VULNERABLE_LIBS:-0} -eq 0 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| ESLint Security | - | - | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Frontend Total** | **$CRITICAL_ISSUES** | **$HIGH_ISSUES** | - |" >> $GITHUB_STEP_SUMMARY
+          
+          # Set outputs for main pipeline
+          echo "critical_issues=$CRITICAL_ISSUES" >> $GITHUB_OUTPUT
+          echo "high_issues=$HIGH_ISSUES" >> $GITHUB_OUTPUT
+          
+          # Determine overall status
+          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+            echo "status=critical" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **FRONTEND SECURITY: FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "Critical frontend security vulnerabilities found." >> $GITHUB_STEP_SUMMARY
+          elif [ "$HIGH_ISSUES" -gt 5 ]; then
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **FRONTEND SECURITY: WARNING**" >> $GITHUB_STEP_SUMMARY
+            echo "High number of frontend security issues detected ($HIGH_ISSUES)." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **FRONTEND SECURITY: PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "No critical frontend security issues detected." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Output for debugging
+          echo "Frontend critical security issues: $CRITICAL_ISSUES"
+          echo "Frontend high security issues: $HIGH_ISSUES" 

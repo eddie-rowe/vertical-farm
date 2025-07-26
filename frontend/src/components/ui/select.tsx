@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { cva, type VariantProps } from "class-variance-authority"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/lib/icons"
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 const selectTriggerVariants = cva(
   "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -13,14 +13,18 @@ const selectTriggerVariants = cva(
     variants: {
       size: {
         sm: "h-8 px-3 py-1",
-        default: "h-9 px-3 py-2", 
+        default: "h-9 px-3 py-2",
         lg: "h-10 px-4 py-2",
       },
       validationState: {
-        default: "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        success: "border-emerald-500 focus-visible:border-emerald-600 focus-visible:ring-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-400",
-        warning: "border-amber-500 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-400",
-        error: "border-red-500 focus-visible:border-red-600 focus-visible:ring-red-500/30 bg-red-50/50 dark:bg-red-950/20 dark:border-red-400",
+        default:
+          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        success:
+          "border-emerald-500 focus-visible:border-emerald-600 focus-visible:ring-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-400",
+        warning:
+          "border-amber-500 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-400",
+        error:
+          "border-red-500 focus-visible:border-red-600 focus-visible:ring-red-500/30 bg-red-50/50 dark:bg-red-950/20 dark:border-red-400",
         info: "border-blue-500 focus-visible:border-blue-600 focus-visible:ring-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-400",
       },
     },
@@ -28,25 +32,25 @@ const selectTriggerVariants = cva(
       size: "default",
       validationState: "default",
     },
-  }
-)
+  },
+);
 
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />
+  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />
+  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
 function SelectTrigger({
@@ -55,7 +59,7 @@ function SelectTrigger({
   validationState = "default",
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & 
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> &
   VariantProps<typeof selectTriggerVariants>) {
   return (
     <SelectPrimitive.Trigger
@@ -63,7 +67,7 @@ function SelectTrigger({
       data-size={size}
       className={cn(
         selectTriggerVariants({ size, validationState }),
-        className
+        className,
       )}
       {...props}
     >
@@ -72,7 +76,7 @@ function SelectTrigger({
         <ChevronDownIcon className="size-4 opacity-50" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
-  )
+  );
 }
 
 function SelectContent({
@@ -89,7 +93,7 @@ function SelectContent({
           "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          className
+          className,
         )}
         position={position}
         {...props}
@@ -99,7 +103,7 @@ function SelectContent({
           className={cn(
             "p-1",
             position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1",
           )}
         >
           {children}
@@ -107,7 +111,7 @@ function SelectContent({
         <SelectScrollDownButton />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
-  )
+  );
 }
 
 function SelectLabel({
@@ -120,7 +124,7 @@ function SelectLabel({
       className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
       {...props}
     />
-  )
+  );
 }
 
 function SelectItem({
@@ -133,7 +137,7 @@ function SelectItem({
       data-slot="select-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className
+        className,
       )}
       {...props}
     >
@@ -144,7 +148,7 @@ function SelectItem({
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
-  )
+  );
 }
 
 function SelectSeparator({
@@ -157,7 +161,7 @@ function SelectSeparator({
       className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
       {...props}
     />
-  )
+  );
 }
 
 function SelectScrollUpButton({
@@ -169,13 +173,13 @@ function SelectScrollUpButton({
       data-slot="select-scroll-up-button"
       className={cn(
         "flex cursor-default items-center justify-center py-1",
-        className
+        className,
       )}
       {...props}
     >
       <ChevronUpIcon className="size-4" />
     </SelectPrimitive.ScrollUpButton>
-  )
+  );
 }
 
 function SelectScrollDownButton({
@@ -187,13 +191,13 @@ function SelectScrollDownButton({
       data-slot="select-scroll-down-button"
       className={cn(
         "flex cursor-default items-center justify-center py-1",
-        className
+        className,
       )}
       {...props}
     >
       <ChevronDownIcon className="size-4" />
     </SelectPrimitive.ScrollDownButton>
-  )
+  );
 }
 
 export {
@@ -208,4 +212,4 @@ export {
   SelectTrigger,
   SelectValue,
   selectTriggerVariants,
-}
+};

@@ -1,2 +1,2 @@
 // Auth Page Components
-export { default as ProtectedPageWrapper } from './ProtectedPageWrapper'; 
+export { default as ProtectedPageWrapper } from "./ProtectedPageWrapper";

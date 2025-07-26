@@ -85,3 +85,34 @@ local.db
 
 # Ignore built docs
 /site/
+
+# Testing and Quality Tools
+# Code quality reports
+backend/vulture-report.txt
+frontend/large-chunks.txt
+frontend/depcheck-report.json
+
+# Security scan reports
+backend/bandit-report.json
+backend/bandit-report.sarif
+backend/safety-report.json
+backend/licenses.json
+frontend/npm-audit-detailed.json
+frontend/licenses.json
+frontend/licenses.csv
+frontend/outdated-packages.json
+frontend/snyk-report.json
+frontend/eslint-results.sarif
+frontend/accessibility-report.json
+
+# Test results
+backend/test-results.xml
+frontend/test-results/
+frontend/junit.xml
+
+# Pre-commit cache
+.pre-commit-cache/
+
+# Coverage directories
+**/htmlcov*/
+**/coverage/

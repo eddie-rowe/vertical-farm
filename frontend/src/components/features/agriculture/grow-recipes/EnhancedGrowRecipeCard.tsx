@@ -1,28 +1,30 @@
-'use client';
+"use client";
 
-import { 
-  Edit, 
-  Trash2, 
-  Clock, 
-  Droplets, 
-  Sun, 
-  Copy, 
-  Eye, 
+import {
+  Edit,
+  Trash2,
+  Clock,
+  Sun,
+  Copy,
+  Eye,
   Star,
-  Calendar,
   Thermometer,
-  Beaker,
   Leaf,
   BarChart3,
-  PlayCircle
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Progress } from '@/components/ui/progress';
+  PlayCircle,
+} from "lucide-react";
 
-import { GrowRecipe } from '@/types/grow-recipes';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { GrowRecipe } from "@/types/grow-recipes";
 
 interface EnhancedGrowRecipeCardProps {
   recipe: GrowRecipe;
@@ -35,62 +37,68 @@ interface EnhancedGrowRecipeCardProps {
   successRate?: number;
 }
 
-export function EnhancedGrowRecipeCard({ 
-  recipe, 
-  onEdit, 
-  onDelete, 
+export function EnhancedGrowRecipeCard({
+  recipe,
+  onEdit,
+  onDelete,
   onClone,
   onPreview,
   onStartGrow,
   isActive = false,
-  successRate = Math.floor(Math.random() * 30) + 70 // Mock success rate
+  successRate = Math.floor(Math.random() * 30) + 70, // Mock success rate
 }: EnhancedGrowRecipeCardProps) {
   const getDifficultyConfig = (difficulty: string | null) => {
     switch (difficulty) {
-      case 'Easy': 
-        return { 
-          color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-          icon: '🌱'
+      case "Easy":
+        return {
+          color:
+            "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+          icon: "🌱",
         };
-      case 'Medium': 
-        return { 
-          color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-          icon: '🌿'
+      case "Medium":
+        return {
+          color:
+            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+          icon: "🌿",
         };
-      case 'Hard': 
-        return { 
-          color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-          icon: '🌳'
+      case "Hard":
+        return {
+          color: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+          icon: "🌳",
         };
-      default: 
-        return { 
-          color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-          icon: '🌿'
+      default:
+        return {
+          color:
+            "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
+          icon: "🌿",
         };
     }
   };
 
   const getPythiumRiskConfig = (risk: string | null) => {
     switch (risk) {
-      case 'Low': 
-        return { 
-          color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-          icon: '🛡️'
+      case "Low":
+        return {
+          color:
+            "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+          icon: "🛡️",
         };
-      case 'Medium': 
-        return { 
-          color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-          icon: '⚠️'
+      case "Medium":
+        return {
+          color:
+            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+          icon: "⚠️",
         };
-      case 'High': 
-        return { 
-          color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-          icon: '⚡'
+      case "High":
+        return {
+          color: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+          icon: "⚡",
         };
-      default: 
-        return { 
-          color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-          icon: '❓'
+      default:
+        return {
+          color:
+            "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
+          icon: "❓",
         };
     }
   };
@@ -100,11 +108,13 @@ export function EnhancedGrowRecipeCard({
   const totalDays = recipe.total_grow_days || recipe.grow_days || 0;
 
   return (
-    <Card className={`
+    <Card
+      className={`
       group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]
-      ${isActive ? 'ring-2 ring-green-500 dark:ring-green-400' : ''}
+      ${isActive ? "ring-2 ring-green-500 dark:ring-green-400" : ""}
       border-l-4 border-l-primary/30 hover:border-l-primary
-    `}>
+    `}
+    >
       {/* Active indicator */}
       {isActive && (
         <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
@@ -118,7 +128,10 @@ export function EnhancedGrowRecipeCard({
                 {recipe.name}
               </CardTitle>
               {isActive && (
-                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400">
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400"
+                >
                   Active
                 </Badge>
               )}
@@ -126,29 +139,37 @@ export function EnhancedGrowRecipeCard({
             <div className="flex items-center gap-2">
               <Leaf className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground truncate">
-                {recipe.species?.name || 'Unknown Species'}
+                {recipe.species?.name || "Unknown Species"}
               </p>
             </div>
           </div>
-          
+
           {/* Action buttons */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <TooltipProvider>
               {onPreview && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => onPreview(recipe)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onPreview(recipe)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Preview recipe</TooltipContent>
                 </Tooltip>
               )}
-              
+
               {onClone && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => onClone(recipe)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onClone(recipe)}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -158,7 +179,11 @@ export function EnhancedGrowRecipeCard({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(recipe)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(recipe)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -167,9 +192,9 @@ export function EnhancedGrowRecipeCard({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => onDelete(recipe)}
                     className="text-destructive hover:text-destructive"
                   >
@@ -200,21 +225,22 @@ export function EnhancedGrowRecipeCard({
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center p-2 bg-muted/50 rounded-lg">
             <Clock className="h-4 w-4 text-muted-foreground mb-1" />
-            <span className="text-xs font-medium">{totalDays || '-'}</span>
+            <span className="text-xs font-medium">{totalDays || "-"}</span>
             <span className="text-xs text-muted-foreground">days</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-muted/50 rounded-lg">
             <Sun className="h-4 w-4 text-muted-foreground mb-1" />
-            <span className="text-xs font-medium">{recipe.light_hours_per_day || '-'}</span>
+            <span className="text-xs font-medium">
+              {recipe.light_hours_per_day || "-"}
+            </span>
             <span className="text-xs text-muted-foreground">hrs light</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-muted/50 rounded-lg">
             <Thermometer className="h-4 w-4 text-muted-foreground mb-1" />
             <span className="text-xs font-medium">
-              {recipe.target_temperature_min && recipe.target_temperature_max 
+              {recipe.target_temperature_min && recipe.target_temperature_max
                 ? `${recipe.target_temperature_min}-${recipe.target_temperature_max}°C`
-                : '-'
-              }
+                : "-"}
             </span>
             <span className="text-xs text-muted-foreground">temp</span>
           </div>
@@ -229,7 +255,10 @@ export function EnhancedGrowRecipeCard({
             </Badge>
           )}
           {recipe.pythium_risk && (
-            <Badge variant="outline" className={`text-xs ${pythiumConfig.color}`}>
+            <Badge
+              variant="outline"
+              className={`text-xs ${pythiumConfig.color}`}
+            >
               <span className="mr-1">{pythiumConfig.icon}</span>
               {recipe.pythium_risk} Risk
             </Badge>
@@ -246,18 +275,22 @@ export function EnhancedGrowRecipeCard({
           {recipe.average_yield && (
             <div className="flex items-center justify-between">
               <span>Expected Yield:</span>
-              <span className="font-medium text-foreground">{recipe.average_yield}g/tray</span>
-            </div>
-          )}
-          
-          {recipe.water_frequency && (
-            <div className="flex items-center justify-between">
-              <span>Watering:</span>
-              <span className="font-medium text-foreground">{recipe.water_frequency}</span>
+              <span className="font-medium text-foreground">
+                {recipe.average_yield}g/tray
+              </span>
             </div>
           )}
 
-          {(recipe.target_ph_min && recipe.target_ph_max) && (
+          {recipe.water_frequency && (
+            <div className="flex items-center justify-between">
+              <span>Watering:</span>
+              <span className="font-medium text-foreground">
+                {recipe.water_frequency}
+              </span>
+            </div>
+          )}
+
+          {recipe.target_ph_min && recipe.target_ph_max && (
             <div className="flex items-center justify-between">
               <span>pH Range:</span>
               <span className="font-medium text-foreground">
@@ -269,8 +302,8 @@ export function EnhancedGrowRecipeCard({
 
         {/* Action Button */}
         {onStartGrow && !isActive && (
-          <Button 
-            onClick={() => onStartGrow(recipe)} 
+          <Button
+            onClick={() => onStartGrow(recipe)}
             className="w-full mt-4"
             size="sm"
           >
@@ -290,4 +323,4 @@ export function EnhancedGrowRecipeCard({
       </CardContent>
     </Card>
   );
-} 
+}

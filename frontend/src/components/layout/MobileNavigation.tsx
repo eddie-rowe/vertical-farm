@@ -1,43 +1,44 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
-import { 
-  FaBars, 
-  FaTimes, 
-  FaTachometerAlt, 
-  FaBuilding, 
-  FaSeedling, 
-  FaCogs, 
-  FaChartBar, 
-  FaBriefcase, 
-  FaShoppingCart, 
-  FaUsers, 
-  FaBrain, 
-  FaPlug, 
-  FaUser, 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+  FaBars,
+  FaTimes,
+  FaTachometerAlt,
+  FaBuilding,
+  FaSeedling,
+  FaCogs,
+  FaChartBar,
+  FaBriefcase,
+  FaShoppingCart,
+  FaUsers,
+  FaBrain,
+  FaPlug,
+  FaUser,
   FaQuestionCircle,
-  FaCog
-} from 'react-icons/fa';
+  FaCog,
+} from "react-icons/fa";
+
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 const navigationItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
-  { href: '/farms', label: 'Farm Management', icon: FaBuilding },
-  { href: '/grow-management', label: 'Grow Management', icon: FaSeedling },
-  { href: '/operations', label: 'Operations', icon: FaCogs },
-  { href: '/devices', label: 'Device Management', icon: FaCog },
-  { href: '/analytics', label: 'Analytics', icon: FaChartBar },
-  { href: '/business', label: 'Business Management', icon: FaBriefcase },
-  { href: '/procurement', label: 'Procurement', icon: FaShoppingCart },
-  { href: '/team', label: 'Team Management', icon: FaUsers },
-  { href: '/ai', label: 'AI Intelligence', icon: FaBrain },
-  { href: '/integrations', label: 'Integrations', icon: FaPlug },
-  { href: '/account', label: 'Account', icon: FaUser },
-  { href: '/help', label: 'Help', icon: FaQuestionCircle },
+  { href: "/dashboard", label: "Dashboard", icon: FaTachometerAlt },
+  { href: "/farms", label: "Farm Management", icon: FaBuilding },
+  { href: "/grow-management", label: "Grow Management", icon: FaSeedling },
+  { href: "/operations", label: "Operations", icon: FaCogs },
+  { href: "/devices", label: "Device Management", icon: FaCog },
+  { href: "/analytics", label: "Analytics", icon: FaChartBar },
+  { href: "/business", label: "Business Management", icon: FaBriefcase },
+  { href: "/procurement", label: "Procurement", icon: FaShoppingCart },
+  { href: "/team", label: "Team Management", icon: FaUsers },
+  { href: "/ai", label: "AI Intelligence", icon: FaBrain },
+  { href: "/integrations", label: "Integrations", icon: FaPlug },
+  { href: "/account", label: "Account", icon: FaUser },
+  { href: "/help", label: "Help", icon: FaQuestionCircle },
 ];
 
 export function MobileNavigation() {
@@ -63,9 +64,9 @@ export function MobileNavigation() {
                 </div>
                 <span className="font-semibold text-lg">VerticalFarm</span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setIsOpen(false)}
                 className="p-1"
               >
@@ -79,7 +80,7 @@ export function MobileNavigation() {
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.href}
@@ -89,7 +90,7 @@ export function MobileNavigation() {
                         "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
                         isActive
                           ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800",
                       )}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -116,13 +117,13 @@ export function MobileNavigation() {
 // Mobile-optimized bottom navigation for key actions
 export function MobileBottomNav() {
   const pathname = usePathname();
-  
+
   const quickActions = [
-    { href: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
-    { href: '/farms', label: 'Farms', icon: FaBuilding },
-    { href: '/grow-management', label: 'Grow', icon: FaSeedling },
-    { href: '/operations', label: 'Operations', icon: FaCogs },
-    { href: '/analytics', label: 'Analytics', icon: FaChartBar },
+    { href: "/dashboard", label: "Dashboard", icon: FaTachometerAlt },
+    { href: "/farms", label: "Farms", icon: FaBuilding },
+    { href: "/grow-management", label: "Grow", icon: FaSeedling },
+    { href: "/operations", label: "Operations", icon: FaCogs },
+    { href: "/analytics", label: "Analytics", icon: FaChartBar },
   ];
 
   return (
@@ -131,7 +132,7 @@ export function MobileBottomNav() {
         {quickActions.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
-          
+
           return (
             <Link
               key={item.href}
@@ -140,7 +141,7 @@ export function MobileBottomNav() {
                 "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-0",
                 isActive
                   ? "text-green-600 dark:text-green-400"
-                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300",
               )}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
@@ -151,4 +152,4 @@ export function MobileBottomNav() {
       </nav>
     </div>
   );
-} 
+}

@@ -1,33 +1,31 @@
 "use client";
 
-import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
+import * as React from "react";
 
-const farmSelectVariants = cva(
-  "farm-input appearance-none cursor-pointer",
-  {
-    variants: {
-      inputSize: {
-        sm: "farm-input-sm",
-        default: "",
-        lg: "farm-input-lg",
-      },
-      validation: {
-        default: "",
-        success: "input-success",
-        warning: "input-warning",
-        error: "input-error",
-        info: "input-info",
-      },
+import { cn } from "@/lib/utils";
+
+const farmSelectVariants = cva("farm-input appearance-none cursor-pointer", {
+  variants: {
+    inputSize: {
+      sm: "farm-input-sm",
+      default: "",
+      lg: "farm-input-lg",
     },
-    defaultVariants: {
-      inputSize: "default",
-      validation: "default",
+    validation: {
+      default: "",
+      success: "input-success",
+      warning: "input-warning",
+      error: "input-error",
+      info: "input-info",
     },
-  }
-);
+  },
+  defaultVariants: {
+    inputSize: "default",
+    validation: "default",
+  },
+});
 
 export interface FarmSelectOption {
   value: string;
@@ -46,48 +44,45 @@ export interface FarmSelectProps
 }
 
 const FarmSelect = React.forwardRef<HTMLSelectElement, FarmSelectProps>(
-  ({ 
-    className, 
-    inputSize, 
-    validation, 
-    label, 
-    helpText, 
-    errorText, 
-    options,
-    placeholder,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      inputSize,
+      validation,
+      label,
+      helpText,
+      errorText,
+      options,
+      placeholder,
+      ...props
+    },
+    ref,
+  ) => {
     const selectId = React.useId();
     const helpId = React.useId();
     const errorId = React.useId();
-    
+
     // Determine validation state based on error
     const actualValidation = errorText ? "error" : validation;
-    
+
     return (
       <div className="w-full">
         {label && (
-          <label 
-            htmlFor={selectId} 
-            className="form-label"
-          >
+          <label htmlFor={selectId} className="form-label">
             {label}
           </label>
         )}
-        
+
         <div className="relative">
           <select
             id={selectId}
             className={cn(
               farmSelectVariants({ inputSize, validation: actualValidation }),
               "pr-10",
-              className
+              className,
             )}
             ref={ref}
-            aria-describedby={cn(
-              helpText && helpId,
-              errorText && errorId
-            )}
+            aria-describedby={cn(helpText && helpId, errorText && errorId)}
             aria-invalid={errorText ? "true" : undefined}
             {...props}
           >
@@ -97,8 +92,8 @@ const FarmSelect = React.forwardRef<HTMLSelectElement, FarmSelectProps>(
               </option>
             )}
             {options.map((option) => (
-              <option 
-                key={option.value} 
+              <option
+                key={option.value}
                 value={option.value}
                 disabled={option.disabled}
               >
@@ -106,18 +101,18 @@ const FarmSelect = React.forwardRef<HTMLSelectElement, FarmSelectProps>(
               </option>
             ))}
           </select>
-          
+
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
             <ChevronDown className="h-4 w-4" />
           </div>
         </div>
-        
+
         {helpText && !errorText && (
           <span id={helpId} className="form-help">
             {helpText}
           </span>
         )}
-        
+
         {errorText && (
           <span id={errorId} className="form-error">
             {errorText}
@@ -125,9 +120,9 @@ const FarmSelect = React.forwardRef<HTMLSelectElement, FarmSelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 FarmSelect.displayName = "FarmSelect";
 
-export { FarmSelect, farmSelectVariants }; 
+export { FarmSelect, farmSelectVariants };

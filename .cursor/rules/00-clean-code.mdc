@@ -1,0 +1,506 @@
+---
+description: Clean code principles that apply to all code in the project
+globs: "**/*.{ts,tsx,js,jsx,py,css,sql}"
+alwaysApply: false
+---
+
+# Clean Code Principles - Vertical Farm Project
+
+## 🎯 Core Philosophy
+
+### Write Code for Humans
+- **Code is read 10x more than written**
+- **Optimize for clarity, not cleverness**
+- **Future you is a different person**
+- **Team productivity > individual preferences**
+
+## 📝 Naming Conventions
+
+### Variables & Functions
+```typescript
+// ✅ DO: Descriptive, intention-revealing names
+const isDeviceOnline = device.status === 'active'
+const farmCreationDate = new Date(farm.created_at)
+const calculateOptimalTemperature = (zone: Zone) => { /* ... */ }
+
+// ❌ DON'T: Abbreviations, single letters, unclear names
+const d = device.status === 'active'
+const dt = new Date(farm.created_at)
+const calc = (z: Zone) => { /* ... */ }
+```
+
+### Boolean Names
+```typescript
+// ✅ DO: Use is/has/can/should prefixes
+const isAuthenticated = !!user.token
+const hasActiveSubscription = subscription.status === 'active'
+const canEditFarm = user.role === 'owner' || user.role === 'admin'
+const shouldRefreshToken = tokenExpiresAt < Date.now()
+
+// ❌ DON'T: Ambiguous boolean names
+const authenticated = !!user.token
+const subscription = subscription.status === 'active'
+const editFarm = user.role === 'owner'
+```
+
+### Service & Class Names
+```typescript
+// ✅ DO: Noun-based, domain-specific names
+export class FarmService extends BaseCRUDService<Farm> { }
+export class DeviceMonitoringService extends BaseRealtimeService { }
+export class HomeAssistantIntegrationService { }
+
+// ❌ DON'T: Generic or action-based names
+export class Manager { }
+export class Handler { }
+export class ProcessData { }
+```
+
+## 🏗️ Single Responsibility Principle
+
+### Functions Do One Thing
+```typescript
+// ✅ DO: Single, focused responsibility
+async function validateSensorReading(reading: SensorReading): Promise<boolean> {
+  return reading.value >= MIN_TEMP && reading.value <= MAX_TEMP
+}
+
+async function saveSensorReading(reading: SensorReading): Promise<void> {
+  const service = SensorService.getInstance()
+  await service.create(reading)
+}
+
+async function notifyAbnormalReading(reading: SensorReading): Promise<void> {
+  if (reading.value < MIN_TEMP || reading.value > MAX_TEMP) {
+    await alertService.sendAlert('abnormal_reading', reading)
+  }
+}
+
+// ❌ DON'T: Multiple responsibilities in one function
+async function handleSensorReading(reading: SensorReading): Promise<void> {
+  // Validation logic
+  if (reading.value < MIN_TEMP || reading.value > MAX_TEMP) {
+    console.error('Invalid reading')
+    await alertService.sendAlert('abnormal_reading', reading)
+  }
+  
+  // Save to database
+  const service = SensorService.getInstance()
+  await service.create(reading)
+  
+  // Update cache
+  await cache.set(`sensor:${reading.deviceId}`, reading)
+  
+  // Send to Home Assistant
+  await haService.updateSensor(reading)
+}
+```
+
+### Class Cohesion
+```typescript
+// ✅ DO: Cohesive class with related methods
+export class FarmService extends BaseCRUDService<Farm> {
+  async getFarmWithDevices(farmId: string): Promise<FarmWithDevices> {
+    const farm = await this.getById(farmId)
+    const devices = await this.getFarmDevices(farmId)
+    return { ...farm, devices }
+  }
+  
+  async getFarmStatistics(farmId: string): Promise<FarmStats> {
+    // Related functionality
+  }
+  
+  private async getFarmDevices(farmId: string): Promise<Device[]> {
+    // Internal helper method
+  }
+}
+
+// ❌ DON'T: Kitchen sink class
+export class UtilityService {
+  async getFarm() { }
+  async sendEmail() { }
+  async calculateTax() { }
+  async uploadImage() { }
+}
+```
+
+## 🔁 DRY (Don't Repeat Yourself)
+
+### Extract Common Logic
+```typescript
+// ✅ DO: Reusable validation utilities
+const VALIDATION_RULES = {
+  farmName: z.string().min(1).max(100),
+  deviceName: z.string().min(1).max(50),
+  temperature: z.number().min(-40).max(60),
+} as const
+
+export function validateFarmInput(data: unknown) {
+  return VALIDATION_RULES.farmName.parse(data)
+}
+
+export function validateDeviceInput(data: unknown) {
+  return VALIDATION_RULES.deviceName.parse(data)
+}
+
+// ❌ DON'T: Duplicate validation logic
+async function createFarm(name: string) {
+  if (!name || name.length < 1 || name.length > 100) {
+    throw new Error('Invalid name')
+  }
+}
+
+async function updateFarm(name: string) {
+  if (!name || name.length < 1 || name.length > 100) {
+    throw new Error('Invalid name')
+  }
+}
+```
+
+### Configuration Constants
+```typescript
+// ✅ DO: Centralized configuration
+// config/constants.ts
+export const SENSOR_THRESHOLDS = {
+  TEMPERATURE: { MIN: 18, MAX: 26, UNIT: '°C' },
+  HUMIDITY: { MIN: 60, MAX: 80, UNIT: '%' },
+  PH: { MIN: 5.5, MAX: 6.5, UNIT: 'pH' },
+} as const
+
+export const CACHE_DURATIONS = {
+  FARM_LIST: 300,      // 5 minutes
+  DEVICE_STATUS: 30,   // 30 seconds
+  SENSOR_DATA: 10,     // 10 seconds
+} as const
+
+// Use throughout the app
+import { SENSOR_THRESHOLDS, CACHE_DURATIONS } from '@/config/constants'
+
+// ❌ DON'T: Magic numbers scattered everywhere
+if (temperature < 18 || temperature > 26) { } // What do these numbers mean?
+cache.set(key, value, 300) // What is 300?
+```
+
+## 📦 Code Organization
+
+### Logical Grouping
+```typescript
+// ✅ DO: Group related functionality
+// services/domain/farm/
+├── FarmService.ts
+├── RowService.ts
+├── RackService.ts
+├── types.ts
+└── constants.ts
+
+// components/features/farm-management/
+├── FarmList/
+├── FarmDetails/
+├── FarmCreationWizard/
+└── shared/
+
+// ❌ DON'T: Flat, unorganized structure
+// services/
+├── farmService.ts
+├── userService.ts
+├── rowService.ts
+├── deviceService.ts
+├── rackService.ts
+└── 50+ more files...
+```
+
+### Import Organization
+```typescript
+// ✅ DO: Consistent, organized imports
+// 1. External libraries
+import React, { useState, useEffect } from 'react'
+import { toast } from 'react-hot-toast'
+
+// 2. Internal services
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+// 3. Internal types
+import type { Farm, Device } from '@/types'
+
+// 4. Internal components
+import { Button } from '@/components/ui/Button'
+
+// 5. Relative imports
+import { formatDate } from './utils'
+
+// ❌ DON'T: Random import order
+import { formatDate } from './utils'
+import React from 'react'
+import type { Farm } from '@/types'
+import { Button } from '@/components/ui/Button'
+import { FarmService } from '@/services/domain/farm/FarmService'
+```
+
+## 💬 Smart Comments
+
+### When to Comment
+```typescript
+// ✅ DO: Explain WHY, not WHAT
+// We need to check both conditions because Home Assistant
+// might report a device as "unavailable" even when powered on
+if (device.state === 'on' || device.state === 'unavailable') {
+  await this.attemptConnection(device)
+}
+
+// ✅ DO: Document complex algorithms
+/**
+ * Calculates optimal nutrient mix using the Steiner formula
+ * adjusted for vertical farming conditions.
+ * See: https://doi.org/10.1016/j.agrformet.2019.107618
+ */
+function calculateNutrientMix(crop: Crop, stage: GrowthStage): NutrientMix {
+  // Implementation...
+}
+
+// ❌ DON'T: State the obvious
+// Increment counter by 1
+counter++
+
+// Set name to the name parameter
+this.name = name
+
+// Return the list of farms
+return farms
+```
+
+### TODO Comments
+```typescript
+// ✅ DO: Actionable TODOs with context
+// TODO: Implement retry logic for Home Assistant connection failures
+// GitHub Issue: #234
+// Temporary workaround until HA client library v2.0 is released
+
+// ❌ DON'T: Vague TODOs
+// TODO: Fix this later
+// TODO: Refactor
+```
+
+## 🛡️ Error Handling
+
+### Meaningful Errors
+```typescript
+// ✅ DO: Specific, actionable error messages
+export class FarmNotFoundError extends Error {
+  constructor(farmId: string) {
+    super(`Farm with ID ${farmId} not found`)
+    this.name = 'FarmNotFoundError'
+  }
+}
+
+export class InvalidSensorReadingError extends Error {
+  constructor(reading: SensorReading, reason: string) {
+    super(`Invalid sensor reading from device ${reading.deviceId}: ${reason}`)
+    this.name = 'InvalidSensorReadingError'
+  }
+}
+
+// ❌ DON'T: Generic, unhelpful errors
+throw new Error('Invalid data')
+throw new Error('Something went wrong')
+```
+
+### Graceful Degradation
+```typescript
+// ✅ DO: Handle errors gracefully
+async function getDeviceStatus(deviceId: string): Promise<DeviceStatus> {
+  try {
+    // Try to get real-time status
+    const haService = HomeAssistantService.getInstance()
+    return await haService.getDeviceStatus(deviceId)
+  } catch (error) {
+    console.warn(`Failed to get real-time status for ${deviceId}:`, error)
+    
+    // Fall back to cached status
+    const cached = await cache.get(`device:${deviceId}:status`)
+    if (cached) return cached
+    
+    // Last resort: return unknown status
+    return { status: 'unknown', lastSeen: null }
+  }
+}
+```
+
+## 🧪 Test-Friendly Code
+
+### Dependency Injection
+```typescript
+// ✅ DO: Testable service with clear dependencies
+export class NotificationService {
+  constructor(
+    private emailService: EmailService,
+    private smsService: SMSService,
+    private pushService: PushService
+  ) {}
+  
+  async notifyUser(userId: string, message: string): Promise<void> {
+    const user = await this.getUser(userId)
+    
+    await Promise.all([
+      user.emailEnabled && this.emailService.send(user.email, message),
+      user.smsEnabled && this.smsService.send(user.phone, message),
+      user.pushEnabled && this.pushService.send(user.deviceToken, message),
+    ].filter(Boolean))
+  }
+}
+
+// Easy to test with mocks
+const mockEmailService = { send: jest.fn() }
+const service = new NotificationService(mockEmailService, ...)
+```
+
+### Pure Functions
+```typescript
+// ✅ DO: Pure, predictable functions
+export function calculateGrowthStage(
+  plantingDate: Date,
+  currentDate: Date,
+  cropType: CropType
+): GrowthStage {
+  const daysElapsed = Math.floor(
+    (currentDate.getTime() - plantingDate.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  
+  const stages = CROP_GROWTH_STAGES[cropType]
+  return stages.find(stage => daysElapsed <= stage.maxDays) || stages[stages.length - 1]
+}
+
+// ❌ DON'T: Functions with hidden dependencies
+function calculateGrowthStage(plantingDate: Date): GrowthStage {
+  // Hidden dependency on global state
+  const currentDate = globalApp.currentDate
+  // Hidden dependency on external service
+  const cropType = cropService.getCurrentCropType()
+  // ...
+}
+```
+
+## 🚀 Performance-Conscious Clean Code
+
+### Avoid Premature Optimization
+```typescript
+// ✅ DO: Clear code first, optimize when measured
+async function getFarmDevices(farmId: string): Promise<Device[]> {
+  const devices = await deviceService.getByFarmId(farmId)
+  return devices.filter(device => device.isActive)
+}
+
+// ❌ DON'T: Premature micro-optimizations that hurt readability
+async function getFarmDevices(farmId: string): Promise<Device[]> {
+  const devices = await deviceService.getByFarmId(farmId)
+  const result = []
+  for (let i = 0, len = devices.length; i < len; ++i) {
+    if (devices[i].isActive === true) {
+      result[result.length] = devices[i]
+    }
+  }
+  return result
+}
+```
+
+### Efficient Patterns When Needed
+```typescript
+// ✅ DO: Use efficient patterns where it matters
+// When dealing with large datasets
+async function processSensorReadings(readings: SensorReading[]): Promise<void> {
+  // Batch operations instead of individual calls
+  const BATCH_SIZE = 100
+  
+  for (let i = 0; i < readings.length; i += BATCH_SIZE) {
+    const batch = readings.slice(i, i + BATCH_SIZE)
+    await sensorService.createBatch(batch)
+  }
+}
+
+// Use Map for O(1) lookups instead of repeated array.find()
+const deviceMap = new Map(devices.map(d => [d.id, d]))
+readings.forEach(reading => {
+  const device = deviceMap.get(reading.deviceId)
+  // ...
+})
+```
+
+## 📋 Code Review Checklist
+
+Before submitting code, ensure:
+- [ ] **Names clearly express intent**
+- [ ] **Functions do one thing well**
+- [ ] **No duplicated logic**
+- [ ] **Errors are specific and actionable**
+- [ ] **Complex logic is documented**
+- [ ] **Code is organized logically**
+- [ ] **Dependencies are explicit**
+- [ ] **Tests can be written easily**
+- [ ] **Performance bottlenecks are measured, not guessed**
+
+## 🔧 Refactoring Guidelines
+
+### When to Refactor
+- **Rule of Three**: Extract common code after 3rd duplication
+- **Growing Functions**: Split when > 20-30 lines
+- **Complex Conditions**: Extract to well-named functions
+- **Before Adding Features**: Clean up the area first
+
+### Safe Refactoring
+```typescript
+// Step 1: Add tests if missing
+describe('FarmService', () => {
+  it('should calculate farm efficiency correctly', () => {
+    // Test current behavior
+  })
+})
+
+// Step 2: Refactor with confidence
+// Step 3: Ensure tests still pass
+// Step 4: Commit with clear message
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### God Objects
+```typescript
+// ❌ DON'T: One class that does everything
+export class AppService {
+  // 500+ lines of unrelated methods
+  async handleEverything() { }
+}
+```
+
+### Callback Hell
+```typescript
+// ❌ DON'T: Nested callbacks
+getData((data) => {
+  processData(data, (processed) => {
+    saveData(processed, (saved) => {
+      notifyUser(saved, (notified) => {
+        // ...
+      })
+    })
+  })
+})
+
+// ✅ DO: Use async/await
+const data = await getData()
+const processed = await processData(data)
+const saved = await saveData(processed)
+await notifyUser(saved)
+```
+
+### Shotgun Surgery
+```typescript
+// ❌ DON'T: Changes require modifying many files
+// Adding a new field requires changes in 15 different files
+
+// ✅ DO: Centralize related changes
+// Use TypeScript interfaces and single source of truth
+```
+
+Remember: **Clean code is not about perfection, it's about clarity and maintainability.** Focus on making your code a joy for the next developer (including future you) to work with.
+description:
+globs:
+alwaysApply: false
+---

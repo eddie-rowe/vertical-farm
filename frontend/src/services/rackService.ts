@@ -1,12 +1,12 @@
 /**
  * Rack Service - Migrated to Supabase PostGREST
- * 
+ *
  * This service replaces FastAPI endpoints with direct Supabase calls,
  * leveraging PostGREST for automatic CRUD operations with better performance.
  */
 
-import { supabase } from '@/lib/supabaseClient';
-import { UUID } from '@/types/farm-layout';
+import { supabase } from "@/lib/supabaseClient";
+import { UUID } from "@/types/farm-layout";
 
 // =====================================================
 // TYPES
@@ -49,9 +49,12 @@ export interface UpdateRackData {
 // =====================================================
 
 const requireAuth = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw error;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) throw new Error("User not authenticated");
   return user;
 };
 
@@ -65,18 +68,18 @@ const requireAuth = async () => {
  */
 export const createRack = async (rackData: CreateRackData): Promise<Rack> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
+    .from("racks")
     .insert([rackData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating rack:', error);
+    console.error("Error creating rack:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -86,18 +89,18 @@ export const createRack = async (rackData: CreateRackData): Promise<Rack> => {
  */
 export const getRackById = async (rackId: UUID): Promise<Rack> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select('*')
-    .eq('id', rackId)
+    .from("racks")
+    .select("*")
+    .eq("id", rackId)
     .single();
-  
+
   if (error) {
     console.error(`Error fetching rack ${rackId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -107,18 +110,18 @@ export const getRackById = async (rackId: UUID): Promise<Rack> => {
  */
 export const getRacksByRowId = async (rowId: UUID): Promise<Rack[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select('*')
-    .eq('row_id', rowId)
-    .order('position_in_row', { ascending: true });
-  
+    .from("racks")
+    .select("*")
+    .eq("row_id", rowId)
+    .order("position_in_row", { ascending: true });
+
   if (error) {
     console.error(`Error fetching racks for row ${rowId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -126,21 +129,24 @@ export const getRacksByRowId = async (rowId: UUID): Promise<Rack[]> => {
  * Update an existing rack
  * Replaces: PUT /api/v1/racks/{rack_id}
  */
-export const updateRack = async (rackId: UUID, rackData: UpdateRackData): Promise<Rack> => {
+export const updateRack = async (
+  rackId: UUID,
+  rackData: UpdateRackData,
+): Promise<Rack> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
+    .from("racks")
     .update(rackData)
-    .eq('id', rackId)
+    .eq("id", rackId)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`Error updating rack ${rackId}:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -150,12 +156,9 @@ export const updateRack = async (rackId: UUID, rackData: UpdateRackData): Promis
  */
 export const deleteRack = async (rackId: UUID): Promise<void> => {
   await requireAuth();
-  
-  const { error } = await supabase
-    .from('racks')
-    .delete()
-    .eq('id', rackId);
-  
+
+  const { error } = await supabase.from("racks").delete().eq("id", rackId);
+
   if (error) {
     console.error(`Error deleting rack ${rackId}:`, error);
     throw error;
@@ -166,32 +169,35 @@ export const deleteRack = async (rackId: UUID): Promise<void> => {
  * Reorder racks within a row
  * Updates position_in_row values for multiple racks
  */
-export const reorderRacks = async (rowId: UUID, rackOrders: Array<{ id: UUID; position_in_row: number }>): Promise<Rack[]> => {
+export const reorderRacks = async (
+  rowId: UUID,
+  rackOrders: Array<{ id: UUID; position_in_row: number }>,
+): Promise<Rack[]> => {
   await requireAuth();
-  
+
   // Update positions in a transaction-like manner
   const updatePromises = rackOrders.map(({ id, position_in_row }) =>
     supabase
-      .from('racks')
+      .from("racks")
       .update({ position_in_row })
-      .eq('id', id)
-      .eq('row_id', rowId) // Extra safety check
+      .eq("id", id)
+      .eq("row_id", rowId) // Extra safety check
       .select()
-      .single()
+      .single(),
   );
-  
+
   try {
     const results = await Promise.all(updatePromises);
-    const errors = results.filter(result => result.error);
-    
+    const errors = results.filter((result) => result.error);
+
     if (errors.length > 0) {
-      console.error('Error reordering racks:', errors);
-      throw new Error('Failed to reorder some racks');
+      console.error("Error reordering racks:", errors);
+      throw new Error("Failed to reorder some racks");
     }
-    
-    return results.map(result => result.data!);
+
+    return results.map((result) => result.data!);
   } catch (error) {
-    console.error('Error in bulk rack reorder:', error);
+    console.error("Error in bulk rack reorder:", error);
     throw error;
   }
 };
@@ -205,17 +211,17 @@ export const reorderRacks = async (rowId: UUID, rackOrders: Array<{ id: UUID; po
  */
 export const getRackCount = async (rowId: UUID): Promise<number> => {
   await requireAuth();
-  
+
   const { count, error } = await supabase
-    .from('racks')
-    .select('*', { count: 'exact', head: true })
-    .eq('row_id', rowId);
-  
+    .from("racks")
+    .select("*", { count: "exact", head: true })
+    .eq("row_id", rowId);
+
   if (error) {
     console.error(`Error getting rack count for row ${rowId}:`, error);
     throw error;
   }
-  
+
   return count || 0;
 };
 
@@ -224,23 +230,23 @@ export const getRackCount = async (rowId: UUID): Promise<number> => {
  */
 export const getNextRackPosition = async (rowId: UUID): Promise<number> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select('position_in_row')
-    .eq('row_id', rowId)
-    .order('position_in_row', { ascending: false })
+    .from("racks")
+    .select("position_in_row")
+    .eq("row_id", rowId)
+    .order("position_in_row", { ascending: false })
     .limit(1);
-  
+
   if (error) {
     console.error(`Error getting next rack position for row ${rowId}:`, error);
     throw error;
   }
-  
+
   if (!data || data.length === 0) {
     return 1; // First rack
   }
-  
+
   return (data[0].position_in_row || 0) + 1;
 };
 
@@ -250,38 +256,38 @@ export const getNextRackPosition = async (rowId: UUID): Promise<number> => {
  */
 export const generateUniqueRackName = async (rowId: UUID): Promise<string> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select('name')
-    .eq('row_id', rowId);
-  
+    .from("racks")
+    .select("name")
+    .eq("row_id", rowId);
+
   if (error) {
     console.error(`Error getting rack names for row ${rowId}:`, error);
     throw error;
   }
-  
+
   if (!data || data.length === 0) {
-    return 'Rack 1'; // First rack
+    return "Rack 1"; // First rack
   }
-  
+
   // Extract existing rack numbers from names that match "Rack X" pattern
   const existingNumbers = new Set<number>();
   const rackPattern = /^Rack (\d+)$/i;
-  
-  data.forEach(rack => {
+
+  data.forEach((rack) => {
     const match = rack.name.match(rackPattern);
     if (match) {
       existingNumbers.add(parseInt(match[1], 10));
     }
   });
-  
+
   // Find the next available number starting from 1
   let nextNumber = 1;
   while (existingNumbers.has(nextNumber)) {
     nextNumber++;
   }
-  
+
   return `Rack ${nextNumber}`;
 };
 
@@ -290,21 +296,23 @@ export const generateUniqueRackName = async (rowId: UUID): Promise<string> => {
  */
 export const getRacksByFarmId = async (farmId: UUID): Promise<Rack[]> => {
   await requireAuth();
-  
+
   const { data, error } = await supabase
-    .from('racks')
-    .select(`
+    .from("racks")
+    .select(
+      `
       *,
       rows!inner(farm_id)
-    `)
-    .eq('rows.farm_id', farmId)
-    .order('position_in_row', { ascending: true });
-  
+    `,
+    )
+    .eq("rows.farm_id", farmId)
+    .order("position_in_row", { ascending: true });
+
   if (error) {
     console.error(`Error fetching racks for farm ${farmId}:`, error);
     throw error;
   }
-  
+
   return data || [];
 };
 
@@ -324,4 +332,4 @@ const rackService = {
   getRacksByFarmId,
 };
 
-export default rackService; 
+export default rackService;

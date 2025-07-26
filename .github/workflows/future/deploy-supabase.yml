@@ -56,9 +56,12 @@ jobs:
       
       - name: Configure deployment
         id: config
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "environment=$INPUT_ENVIRONMENT" >> $GITHUB_OUTPUT
           else
             echo "environment=production" >> $GITHUB_OUTPUT
           fi
@@ -90,6 +93,10 @@ jobs:
       
       - name: Check for migration changes
         id: check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_ID: ${{ steps.config.outputs.project_id }}
+          FORCE_MIGRATION: ${{ inputs.force_migration }}
         run: |
           # Check if there are any new migrations
           if [ -d "supabase/migrations" ]; then
@@ -97,11 +104,11 @@ jobs:
             echo "migration_hash=$MIGRATION_HASH" >> $GITHUB_OUTPUT
             
             # Get the last deployed migration hash
-            LAST_HASH=$(curl -s -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
-              "https://api.supabase.com/v1/projects/${{ steps.config.outputs.project_id }}/metadata" \
+            LAST_HASH=$(curl -s -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              "https://api.supabase.com/v1/projects/$PROJECT_ID/metadata" \
               | jq -r '.migration_hash // "none"') || echo "none"
             
-            if [ "$MIGRATION_HASH" != "$LAST_HASH" ] || [ "${{ inputs.force_migration }}" = "true" ]; then
+            if [ "$MIGRATION_HASH" != "$LAST_HASH" ] || [ "$FORCE_MIGRATION" = "true" ]; then
               echo "should_deploy=true" >> $GITHUB_OUTPUT
               echo "✅ New migrations detected or force migration requested"
             else

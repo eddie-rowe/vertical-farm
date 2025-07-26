@@ -2,7 +2,7 @@
 // Import only the specific icons we actually use
 
 // Navigation & UI Icons
-export { 
+export {
   FaSeedling,
   FaChartBar,
   FaLeaf,
@@ -14,8 +14,8 @@ export {
   FaUsers,
   FaBrain,
   FaTachometerAlt,
-  FaBoxes
-} from 'react-icons/fa';
+  FaBoxes,
+} from "react-icons/fa";
 
 // Business & Analytics Icons
 export {
@@ -30,8 +30,8 @@ export {
   FaFilter,
   FaSearch,
   FaPlus,
-  FaEdit
-} from 'react-icons/fa';
+  FaEdit,
+} from "react-icons/fa";
 
 // Environment & Device Icons
 export {
@@ -42,8 +42,8 @@ export {
   FaBolt,
   FaFan,
   FaToggleOn,
-  FaToggleOff
-} from 'react-icons/fa';
+  FaToggleOff,
+} from "react-icons/fa";
 
 // Status & Action Icons
 export {
@@ -61,8 +61,8 @@ export {
   FaMapMarkedAlt,
   FaMapMarkerAlt,
   FaBullseye,
-  FaExpand
-} from 'react-icons/fa';
+  FaExpand,
+} from "react-icons/fa";
 
 // Team & Skills Icons
 export {
@@ -74,8 +74,8 @@ export {
   FaShieldAlt,
   FaBell,
   FaBug,
-  FaTools
-} from 'react-icons/fa';
+  FaTools,
+} from "react-icons/fa";
 
 // Additional UI Icons (Lucide-React replacements)
 export {
@@ -111,5 +111,5 @@ export {
   FaShieldAlt as Shield,
   FaInfoCircle as Info,
   FaCheckCircle as CheckCircle,
-  FaExclamationCircle as AlertCircle
-} from 'react-icons/fa'; 
+  FaExclamationCircle as AlertCircle,
+} from "react-icons/fa";

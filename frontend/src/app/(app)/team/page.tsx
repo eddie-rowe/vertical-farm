@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users } from "lucide-react";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { 
-  ScheduleView, 
-  TaskAssignmentsView, 
-  TimeTrackingView, 
-  PayrollView, 
-  SkillsView, 
-  PerformanceView 
+
+import {
+  ScheduleView,
+  TaskAssignmentsView,
+  TimeTrackingView,
+  PayrollView,
+  SkillsView,
+  PerformanceView,
 } from "@/components/features/business";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("schedule");
@@ -24,7 +24,11 @@ export default function TeamManagement() {
         description="Manage your vertical farm team efficiently"
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
@@ -37,7 +41,9 @@ export default function TeamManagement() {
         <TabsContent value="schedule" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Work Schedule Management</CardTitle>
+              <CardTitle className="text-farm-title">
+                Work Schedule Management
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ScheduleView />
@@ -48,7 +54,9 @@ export default function TeamManagement() {
         <TabsContent value="tasks" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Task Assignments & Labor Planning</CardTitle>
+              <CardTitle className="text-farm-title">
+                Task Assignments & Labor Planning
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <TaskAssignmentsView />
@@ -59,7 +67,9 @@ export default function TeamManagement() {
         <TabsContent value="time" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Time Tracking & Productivity</CardTitle>
+              <CardTitle className="text-farm-title">
+                Time Tracking & Productivity
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <TimeTrackingView />
@@ -70,7 +80,9 @@ export default function TeamManagement() {
         <TabsContent value="payroll" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Payouts & Compensation</CardTitle>
+              <CardTitle className="text-farm-title">
+                Payouts & Compensation
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <PayrollView />
@@ -81,7 +93,9 @@ export default function TeamManagement() {
         <TabsContent value="skills" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Skills & Certifications</CardTitle>
+              <CardTitle className="text-farm-title">
+                Skills & Certifications
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <SkillsView />
@@ -92,7 +106,9 @@ export default function TeamManagement() {
         <TabsContent value="performance" className="space-y-4">
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-farm-title">Performance Reviews & Goals</CardTitle>
+              <CardTitle className="text-farm-title">
+                Performance Reviews & Goals
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <PerformanceView />
@@ -102,4 +118,4 @@ export default function TeamManagement() {
       </Tabs>
     </div>
   );
-} 
+}

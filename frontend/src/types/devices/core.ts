@@ -3,37 +3,37 @@
  * Fundamental types used across all device-related functionality
  */
 
-import { UUID, BaseEntity, Status, ExecutionStatus } from '../common';
+import { UUID, BaseEntity } from "../common";
 
 /** Types of devices supported in the system */
-export type DeviceType = 'light' | 'pump' | 'fan' | 'sensor';
+export type DeviceType = "light" | "pump" | "fan" | "sensor";
 
 /** Current state of a device */
-export type DeviceState = 'on' | 'off' | 'unavailable' | 'unknown';
+export type DeviceState = "on" | "off" | "unavailable" | "unknown";
 
 /** Sort options for device lists */
-export type DeviceSortBy = 'name' | 'type' | 'state' | 'last_updated';
+export type DeviceSortBy = "name" | "type" | "state" | "last_updated";
 
 /** Sort order options */
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 /** Device connection status */
-export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
+export type ConnectionStatus = "connected" | "disconnected" | "connecting";
 
 /** Who or what triggered a device action */
-export type TriggerSource = 'manual' | 'automation' | 'schedule';
+export type TriggerSource = "manual" | "automation" | "schedule";
 
 /**
  * Device action types
  * Represents different actions that can be performed on devices
  */
-export type DeviceAction = 
-  | { type: 'turn_on'; data?: Record<string, unknown> }
-  | { type: 'turn_off'; data?: Record<string, unknown> }
-  | { type: 'toggle'; data?: Record<string, unknown> }
-  | { type: 'set_brightness'; brightness: number }
-  | { type: 'set_color'; rgb_color: [number, number, number] }
-  | { type: 'set_speed'; speed: number };
+export type DeviceAction =
+  | { type: "turn_on"; data?: Record<string, unknown> }
+  | { type: "turn_off"; data?: Record<string, unknown> }
+  | { type: "toggle"; data?: Record<string, unknown> }
+  | { type: "set_brightness"; brightness: number }
+  | { type: "set_color"; rgb_color: [number, number, number] }
+  | { type: "set_speed"; speed: number };
 
 /**
  * Device capabilities configuration
@@ -51,19 +51,19 @@ export interface DeviceCapabilities {
   color_temp?: boolean;
   /** Supports lighting effects */
   effect?: boolean;
-  
-  // Pump/Fan capabilities  
+
+  // Pump/Fan capabilities
   /** Can control speed/flow rate */
   speed_control?: boolean;
   /** Can measure/control flow rate */
   flow_rate?: boolean;
-  
+
   // Sensor capabilities
   /** Unit of measurement for sensor readings */
   measurement_unit?: string;
   /** Precision of sensor measurements */
   precision?: number;
-  
+
   // Common capabilities
   /** Basic power on/off control */
   power?: boolean;
@@ -83,7 +83,7 @@ export interface DeviceAttributes {
   icon?: string;
   /** Unit of measurement */
   unit_of_measurement?: string;
-  
+
   // Light attributes
   /** Brightness level (0-255) */
   brightness?: number;
@@ -93,7 +93,7 @@ export interface DeviceAttributes {
   color_temp?: number;
   /** Active lighting effect */
   effect?: string;
-  
+
   // Sensor attributes
   /** Temperature reading */
   temperature?: number;
@@ -101,13 +101,13 @@ export interface DeviceAttributes {
   humidity?: number;
   /** Pressure reading */
   pressure?: number;
-  
+
   // Pump/Fan attributes
   /** Current speed setting */
   speed?: number;
   /** Current flow rate */
   flow_rate?: number;
-  
+
   // Device status
   /** Last time device was seen online */
   last_seen?: string;
@@ -154,7 +154,7 @@ export interface DeviceFilter {
   /** Filter by current state */
   state?: DeviceState;
   /** Filter by connection status */
-  status?: 'online' | 'offline' | 'unavailable';
+  status?: "online" | "offline" | "unavailable";
   /** Filter by assignment status */
   assigned?: boolean;
   /** Filter by location ID */
@@ -169,7 +169,7 @@ export interface DeviceFilter {
  */
 export interface EmergencyControlAction {
   /** Type of emergency action */
-  type: 'emergency_stop' | 'emergency_start' | 'reset_all';
+  type: "emergency_stop" | "emergency_start" | "reset_all";
   /** Specific locations to affect (optional) */
   location_ids?: string[];
   /** Specific device types to affect (optional) */
@@ -209,7 +209,7 @@ export interface ControlDeviceResponse {
  */
 export interface DeviceWebSocketMessage {
   /** Type of message */
-  type: 'device_state_update' | 'device_control_response' | 'connection_status';
+  type: "device_state_update" | "device_control_response" | "connection_status";
   /** Message data */
   data: unknown;
   /** Message timestamp */
@@ -246,4 +246,4 @@ export interface DeviceControlResponse {
   error?: string;
   /** New device state after action */
   new_state?: DeviceState;
-} 
+}

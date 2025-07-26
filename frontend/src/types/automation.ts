@@ -1,25 +1,34 @@
 export type UUID = string;
 
 // Automation task types that match the database enum
-export type AutomationTaskType = 
-  | 'schedule_progression'
-  | 'environmental_check'
-  | 'watering_cycle'
-  | 'lighting_cycle'
-  | 'harvest_readiness'
-  | 'recipe_application'
-  | 'alert_generation'
-  | 'sensor_aggregation'
-  | 'device_control';
+export type AutomationTaskType =
+  | "schedule_progression"
+  | "environmental_check"
+  | "watering_cycle"
+  | "lighting_cycle"
+  | "harvest_readiness"
+  | "recipe_application"
+  | "alert_generation"
+  | "sensor_aggregation"
+  | "device_control";
 
 // Task execution status
-export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+export type TaskStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 // Alert severity levels
-export type AlertSeverity = 'info' | 'warning' | 'error';
+export type AlertSeverity = "info" | "warning" | "error";
 
 // Automation trigger types
-export type TriggerType = 'time_based' | 'sensor_based' | 'event_based' | 'schedule_based';
+export type TriggerType =
+  | "time_based"
+  | "sensor_based"
+  | "event_based"
+  | "schedule_based";
 
 // Task execution log interface
 export interface TaskExecutionLog {
@@ -62,7 +71,7 @@ export interface ScheduleWithAutomation {
   start_date: string;
   estimated_end_date?: string;
   actual_end_date?: string;
-  status: 'planned' | 'active' | 'completed' | 'aborted';
+  status: "planned" | "active" | "completed" | "aborted";
   notes?: string;
   automation_enabled: boolean;
   last_automation_check?: string;
@@ -137,4 +146,4 @@ export interface AutomationStatus {
   failed_tasks_today: number;
   recent_actions: RecentAction[];
   environmental_alerts: EnvironmentalAlert[];
-} 
+}

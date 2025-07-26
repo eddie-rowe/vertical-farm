@@ -1,14 +1,15 @@
 "use client";
+import { AlertTriangle, Bell, CheckCircle, Settings } from "lucide-react";
 import { useState } from "react";
-import { AlertTriangle, Bell, CheckCircle, Clock, Thermometer, Droplets, Zap, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Alert {
   id: string;
   title: string;
   description: string;
-  type: 'critical' | 'warning' | 'info';
+  type: "critical" | "warning" | "info";
   source: string;
   timestamp: Date;
   acknowledged?: boolean;
@@ -20,25 +21,28 @@ const mockAlerts: Alert[] = [
   {
     id: "1",
     title: "Temperature Critical Alert",
-    description: "Grow chamber 3 temperature exceeded 32°C. Immediate cooling required.",
+    description:
+      "Grow chamber 3 temperature exceeded 32°C. Immediate cooling required.",
     type: "critical",
     source: "Environmental Control",
     timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    actionRequired: true
+    actionRequired: true,
   },
   {
-    id: "2", 
+    id: "2",
     title: "Pump Maintenance Required",
-    description: "Nutrient pump P-204 showing decreased flow rate. Schedule maintenance.",
+    description:
+      "Nutrient pump P-204 showing decreased flow rate. Schedule maintenance.",
     type: "warning",
     source: "Equipment Monitor",
     timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    actionRequired: true
+    actionRequired: true,
   },
   {
     id: "3",
     title: "Harvest Window Opening",
-    description: "Lettuce crop in Zone B will be ready for harvest in 48 hours.",
+    description:
+      "Lettuce crop in Zone B will be ready for harvest in 48 hours.",
     type: "info",
     source: "Growth Tracking",
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
@@ -46,32 +50,33 @@ const mockAlerts: Alert[] = [
   {
     id: "4",
     title: "Humidity Trending High",
-    description: "Humidity in grow chamber 1 trending above optimal range (68-72%).",
-    type: "warning", 
+    description:
+      "Humidity in grow chamber 1 trending above optimal range (68-72%).",
+    type: "warning",
     source: "Environmental Control",
     timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    actionRequired: true
-  }
+    actionRequired: true,
+  },
 ];
 
-function getAlertIcon(type: Alert['type']) {
+function getAlertIcon(type: Alert["type"]) {
   switch (type) {
-    case 'critical':
+    case "critical":
       return <AlertTriangle className="h-4 w-4 text-red-600" />;
-    case 'warning':
+    case "warning":
       return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-    case 'info':
+    case "info":
       return <CheckCircle className="h-4 w-4 text-blue-500" />;
   }
 }
 
-function getAlertStyles(type: Alert['type']) {
+function getAlertStyles(type: Alert["type"]) {
   switch (type) {
-    case 'critical':
+    case "critical":
       return "border-l-4 border-red-500 bg-red-50 dark:bg-red-950";
-    case 'warning':
+    case "warning":
       return "border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-950";
-    case 'info':
+    case "info":
       return "border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950";
   }
 }
@@ -80,8 +85,8 @@ function formatTime(timestamp: Date): string {
   const now = new Date();
   const diff = now.getTime() - timestamp.getTime();
   const minutes = Math.floor(diff / (1000 * 60));
-  
-  if (minutes < 1) return 'Just now';
+
+  if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
@@ -91,9 +96,13 @@ function formatTime(timestamp: Date): string {
 
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
-  
-  const criticalCount = mockAlerts.filter(alert => alert.type === 'critical').length;
-  const warningCount = mockAlerts.filter(alert => alert.type === 'warning').length;
+
+  const criticalCount = mockAlerts.filter(
+    (alert) => alert.type === "critical",
+  ).length;
+  const warningCount = mockAlerts.filter(
+    (alert) => alert.type === "warning",
+  ).length;
   const totalUrgent = criticalCount + warningCount;
 
   return (
@@ -102,23 +111,23 @@ export default function NotificationCenter() {
         variant="outline"
         size="sm"
         onClick={() => setOpen(!open)}
-        className={`relative p-2 ${totalUrgent > 0 ? 'border-orange-400 dark:border-orange-500' : ''}`}
-        aria-label={`Notifications${totalUrgent > 0 ? ` - ${totalUrgent} urgent alerts` : ''}`}
+        className={`relative p-2 ${totalUrgent > 0 ? "border-orange-400 dark:border-orange-500" : ""}`}
+        aria-label={`Notifications${totalUrgent > 0 ? ` - ${totalUrgent} urgent alerts` : ""}`}
       >
         <Bell className="h-4 w-4" />
         {totalUrgent > 0 && (
-          <Badge 
+          <Badge
             className={`absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs ${
-              criticalCount > 0 
-                ? 'bg-red-600 text-white hover:bg-red-700' 
-                : 'bg-orange-500 text-white hover:bg-orange-600'
+              criticalCount > 0
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-orange-500 text-white hover:bg-orange-600"
             }`}
           >
-            {totalUrgent > 9 ? '9+' : totalUrgent}
+            {totalUrgent > 9 ? "9+" : totalUrgent}
           </Badge>
         )}
       </Button>
-      
+
       {open && (
         <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 animate-in slide-in-from-top-2">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -140,7 +149,7 @@ export default function NotificationCenter() {
               </div>
             </div>
           </div>
-          
+
           <div className="max-h-96 overflow-y-auto">
             {mockAlerts.length > 0 ? (
               <div className="p-2">
@@ -168,7 +177,11 @@ export default function NotificationCenter() {
                             {alert.source}
                           </span>
                           {alert.actionRequired && (
-                            <Button size="sm" variant="outline" className="h-6 text-xs px-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 text-xs px-2"
+                            >
                               View Details
                             </Button>
                           )}
@@ -185,11 +198,11 @@ export default function NotificationCenter() {
               </div>
             )}
           </div>
-          
+
           <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-b-lg">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full"
               onClick={() => setOpen(false)}
             >

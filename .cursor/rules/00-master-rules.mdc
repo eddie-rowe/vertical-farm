@@ -1,0 +1,79 @@
+---
+description: Master index and overview of all cursor rules - reference when starting new work or understanding project structure
+globs: ".cursor/rules/**/*.mdc"
+alwaysApply: false
+---
+
+# 🚀 Vertical Farm Cursor Rules - Master Index
+
+This is the master index for all cursor rules in the Vertical Farm project. These rules ensure consistent, high-quality code across our full-stack application.
+
+## 📋 Quick Start
+
+- **New to the project?** Start with [01-project-overview.mdc](mdc:.cursor/rules/01-project-overview.mdc)
+- **Frontend development?** See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- **Backend development?** Check [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc)
+- **Writing tests?** Review [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+
+## 🏗️ Architecture & Core Patterns
+
+### Project Structure
+- [01-project-overview.mdc](mdc:.cursor/rules/01-project-overview.mdc) - Project structure, tech stack, and key decisions
+- [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc) - Next.js 15, React 19, component patterns
+- [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc) - FastAPI, Python patterns, API design
+
+### Service Architecture  
+- [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc) - Service patterns, singleton, base classes
+- [11-database-patterns.mdc](mdc:.cursor/rules/11-database-patterns.mdc) - Supabase integration, RLS, migrations
+- [12-real-time-architecture.mdc](mdc:.cursor/rules/12-real-time-architecture.mdc) - WebSocket, real-time updates, subscriptions
+
+## 💻 Development Guidelines
+
+### Code Quality
+- [20-code-standards.mdc](mdc:.cursor/rules/20-code-standards.mdc) - Clean code, naming conventions, DRY
+- [21-typescript-patterns.mdc](mdc:.cursor/rules/21-typescript-patterns.mdc) - Type safety, interfaces, generics
+- [22-import-organization.mdc](mdc:.cursor/rules/22-import-organization.mdc) - Import order, path resolution
+
+### UI/UX Development
+- [25-react.mdc](mdc:.cursor/rules/25-react.mdc) - React hooks, context, refs, and core concepts
+- [30-component-patterns.mdc](mdc:.cursor/rules/30-component-patterns.mdc) - React component architecture and patterns
+- [31-styling-guidelines.mdc](mdc:.cursor/rules/31-styling-guidelines.mdc) - Tailwind CSS, design system, responsive design
+
+### Performance & Optimization
+- [40-performance-optimization.mdc](mdc:.cursor/rules/40-performance-optimization.mdc) - Next.js 15 caching, React 19 features, bundle optimization
+- [50-edge-computing.mdc](mdc:.cursor/rules/50-edge-computing.mdc) - Cloudflare Workers patterns and best practices
+
+## 🧪 Testing & Quality Assurance
+
+- [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc) - Unit, integration, E2E testing patterns
+- [50-ai-agent-integration.mdc](mdc:.cursor/rules/50-ai-agent-integration.mdc) - AI-friendly code, agent workflows
+
+## 🔄 Rule Maintenance
+
+- [99-self-improvement.mdc](mdc:.cursor/rules/99-self-improvement.mdc) - How to update and improve these rules
+
+## 📝 Key Principles
+
+1. **Service Layer First** - All data operations through services
+2. **Type Safety** - TypeScript everywhere, proper types
+3. **Modern Stack** - Next.js 15, React 19, FastAPI latest
+4. **Performance Focus** - Optimize for speed and efficiency
+5. **AI-Ready** - Code that's easy for AI agents to understand and modify
+
+## 🚨 Critical Rules
+
+- **NEVER** bypass the service layer for data operations
+- **ALWAYS** use singleton pattern for services
+- **NEVER** use deprecated packages (`@supabase/auth-helpers-nextjs`)
+- **ALWAYS** handle errors at the service layer
+- **NEVER** create files unless explicitly requested
+
+## 📚 Legacy Rules Reference
+
+The following files are being phased out in favor of the consolidated rules above:
+- `supabase.mdc` → See [11-database-patterns.mdc](mdc:.cursor/rules/11-database-patterns.mdc)
+- `nextjs.mdc` → See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- `service-architecture.mdc` → See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+- [30-component-patterns.mdc](mdc:.cursor/rules/30-component-patterns.mdc) - React component patterns and best practices
+
+

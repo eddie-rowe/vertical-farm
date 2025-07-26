@@ -1,0 +1,755 @@
+---
+description: Cloudflare Workers patterns for edge computing, caching, and global distribution
+globs: "cloudflare/**/*.{ts,js}, cloudflare/workers/**/*.{ts,js}, **/*worker*.{ts,js}"
+alwaysApply: false
+---
+
+# Edge Computing with Cloudflare Workers
+
+## 🎯 Core Principles
+
+### 1. Edge-First Architecture
+- **Process at the edge**: Minimize round trips to origin
+- **Cache aggressively**: Use KV, Cache API, and R2 where appropriate
+- **Fail gracefully**: Handle edge failures without impacting user experience
+- **Security by default**: Validate and sanitize at the edge
+
+### 2. Performance Optimization
+- **Sub-50ms responses**: Target for cached content
+- **Parallel operations**: Use Promise.all() for concurrent work
+- **Streaming responses**: Use TransformStream for large payloads
+- **Minimal cold starts**: Keep worker bundle size small
+
+### 3. Scalability
+- **Stateless design**: No in-memory state between requests
+- **Global distribution**: Leverage Cloudflare's global network
+- **Rate limiting**: Protect origin from abuse
+- **Graceful degradation**: Serve stale content when origin is down
+
+## 🏗️ Worker Architecture
+
+### Basic Worker Structure
+```typescript
+// types/worker-env.d.ts
+interface Env {
+  // KV Namespaces
+  CACHE_KV: KVNamespace
+  RATE_LIMIT_KV: KVNamespace
+  
+  // R2 Buckets
+  ASSETS_BUCKET: R2Bucket
+  
+  // Durable Objects
+  RATE_LIMITER: DurableObjectNamespace
+  
+  // Environment variables
+  ORIGIN_URL: string
+  API_KEY: string
+  ENVIRONMENT: 'development' | 'staging' | 'production'
+  
+  // Feature flags
+  ENABLE_CACHE: string
+  CACHE_TTL: string
+}
+
+// index.ts
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    try {
+      // Add security headers
+      const securityHeaders = getSecurityHeaders()
+      
+      // Rate limiting
+      const rateLimitResult = await checkRateLimit(request, env)
+      if (!rateLimitResult.allowed) {
+        return new Response('Too Many Requests', { 
+          status: 429,
+          headers: {
+            ...securityHeaders,
+            'Retry-After': rateLimitResult.retryAfter.toString()
+          }
+        })
+      }
+      
+      // Route handling
+      const response = await handleRequest(request, env, ctx)
+      
+      // Add security headers to response
+      Object.entries(securityHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value)
+      })
+      
+      return response
+    } catch (error) {
+      return handleError(error, env)
+    }
+  },
+  
+  // Scheduled worker
+  async scheduled(
+    event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
+    ctx.waitUntil(performScheduledTasks(env))
+  },
+  
+  // Email handler
+  async email(
+    message: EmailMessage,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
+    await handleEmail(message, env)
+  }
+}
+```
+
+### Request Routing
+```typescript
+async function handleRequest(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext
+): Promise<Response> {
+  const url = new URL(request.url)
+  const { pathname } = url
+  
+  // API routes
+  if (pathname.startsWith('/api/')) {
+    return handleApiRequest(request, env, ctx)
+  }
+  
+  // Static assets
+  if (pathname.match(/\.(js|css|png|jpg|svg|ico)$/)) {
+    return handleStaticAsset(request, env, ctx)
+  }
+  
+  // Health checks
+  if (pathname === '/health' || pathname === '/healthz') {
+    return handleHealthCheck(env)
+  }
+  
+  // WebSocket upgrade
+  if (request.headers.get('Upgrade') === 'websocket') {
+    return handleWebSocketUpgrade(request, env)
+  }
+  
+  // Default: proxy to origin
+  return proxyToOrigin(request, env)
+}
+```
+
+## 🗄️ Caching Strategies
+
+### KV Store Caching
+```typescript
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+  ttl: number
+  etag?: string
+}
+
+export class EdgeCache {
+  constructor(
+    private kv: KVNamespace,
+    private defaultTTL: number = 3600
+  ) {}
+  
+  async get<T>(key: string): Promise<T | null> {
+    const entry = await this.kv.get<CacheEntry<T>>(key, 'json')
+    
+    if (!entry) return null
+    
+    // Check if expired
+    const now = Date.now()
+    if (now - entry.timestamp > entry.ttl * 1000) {
+      // Async deletion, don't wait
+      this.kv.delete(key)
+      return null
+    }
+    
+    return entry.data
+  }
+  
+  async set<T>(
+    key: string,
+    data: T,
+    options: { ttl?: number; etag?: string } = {}
+  ): Promise<void> {
+    const entry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now(),
+      ttl: options.ttl || this.defaultTTL,
+      etag: options.etag
+    }
+    
+    // KV has a 25MB limit per value
+    await this.kv.put(key, JSON.stringify(entry), {
+      expirationTtl: entry.ttl + 60 // Buffer for race conditions
+    })
+  }
+  
+  async getOrFetch<T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    ttl?: number
+  ): Promise<T> {
+    // Try cache first
+    const cached = await this.get<T>(key)
+    if (cached !== null) return cached
+    
+    // Fetch and cache
+    const data = await fetcher()
+    await this.set(key, data, { ttl })
+    
+    return data
+  }
+}
+```
+
+### Cache API Usage
+```typescript
+async function handleCachedApiRequest(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const cache = caches.default
+  const cacheKey = new Request(request.url, request)
+  
+  // Check cache
+  let response = await cache.match(cacheKey)
+  
+  if (!response) {
+    // Cache miss - fetch from origin
+    response = await fetchFromOrigin(request, env)
+    
+    // Cache successful responses
+    if (response.ok) {
+      const headers = new Headers(response.headers)
+      headers.set('Cache-Control', 'public, max-age=3600')
+      headers.set('X-Cache-Status', 'MISS')
+      
+      response = new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers
+      })
+      
+      // Don't block on cache write
+      event.waitUntil(cache.put(cacheKey, response.clone()))
+    }
+  } else {
+    // Cache hit
+    const headers = new Headers(response.headers)
+    headers.set('X-Cache-Status', 'HIT')
+    
+    response = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers
+    })
+  }
+  
+  return response
+}
+```
+
+### Smart Cache Invalidation
+```typescript
+export class CacheInvalidator {
+  constructor(
+    private kv: KVNamespace,
+    private cache: Cache
+  ) {}
+  
+  async invalidatePattern(pattern: string): Promise<void> {
+    // For KV store
+    const keys = await this.kv.list({ prefix: pattern })
+    await Promise.all(
+      keys.keys.map(key => this.kv.delete(key.name))
+    )
+    
+    // For Cache API - need to track keys separately
+    const trackedKeys = await this.kv.get<string[]>(`tracked:${pattern}`, 'json') || []
+    await Promise.all(
+      trackedKeys.map(url => this.cache.delete(url))
+    )
+  }
+  
+  async invalidateTags(tags: string[]): Promise<void> {
+    // Get all keys associated with tags
+    const keySets = await Promise.all(
+      tags.map(tag => this.kv.get<string[]>(`tag:${tag}`, 'json'))
+    )
+    
+    const allKeys = new Set(keySets.flat().filter(Boolean))
+    
+    // Invalidate all keys
+    await Promise.all(
+      Array.from(allKeys).map(key => this.kv.delete(key))
+    )
+    
+    // Clean up tag mappings
+    await Promise.all(
+      tags.map(tag => this.kv.delete(`tag:${tag}`))
+    )
+  }
+}
+```
+
+## 🔒 Security Patterns
+
+### Security Headers
+```typescript
+export function getSecurityHeaders(): Record<string, string> {
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Content-Security-Policy': [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://api.example.com wss://ws.example.com",
+      "frame-ancestors 'none'"
+    ].join('; '),
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload'
+  }
+}
+```
+
+### Rate Limiting
+```typescript
+export class RateLimiter {
+  constructor(
+    private kv: KVNamespace,
+    private limits: {
+      windowMs: number
+      maxRequests: number
+    }
+  ) {}
+  
+  async checkLimit(identifier: string): Promise<{
+    allowed: boolean
+    remaining: number
+    reset: number
+  }> {
+    const now = Date.now()
+    const window = Math.floor(now / this.limits.windowMs)
+    const key = `ratelimit:${identifier}:${window}`
+    
+    // Get current count
+    const count = await this.kv.get<number>(key, 'json') || 0
+    
+    if (count >= this.limits.maxRequests) {
+      return {
+        allowed: false,
+        remaining: 0,
+        reset: (window + 1) * this.limits.windowMs
+      }
+    }
+    
+    // Increment count
+    await this.kv.put(key, JSON.stringify(count + 1), {
+      expirationTtl: Math.ceil(this.limits.windowMs / 1000) + 60
+    })
+    
+    return {
+      allowed: true,
+      remaining: this.limits.maxRequests - count - 1,
+      reset: (window + 1) * this.limits.windowMs
+    }
+  }
+}
+
+// Usage
+async function checkRateLimit(
+  request: Request,
+  env: Env
+): Promise<{ allowed: boolean; retryAfter: number }> {
+  const limiter = new RateLimiter(env.RATE_LIMIT_KV, {
+    windowMs: 60000, // 1 minute
+    maxRequests: 100
+  })
+  
+  // Use IP as identifier
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown'
+  const result = await limiter.checkLimit(ip)
+  
+  return {
+    allowed: result.allowed,
+    retryAfter: Math.ceil((result.reset - Date.now()) / 1000)
+  }
+}
+```
+
+### Input Validation
+```typescript
+export class InputValidator {
+  static validateSensorData(data: unknown): SensorData {
+    if (!data || typeof data !== 'object') {
+      throw new ValidationError('Invalid sensor data format')
+    }
+    
+    const obj = data as any
+    
+    // Validate required fields
+    if (typeof obj.deviceId !== 'string' || !obj.deviceId.match(/^[a-zA-Z0-9-_]+$/)) {
+      throw new ValidationError('Invalid device ID')
+    }
+    
+    if (typeof obj.value !== 'number' || isNaN(obj.value)) {
+      throw new ValidationError('Invalid sensor value')
+    }
+    
+    if (typeof obj.timestamp !== 'number' || obj.timestamp < 0) {
+      throw new ValidationError('Invalid timestamp')
+    }
+    
+    // Validate ranges
+    if (obj.value < -1000 || obj.value > 1000) {
+      throw new ValidationError('Sensor value out of range')
+    }
+    
+    return {
+      deviceId: obj.deviceId,
+      value: obj.value,
+      timestamp: obj.timestamp,
+      unit: obj.unit || 'unknown'
+    }
+  }
+  
+  static sanitizeHtml(input: string): string {
+    return input
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+  }
+}
+```
+
+## 📊 Analytics & Monitoring
+
+### Performance Tracking
+```typescript
+export class PerformanceMonitor {
+  static async trackRequest(
+    request: Request,
+    response: Response,
+    env: Env,
+    metrics: {
+      cache: 'HIT' | 'MISS' | 'BYPASS'
+      duration: number
+      origin?: number
+    }
+  ): Promise<void> {
+    const data = {
+      timestamp: Date.now(),
+      method: request.method,
+      path: new URL(request.url).pathname,
+      status: response.status,
+      cache: metrics.cache,
+      duration: metrics.duration,
+      originDuration: metrics.origin,
+      country: request.headers.get('CF-IPCountry') || 'unknown',
+      colo: request.cf?.colo || 'unknown'
+    }
+    
+    // Send to analytics (non-blocking)
+    fetch('https://analytics.example.com/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(() => {}) // Ignore failures
+    
+    // Store in KV for aggregation
+    const hour = Math.floor(Date.now() / 3600000)
+    const key = `metrics:${hour}:${data.path}`
+    
+    await env.METRICS_KV.put(key, JSON.stringify(data), {
+      expirationTtl: 86400 // 24 hours
+    })
+  }
+}
+```
+
+### Error Tracking
+```typescript
+export async function handleError(
+  error: unknown,
+  env: Env
+): Promise<Response> {
+  const errorId = crypto.randomUUID()
+  const errorDetails = {
+    id: errorId,
+    timestamp: new Date().toISOString(),
+    message: error instanceof Error ? error.message : 'Unknown error',
+    stack: error instanceof Error ? error.stack : undefined,
+    environment: env.ENVIRONMENT
+  }
+  
+  // Log to console (goes to Cloudflare logs)
+  console.error('Worker error:', errorDetails)
+  
+  // Store error for debugging (if in development)
+  if (env.ENVIRONMENT === 'development') {
+    await env.ERRORS_KV.put(
+      `error:${errorId}`,
+      JSON.stringify(errorDetails),
+      { expirationTtl: 3600 } // 1 hour
+    )
+  }
+  
+  // Return safe error response
+  return new Response(
+    JSON.stringify({
+      error: 'Internal Server Error',
+      id: errorId
+    }),
+    {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Error-Id': errorId
+      }
+    }
+  )
+}
+```
+
+## 🔄 Real-time Features
+
+### WebSocket Handling
+```typescript
+export async function handleWebSocketUpgrade(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const upgradeHeader = request.headers.get('Upgrade')
+  if (upgradeHeader !== 'websocket') {
+    return new Response('Expected websocket', { status: 400 })
+  }
+  
+  const [client, server] = Object.values(new WebSocketPair())
+  
+  // Accept the WebSocket connection
+  server.accept()
+  
+  // Handle WebSocket in Durable Object for state management
+  const id = env.WEBSOCKET_HANDLER.idFromName(
+    request.headers.get('X-Session-Id') || crypto.randomUUID()
+  )
+  const stub = env.WEBSOCKET_HANDLER.get(id)
+  
+  // Forward the WebSocket to the Durable Object
+  await stub.fetch(request, { 
+    headers: { 
+      'Upgrade': 'websocket' 
+    } 
+  })
+  
+  return new Response(null, {
+    status: 101,
+    webSocket: client
+  })
+}
+```
+
+### Server-Sent Events
+```typescript
+export async function handleSSE(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const { readable, writable } = new TransformStream()
+  const writer = writable.getWriter()
+  const encoder = new TextEncoder()
+  
+  // Send headers for SSE
+  const response = new Response(readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    }
+  })
+  
+  // Send events
+  const sendEvent = async (data: any) => {
+    const event = `data: ${JSON.stringify(data)}\n\n`
+    await writer.write(encoder.encode(event))
+  }
+  
+  // Start sending events
+  const interval = setInterval(async () => {
+    await sendEvent({
+      timestamp: Date.now(),
+      data: await fetchLatestData(env)
+    })
+  }, 1000)
+  
+  // Clean up on disconnect
+  request.signal.addEventListener('abort', () => {
+    clearInterval(interval)
+    writer.close()
+  })
+  
+  return response
+}
+```
+
+## 🚀 Deployment Patterns
+
+### Environment-Specific Config
+```typescript
+export function getConfig(env: Env): Config {
+  const configs: Record<string, Config> = {
+    development: {
+      cacheEnabled: false,
+      cacheTTL: 60,
+      debugMode: true,
+      corsOrigins: ['http://localhost:3000']
+    },
+    staging: {
+      cacheEnabled: true,
+      cacheTTL: 300,
+      debugMode: true,
+      corsOrigins: ['https://staging.example.com']
+    },
+    production: {
+      cacheEnabled: true,
+      cacheTTL: 3600,
+      debugMode: false,
+      corsOrigins: ['https://example.com']
+    }
+  }
+  
+  return configs[env.ENVIRONMENT] || configs.production
+}
+```
+
+### Feature Flags
+```typescript
+export class FeatureFlags {
+  constructor(private kv: KVNamespace) {}
+  
+  async isEnabled(feature: string, context?: {
+    userId?: string
+    percentage?: number
+  }): Promise<boolean> {
+    const flag = await this.kv.get<FeatureFlag>(`feature:${feature}`, 'json')
+    
+    if (!flag) return false
+    if (!flag.enabled) return false
+    
+    // Check user-specific override
+    if (context?.userId && flag.userOverrides?.[context.userId] !== undefined) {
+      return flag.userOverrides[context.userId]
+    }
+    
+    // Check percentage rollout
+    if (flag.percentage !== undefined && context?.userId) {
+      const hash = await this.hashUserId(context.userId)
+      return (hash % 100) < flag.percentage
+    }
+    
+    return true
+  }
+  
+  private async hashUserId(userId: string): Promise<number> {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(userId)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const view = new DataView(hashBuffer)
+    return Math.abs(view.getInt32(0))
+  }
+}
+```
+
+## 🚫 Anti-Patterns
+
+### Common Mistakes
+```typescript
+// ❌ DON'T: Block on non-critical operations
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const response = await handleRequest(request)
+    
+    // This blocks the response
+    await logAnalytics(request, response)
+    
+    return response
+  }
+}
+
+// ✅ DO: Use ctx.waitUntil for non-critical work
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    const response = await handleRequest(request)
+    
+    // Non-blocking
+    ctx.waitUntil(logAnalytics(request, response))
+    
+    return response
+  }
+}
+
+// ❌ DON'T: Store state in global variables
+let requestCount = 0 // This won't work across requests
+
+// ✅ DO: Use KV, Durable Objects, or external storage
+const count = await env.COUNTER_KV.get('requests') || 0
+
+// ❌ DON'T: Make sequential requests
+const user = await fetch('/api/user')
+const posts = await fetch('/api/posts')
+const comments = await fetch('/api/comments')
+
+// ✅ DO: Parallelize requests
+const [user, posts, comments] = await Promise.all([
+  fetch('/api/user'),
+  fetch('/api/posts'),
+  fetch('/api/comments')
+])
+```
+
+## 📋 Edge Computing Checklist
+
+- [ ] Response time under 50ms for cached content
+- [ ] Proper error handling without information leakage
+- [ ] Rate limiting implemented for all endpoints
+- [ ] Security headers added to all responses
+- [ ] Input validation for all user data
+- [ ] Non-blocking analytics and logging
+- [ ] Graceful fallbacks for origin failures
+- [ ] Proper cache key design
+- [ ] Environment-specific configuration
+- [ ] Monitoring and alerting setup
+
+## 🔗 Related Documentation
+
+- **Performance Optimization**: See [40-performance-optimization.mdc](mdc:.cursor/rules/40-performance-optimization.mdc)
+- **Security Patterns**: See security headers and validation sections
+- **Testing Strategy**: See [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+- **Import Organization**: See [22-import-organization.mdc](mdc:.cursor/rules/22-import-organization.mdc)
+description:
+globs:
+alwaysApply: false
+---

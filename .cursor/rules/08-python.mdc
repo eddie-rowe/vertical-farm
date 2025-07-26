@@ -1,0 +1,596 @@
+---
+description: Python 3.10+ best practices, type hints, async patterns, and code organization
+globs: "**/*.py, backend/**/*.py, scripts/**/*.py"
+alwaysApply: false
+---
+
+# Python Best Practices - Vertical Farm Backend
+
+## 🐍 Python Version & Environment
+
+### Version Requirements
+- **Python 3.10+** (project uses 3.13.3)
+- Use latest stable features
+- Leverage type hints and modern syntax
+- Use `match` statements where appropriate
+
+### Virtual Environment
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate (Linux/Mac)
+source venv/bin/activate
+
+# Activate (Windows)
+venv\Scripts\activate
+
+# Install dependencies
+pip install -e ".[all]"  # Install with all extras
+```
+
+## 📁 Project Structure
+
+### Standard Layout
+```
+backend/
+├── app/                    # Main application package
+│   ├── __init__.py
+│   ├── main.py            # FastAPI app entry point
+│   ├── api/               # API endpoints
+│   ├── core/              # Core functionality
+│   ├── crud/              # Database operations (if needed)
+│   ├── db/                # Database configuration
+│   ├── models/            # Pydantic models
+│   ├── schemas/           # Request/Response schemas
+│   ├── services/          # Business logic
+│   └── tests/             # Test files
+├── pyproject.toml         # Project configuration
+├── requirements.txt       # Production dependencies
+├── pyrightconfig.json     # Type checking config
+└── Dockerfile            # Container configuration
+```
+
+## 🎨 Code Style & Formatting
+
+### Tool Configuration
+```toml
+# pyproject.toml
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311', 'py312']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+```
+
+### Naming Conventions
+```python
+# Variables and functions: snake_case
+user_id = "123"
+def get_user_by_id(user_id: str) -> User:
+    pass
+
+# Classes: PascalCase
+class UserHomeAssistantService:
+    pass
+
+# Constants: UPPER_SNAKE_CASE
+MAX_RETRY_ATTEMPTS = 3
+DEFAULT_TIMEOUT = 30
+
+# Private/internal: Leading underscore
+_internal_cache = {}
+def _process_internal_data():
+    pass
+
+# Type aliases: PascalCase
+UserId = str
+DeviceState = Dict[str, Any]
+```
+
+## 📝 Type Hints
+
+### Modern Type Hints (Python 3.10+)
+```python
+from typing import Optional, List, Dict, Any, Union, TypeVar, Generic
+from collections.abc import Callable, Awaitable, AsyncIterator
+from typing import TypeAlias, Never
+
+# Use union type syntax
+def process_value(value: str | int | None) -> str:
+    if value is None:
+        return "None"
+    return str(value)
+
+# Type aliases
+UserId: TypeAlias = str
+DeviceData: TypeAlias = dict[str, Any]
+
+# Generic types
+T = TypeVar("T")
+class Repository(Generic[T]):
+    async def get(self, id: str) -> T | None:
+        pass
+
+# Callable types
+AsyncCallback: TypeAlias = Callable[[str], Awaitable[None]]
+
+# Never for unreachable code
+def assert_never(value: Never) -> Never:
+    raise AssertionError(f"Unhandled value: {value}")
+```
+
+### Pydantic Models
+```python
+from pydantic import BaseModel, Field, validator, ConfigDict
+from datetime import datetime
+from enum import Enum
+
+class DeviceAction(str, Enum):
+    """Device control actions."""
+    ON = "on"
+    OFF = "off"
+    TOGGLE = "toggle"
+
+class DeviceControlRequest(BaseModel):
+    """Request model for device control."""
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        validate_assignment=True,
+    )
+    
+    entity_id: str = Field(..., description="Home Assistant entity ID")
+    action: DeviceAction = Field(..., description="Action to perform")
+    
+    @validator("entity_id")
+    def validate_entity_id(cls, v: str) -> str:
+        if not v:
+            raise ValueError("entity_id cannot be empty")
+        if not v.startswith(("light.", "switch.", "fan.")):
+            raise ValueError("Invalid entity_id format")
+        return v
+```
+
+## 🔄 Async Patterns
+
+### Async Best Practices
+```python
+import asyncio
+from typing import List, Any
+from asyncio import gather, create_task, TaskGroup
+
+# Concurrent operations with gather
+async def fetch_all_data(user_id: str) -> dict[str, Any]:
+    """Fetch all user data concurrently."""
+    # Run multiple async operations in parallel
+    farm_data, devices, sensors = await gather(
+        fetch_farm_data(user_id),
+        fetch_devices(user_id),
+        fetch_sensors(user_id),
+        return_exceptions=True  # Continue even if one fails
+    )
+    
+    # Handle potential exceptions
+    if isinstance(farm_data, Exception):
+        logger.error(f"Failed to fetch farm data: {farm_data}")
+        farm_data = None
+    
+    return {
+        "farm": farm_data,
+        "devices": devices,
+        "sensors": sensors
+    }
+
+# Task groups (Python 3.11+)
+async def process_devices(device_ids: List[str]) -> List[DeviceState]:
+    """Process multiple devices concurrently."""
+    async with TaskGroup() as tg:
+        tasks = [
+            tg.create_task(process_device(device_id))
+            for device_id in device_ids
+        ]
+    
+    # All tasks complete or exception is raised
+    return [task.result() for task in tasks]
+
+# Async context managers
+async def with_device_lock(device_id: str):
+    """Context manager for device operations."""
+    lock = await acquire_device_lock(device_id)
+    try:
+        yield lock
+    finally:
+        await release_device_lock(device_id)
+
+# Async iterators
+async def stream_sensor_data(sensor_id: str) -> AsyncIterator[SensorData]:
+    """Stream real-time sensor data."""
+    async with connect_to_sensor(sensor_id) as connection:
+        while True:
+            data = await connection.read()
+            if not data:
+                break
+            yield SensorData.parse(data)
+```
+
+### Background Tasks
+```python
+from asyncio import create_task, Queue
+from contextlib import asynccontextmanager
+
+class BackgroundTaskManager:
+    """Manage background tasks lifecycle."""
+    
+    def __init__(self):
+        self._tasks: set[asyncio.Task] = set()
+        self._queue: Queue[dict[str, Any]] = Queue()
+    
+    async def start(self):
+        """Start background workers."""
+        for i in range(3):  # 3 workers
+            task = create_task(self._worker(f"worker-{i}"))
+            self._tasks.add(task)
+    
+    async def stop(self):
+        """Gracefully stop all tasks."""
+        # Cancel all tasks
+        for task in self._tasks:
+            task.cancel()
+        
+        # Wait for completion
+        await gather(*self._tasks, return_exceptions=True)
+    
+    async def _worker(self, name: str):
+        """Background worker."""
+        while True:
+            try:
+                item = await self._queue.get()
+                await self._process_item(item)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Worker {name} error: {e}")
+```
+
+## ⚠️ Exception Handling
+
+### Structured Exception Handling
+```python
+from typing import TypeVar, Generic, Optional
+from dataclasses import dataclass
+
+# Custom exceptions
+class ServiceError(Exception):
+    """Base service exception."""
+    def __init__(self, message: str, code: str | None = None):
+        super().__init__(message)
+        self.code = code
+
+class NotFoundError(ServiceError):
+    """Resource not found."""
+    def __init__(self, resource: str, id: str):
+        super().__init__(
+            f"{resource} with id '{id}' not found",
+            code="NOT_FOUND"
+        )
+
+class ValidationError(ServiceError):
+    """Validation failed."""
+    def __init__(self, field: str, message: str):
+        super().__init__(
+            f"Validation error on {field}: {message}",
+            code="VALIDATION_ERROR"
+        )
+
+# Result type for explicit error handling
+T = TypeVar("T")
+E = TypeVar("E")
+
+@dataclass
+class Ok(Generic[T]):
+    value: T
+
+@dataclass
+class Err(Generic[E]):
+    error: E
+
+Result: TypeAlias = Ok[T] | Err[E]
+
+# Using Result type
+async def get_device(device_id: str) -> Result[Device, ServiceError]:
+    """Get device with explicit error handling."""
+    try:
+        device = await fetch_device(device_id)
+        if not device:
+            return Err(NotFoundError("Device", device_id))
+        return Ok(device)
+    except Exception as e:
+        logger.error(f"Failed to fetch device: {e}")
+        return Err(ServiceError("Internal error"))
+
+# Exception groups (Python 3.11+)
+async def validate_farm_data(data: dict) -> None:
+    """Validate farm data with grouped exceptions."""
+    errors = []
+    
+    if not data.get("name"):
+        errors.append(ValidationError("name", "Required field"))
+    
+    if data.get("capacity", 0) < 0:
+        errors.append(ValidationError("capacity", "Must be positive"))
+    
+    if errors:
+        raise ExceptionGroup("Validation failed", errors)
+```
+
+### Async Exception Handling
+```python
+# Handling asyncio exceptions
+async def safe_device_operation(device_id: str) -> DeviceState | None:
+    """Safely perform device operation."""
+    try:
+        async with asyncio.timeout(10):  # Python 3.11+
+            return await control_device(device_id)
+    except asyncio.TimeoutError:
+        logger.warning(f"Device {device_id} operation timed out")
+        return None
+    except asyncio.CancelledError:
+        logger.info(f"Device {device_id} operation cancelled")
+        raise  # Always re-raise CancelledError
+    except Exception as e:
+        logger.error(f"Device {device_id} error: {e}")
+        return None
+```
+
+## 🧪 Testing
+
+### Pytest Configuration
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+]
+```
+
+### Test Patterns
+```python
+import pytest
+from unittest.mock import AsyncMock, patch
+from httpx import AsyncClient
+
+# Async fixtures
+@pytest.fixture
+async def async_client():
+    """Create async test client."""
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+@pytest.fixture
+async def mock_supabase():
+    """Mock Supabase client."""
+    with patch("app.db.supabase_client.get_async_supabase_client") as mock:
+        client = AsyncMock()
+        mock.return_value = client
+        yield client
+
+# Parametrized tests
+@pytest.mark.parametrize("device_type,expected", [
+    ("light", True),
+    ("switch", True),
+    ("unknown", False),
+])
+async def test_device_validation(device_type: str, expected: bool):
+    """Test device type validation."""
+    result = is_valid_device_type(device_type)
+    assert result == expected
+
+# Testing async code
+@pytest.mark.asyncio
+async def test_fetch_devices(mock_supabase):
+    """Test fetching devices."""
+    # Setup mock
+    mock_supabase.table.return_value.select.return_value.execute.return_value = {
+        "data": [{"id": "1", "name": "Light"}]
+    }
+    
+    # Test
+    devices = await fetch_devices("user_123")
+    
+    # Verify
+    assert len(devices) == 1
+    assert devices[0]["name"] == "Light"
+    mock_supabase.table.assert_called_with("devices")
+
+# Testing exceptions
+async def test_device_not_found():
+    """Test device not found error."""
+    with pytest.raises(NotFoundError) as exc_info:
+        await get_device("invalid_id")
+    
+    assert exc_info.value.code == "NOT_FOUND"
+    assert "invalid_id" in str(exc_info.value)
+```
+
+## 🔧 Development Tools
+
+### Type Checking with Pyright
+```json
+// pyrightconfig.json
+{
+  "include": ["app"],
+  "exclude": ["**/__pycache__", "venv"],
+  "reportGeneralTypeIssues": "error",
+  "reportOptionalMemberAccess": "error",
+  "reportTypedDictNotRequiredAccess": "warning",
+  "pythonVersion": "3.10",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "strict"
+}
+```
+
+### Pre-commit Hooks
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.12.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+
+  - repo: https://github.com/microsoft/pyright
+    rev: v1.1.300
+    hooks:
+      - id: pyright
+```
+
+## 🚀 Performance Optimization
+
+### Profiling & Optimization
+```python
+import asyncio
+from functools import lru_cache, cached_property
+from time import perf_counter
+import contextvars
+
+# Context variables for request tracking
+request_id: contextvars.ContextVar[str] = contextvars.ContextVar("request_id")
+
+# Performance monitoring decorator
+def monitor_performance(name: str):
+    """Monitor async function performance."""
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            start = perf_counter()
+            request = request_id.get(None)
+            
+            try:
+                result = await func(*args, **kwargs)
+                duration = perf_counter() - start
+                
+                logger.info(
+                    f"Performance: {name}",
+                    extra={
+                        "duration": duration,
+                        "request_id": request,
+                        "function": name
+                    }
+                )
+                
+                return result
+            except Exception as e:
+                duration = perf_counter() - start
+                logger.error(
+                    f"Performance error: {name}",
+                    extra={
+                        "duration": duration,
+                        "request_id": request,
+                        "error": str(e)
+                    }
+                )
+                raise
+        
+        return wrapper
+    return decorator
+
+# Caching strategies
+class CachedService:
+    """Service with caching capabilities."""
+    
+    def __init__(self):
+        self._cache: dict[str, Any] = {}
+    
+    @lru_cache(maxsize=128)
+    def compute_expensive(self, param: str) -> str:
+        """LRU cached computation."""
+        return f"computed_{param}"
+    
+    @cached_property
+    def config(self) -> dict[str, Any]:
+        """Cached property - computed once."""
+        return load_configuration()
+    
+    async def get_with_cache(self, key: str) -> Any:
+        """Manual cache with TTL."""
+        if key in self._cache:
+            entry = self._cache[key]
+            if entry["expires"] > asyncio.get_event_loop().time():
+                return entry["value"]
+        
+        # Fetch and cache
+        value = await self._fetch(key)
+        self._cache[key] = {
+            "value": value,
+            "expires": asyncio.get_event_loop().time() + 300  # 5 min TTL
+        }
+        return value
+```
+
+## 📋 Best Practices Checklist
+
+### Code Quality
+- [ ] Use type hints for all functions
+- [ ] Follow PEP 8 and project style guide
+- [ ] Write descriptive docstrings
+- [ ] Handle exceptions explicitly
+- [ ] Use async/await properly
+
+### Testing
+- [ ] Write tests for new features
+- [ ] Maintain > 80% code coverage
+- [ ] Test error scenarios
+- [ ] Use mocks for external dependencies
+- [ ] Run tests before committing
+
+### Performance
+- [ ] Use concurrent operations where possible
+- [ ] Implement proper caching
+- [ ] Profile critical paths
+- [ ] Avoid blocking operations
+- [ ] Use connection pooling
+
+### Security
+- [ ] Validate all inputs
+- [ ] Use parameterized queries
+- [ ] Handle sensitive data properly
+- [ ] Implement rate limiting
+- [ ] Log security events
+
+## 🔗 Related Documentation
+
+- **FastAPI Patterns**: See [python-fastapi.mdc](mdc:.cursor/rules/python-fastapi.mdc)
+- **Backend Architecture**: See [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc)
+- **Import Organization**: See [22-import-organization.mdc](mdc:.cursor/rules/22-import-organization.mdc)
+- **Testing Strategy**: See [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+- Use requirements.txt for production
+- Separate dev dependencies
+- Use proper package versions
+- Regularly update dependencies
+- Check for security vulnerabilities

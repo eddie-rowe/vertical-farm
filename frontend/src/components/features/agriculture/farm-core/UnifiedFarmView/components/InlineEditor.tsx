@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Check, X, Edit3 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
+import { Check, X, Edit3 } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface InlineEditorProps {
-  value: string
-  onSave: (value: string) => void
-  onCancel?: () => void
-  placeholder?: string
-  className?: string
-  editMode?: boolean
-  showEditIcon?: boolean
-  disabled?: boolean
+  value: string;
+  onSave: (value: string) => void;
+  onCancel?: () => void;
+  placeholder?: string;
+  className?: string;
+  editMode?: boolean;
+  showEditIcon?: boolean;
+  disabled?: boolean;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = ({
@@ -23,51 +24,54 @@ export const InlineEditor: React.FC<InlineEditorProps> = ({
   className,
   editMode = false,
   showEditIcon = true,
-  disabled = false
+  disabled = false,
 }) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState(value)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setEditValue(value)
-  }, [value])
+    setEditValue(value);
+  }, [value]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
+      inputRef.current.focus();
+      inputRef.current.select();
     }
-  }, [isEditing])
+  }, [isEditing]);
 
   const handleSave = useCallback(() => {
     if (editValue.trim() !== value) {
-      onSave(editValue.trim())
+      onSave(editValue.trim());
     }
-    setIsEditing(false)
-  }, [editValue, value, onSave])
+    setIsEditing(false);
+  }, [editValue, value, onSave]);
 
   const handleCancel = useCallback(() => {
-    setEditValue(value)
-    setIsEditing(false)
-    onCancel?.()
-  }, [value, onCancel])
+    setEditValue(value);
+    setIsEditing(false);
+    onCancel?.();
+  }, [value, onCancel]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleSave()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      handleCancel()
-    }
-  }, [handleSave, handleCancel])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSave();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        handleCancel();
+      }
+    },
+    [handleSave, handleCancel],
+  );
 
   const startEditing = useCallback(() => {
     if (!disabled) {
-      setIsEditing(true)
+      setIsEditing(true);
     }
-  }, [disabled])
+  }, [disabled]);
 
   if (isEditing) {
     return (
@@ -98,25 +102,25 @@ export const InlineEditor: React.FC<InlineEditorProps> = ({
           <X className="w-3 h-3" />
         </Button>
       </div>
-    )
+    );
   }
 
   return (
-    <div 
+    <div
       className={cn(
         "group flex items-center gap-1 cursor-pointer",
-        editMode && !disabled && "hover:bg-slate-100 dark:hover:bg-slate-700 rounded px-1 py-0.5",
+        editMode &&
+          !disabled &&
+          "hover:bg-slate-100 dark:hover:bg-slate-700 rounded px-1 py-0.5",
         disabled && "cursor-not-allowed opacity-50",
-        className
+        className,
       )}
       onClick={startEditing}
     >
-      <span className="text-sm font-medium">
-        {value || placeholder}
-      </span>
+      <span className="text-sm font-medium">{value || placeholder}</span>
       {editMode && showEditIcon && !disabled && (
         <Edit3 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-500" />
       )}
     </div>
-  )
-} 
+  );
+};

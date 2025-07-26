@@ -1,11 +1,11 @@
 // frontend/tests/App.test.js
-import { render, screen } from '@testing-library/react';
-import App from '@/app/page'; // Adjust the import based on your file structure
+import { render, screen } from "@testing-library/react";
+import App from "@/app/page"; // Adjust the import based on your file structure
 
-test('renders the app', () => {
-    render(<App />);
-    const mainHeading = screen.getByText(/Your Farm, Smarter/i);
-    expect(mainHeading).toBeInTheDocument();
+test("renders the app", () => {
+  render(<App />);
+  const mainHeading = screen.getByText(/Your Farm, Smarter/i);
+  expect(mainHeading).toBeInTheDocument();
 });
 
 /*

@@ -1,9 +1,15 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { supabase } from "@/lib/supabaseClient";
-import toast from 'react-hot-toast';
+import type { User, Session } from "@supabase/supabase-js";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import toast from "react-hot-toast";
 
-import type { User, Session } from '@supabase/supabase-js';
+import { supabase } from "@/lib/supabaseClient";
 
 interface AuthContextType {
   user: User | null;
@@ -26,9 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
       if (error) {
-        console.error('Error getting initial session:', error);
+        console.error("Error getting initial session:", error);
       } else {
         setSession(session);
         setUser(session?.user ?? null);
@@ -39,31 +48,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getInitialSession();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
 
-        // Handle different auth events
-        switch (event) {
-          case 'SIGNED_IN':
-            console.log('User signed in');
-            break;
-          case 'SIGNED_OUT':
-            console.log('User signed out');
-            break;
-          case 'TOKEN_REFRESHED':
-            console.log('Token refreshed successfully');
-            break;
-          case 'USER_UPDATED':
-            console.log('User updated');
-            break;
-        }
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      // Handle different auth events
+      switch (event) {
+        case "SIGNED_IN":
+          console.log("User signed in");
+          break;
+        case "SIGNED_OUT":
+          console.log("User signed out");
+          break;
+        case "TOKEN_REFRESHED":
+          console.log("Token refreshed successfully");
+          break;
+        case "USER_UPDATED":
+          console.log("User updated");
+          break;
       }
-    );
+    });
 
     // Cleanup subscription on unmount
     return () => {
@@ -81,19 +90,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password');
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("Invalid email or password");
         }
         throw error;
       }
 
       if (data.user && data.session) {
         // State will be updated automatically via onAuthStateChange
-        toast.success('Signed in successfully');
+        toast.success("Signed in successfully");
       }
     } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error(error.message || 'Failed to sign in');
+      console.error("Sign in error:", error);
+      toast.error(error.message || "Failed to sign in");
       throw error;
     } finally {
       setLoading(false);
@@ -101,50 +110,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Sign up function
-  const signUp = useCallback(async (email: string, password: string, userData?: any) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData || {}
+  const signUp = useCallback(
+    async (email: string, password: string, userData?: any) => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: userData || {},
+          },
+        });
+
+        if (error) {
+          throw error;
         }
-      });
 
-      if (error) {
+        if (data.user) {
+          toast.success(
+            "Account created successfully! Please check your email to verify your account.",
+          );
+        }
+      } catch (error: any) {
+        console.error("Sign up error:", error);
+        toast.error(error.message || "Failed to create account");
         throw error;
+      } finally {
+        setLoading(false);
       }
-
-      if (data.user) {
-        toast.success('Account created successfully! Please check your email to verify your account.');
-      }
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast.error(error.message || 'Failed to create account');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Sign out function
   const signOut = useCallback(async () => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Failed to sign out');
+        console.error("Sign out error:", error);
+        toast.error("Failed to sign out");
         throw error;
       }
-      
+
       // State will be updated automatically via onAuthStateChange
-      toast.success('Signed out successfully');
+      toast.success("Signed out successfully");
     } catch (error: any) {
-      console.error('Sign out error:', error);
-      toast.error(error.message || 'Failed to sign out');
+      console.error("Sign out error:", error);
+      toast.error(error.message || "Failed to sign out");
       throw error;
     } finally {
       setLoading(false);
@@ -162,10 +176,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      toast.success('Password reset email sent! Please check your inbox.');
+      toast.success("Password reset email sent! Please check your inbox.");
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to send reset email');
+      console.error("Password reset error:", error);
+      toast.error(error.message || "Failed to send reset email");
       throw error;
     }
   }, []);
@@ -180,17 +194,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-} 
+}

@@ -1,0 +1,845 @@
+---
+description: Performance optimization strategies for caching, lazy loading, and bundle optimization
+globs: "**/*.{ts,tsx,js,jsx,py}, frontend/next.config.{js,ts}, cloudflare/**/*.{ts,js}"
+alwaysApply: false
+---
+
+# Performance Optimization
+
+## 🎯 Core Principles
+
+### 1. Cache Everything Cacheable
+- **Data Caching**: Use Next.js 15 "use cache" directive
+- **Route Caching**: Static generation where possible
+- **API Caching**: Cache responses with appropriate headers
+- **Component Memoization**: Prevent unnecessary re-renders
+
+### 2. Load Only What's Needed
+- **Code Splitting**: Dynamic imports for features
+- **Lazy Loading**: Components, images, and data
+- **Progressive Enhancement**: Core functionality first
+- **Bundle Optimization**: Minimize JavaScript payload
+
+### 3. Optimize User Experience
+- **Optimistic Updates**: Immediate UI feedback
+- **Suspense Boundaries**: Granular loading states
+- **Streaming SSR**: Progressive page rendering
+- **Web Vitals**: Monitor and optimize CLS, LCP, FID
+
+## 🚀 Next.js 15 Caching Strategies
+
+### "use cache" Directive
+```typescript
+// ✅ DO: Cache expensive data fetching
+"use cache"
+
+import { FarmService } from '@/services/domain/farm/FarmService'
+
+export async function getCachedFarmData(farmId: string) {
+  const service = FarmService.getInstance()
+  return await service.getFarmWithDetails(farmId)
+}
+
+// ✅ DO: Cache computed values
+"use cache"
+
+export async function getFarmAnalytics(farmId: string) {
+  const service = FarmService.getInstance()
+  
+  const [sensorData, deviceMetrics, efficiency] = await Promise.all([
+    service.getSensorAnalytics(farmId),
+    service.getDeviceMetrics(farmId),
+    service.calculateEfficiency(farmId)
+  ])
+  
+  return {
+    sensorData,
+    deviceMetrics,
+    efficiency,
+    generated: new Date().toISOString()
+  }
+}
+
+// ❌ DON'T: Cache user-specific or frequently changing data
+"use cache"
+export async function getUserNotifications(userId: string) {
+  // Don't cache personal data globally
+}
+```
+
+### cacheLife Configuration
+```typescript
+// next.config.js
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      // Static configuration data
+      configuration: {
+        stale: 3600,      // 1 hour
+        revalidate: 1800, // 30 minutes
+        expire: 86400     // 24 hours
+      },
+      
+      // Farm data - moderate updates
+      farms: {
+        stale: 300,       // 5 minutes
+        revalidate: 60,   // 1 minute
+        expire: 3600      // 1 hour
+      },
+      
+      // Device data - frequent updates
+      devices: {
+        stale: 60,        // 1 minute
+        revalidate: 30,   // 30 seconds
+        expire: 600       // 10 minutes
+      },
+      
+      // Sensor data - real-time
+      sensors: {
+        stale: 10,        // 10 seconds
+        revalidate: 5,    // 5 seconds
+        expire: 60        // 1 minute
+      },
+      
+      // Analytics - computed daily
+      analytics: {
+        stale: 3600,      // 1 hour
+        revalidate: 1800, // 30 minutes
+        expire: 86400     // 24 hours
+      }
+    }
+  }
+}
+
+// Usage with cacheLife
+"use cache"
+
+export async function getFarmConfiguration(farmId: string) {
+  cacheLife('configuration')
+  
+  const configService = ConfigurationService.getInstance()
+  return await configService.getFarmConfig(farmId)
+}
+
+"use cache"
+
+export async function getLatestSensorData(farmId: string) {
+  cacheLife('sensors')
+  
+  const sensorService = SensorService.getInstance()
+  return await sensorService.getLatestReadings(farmId)
+}
+```
+
+### Cache Invalidation Patterns
+```typescript
+// services/domain/farm/FarmService.ts
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+export class FarmService extends BaseCRUDService<Farm> {
+  async update(id: string, data: Partial<Farm>): Promise<Farm> {
+    const result = await super.update(id, data)
+    
+    // Invalidate specific caches based on what changed
+    if (data.name || data.location) {
+      revalidateTag(`farm-${id}`)
+      revalidatePath(`/farms/${id}`)
+    }
+    
+    if (data.configuration) {
+      revalidateTag(`farm-config-${id}`)
+    }
+    
+    if (data.layout) {
+      revalidateTag(`farm-layout-${id}`)
+      revalidatePath(`/farms/${id}/layout`)
+    }
+    
+    // Always revalidate the farm list
+    revalidatePath('/farms')
+    
+    return result
+  }
+  
+  async addDevice(farmId: string, device: Device): Promise<Device> {
+    const result = await this.deviceService.create(device)
+    
+    // Targeted invalidation
+    revalidateTag(`farm-${farmId}-devices`)
+    revalidatePath(`/farms/${farmId}/devices`)
+    
+    return result
+  }
+}
+```
+
+### Server-side Caching with unstable_cache
+```typescript
+import { unstable_cache } from 'next/cache'
+
+export class AnalyticsService extends BaseService {
+  // Cache expensive aggregations
+  getFarmEfficiencyReport = unstable_cache(
+    async (farmId: string, timeRange: TimeRange) => {
+      const supabase = await this.getSupabaseClient()
+      
+      const { data } = await supabase.rpc('calculate_farm_efficiency', {
+        p_farm_id: farmId,
+        p_start_date: timeRange.start,
+        p_end_date: timeRange.end
+      })
+      
+      return data
+    },
+    ['farm-efficiency'],
+    {
+      revalidate: 1800, // 30 minutes
+      tags: ['analytics', 'efficiency']
+    }
+  )
+  
+  // Cache with dynamic tags
+  getDevicePerformance = unstable_cache(
+    async (deviceId: string) => {
+      const supabase = await this.getSupabaseClient()
+      
+      const { data } = await supabase.rpc('get_device_performance', {
+        p_device_id: deviceId
+      })
+      
+      return data
+    },
+    (deviceId) => ['device-performance', deviceId],
+    {
+      revalidate: 300,
+      tags: (deviceId) => [`device-${deviceId}`, 'performance']
+    }
+  )
+}
+```
+
+## ⚛️ React 19 Concurrent Features
+
+### useOptimistic for Instant Updates
+```typescript
+'use client'
+import { useOptimistic } from 'react'
+import { updateDeviceStatus, toggleDevicePower } from './actions'
+
+export function DeviceControlPanel({ devices }: { devices: Device[] }) {
+  const [optimisticDevices, updateOptimisticDevice] = useOptimistic(
+    devices,
+    (state, update: { id: string; changes: Partial<Device> }) => {
+      return state.map(device => 
+        device.id === update.id 
+          ? { ...device, ...update.changes, isPending: true }
+          : device
+      )
+    }
+  )
+  
+  const handlePowerToggle = async (device: Device) => {
+    const newPower = !device.isPowered
+    
+    // Optimistic update
+    updateOptimisticDevice({
+      id: device.id,
+      changes: { isPowered: newPower }
+    })
+    
+    await toggleDevicePower(device.id, newPower)
+  }
+  
+  const handleStatusChange = async (deviceId: string, status: DeviceStatus) => {
+    // Optimistic update with multiple properties
+    updateOptimisticDevice({
+      id: deviceId,
+      changes: { 
+        status,
+        lastUpdated: new Date().toISOString(),
+        statusMessage: `Changing to ${status}...`
+      }
+    })
+    
+    await updateDeviceStatus(deviceId, status)
+  }
+  
+  return (
+    <div className="device-grid">
+      {optimisticDevices.map(device => (
+        <DeviceCard
+          key={device.id}
+          device={device}
+          onPowerToggle={() => handlePowerToggle(device)}
+          onStatusChange={(status) => handleStatusChange(device.id, status)}
+          isPending={device.isPending}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### useTransition for Non-Blocking Updates
+```typescript
+'use client'
+import { useTransition, useState } from 'react'
+
+export function FarmSettingsPanel({ farm }: { farm: Farm }) {
+  const [isPending, startTransition] = useTransition()
+  const [settings, setSettings] = useState(farm.settings)
+  
+  const handleSettingsUpdate = (newSettings: FarmSettings) => {
+    startTransition(async () => {
+      // Update local state immediately
+      setSettings(newSettings)
+      
+      // Heavy operation doesn't block UI
+      const { FarmService } = await import('@/services/domain/farm/FarmService')
+      const service = FarmService.getInstance()
+      
+      await service.updateSettings(farm.id, newSettings)
+    })
+  }
+  
+  return (
+    <div className={isPending ? 'opacity-50' : ''}>
+      <SettingsForm
+        settings={settings}
+        onUpdate={handleSettingsUpdate}
+        disabled={isPending}
+      />
+      {isPending && <p>Updating settings...</p>}
+    </div>
+  )
+}
+```
+
+### Suspense with use() Hook
+```typescript
+'use client'
+import { Suspense, use } from 'react'
+
+// Create resource for concurrent loading
+function createFarmResource(farmId: string) {
+  return {
+    farm: FarmService.getInstance().getFarm(farmId),
+    devices: DeviceService.getInstance().getFarmDevices(farmId),
+    sensors: SensorService.getInstance().getFarmSensors(farmId),
+    analytics: AnalyticsService.getInstance().getFarmAnalytics(farmId)
+  }
+}
+
+export function FarmDashboard({ farmId }: { farmId: string }) {
+  const resources = createFarmResource(farmId)
+  
+  return (
+    <div className="farm-dashboard">
+      <Suspense fallback={<HeaderSkeleton />}>
+        <FarmHeader farmPromise={resources.farm} />
+      </Suspense>
+      
+      <div className="grid grid-cols-3 gap-6">
+        <Suspense fallback={<DevicesSkeleton />}>
+          <DevicesPanel devicesPromise={resources.devices} />
+        </Suspense>
+        
+        <Suspense fallback={<SensorsSkeleton />}>
+          <SensorsPanel sensorsPromise={resources.sensors} />
+        </Suspense>
+        
+        <Suspense fallback={<AnalyticsSkeleton />}>
+          <AnalyticsPanel analyticsPromise={resources.analytics} />
+        </Suspense>
+      </div>
+    </div>
+  )
+}
+
+// Components using the use() hook
+function DevicesPanel({ devicesPromise }: { devicesPromise: Promise<Device[]> }) {
+  const devices = use(devicesPromise)
+  
+  return (
+    <div className="devices-panel">
+      <h2>Devices ({devices.length})</h2>
+      {devices.map(device => (
+        <DeviceCard key={device.id} device={device} />
+      ))}
+    </div>
+  )
+}
+```
+
+### Server Actions with useActionState
+```typescript
+'use client'
+import { useActionState } from 'react'
+import { createFarmAction } from './actions'
+
+const initialState = {
+  errors: {},
+  message: '',
+  success: false
+}
+
+export function CreateFarmForm() {
+  const [state, formAction, isPending] = useActionState(
+    createFarmAction,
+    initialState
+  )
+  
+  return (
+    <form action={formAction} className="farm-form">
+      <div>
+        <label htmlFor="name">Farm Name</label>
+        <input 
+          id="name" 
+          name="name" 
+          required 
+          disabled={isPending}
+        />
+        {state.errors?.name && (
+          <p className="error">{state.errors.name}</p>
+        )}
+      </div>
+      
+      <div>
+        <label htmlFor="location">Location</label>
+        <input 
+          id="location" 
+          name="location" 
+          required 
+          disabled={isPending}
+        />
+        {state.errors?.location && (
+          <p className="error">{state.errors.location}</p>
+        )}
+      </div>
+      
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create Farm'}
+      </button>
+      
+      {state.message && (
+        <p className={state.success ? 'success' : 'error'}>
+          {state.message}
+        </p>
+      )}
+    </form>
+  )
+}
+```
+
+## 📦 Bundle Optimization
+
+### Dynamic Imports Strategy
+```typescript
+// ✅ DO: Dynamic import heavy features
+import dynamic from 'next/dynamic'
+
+// Lazy load analytics dashboard
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/features/analytics/AnalyticsDashboard'),
+  {
+    loading: () => <AnalyticsSkeleton />,
+    ssr: false // Disable SSR for client-only features
+  }
+)
+
+// Dynamic import with named exports
+const { ChartComponent } = dynamic(
+  () => import('@/components/charts').then(mod => ({ ChartComponent: mod.ChartComponent })),
+  { loading: () => <ChartSkeleton /> }
+)
+
+// ✅ DO: Code split by route
+export default function FarmPage({ params }: { params: { tab: string } }) {
+  const renderTab = () => {
+    switch (params.tab) {
+      case 'analytics':
+        return <AnalyticsDashboard />
+      case 'automation':
+        const AutomationPanel = dynamic(() => import('./AutomationPanel'))
+        return <AutomationPanel />
+      case 'settings':
+        const SettingsPanel = dynamic(() => import('./SettingsPanel'))
+        return <SettingsPanel />
+      default:
+        return <Overview />
+    }
+  }
+  
+  return <div>{renderTab()}</div>
+}
+```
+
+### Service Layer Code Splitting
+```typescript
+// ✅ DO: Dynamic service imports for heavy operations
+export function ExportButton({ farmId }: { farmId: string }) {
+  const [isExporting, setIsExporting] = useState(false)
+  
+  const handleExport = async () => {
+    setIsExporting(true)
+    
+    try {
+      // Dynamic import only when needed
+      const { ExportService } = await import(
+        '@/services/domain/export/ExportService'
+      )
+      
+      const service = ExportService.getInstance()
+      const exportUrl = await service.exportFarmData(farmId)
+      
+      window.open(exportUrl, '_blank')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+  
+  return (
+    <button onClick={handleExport} disabled={isExporting}>
+      {isExporting ? 'Exporting...' : 'Export Data'}
+    </button>
+  )
+}
+```
+
+### Webpack Configuration
+```typescript
+// next.config.js
+const nextConfig: NextConfig = {
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Optimize chunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Framework chunk
+            framework: {
+              name: 'framework',
+              chunks: 'all',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 40,
+              enforce: true
+            },
+            // Supabase chunk
+            supabase: {
+              name: 'supabase',
+              chunks: 'all',
+              test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+              priority: 30,
+              enforce: true
+            },
+            // UI libraries chunk
+            lib: {
+              test(module: any) {
+                return module.size() > 160000 &&
+                  /node_modules/.test(module.identifier())
+              },
+              name(module: any) {
+                const hash = crypto.createHash('sha1')
+                hash.update(module.identifier())
+                return hash.digest('hex').substring(0, 8)
+              },
+              priority: 20,
+              minChunks: 1,
+              reuseExistingChunk: true
+            },
+            // Common chunk
+            commons: {
+              name: 'commons',
+              chunks: 'all',
+              minChunks: 2,
+              priority: 10
+            },
+            // Shared chunk
+            shared: {
+              name(module: any, chunks: any) {
+                return crypto
+                  .createHash('sha1')
+                  .update(chunks.reduce((acc: string, chunk: any) => acc + chunk.name, ''))
+                  .digest('hex')
+                  .substring(0, 8)
+              },
+              priority: 10,
+              minChunks: 2,
+              reuseExistingChunk: true
+            }
+          }
+        }
+      }
+    }
+    
+    return config
+  }
+}
+```
+
+## 🖼️ Image Optimization
+
+### Next.js Image Component
+```typescript
+import Image from 'next/image'
+
+// ✅ DO: Responsive images with proper sizing
+export function FarmGallery({ images }: { images: FarmImage[] }) {
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {images.map((image, index) => (
+        <div key={image.id} className="relative aspect-video">
+          <Image
+            src={image.url}
+            alt={image.alt}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover rounded-lg"
+            priority={index < 3} // Priority for first 3 images
+            placeholder="blur"
+            blurDataURL={image.blurDataURL}
+            loading={index < 3 ? 'eager' : 'lazy'}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ✅ DO: Optimize device thumbnails
+export function DeviceCard({ device }: { device: Device }) {
+  return (
+    <div className="device-card">
+      <div className="relative h-32 w-full">
+        <Image
+          src={device.thumbnailUrl}
+          alt={device.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-contain"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+        />
+      </div>
+      <h3>{device.name}</h3>
+    </div>
+  )
+}
+```
+
+### Image Configuration
+```typescript
+// next.config.js
+const nextConfig: NextConfig = {
+  images: {
+    domains: ['images.example.com', 'cdn.example.com'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  }
+}
+```
+
+## 📊 Performance Monitoring
+
+### Web Vitals Tracking
+```typescript
+// app/components/WebVitalsReporter.tsx
+'use client'
+import { useReportWebVitals } from 'next/web-vitals'
+
+export function WebVitalsReporter() {
+  useReportWebVitals((metric) => {
+    // Track to analytics
+    const body = JSON.stringify({
+      name: metric.name,
+      value: metric.value,
+      rating: metric.rating,
+      delta: metric.delta,
+      id: metric.id,
+      navigationType: metric.navigationType,
+      url: window.location.href,
+      userAgent: navigator.userAgent
+    })
+    
+    // Send to analytics endpoint
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/analytics/vitals', body)
+    }
+    
+    // Console warnings for poor performance
+    if (metric.rating === 'poor') {
+      console.warn(`Poor ${metric.name} detected:`, metric.value)
+      
+      // Specific warnings
+      switch (metric.name) {
+        case 'CLS':
+          if (metric.value > 0.1) {
+            console.warn('Layout shift detected. Check dynamic content loading.')
+          }
+          break
+        case 'LCP':
+          if (metric.value > 2500) {
+            console.warn('Slow page load. Optimize largest content element.')
+          }
+          break
+        case 'FID':
+          if (metric.value > 100) {
+            console.warn('Poor interactivity. Reduce JavaScript execution time.')
+          }
+          break
+      }
+    }
+  })
+  
+  return null
+}
+```
+
+### Custom Performance Metrics
+```typescript
+// utils/performance.ts
+export class PerformanceTracker {
+  private static marks: Map<string, number> = new Map()
+  
+  static startMeasure(name: string) {
+    this.marks.set(name, performance.now())
+    performance.mark(`${name}-start`)
+  }
+  
+  static endMeasure(name: string) {
+    const startTime = this.marks.get(name)
+    if (!startTime) return
+    
+    const duration = performance.now() - startTime
+    performance.mark(`${name}-end`)
+    performance.measure(name, `${name}-start`, `${name}-end`)
+    
+    // Log slow operations
+    if (duration > 1000) {
+      console.warn(`Slow operation: ${name} took ${duration.toFixed(2)}ms`)
+    }
+    
+    // Clean up
+    this.marks.delete(name)
+    
+    return duration
+  }
+  
+  static async measureAsync<T>(
+    name: string, 
+    operation: () => Promise<T>
+  ): Promise<T> {
+    this.startMeasure(name)
+    try {
+      return await operation()
+    } finally {
+      this.endMeasure(name)
+    }
+  }
+}
+
+// Usage in services
+export class OptimizedFarmService extends FarmService {
+  async getFarmWithDetails(id: string): Promise<Farm> {
+    return PerformanceTracker.measureAsync(
+      'getFarmWithDetails',
+      () => super.getFarmWithDetails(id)
+    )
+  }
+}
+```
+
+## 🚫 Performance Anti-Patterns
+
+### Common Mistakes to Avoid
+```typescript
+// ❌ DON'T: Fetch without caching
+export function BadComponent() {
+  const [data, setData] = useState()
+  
+  useEffect(() => {
+    // Fetches on every render
+    fetch('/api/data').then(r => r.json()).then(setData)
+  }, []) // Missing dependencies
+}
+
+// ❌ DON'T: Heavy computations in render
+export function BadChart({ data }: { data: number[] }) {
+  // Runs on every render
+  const processedData = data.map(n => Math.pow(n, 3)).sort((a, b) => b - a)
+  return <Chart data={processedData} />
+}
+
+// ❌ DON'T: Create functions in render
+export function BadList({ items }: { items: Item[] }) {
+  return items.map(item => (
+    <button onClick={() => handleClick(item.id)}> {/* New function each render */}
+      {item.name}
+    </button>
+  ))
+}
+
+// ✅ DO: Use proper patterns
+export async function GoodComponent() {
+  // Cached at build/request time
+  const data = await getCachedData()
+  return <DataDisplay data={data} />
+}
+
+export function GoodChart({ data }: { data: number[] }) {
+  // Only computes when data changes
+  const processedData = useMemo(
+    () => data.map(n => Math.pow(n, 3)).sort((a, b) => b - a),
+    [data]
+  )
+  return <Chart data={processedData} />
+}
+
+export function GoodList({ items, onItemClick }: { items: Item[], onItemClick: (id: string) => void }) {
+  const handleClick = useCallback((id: string) => {
+    onItemClick(id)
+  }, [onItemClick])
+  
+  return items.map(item => (
+    <button key={item.id} onClick={() => handleClick(item.id)}>
+      {item.name}
+    </button>
+  ))
+}
+```
+
+## 📋 Performance Checklist
+
+- [ ] Use "use cache" directive for expensive operations
+- [ ] Configure cacheLife for different data types
+- [ ] Implement proper cache invalidation
+- [ ] Use useOptimistic for instant feedback
+- [ ] Add Suspense boundaries for loading states
+- [ ] Dynamic import heavy components
+- [ ] Optimize images with Next.js Image
+- [ ] Monitor Web Vitals
+- [ ] Memoize expensive computations
+- [ ] Avoid blocking the main thread
+
+## 🔗 Related Documentation
+
+- **Frontend Architecture**: See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- **Service Layer**: See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+- **Database Patterns**: See [11-database-patterns.mdc](mdc:.cursor/rules/11-database-patterns.mdc)
+- **Testing**: See [04-testing-strategy.mdc](mdc:.cursor/rules/04-testing-strategy.mdc)
+description:
+globs:
+alwaysApply: false
+---

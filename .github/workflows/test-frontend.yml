@@ -1,0 +1,252 @@
+name: Frontend Tests
+
+on:
+  workflow_call:
+    outputs:
+      coverage:
+        description: "Frontend test coverage percentage"
+        value: ${{ jobs.test-matrix.outputs.coverage }}
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  security-events: write
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # Combined Quality Gates & Testing (much faster!)
+  test-matrix:
+    name: Tests (Node ${{ matrix.node-version }}, ${{ matrix.test-type }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['22']
+        test-type: ['unit', 'integration']
+    
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+            frontend/.next/cache
+            frontend/.turbo
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build:types || echo "No build:types script found"
+      
+      - name: Run quality checks (fast pre-flight)
+        working-directory: ./frontend
+        run: |
+          # Linting
+          npm run lint
+          
+          # TypeScript checking
+          npx tsc --noEmit --strict --skipLibCheck
+      
+      - name: Build application
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+      
+      - name: Setup test environment
+        working-directory: ./frontend
+        run: |
+          # Create test results directory
+          mkdir -p test-results
+          
+          # Install jest-junit for test reporting (if not already available)
+          npm list jest-junit || npm install --no-save jest-junit
+      
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          JEST_JUNIT_OUTPUT_DIR: test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
+        run: |
+          npm test -- \
+            --testPathPattern=tests/unit/ \
+            --coverage \
+            --coverageReporters=cobertura \
+            --coverageReporters=html \
+            --coverageReporters=lcov \
+            --coverageDirectory=coverage/unit \
+            --maxWorkers=50% \
+            --watchAll=false \
+            --passWithNoTests
+      
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+          JEST_JUNIT_OUTPUT_DIR: test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
+        run: |
+          # Start the application using pre-built artifacts
+          npm start &
+          APP_PID=$!
+          sleep 15
+          
+          # Run integration tests
+          npm test -- \
+            --testPathPattern=tests/integration/ \
+            --coverage \
+            --coverageReporters=cobertura \
+            --coverageReporters=html \
+            --coverageReporters=lcov \
+            --coverageDirectory=coverage/integration \
+            --maxWorkers=25% \
+            --watchAll=false \
+            --testTimeout=30000 \
+            --passWithNoTests || TEST_EXIT_CODE=$?
+          
+          # Clean up application
+          kill $APP_PID 2>/dev/null || true
+          
+          # Exit with test result
+          exit ${TEST_EXIT_CODE:-0}
+      
+      - name: Generate coverage report
+        if: always() && matrix.test-type != 'e2e'
+        working-directory: ./frontend
+        run: |
+          if [ -f coverage/${{ matrix.test-type }}/cobertura-coverage.xml ]; then
+            COVERAGE=$(npx lcov-total coverage/${{ matrix.test-type }}/lcov.info)
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "### 📊 Coverage Report (${{ matrix.test-type }})" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage: $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          fi
+        id: coverage
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
+          path: |
+            frontend/coverage/
+            frontend/test-results/
+            frontend/junit.xml
+          retention-days: 30
+      
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '22' && matrix.test-type == 'unit'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/unit/lcov.info
+          directory: ./frontend
+          flags: frontend,unit
+          name: frontend-unit-coverage
+          fail_ci_if_error: false
+      
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() && matrix.node-version == '22'
+        with:
+          files: frontend/test-results/junit.xml
+          check_name: "Frontend Tests (${{ matrix.test-type }})"
+          comment_mode: always
+          fail_on: "test failures"
+
+  # E2E Tests (separate due to special requirements)
+  # TODO: Uncomment when E2E tests are developed
+  # e2e-tests:
+  #   name: E2E Tests (Node ${{ matrix.node-version }})
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 25
+  #   
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node-version: ['22']  # Latest Node.js version
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     
+  #     - name: Set up Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'npm'
+  #         cache-dependency-path: frontend/package-lock.json
+  #     
+  #     - name: Install dependencies and build
+  #       working-directory: ./frontend
+  #       env:
+  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #       run: |
+  #         npm ci
+  #         npm run build
+  #     
+  #     - name: Install Playwright browsers
+  #       working-directory: ./frontend
+  #       env:
+  #         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+  #       run: npx playwright install --with-deps chromium firefox webkit
+  #     
+  #     - name: Run E2E tests
+  #       working-directory: ./frontend
+  #       env:
+  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #       run: |
+  #         # Start the application using pre-built artifacts
+  #         npm start &
+  #         sleep 20
+  #         
+  #         # Run E2E tests
+  #         npm run test:e2e -- \
+  #           --reporter=html \
+  #           --reporter=junit \
+  #           --output=test-results/e2e
+  #     
+  #     - name: Upload E2E results
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: e2e-results-${{ matrix.node-version }}
+  #         path: |
+  #           frontend/test-results/
+  #           frontend/playwright-report/
+  #         retention-days: 30 

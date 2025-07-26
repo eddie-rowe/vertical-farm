@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { FaSearch, FaTimes, FaFilter, FaHistory, FaStar } from 'react-icons/fa';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { FaSearch, FaTimes, FaHistory, FaStar } from "react-icons/fa";
 
 export interface SearchResult {
   id: string;
-  type: 'farm' | 'device' | 'alert' | 'user' | 'schedule';
+  type: "farm" | "device" | "alert" | "user" | "schedule";
   title: string;
   subtitle?: string;
   description?: string;
@@ -35,88 +35,95 @@ const generateMockResults = (query: string): SearchResult[] => {
   const allResults: SearchResult[] = [
     // Farms
     {
-      id: 'farm-1',
-      type: 'farm',
-      title: 'Greenhouse Alpha',
-      subtitle: 'Zone A',
-      description: 'Main production facility with 12 growing towers',
-      url: '/farms/greenhouse-alpha',
+      id: "farm-1",
+      type: "farm",
+      title: "Greenhouse Alpha",
+      subtitle: "Zone A",
+      description: "Main production facility with 12 growing towers",
+      url: "/farms/greenhouse-alpha",
       relevance: 0.9,
-      metadata: { status: 'active', location: 'Zone A' }
+      metadata: { status: "active", location: "Zone A" },
     },
     {
-      id: 'farm-2',
-      type: 'farm',
-      title: 'Hydroponic Bay 2',
-      subtitle: 'Zone B',
-      description: 'Specialized facility for leafy greens',
-      url: '/farms/hydroponic-bay-2',
+      id: "farm-2",
+      type: "farm",
+      title: "Hydroponic Bay 2",
+      subtitle: "Zone B",
+      description: "Specialized facility for leafy greens",
+      url: "/farms/hydroponic-bay-2",
       relevance: 0.8,
-      metadata: { status: 'active', location: 'Zone B' }
+      metadata: { status: "active", location: "Zone B" },
     },
     // Devices
     {
-      id: 'device-1',
-      type: 'device',
-      title: 'LED Grow Light A1',
-      subtitle: 'Rack 1, Shelf 2',
-      description: 'Full spectrum LED for optimal plant growth',
-      url: '/devices/led-light-a1',
+      id: "device-1",
+      type: "device",
+      title: "LED Grow Light A1",
+      subtitle: "Rack 1, Shelf 2",
+      description: "Full spectrum LED for optimal plant growth",
+      url: "/devices/led-light-a1",
       relevance: 0.85,
-      metadata: { status: 'online', type: 'lighting' }
+      metadata: { status: "online", type: "lighting" },
     },
     {
-      id: 'device-2',
-      type: 'device',
-      title: 'Water Pump System',
-      subtitle: 'Zone A Primary',
-      description: 'Main water circulation and nutrient delivery',
-      url: '/devices/water-pump-primary',
+      id: "device-2",
+      type: "device",
+      title: "Water Pump System",
+      subtitle: "Zone A Primary",
+      description: "Main water circulation and nutrient delivery",
+      url: "/devices/water-pump-primary",
       relevance: 0.75,
-      metadata: { status: 'online', type: 'irrigation' }
+      metadata: { status: "online", type: "irrigation" },
     },
     // Alerts
     {
-      id: 'alert-1',
-      type: 'alert',
-      title: 'High Temperature Alert',
-      subtitle: 'Greenhouse Alpha',
-      description: 'Temperature exceeded optimal range',
-      url: '/alerts/temp-high-001',
+      id: "alert-1",
+      type: "alert",
+      title: "High Temperature Alert",
+      subtitle: "Greenhouse Alpha",
+      description: "Temperature exceeded optimal range",
+      url: "/alerts/temp-high-001",
       relevance: 0.95,
-      metadata: { severity: 'warning', timestamp: Date.now() - 3600000 }
+      metadata: { severity: "warning", timestamp: Date.now() - 3600000 },
     },
     {
-      id: 'alert-2',
-      type: 'alert',
-      title: 'Low Water Level',
-      subtitle: 'Hydroponic Bay 2',
-      description: 'Water reservoir below minimum threshold',
-      url: '/alerts/water-low-002',
+      id: "alert-2",
+      type: "alert",
+      title: "Low Water Level",
+      subtitle: "Hydroponic Bay 2",
+      description: "Water reservoir below minimum threshold",
+      url: "/alerts/water-low-002",
       relevance: 0.7,
-      metadata: { severity: 'info', timestamp: Date.now() - 7200000 }
-    }
+      metadata: { severity: "info", timestamp: Date.now() - 7200000 },
+    },
   ];
 
   if (!query.trim()) return [];
 
   return allResults
-    .filter(result => 
-      result.title.toLowerCase().includes(query.toLowerCase()) ||
-      result.subtitle?.toLowerCase().includes(query.toLowerCase()) ||
-      result.description?.toLowerCase().includes(query.toLowerCase())
+    .filter(
+      (result) =>
+        result.title.toLowerCase().includes(query.toLowerCase()) ||
+        result.subtitle?.toLowerCase().includes(query.toLowerCase()) ||
+        result.description?.toLowerCase().includes(query.toLowerCase()),
     )
     .sort((a, b) => b.relevance - a.relevance);
 };
 
 const getCategoryIcon = (type: string) => {
   switch (type) {
-    case 'farm': return '🏭';
-    case 'device': return '📱';
-    case 'alert': return '⚠️';
-    case 'user': return '👤';
-    case 'schedule': return '📅';
-    default: return '📄';
+    case "farm":
+      return "🏭";
+    case "device":
+      return "📱";
+    case "alert":
+      return "⚠️";
+    case "user":
+      return "👤";
+    case "schedule":
+      return "📅";
+    default:
+      return "📄";
   }
 };
 
@@ -125,11 +132,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   maxResults = 10,
   onResultSelect,
   onSearchChange,
-  className = '',
+  className = "",
   showCategories = true,
   showHistory = true,
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -142,17 +149,50 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   // Categories for filtering
   const categories = useMemo(() => {
-    const categoryCounts = results.reduce((acc, result) => {
-      acc[result.type] = (acc[result.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const categoryCounts = results.reduce(
+      (acc, result) => {
+        acc[result.type] = (acc[result.type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return [
-      { id: 'all', name: 'All', icon: '🔍', count: results.length, enabled: true },
-      { id: 'farm', name: 'Farms', icon: '🏭', count: categoryCounts.farm || 0, enabled: true },
-      { id: 'device', name: 'Devices', icon: '📱', count: categoryCounts.device || 0, enabled: true },
-      { id: 'alert', name: 'Alerts', icon: '⚠️', count: categoryCounts.alert || 0, enabled: true },
-      { id: 'user', name: 'Users', icon: '👤', count: categoryCounts.user || 0, enabled: true },
+      {
+        id: "all",
+        name: "All",
+        icon: "🔍",
+        count: results.length,
+        enabled: true,
+      },
+      {
+        id: "farm",
+        name: "Farms",
+        icon: "🏭",
+        count: categoryCounts.farm || 0,
+        enabled: true,
+      },
+      {
+        id: "device",
+        name: "Devices",
+        icon: "📱",
+        count: categoryCounts.device || 0,
+        enabled: true,
+      },
+      {
+        id: "alert",
+        name: "Alerts",
+        icon: "⚠️",
+        count: categoryCounts.alert || 0,
+        enabled: true,
+      },
+      {
+        id: "user",
+        name: "Users",
+        icon: "👤",
+        count: categoryCounts.user || 0,
+        enabled: true,
+      },
     ];
   }, [results]);
 
@@ -176,13 +216,16 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Keyboard navigation
@@ -190,21 +233,21 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     if (!isOpen) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, results.length - 1));
+        setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex(prev => Math.max(prev - 1, -1));
+        setSelectedIndex((prev) => Math.max(prev - 1, -1));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (selectedIndex >= 0 && results[selectedIndex]) {
           handleResultSelect(results[selectedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
         inputRef.current?.blur();
         break;
@@ -214,12 +257,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const handleResultSelect = (result: SearchResult) => {
     // Add to search history
     if (!searchHistory.includes(query)) {
-      setSearchHistory(prev => [query, ...prev.slice(0, 4)]);
+      setSearchHistory((prev) => [query, ...prev.slice(0, 4)]);
     }
-    
+
     onResultSelect?.(result);
     setIsOpen(false);
-    setQuery('');
+    setQuery("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,17 +273,17 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   };
 
   const clearSearch = () => {
-    setQuery('');
+    setQuery("");
     setResults([]);
     setIsOpen(false);
     inputRef.current?.focus();
   };
 
   const toggleFavorite = (result: SearchResult) => {
-    setFavorites(prev => {
-      const exists = prev.find(fav => fav.id === result.id);
+    setFavorites((prev) => {
+      const exists = prev.find((fav) => fav.id === result.id);
       if (exists) {
-        return prev.filter(fav => fav.id !== result.id);
+        return prev.filter((fav) => fav.id !== result.id);
       } else {
         return [...prev, result];
       }
@@ -248,7 +291,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   };
 
   const isFavorite = (result: SearchResult) => {
-    return favorites.some(fav => fav.id === result.id);
+    return favorites.some((fav) => fav.id === result.id);
   };
 
   return (
@@ -285,7 +328,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
           {showCategories && results.length > 0 && (
             <div className="p-3 border-b border-gray-200 dark:border-gray-700">
               <div className="flex gap-2 flex-wrap">
-                {categories.map(category => (
+                {categories.map((category) => (
                   <button
                     key={category.id}
                     className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -316,8 +359,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                   onClick={() => handleResultSelect(result)}
                   className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${
                     index === selectedIndex
-                      ? 'bg-emerald-50 dark:bg-emerald-900/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? "bg-emerald-50 dark:bg-emerald-900/20"
+                      : "hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   <div className="text-2xl">{getCategoryIcon(result.type)}</div>
@@ -348,11 +391,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                     }}
                     className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
-                    <FaStar 
+                    <FaStar
                       className={`h-3 w-3 ${
-                        isFavorite(result) 
-                          ? 'text-yellow-500' 
-                          : 'text-gray-400'
+                        isFavorite(result) ? "text-yellow-500" : "text-gray-400"
                       }`}
                     />
                   </button>
@@ -400,7 +441,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                         onClick={() => handleResultSelect(favorite)}
                         className="flex items-center gap-2 w-full p-2 text-left rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <span className="text-lg">{getCategoryIcon(favorite.type)}</span>
+                        <span className="text-lg">
+                          {getCategoryIcon(favorite.type)}
+                        </span>
                         <span className="text-sm text-gray-700 dark:text-gray-300">
                           {favorite.title}
                         </span>
@@ -425,4 +468,4 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   );
 };
 
-export default GlobalSearch; 
+export default GlobalSearch;

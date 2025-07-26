@@ -1,215 +1,236 @@
-"use client"
+"use client";
 
-import React, { useState, useMemo, useCallback } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { FaExclamationTriangle, FaClock, FaEye, FaBolt, FaLeaf, FaThermometerHalf, FaTint, FaShieldAlt, FaRobot, FaSearch, FaFilter, FaMapMarkerAlt, FaTools } from 'react-icons/fa'
-import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter'
-import { useFarmSearch, useFarmFilters } from '@/hooks'
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter'
+import React, { useMemo, useCallback } from "react";
+import {
+  FaExclamationTriangle,
+  FaClock,
+  FaEye,
+  FaBolt,
+  FaLeaf,
+  FaThermometerHalf,
+  FaTint,
+  FaShieldAlt,
+  FaRobot,
+  FaMapMarkerAlt,
+  FaTools,
+} from "react-icons/fa";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 interface RiskAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  category: 'environmental' | 'equipment' | 'crop' | 'security' | 'operational'
-  title: string
-  description: string
-  location: string
-  timestamp: string
-  status: 'active' | 'investigating' | 'resolved' | 'dismissed'
-  aiConfidence: number
-  affectedSystems: string[]
-  recommendations: string[]
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  category: "environmental" | "equipment" | "crop" | "security" | "operational";
+  title: string;
+  description: string;
+  location: string;
+  timestamp: string;
+  status: "active" | "investigating" | "resolved" | "dismissed";
+  aiConfidence: number;
+  affectedSystems: string[];
+  recommendations: string[];
 }
 
 const mockRiskAlerts: RiskAlert[] = [
   {
-    id: '1',
-    type: 'critical',
-    category: 'environmental',
-    title: 'Temperature Anomaly Detected',
-    description: 'Rack B-2 temperature exceeded safe limits for lettuce cultivation',
-    location: 'Rack B-2, Greenhouse Zone A',
-    timestamp: '2025-01-21 14:23:45',
-    status: 'active',
+    id: "1",
+    type: "critical",
+    category: "environmental",
+    title: "Temperature Anomaly Detected",
+    description:
+      "Rack B-2 temperature exceeded safe limits for lettuce cultivation",
+    location: "Rack B-2, Greenhouse Zone A",
+    timestamp: "2025-01-21 14:23:45",
+    status: "active",
     aiConfidence: 98,
-    affectedSystems: ['HVAC System', 'Rack B-2 Sensors'],
+    affectedSystems: ["HVAC System", "Rack B-2 Sensors"],
     recommendations: [
-      'Immediately reduce heating in Zone A',
-      'Check HVAC system functionality',
-      'Monitor crop stress indicators'
-    ]
+      "Immediately reduce heating in Zone A",
+      "Check HVAC system functionality",
+      "Monitor crop stress indicators",
+    ],
   },
   {
-    id: '2',
-    type: 'high',
-    category: 'crop',
-    title: 'Pest Detection Alert',
-    description: 'Computer vision detected potential aphid presence on basil plants',
-    location: 'Rack C-1, Shelf 2-4',
-    timestamp: '2025-01-21 13:45:12',
-    status: 'investigating',
+    id: "2",
+    type: "high",
+    category: "crop",
+    title: "Pest Detection Alert",
+    description:
+      "Computer vision detected potential aphid presence on basil plants",
+    location: "Rack C-1, Shelf 2-4",
+    timestamp: "2025-01-21 13:45:12",
+    status: "investigating",
     aiConfidence: 85,
-    affectedSystems: ['Camera System', 'Crop Monitoring'],
+    affectedSystems: ["Camera System", "Crop Monitoring"],
     recommendations: [
-      'Manual inspection required',
-      'Isolate affected plants if confirmed',
-      'Prepare organic treatment protocol'
-    ]
+      "Manual inspection required",
+      "Isolate affected plants if confirmed",
+      "Prepare organic treatment protocol",
+    ],
   },
   {
-    id: '3',
-    type: 'medium',
-    category: 'equipment',
-    title: 'Pump Performance Degradation',
-    description: 'Nutrient pump #3 showing signs of decreased efficiency',
-    location: 'Pump Station 1',
-    timestamp: '2025-01-21 12:15:30',
-    status: 'active',
+    id: "3",
+    type: "medium",
+    category: "equipment",
+    title: "Pump Performance Degradation",
+    description: "Nutrient pump #3 showing signs of decreased efficiency",
+    location: "Pump Station 1",
+    timestamp: "2025-01-21 12:15:30",
+    status: "active",
     aiConfidence: 92,
-    affectedSystems: ['Nutrient Delivery', 'Pump #3'],
+    affectedSystems: ["Nutrient Delivery", "Pump #3"],
     recommendations: [
-      'Schedule maintenance within 48 hours',
-      'Monitor nutrient delivery rates',
-      'Prepare backup pump activation'
-    ]
+      "Schedule maintenance within 48 hours",
+      "Monitor nutrient delivery rates",
+      "Prepare backup pump activation",
+    ],
   },
   {
-    id: '4',
-    type: 'high',
-    category: 'security',
-    title: 'Unauthorized Access Attempt',
-    description: 'Multiple failed login attempts detected from external IP',
-    location: 'System Access Logs',
-    timestamp: '2025-01-21 11:30:22',
-    status: 'resolved',
+    id: "4",
+    type: "high",
+    category: "security",
+    title: "Unauthorized Access Attempt",
+    description: "Multiple failed login attempts detected from external IP",
+    location: "System Access Logs",
+    timestamp: "2025-01-21 11:30:22",
+    status: "resolved",
     aiConfidence: 100,
-    affectedSystems: ['Security System', 'User Authentication'],
+    affectedSystems: ["Security System", "User Authentication"],
     recommendations: [
-      'IP has been blocked automatically',
-      'Review security protocols',
-      'Update firewall rules'
-    ]
-  }
-]
+      "IP has been blocked automatically",
+      "Review security protocols",
+      "Update firewall rules",
+    ],
+  },
+];
 
 interface PredictiveRisk {
-  id: string
-  riskType: string
-  probability: number
-  impact: 'low' | 'medium' | 'high' | 'critical'
-  timeframe: string
-  description: string
-  preventiveActions: string[]
-  icon: React.ReactNode
+  id: string;
+  riskType: string;
+  probability: number;
+  impact: "low" | "medium" | "high" | "critical";
+  timeframe: string;
+  description: string;
+  preventiveActions: string[];
+  icon: React.ReactNode;
 }
 
 const mockPredictiveRisks: PredictiveRisk[] = [
   {
-    id: '1',
-    riskType: 'Equipment Failure',
+    id: "1",
+    riskType: "Equipment Failure",
     probability: 78,
-    impact: 'high',
-    timeframe: '3-5 days',
-    description: 'LED lighting system in Rack A may fail based on usage patterns',
+    impact: "high",
+    timeframe: "3-5 days",
+    description:
+      "LED lighting system in Rack A may fail based on usage patterns",
     preventiveActions: [
-      'Schedule preventive maintenance',
-      'Order replacement components',
-      'Prepare backup lighting'
+      "Schedule preventive maintenance",
+      "Order replacement components",
+      "Prepare backup lighting",
     ],
-    icon: <FaBolt className="text-yellow-500" />
+    icon: <FaBolt className="text-yellow-500" />,
   },
   {
-    id: '2',
-    riskType: 'Crop Disease',
+    id: "2",
+    riskType: "Crop Disease",
     probability: 45,
-    impact: 'medium',
-    timeframe: '7-10 days',
-    description: 'High humidity may lead to fungal issues in spinach crops',
+    impact: "medium",
+    timeframe: "7-10 days",
+    description: "High humidity may lead to fungal issues in spinach crops",
     preventiveActions: [
-      'Increase ventilation',
-      'Reduce irrigation frequency',
-      'Apply preventive fungicide'
+      "Increase ventilation",
+      "Reduce irrigation frequency",
+      "Apply preventive fungicide",
     ],
-    icon: <FaLeaf className="text-green-500" />
+    icon: <FaLeaf className="text-green-500" />,
   },
   {
-    id: '3',
-    riskType: 'Power Outage Impact',
+    id: "3",
+    riskType: "Power Outage Impact",
     probability: 23,
-    impact: 'critical',
-    timeframe: '1-2 weeks',
-    description: 'Weather patterns suggest potential power grid instability',
+    impact: "critical",
+    timeframe: "1-2 weeks",
+    description: "Weather patterns suggest potential power grid instability",
     preventiveActions: [
-      'Test backup generator',
-      'Ensure fuel reserves',
-      'Update emergency protocols'
+      "Test backup generator",
+      "Ensure fuel reserves",
+      "Update emergency protocols",
     ],
-    icon: <FaBolt className="text-red-500" />
-  }
-]
+    icon: <FaBolt className="text-red-500" />,
+  },
+];
 
 interface SystemHealth {
-  system: string
-  status: 'healthy' | 'warning' | 'critical'
-  uptime: number
-  lastCheck: string
-  issues: number
-  icon: React.ReactNode
+  system: string;
+  status: "healthy" | "warning" | "critical";
+  uptime: number;
+  lastCheck: string;
+  issues: number;
+  icon: React.ReactNode;
 }
 
 const mockSystemHealth: SystemHealth[] = [
   {
-    system: 'Environmental Control',
-    status: 'warning',
+    system: "Environmental Control",
+    status: "warning",
     uptime: 99.2,
-    lastCheck: '2 min ago',
+    lastCheck: "2 min ago",
     issues: 1,
-    icon: <FaThermometerHalf className="text-orange-500" />
+    icon: <FaThermometerHalf className="text-orange-500" />,
   },
   {
-    system: 'Irrigation System',
-    status: 'healthy',
+    system: "Irrigation System",
+    status: "healthy",
     uptime: 99.8,
-    lastCheck: '1 min ago',
+    lastCheck: "1 min ago",
     issues: 0,
-    icon: <FaTint className="text-blue-500" />
+    icon: <FaTint className="text-blue-500" />,
   },
   {
-    system: 'Lighting Controls',
-    status: 'healthy',
+    system: "Lighting Controls",
+    status: "healthy",
     uptime: 100,
-    lastCheck: '30 sec ago',
+    lastCheck: "30 sec ago",
     issues: 0,
-    icon: <FaBolt className="text-yellow-500" />
+    icon: <FaBolt className="text-yellow-500" />,
   },
   {
-    system: 'Security System',
-    status: 'healthy',
+    system: "Security System",
+    status: "healthy",
     uptime: 99.9,
-    lastCheck: '5 min ago',
+    lastCheck: "5 min ago",
     issues: 0,
-    icon: <FaShieldAlt className="text-green-500" />
+    icon: <FaShieldAlt className="text-green-500" />,
   },
   {
-    system: 'Crop Monitoring',
-    status: 'warning',
+    system: "Crop Monitoring",
+    status: "warning",
     uptime: 98.5,
-    lastCheck: '3 min ago',
+    lastCheck: "3 min ago",
     issues: 2,
-    icon: <FaLeaf className="text-green-500" />
-  }
-]
+    icon: <FaLeaf className="text-green-500" />,
+  },
+];
 
 export default function RiskIncidentView() {
   // Standardized search and filter hooks
-  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<RiskAlert>({
-    searchFields: ['title', 'description', 'location'],
-    caseSensitive: false
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    hasSearch,
+    filterItems: searchFilterItems,
+  } = useFarmSearch<RiskAlert>({
+    searchFields: ["title", "description", "location"],
+    caseSensitive: false,
   });
-  
+
   const {
     filters,
     setFilter,
@@ -217,115 +238,143 @@ export default function RiskIncidentView() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<RiskAlert>();
 
   // Filter definitions for FarmSearchAndFilter
-  const filterDefinitions: FilterDefinition[] = useMemo(() => [
-    {
-      id: 'status',
-      label: 'Status',
-      placeholder: 'Filter by status',
-      options: [
-        { value: 'all', label: 'All Status' },
-        { value: 'active', label: 'Active' },
-        { value: 'investigating', label: 'Investigating' },
-        { value: 'resolved', label: 'Resolved' },
-        { value: 'dismissed', label: 'Dismissed' }
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'category',
-      label: 'Category',
-      placeholder: 'Filter by category',
-      options: [
-        { value: 'all', label: 'All Categories' },
-        { value: 'environmental', label: 'Environmental' },
-        { value: 'equipment', label: 'Equipment' },
-        { value: 'crop', label: 'Crop' },
-        { value: 'security', label: 'Security' },
-        { value: 'operational', label: 'Operational' }
-      ],
-      defaultValue: 'all'
-    },
-    {
-      id: 'type',
-      label: 'Severity',
-      placeholder: 'Filter by severity',
-      options: [
-        { value: 'all', label: 'All Severities' },
-        { value: 'critical', label: 'Critical' },
-        { value: 'high', label: 'High' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'low', label: 'Low' }
-      ],
-      defaultValue: 'all'
-    }
-  ], []);
+  const filterDefinitions: FilterDefinition[] = useMemo(
+    () => [
+      {
+        id: "status",
+        label: "Status",
+        placeholder: "Filter by status",
+        options: [
+          { value: "all", label: "All Status" },
+          { value: "active", label: "Active" },
+          { value: "investigating", label: "Investigating" },
+          { value: "resolved", label: "Resolved" },
+          { value: "dismissed", label: "Dismissed" },
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "category",
+        label: "Category",
+        placeholder: "Filter by category",
+        options: [
+          { value: "all", label: "All Categories" },
+          { value: "environmental", label: "Environmental" },
+          { value: "equipment", label: "Equipment" },
+          { value: "crop", label: "Crop" },
+          { value: "security", label: "Security" },
+          { value: "operational", label: "Operational" },
+        ],
+        defaultValue: "all",
+      },
+      {
+        id: "type",
+        label: "Severity",
+        placeholder: "Filter by severity",
+        options: [
+          { value: "all", label: "All Severities" },
+          { value: "critical", label: "Critical" },
+          { value: "high", label: "High" },
+          { value: "medium", label: "Medium" },
+          { value: "low", label: "Low" },
+        ],
+        defaultValue: "all",
+      },
+    ],
+    [],
+  );
 
   // Handle filter changes
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    if (value === 'all') {
-      removeFilter(filterId);
-    } else {
-      setFilter(filterId, value);
-    }
-  }, [setFilter, removeFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      if (value === "all") {
+        removeFilter(filterId);
+      } else {
+        setFilter(filterId, value);
+      }
+    },
+    [setFilter, removeFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   const getAlertColor = (type: string) => {
     switch (type) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-300'
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300'
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-      case 'low': return 'bg-blue-100 text-blue-800 border-blue-300'
-      default: return 'bg-gray-100 text-gray-800 border-gray-300'
+      case "critical":
+        return "bg-red-100 text-red-800 border-red-300";
+      case "high":
+        return "bg-orange-100 text-orange-800 border-orange-300";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "low":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-red-100 text-red-800'
-      case 'investigating': return 'bg-yellow-100 text-yellow-800'
-      case 'resolved': return 'bg-green-100 text-green-800'
-      case 'dismissed': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "active":
+        return "bg-red-100 text-red-800";
+      case "investigating":
+        return "bg-yellow-100 text-yellow-800";
+      case "resolved":
+        return "bg-green-100 text-green-800";
+      case "dismissed":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getSystemStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-100'
-      case 'warning': return 'text-yellow-600 bg-yellow-100'
-      case 'critical': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case "healthy":
+        return "text-green-600 bg-green-100";
+      case "warning":
+        return "text-yellow-600 bg-yellow-100";
+      case "critical":
+        return "text-red-600 bg-red-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
-  }
+  };
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'critical': return 'text-red-600'
-      case 'high': return 'text-orange-600'
-      case 'medium': return 'text-yellow-600'
-      case 'low': return 'text-green-600'
-      default: return 'text-gray-600'
+      case "critical":
+        return "text-red-600";
+      case "high":
+        return "text-orange-600";
+      case "medium":
+        return "text-yellow-600";
+      case "low":
+        return "text-green-600";
+      default:
+        return "text-gray-600";
     }
-  }
+  };
 
   // Apply combined filtering
   const filteredAlerts = useMemo(() => {
     let result = mockRiskAlerts;
-    
+
     // Apply search filtering
     result = searchFilterItems(result);
-    
+
     // Apply standard filters
     result = filterFilterItems(result);
-    
+
     return result;
   }, [searchFilterItems, filterFilterItems]);
 
@@ -391,7 +440,10 @@ export default function RiskIncidentView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {mockSystemHealth.map((system, index) => (
-            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div
+              key={index}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {system.icon}
@@ -401,17 +453,20 @@ export default function RiskIncidentView() {
                   {system.status}
                 </Badge>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <span>Uptime</span>
                   <span className="font-medium">{system.uptime}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1">
-                  <div 
+                  <div
                     className={`h-1 rounded-full ${
-                      system.uptime >= 99 ? 'bg-green-500' :
-                      system.uptime >= 95 ? 'bg-yellow-500' : 'bg-red-500'
+                      system.uptime >= 99
+                        ? "bg-green-500"
+                        : system.uptime >= 95
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                     }`}
                     style={{ width: `${system.uptime}%` }}
                   />
@@ -450,17 +505,20 @@ export default function RiskIncidentView() {
             orientation="horizontal"
             showFilterChips={true}
           />
-          
+
           {/* Results summary */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               Showing {filteredAlerts.length} of {mockRiskAlerts.length} alerts
             </p>
             {(hasSearch || hasActiveFilters) && (
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => { clearSearch(); clearAllFilters(); }}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  clearSearch();
+                  clearAllFilters();
+                }}
               >
                 Clear all filters
               </Button>
@@ -470,7 +528,10 @@ export default function RiskIncidentView() {
 
         <div className="space-y-4">
           {filteredAlerts.map((alert) => (
-            <div key={alert.id} className={`border rounded-lg p-4 ${getAlertColor(alert.type)}`}>
+            <div
+              key={alert.id}
+              className={`border rounded-lg p-4 ${getAlertColor(alert.type)}`}
+            >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -484,10 +545,10 @@ export default function RiskIncidentView() {
                       AI Confidence: {alert.aiConfidence}%
                     </span>
                   </div>
-                  
+
                   <h4 className="font-semibold text-lg">{alert.title}</h4>
                   <p className="text-gray-700 mb-2">{alert.description}</p>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                     <span className="flex items-center gap-1">
                       <FaMapMarkerAlt />
@@ -501,10 +562,16 @@ export default function RiskIncidentView() {
 
                   <div className="space-y-2">
                     <div>
-                      <h5 className="font-medium text-sm mb-1">Affected Systems:</h5>
+                      <h5 className="font-medium text-sm mb-1">
+                        Affected Systems:
+                      </h5>
                       <div className="flex gap-1 flex-wrap">
                         {alert.affectedSystems.map((system, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {system}
                           </Badge>
                         ))}
@@ -551,7 +618,10 @@ export default function RiskIncidentView() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {mockPredictiveRisks.map((risk) => (
-            <div key={risk.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div
+              key={risk.id}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+            >
               <div className="flex items-center gap-3 mb-3">
                 {risk.icon}
                 <div>
@@ -567,10 +637,13 @@ export default function RiskIncidentView() {
                     <span className="font-medium">{risk.probability}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className={`h-2 rounded-full ${
-                        risk.probability >= 70 ? 'bg-red-500' :
-                        risk.probability >= 40 ? 'bg-yellow-500' : 'bg-green-500'
+                        risk.probability >= 70
+                          ? "bg-red-500"
+                          : risk.probability >= 40
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
                       }`}
                       style={{ width: `${risk.probability}%` }}
                     />
@@ -579,7 +652,9 @@ export default function RiskIncidentView() {
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Impact Level</span>
-                  <Badge className={`${getImpactColor(risk.impact)} bg-white border`}>
+                  <Badge
+                    className={`${getImpactColor(risk.impact)} bg-white border`}
+                  >
                     {risk.impact.toUpperCase()}
                   </Badge>
                 </div>
@@ -587,7 +662,9 @@ export default function RiskIncidentView() {
                 <p className="text-sm text-gray-700">{risk.description}</p>
 
                 <div>
-                  <h5 className="font-medium text-sm mb-2">Preventive Actions:</h5>
+                  <h5 className="font-medium text-sm mb-2">
+                    Preventive Actions:
+                  </h5>
                   <ul className="text-xs space-y-1">
                     {risk.preventiveActions.map((action, index) => (
                       <li key={index} className="flex items-start gap-1">
@@ -607,5 +684,5 @@ export default function RiskIncidentView() {
         </div>
       </Card>
     </div>
-  )
-} 
+  );
+}

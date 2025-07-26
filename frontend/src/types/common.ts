@@ -7,13 +7,23 @@
 export type UUID = string;
 
 /** Common status types used across different entities */
-export type Status = 'active' | 'inactive' | 'pending' | 'error' | 'maintenance';
+export type Status =
+  | "active"
+  | "inactive"
+  | "pending"
+  | "error"
+  | "maintenance";
 
 /** Common priority levels */
-export type Priority = 'low' | 'medium' | 'high' | 'critical';
+export type Priority = "low" | "medium" | "high" | "critical";
 
 /** Common execution status for tasks and automations */
-export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type ExecutionStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 /** Base interface for entities with timestamps */
 export interface BaseEntity {
@@ -83,4 +93,4 @@ export interface Dimensions {
   width: number;
   height: number;
   depth?: number;
-} 
+}

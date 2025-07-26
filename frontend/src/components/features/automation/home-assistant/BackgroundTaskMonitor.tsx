@@ -1,28 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Play, 
-  Pause, 
-  RefreshCw, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Play,
+  Pause,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Activity,
   Database,
-  Zap
-} from 'lucide-react';
+  Zap,
+} from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TaskLog {
   id: number;
   task_id: string;
   task_type: string;
-  priority: 'critical' | 'high' | 'normal' | 'low';
+  priority: "critical" | "high" | "normal" | "low";
   success: boolean;
   execution_time: number;
   error_message?: string;
@@ -37,7 +38,7 @@ interface QueueStat {
 }
 
 interface SystemHealth {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   success_rate: number;
   total_queue_length: number;
   queue_stats: Array<{
@@ -59,7 +60,9 @@ interface RegisteredFunction {
 const BackgroundTaskMonitor: React.FC = () => {
   const [queueStats, setQueueStats] = useState<QueueStat[]>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [registeredFunctions, setRegisteredFunctions] = useState<RegisteredFunction[]>([]);
+  const [registeredFunctions, setRegisteredFunctions] = useState<
+    RegisteredFunction[]
+  >([]);
   const [taskLogs, setTaskLogs] = useState<TaskLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,93 +71,95 @@ const BackgroundTaskMonitor: React.FC = () => {
   // Fetch queue statistics
   const fetchQueueStats = async () => {
     try {
-      const response = await fetch('/api/v1/background-tasks/queues', {
+      const response = await fetch("/api/v1/background-tasks/queues", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch queue stats');
-      
+
+      if (!response.ok) throw new Error("Failed to fetch queue stats");
+
       const data = await response.json();
       setQueueStats(data.queues || []);
     } catch (err) {
-      console.error('Error fetching queue stats:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error("Error fetching queue stats:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
   };
 
   // Fetch system health
   const fetchSystemHealth = async () => {
     try {
-      const response = await fetch('/api/v1/background-tasks/status', {
+      const response = await fetch("/api/v1/background-tasks/status", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch system health');
-      
+
+      if (!response.ok) throw new Error("Failed to fetch system health");
+
       const data = await response.json();
       setSystemHealth(data);
     } catch (err) {
-      console.error('Error fetching system health:', err);
+      console.error("Error fetching system health:", err);
     }
   };
 
   // Fetch registered functions
   const fetchRegisteredFunctions = async () => {
     try {
-      const response = await fetch('/api/v1/background-tasks/functions', {
+      const response = await fetch("/api/v1/background-tasks/functions", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch registered functions');
-      
+
+      if (!response.ok) throw new Error("Failed to fetch registered functions");
+
       const data = await response.json();
       setRegisteredFunctions(data.functions || []);
     } catch (err) {
-      console.error('Error fetching registered functions:', err);
+      console.error("Error fetching registered functions:", err);
     }
   };
 
   // Fetch task logs
   const fetchTaskLogs = async () => {
     try {
-      const response = await fetch('/api/v1/background-tasks/logs?limit=50', {
+      const response = await fetch("/api/v1/background-tasks/logs?limit=50", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch task logs');
-      
+
+      if (!response.ok) throw new Error("Failed to fetch task logs");
+
       const data = await response.json();
       setTaskLogs(data.logs || []);
     } catch (err) {
-      console.error('Error fetching task logs:', err);
+      console.error("Error fetching task logs:", err);
     }
   };
 
   // Trigger manual queue processing
   const triggerProcessing = async () => {
     try {
-      const response = await fetch('/api/v1/background-tasks/trigger/process', {
-        method: 'POST',
+      const response = await fetch("/api/v1/background-tasks/trigger/process", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to trigger processing');
-      
+
+      if (!response.ok) throw new Error("Failed to trigger processing");
+
       // Refresh data after triggering
       await refreshData();
     } catch (err) {
-      console.error('Error triggering processing:', err);
-      setError(err instanceof Error ? err.message : 'Failed to trigger processing');
+      console.error("Error triggering processing:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to trigger processing",
+      );
     }
   };
 
@@ -162,16 +167,16 @@ const BackgroundTaskMonitor: React.FC = () => {
   const refreshData = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await Promise.all([
         fetchQueueStats(),
         fetchSystemHealth(),
         fetchRegisteredFunctions(),
-        fetchTaskLogs()
+        fetchTaskLogs(),
       ]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh data');
+      setError(err instanceof Error ? err.message : "Failed to refresh data");
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +185,7 @@ const BackgroundTaskMonitor: React.FC = () => {
   // Auto-refresh effect
   useEffect(() => {
     refreshData();
-    
+
     if (autoRefresh) {
       const interval = setInterval(refreshData, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
@@ -190,30 +195,34 @@ const BackgroundTaskMonitor: React.FC = () => {
   // Get status color and icon
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return { color: 'bg-green-500', icon: CheckCircle, text: 'Healthy' };
-      case 'degraded':
-        return { color: 'bg-yellow-500', icon: AlertTriangle, text: 'Degraded' };
-      case 'unhealthy':
-        return { color: 'bg-red-500', icon: XCircle, text: 'Unhealthy' };
+      case "healthy":
+        return { color: "bg-green-500", icon: CheckCircle, text: "Healthy" };
+      case "degraded":
+        return {
+          color: "bg-yellow-500",
+          icon: AlertTriangle,
+          text: "Degraded",
+        };
+      case "unhealthy":
+        return { color: "bg-red-500", icon: XCircle, text: "Unhealthy" };
       default:
-        return { color: 'bg-gray-500', icon: Activity, text: 'Unknown' };
+        return { color: "bg-gray-500", icon: Activity, text: "Unknown" };
     }
   };
 
   // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical':
-        return 'text-red-600 bg-red-50 border-red-200';
-      case 'high':
-        return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'normal':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'low':
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+      case "critical":
+        return "text-red-600 bg-red-50 border-red-200";
+      case "high":
+        return "text-orange-600 bg-orange-50 border-orange-200";
+      case "normal":
+        return "text-blue-600 bg-blue-50 border-blue-200";
+      case "low":
+        return "text-gray-600 bg-gray-50 border-gray-200";
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
@@ -234,7 +243,9 @@ const BackgroundTaskMonitor: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Background Task Monitor</h2>
-          <p className="text-sm text-muted-foreground">Powered by Supabase Queues & Edge Functions</p>
+          <p className="text-sm text-muted-foreground">
+            Powered by Supabase Queues & Edge Functions
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -242,8 +253,12 @@ const BackgroundTaskMonitor: React.FC = () => {
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
           >
-            {autoRefresh ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {autoRefresh ? 'Pause' : 'Resume'} Auto-refresh
+            {autoRefresh ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            {autoRefresh ? "Pause" : "Resume"} Auto-refresh
           </Button>
           <Button variant="outline" size="sm" onClick={triggerProcessing}>
             <Zap className="h-4 w-4 mr-1" />
@@ -277,7 +292,11 @@ const BackgroundTaskMonitor: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex items-center space-x-3">
                 {(() => {
-                  const { color, icon: Icon, text } = getStatusDisplay(systemHealth.status);
+                  const {
+                    color,
+                    icon: Icon,
+                    text,
+                  } = getStatusDisplay(systemHealth.status);
                   return (
                     <>
                       <div className={`w-3 h-3 rounded-full ${color}`} />
@@ -287,19 +306,25 @@ const BackgroundTaskMonitor: React.FC = () => {
                   );
                 })()}
               </div>
-              
+
               <div className="text-center">
-                <p className="text-2xl font-bold">{systemHealth.success_rate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">
+                  {systemHealth.success_rate.toFixed(1)}%
+                </p>
                 <p className="text-sm text-muted-foreground">Success Rate</p>
               </div>
-              
+
               <div className="text-center">
-                <p className="text-2xl font-bold">{systemHealth.total_queue_length}</p>
+                <p className="text-2xl font-bold">
+                  {systemHealth.total_queue_length}
+                </p>
                 <p className="text-sm text-muted-foreground">Queued Tasks</p>
               </div>
-              
+
               <div className="text-center">
-                <p className="text-2xl font-bold">{systemHealth.recent_task_count}</p>
+                <p className="text-2xl font-bold">
+                  {systemHealth.recent_task_count}
+                </p>
                 <p className="text-sm text-muted-foreground">Recent Tasks</p>
               </div>
             </div>
@@ -332,16 +357,20 @@ const BackgroundTaskMonitor: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground capitalize">
-                        {queue.name.replace('_tasks', '').replace('_', ' ')} Queue
+                        {queue.name.replace("_tasks", "").replace("_", " ")}{" "}
+                        Queue
                       </p>
                       <p className="text-2xl font-bold">{queue.length}</p>
                       {queue.oldest_message_age > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          Oldest: {Math.round(queue.oldest_message_age / 60)}m ago
+                          Oldest: {Math.round(queue.oldest_message_age / 60)}m
+                          ago
                         </p>
                       )}
                     </div>
-                    <Activity className={`h-8 w-8 ${getPriorityColor(queue.name.replace('_tasks', '')).split(' ')[0]}`} />
+                    <Activity
+                      className={`h-8 w-8 ${getPriorityColor(queue.name.replace("_tasks", "")).split(" ")[0]}`}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -353,10 +382,16 @@ const BackgroundTaskMonitor: React.FC = () => {
         <TabsContent value="queues" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {queueStats.map((queue) => (
-              <Card key={queue.name} className={`border-l-4 ${getPriorityColor(queue.name.replace('_tasks', '')).split(' ').slice(2).join(' ')}`}>
+              <Card
+                key={queue.name}
+                className={`border-l-4 ${getPriorityColor(queue.name.replace("_tasks", "")).split(" ").slice(2).join(" ")}`}
+              >
                 <CardHeader>
-                  <CardTitle className={`capitalize ${getPriorityColor(queue.name.replace('_tasks', '')).split(' ')[0]}`}>
-                    {queue.name.replace('_tasks', '').replace('_', ' ')} Priority
+                  <CardTitle
+                    className={`capitalize ${getPriorityColor(queue.name.replace("_tasks", "")).split(" ")[0]}`}
+                  >
+                    {queue.name.replace("_tasks", "").replace("_", " ")}{" "}
+                    Priority
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -368,11 +403,16 @@ const BackgroundTaskMonitor: React.FC = () => {
                     {queue.oldest_message_age > 0 && (
                       <div className="flex justify-between">
                         <span>Oldest Message:</span>
-                        <span className="font-bold">{Math.round(queue.oldest_message_age / 60)} minutes ago</span>
+                        <span className="font-bold">
+                          {Math.round(queue.oldest_message_age / 60)} minutes
+                          ago
+                        </span>
                       </div>
                     )}
                     {queue.length === 0 && (
-                      <p className="text-sm text-muted-foreground">No tasks in queue</p>
+                      <p className="text-sm text-muted-foreground">
+                        No tasks in queue
+                      </p>
                     )}
                   </div>
                 </CardContent>
@@ -388,12 +428,17 @@ const BackgroundTaskMonitor: React.FC = () => {
               <Card key={index}>
                 <CardHeader>
                   <CardTitle className="text-lg">{func.name}</CardTitle>
-                  <Badge variant="outline" className={getPriorityColor(func.priority)}>
+                  <Badge
+                    variant="outline"
+                    className={getPriorityColor(func.priority)}
+                  >
                     {func.priority} priority
                   </Badge>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">{func.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {func.description}
+                  </p>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     Est. duration: {func.estimated_duration}
@@ -413,10 +458,15 @@ const BackgroundTaskMonitor: React.FC = () => {
             <CardContent>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {taskLogs.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No recent task logs</p>
+                  <p className="text-muted-foreground text-center py-4">
+                    No recent task logs
+                  </p>
                 ) : (
                   taskLogs.map((log) => (
-                    <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={log.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center space-x-3">
                         {log.success ? (
                           <CheckCircle className="h-4 w-4 text-green-500" />
@@ -431,7 +481,10 @@ const BackgroundTaskMonitor: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <Badge variant="outline" className={getPriorityColor(log.priority)}>
+                        <Badge
+                          variant="outline"
+                          className={getPriorityColor(log.priority)}
+                        >
                           {log.priority}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -456,4 +509,4 @@ const BackgroundTaskMonitor: React.FC = () => {
   );
 };
 
-export default BackgroundTaskMonitor; 
+export default BackgroundTaskMonitor;

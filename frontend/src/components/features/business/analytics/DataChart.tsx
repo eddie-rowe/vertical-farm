@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import React, { useMemo } from 'react';
-import { Chart as ChartJS, ChartOptions, ChartData as ChartJSData } from 'chart.js';
-import { DynamicChart } from '@/components/shared/charts';
+import { ChartOptions, ChartData as ChartJSData } from "chart.js";
+import React, { useMemo } from "react";
+
+import { DynamicChart } from "@/components/shared/charts";
 
 export interface ChartData {
   [key: string]: any;
 }
 
 export interface ChartConfig {
-  type: 'line' | 'bar' | 'area' | 'pie' | 'doughnut';
+  type: "line" | "bar" | "area" | "pie" | "doughnut";
   title: string;
   height?: number;
   showGrid?: boolean;
@@ -35,32 +36,34 @@ interface DataChartProps {
 }
 
 const DEFAULT_COLORS = [
-  '#10b981', // emerald-500
-  '#3b82f6', // blue-500
-  '#f59e0b', // amber-500
-  '#ef4444', // red-500
-  '#8b5cf6', // violet-500
-  '#06b6d4', // cyan-500
-  '#84cc16', // lime-500
-  '#f97316', // orange-500
+  "#10b981", // emerald-500
+  "#3b82f6", // blue-500
+  "#f59e0b", // amber-500
+  "#ef4444", // red-500
+  "#8b5cf6", // violet-500
+  "#06b6d4", // cyan-500
+  "#84cc16", // lime-500
+  "#f97316", // orange-500
 ];
 
 const DARK_MODE_COLORS = {
-  grid: '#374151', // gray-700
-  text: '#9ca3af', // gray-400
-  background: '#1f2937', // gray-800
+  grid: "#374151", // gray-700
+  text: "#9ca3af", // gray-400
+  background: "#1f2937", // gray-800
 };
 
 const LIGHT_MODE_COLORS = {
-  grid: '#e5e7eb', // gray-200
-  text: '#6b7280', // gray-500
-  background: '#ffffff',
+  grid: "#e5e7eb", // gray-200
+  text: "#6b7280", // gray-500
+  background: "#ffffff",
 };
 
 const LoadingSkeleton = ({ height }: { height: number }) => (
   <div className="animate-pulse" style={{ height }}>
     <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-full flex items-center justify-center">
-      <div className="text-gray-500 dark:text-gray-400">Loading chart data...</div>
+      <div className="text-gray-500 dark:text-gray-400">
+        Loading chart data...
+      </div>
     </div>
   </div>
 );
@@ -68,7 +71,7 @@ const LoadingSkeleton = ({ height }: { height: number }) => (
 export const DataChart: React.FC<DataChartProps> = ({
   data,
   config,
-  className = '',
+  className = "",
   loading = false,
 }) => {
   const {
@@ -79,7 +82,7 @@ export const DataChart: React.FC<DataChartProps> = ({
     showLegend = true,
     animated = true,
     colors = DEFAULT_COLORS,
-    xAxisKey = 'name',
+    xAxisKey = "name",
     yAxisKeys = [],
     formatters = {},
     timeScale = false,
@@ -98,32 +101,36 @@ export const DataChart: React.FC<DataChartProps> = ({
     // Prepare datasets
     const datasets = yAxisKeys.map((key, index) => {
       const color = colors[index % colors.length];
-      
+
       const baseDataset = {
         label: key,
-        data: data.map(item => timeScale ? ({ x: item[xAxisKey], y: item[key] }) : item[key]),
+        data: data.map((item) =>
+          timeScale ? { x: item[xAxisKey], y: item[key] } : item[key],
+        ),
         borderColor: color,
-        backgroundColor: type === 'area' || fill ? `${color}20` : color,
+        backgroundColor: type === "area" || fill ? `${color}20` : color,
         borderWidth,
         pointRadius,
         pointHoverRadius: pointRadius + 2,
-        tension: type === 'line' || type === 'area' ? tension : 0,
-        fill: type === 'area' || fill,
+        tension: type === "line" || type === "area" ? tension : 0,
+        fill: type === "area" || fill,
       };
 
       return baseDataset;
     });
 
     // Prepare chart data
-    const chartData: ChartJSData = timeScale ? {
-      datasets,
-    } : {
-      labels: data.map(item => item[xAxisKey]),
-      datasets,
-    };
+    const chartData: ChartJSData = timeScale
+      ? {
+          datasets,
+        }
+      : {
+          labels: data.map((item) => item[xAxisKey]),
+          datasets,
+        };
 
     // Chart options
-    const isDarkMode = document.documentElement.classList.contains('dark');
+    const isDarkMode = document.documentElement.classList.contains("dark");
     const themeColors = isDarkMode ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
 
     const chartOptions: ChartOptions = {
@@ -139,7 +146,7 @@ export const DataChart: React.FC<DataChartProps> = ({
           color: themeColors.text,
           font: {
             size: 16,
-            weight: 'bold',
+            weight: "bold",
           },
           padding: {
             bottom: 20,
@@ -162,8 +169,8 @@ export const DataChart: React.FC<DataChartProps> = ({
           cornerRadius: 8,
           displayColors: true,
           callbacks: {
-            label: function(context) {
-              const label = context.dataset.label || '';
+            label: function (context) {
+              const label = context.dataset.label || "";
               const value = context.parsed.y;
               const formatter = formatters[label];
               const formattedValue = formatter ? formatter(value) : value;
@@ -174,7 +181,7 @@ export const DataChart: React.FC<DataChartProps> = ({
       },
       scales: {
         x: {
-          type: timeScale ? 'time' : 'category',
+          type: timeScale ? "time" : "category",
           display: true,
           grid: {
             display: showGrid,
@@ -185,7 +192,7 @@ export const DataChart: React.FC<DataChartProps> = ({
           },
         },
         y: {
-          type: 'linear',
+          type: "linear",
           display: true,
           stacked,
           grid: {
@@ -194,8 +201,8 @@ export const DataChart: React.FC<DataChartProps> = ({
           },
           ticks: {
             color: themeColors.text,
-            callback: function(value) {
-              const formatter = formatters['y'];
+            callback: function (value) {
+              const formatter = formatters["y"];
               return formatter ? formatter(value) : value;
             },
           },
@@ -204,7 +211,23 @@ export const DataChart: React.FC<DataChartProps> = ({
     };
 
     return { chartData, chartOptions };
-  }, [data, config, showGrid, showLegend, animated, colors, xAxisKey, yAxisKeys, formatters, timeScale, stacked, tension, fill, borderWidth, pointRadius]);
+  }, [
+    data,
+    config,
+    showGrid,
+    showLegend,
+    animated,
+    colors,
+    xAxisKey,
+    yAxisKeys,
+    formatters,
+    timeScale,
+    stacked,
+    tension,
+    fill,
+    borderWidth,
+    pointRadius,
+  ]);
 
   if (loading) {
     return (
@@ -231,13 +254,14 @@ export const DataChart: React.FC<DataChartProps> = ({
   }
 
   // Map chart types to DynamicChart types
-  const chartType = type === 'area' ? 'line' : type === 'pie' ? 'doughnut' : type;
+  const chartType =
+    type === "area" ? "line" : type === "pie" ? "doughnut" : type;
 
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 ${className}`}>
       <div style={{ height }}>
         <DynamicChart
-          type={chartType as 'line' | 'bar' | 'doughnut'}
+          type={chartType as "line" | "bar" | "doughnut"}
           data={chartData}
           options={chartOptions}
           className="w-full h-full"
@@ -247,4 +271,4 @@ export const DataChart: React.FC<DataChartProps> = ({
   );
 };
 
-export default DataChart; 
+export default DataChart;

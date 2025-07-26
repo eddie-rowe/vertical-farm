@@ -1,23 +1,24 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  AlertTriangle, 
-  Thermometer, 
-  Droplets, 
+import {
+  AlertTriangle,
+  Thermometer,
+  Droplets,
   CheckCircle,
   Clock,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabaseClient";
 
 interface EnvironmentalAlert {
   id: string;
   schedule_id: string;
   shelf_id: string;
   alert_type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   message: string;
   current_value?: number;
   target_min?: number;
@@ -32,10 +33,26 @@ interface EnvironmentalAlertsPanelProps {
 }
 
 const severityConfig = {
-  critical: { color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
-  high: { color: 'bg-orange-500', textColor: 'text-orange-700', bgColor: 'bg-orange-50' },
-  medium: { color: 'bg-yellow-500', textColor: 'text-yellow-700', bgColor: 'bg-yellow-50' },
-  low: { color: 'bg-blue-500', textColor: 'text-blue-700', bgColor: 'bg-blue-50' }
+  critical: {
+    color: "bg-red-500",
+    textColor: "text-red-700",
+    bgColor: "bg-red-50",
+  },
+  high: {
+    color: "bg-orange-500",
+    textColor: "text-orange-700",
+    bgColor: "bg-orange-50",
+  },
+  medium: {
+    color: "bg-yellow-500",
+    textColor: "text-yellow-700",
+    bgColor: "bg-yellow-50",
+  },
+  low: {
+    color: "bg-blue-500",
+    textColor: "text-blue-700",
+    bgColor: "bg-blue-50",
+  },
 };
 
 const alertTypeIcons = {
@@ -43,31 +60,34 @@ const alertTypeIcons = {
   humidity: <Droplets className="h-4 w-4" />,
   harvest_ready: <CheckCircle className="h-4 w-4" />,
   harvest_approaching: <Clock className="h-4 w-4" />,
-  default: <AlertTriangle className="h-4 w-4" />
+  default: <AlertTriangle className="h-4 w-4" />,
 };
 
-export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalAlertsPanelProps) {
+export function EnvironmentalAlertsPanel({
+  shelfId,
+  scheduleId,
+}: EnvironmentalAlertsPanelProps) {
   const [alerts, setAlerts] = useState<EnvironmentalAlert[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAlerts();
-    
+
     // Set up real-time subscription for new alerts
     const subscription = supabase
-      .channel('environmental_alerts')
+      .channel("environmental_alerts")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'environmental_alerts',
-          filter: shelfId ? `shelf_id=eq.${shelfId}` : undefined
+          event: "*",
+          schema: "public",
+          table: "environmental_alerts",
+          filter: shelfId ? `shelf_id=eq.${shelfId}` : undefined,
         },
         (_payload) => {
-          console.log('Alert update:', _payload);
+          console.log("Alert update:", _payload);
           fetchAlerts(); // Refresh alerts when changes occur
-        }
+        },
       )
       .subscribe();
 
@@ -79,16 +99,16 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
   const fetchAlerts = async () => {
     try {
       let query = supabase
-        .from('environmental_alerts')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("environmental_alerts")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(20);
 
       if (shelfId) {
-        query = query.eq('shelf_id', shelfId);
+        query = query.eq("shelf_id", shelfId);
       }
       if (scheduleId) {
-        query = query.eq('schedule_id', scheduleId);
+        query = query.eq("schedule_id", scheduleId);
       }
 
       const { data, error } = await query;
@@ -96,7 +116,7 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
       if (error) throw error;
       setAlerts(data || []);
     } catch (error) {
-      console.error('Error fetching alerts:', error);
+      console.error("Error fetching alerts:", error);
     } finally {
       setLoading(false);
     }
@@ -105,36 +125,34 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
   const acknowledgeAlert = async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('environmental_alerts')
-        .update({ 
-          acknowledged: true, 
+        .from("environmental_alerts")
+        .update({
+          acknowledged: true,
           acknowledged_at: new Date().toISOString(),
-          acknowledged_by: (await supabase.auth.getUser()).data.user?.id
+          acknowledged_by: (await supabase.auth.getUser()).data.user?.id,
         })
-        .eq('id', alertId);
+        .eq("id", alertId);
 
       if (error) throw error;
-      
+
       // Update local state
-      setAlerts(prev => 
-        prev.map(alert => 
-          alert.id === alertId 
-            ? { ...alert, acknowledged: true }
-            : alert
-        )
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId ? { ...alert, acknowledged: true } : alert,
+        ),
       );
     } catch (error) {
-      console.error('Error acknowledging alert:', error);
+      console.error("Error acknowledging alert:", error);
     }
   };
 
   const formatValue = (value: number | undefined, type: string) => {
-    if (value === undefined) return 'N/A';
-    
+    if (value === undefined) return "N/A";
+
     switch (type) {
-      case 'temperature':
+      case "temperature":
         return `${value.toFixed(1)}°C`;
-      case 'humidity':
+      case "humidity":
         return `${value.toFixed(1)}%`;
       default:
         return value.toString();
@@ -146,19 +164,19 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
     const alertTime = new Date(timestamp);
     const diffMs = now.getTime() - alertTime.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMins < 1) return 'Just now';
+
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
-    
+
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
-    
+
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays}d ago`;
   };
 
-  const activeAlerts = alerts.filter(alert => !alert.acknowledged);
-  const acknowledgedAlerts = alerts.filter(alert => alert.acknowledged);
+  const activeAlerts = alerts.filter((alert) => !alert.acknowledged);
+  const acknowledgedAlerts = alerts.filter((alert) => alert.acknowledged);
 
   if (loading) {
     return (
@@ -208,13 +226,21 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
                 <div className="space-y-2">
                   {activeAlerts.map((alert) => {
                     const config = severityConfig[alert.severity];
-                    const icon = alertTypeIcons[alert.alert_type as keyof typeof alertTypeIcons] || alertTypeIcons.default;
-                    
+                    const icon =
+                      alertTypeIcons[
+                        alert.alert_type as keyof typeof alertTypeIcons
+                      ] || alertTypeIcons.default;
+
                     return (
-                      <div key={alert.id} className={`border rounded-lg p-3 ${config.bgColor}`}>
+                      <div
+                        key={alert.id}
+                        className={`border rounded-lg p-3 ${config.bgColor}`}
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-2 flex-1">
-                            <div className={`p-1 rounded ${config.color} text-white`}>
+                            <div
+                              className={`p-1 rounded ${config.color} text-white`}
+                            >
                               {icon}
                             </div>
                             <div className="flex-1">
@@ -231,10 +257,27 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
                               </p>
                               {alert.current_value !== undefined && (
                                 <div className="text-xs text-muted-foreground">
-                                  Current: {formatValue(alert.current_value, alert.alert_type)}
-                                  {alert.target_min !== undefined && alert.target_max !== undefined && (
-                                    <span> | Target: {formatValue(alert.target_min, alert.alert_type)} - {formatValue(alert.target_max, alert.alert_type)}</span>
+                                  Current:{" "}
+                                  {formatValue(
+                                    alert.current_value,
+                                    alert.alert_type,
                                   )}
+                                  {alert.target_min !== undefined &&
+                                    alert.target_max !== undefined && (
+                                      <span>
+                                        {" "}
+                                        | Target:{" "}
+                                        {formatValue(
+                                          alert.target_min,
+                                          alert.alert_type,
+                                        )}{" "}
+                                        -{" "}
+                                        {formatValue(
+                                          alert.target_max,
+                                          alert.alert_type,
+                                        )}
+                                      </span>
+                                    )}
                                 </div>
                               )}
                             </div>
@@ -258,13 +301,21 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
             {/* Recent Acknowledged Alerts */}
             {acknowledgedAlerts.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2 text-muted-foreground">Recent (Acknowledged)</h4>
+                <h4 className="font-medium mb-2 text-muted-foreground">
+                  Recent (Acknowledged)
+                </h4>
                 <div className="space-y-2">
                   {acknowledgedAlerts.slice(0, 5).map((alert) => {
-                    const icon = alertTypeIcons[alert.alert_type as keyof typeof alertTypeIcons] || alertTypeIcons.default;
-                    
+                    const icon =
+                      alertTypeIcons[
+                        alert.alert_type as keyof typeof alertTypeIcons
+                      ] || alertTypeIcons.default;
+
                     return (
-                      <div key={alert.id} className="border rounded-lg p-3 bg-gray-50 opacity-75">
+                      <div
+                        key={alert.id}
+                        className="border rounded-lg p-3 bg-gray-50 opacity-75"
+                      >
                         <div className="flex items-start gap-2">
                           <div className="p-1 rounded bg-gray-400 text-white">
                             {icon}
@@ -294,4 +345,4 @@ export function EnvironmentalAlertsPanel({ shelfId, scheduleId }: EnvironmentalA
       </CardContent>
     </Card>
   );
-} 
+}

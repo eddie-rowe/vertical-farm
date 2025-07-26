@@ -1,0 +1,614 @@
+---
+description: Database design patterns, migrations, RLS policies, and Supabase SSR integration
+globs: "supabase/**/*.sql, **/migrations/*.sql, **/*database*.{ts,tsx,py}, **/*db*.{ts,tsx,py}"
+alwaysApply: false
+---
+
+# Database Patterns - Supabase Integration
+
+## 🎯 Core Principles
+
+### 1. Supabase SSR First
+- **REQUIRED**: Use `@supabase/ssr` package (NOT `@supabase/auth-helpers-nextjs`)
+- **REASON**: Official SSR support, better cookie handling, framework agnostic
+- **PATTERN**: Context-aware client creation (server vs browser)
+
+### 2. Row Level Security (RLS)
+- **MANDATORY**: Enable RLS on all tables
+- **PATTERN**: Policies based on auth.uid()
+- **TESTING**: Always test policies with different user roles
+
+### 3. Database Migrations
+- **TOOL**: Supabase CLI for migration management
+- **NAMING**: `YYYYMMDDHHMMSS_descriptive_name.sql`
+- **VERSIONING**: Sequential, never modify existing migrations
+
+## 📦 Package Setup
+
+### Installation
+```bash
+# Frontend
+npm install @supabase/ssr @supabase/supabase-js
+
+# Backend (Python)
+pip install supabase
+
+# CLI for migrations
+npm install -g supabase
+```
+
+### Environment Variables
+```env
+# .env.local (Frontend)
+NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+
+# .env (Backend)
+SUPABASE_URL=https://[project].supabase.co
+SUPABASE_SERVICE_KEY=eyJ...  # Server-side only!
+```
+
+## 🔧 Frontend Client Configuration
+
+### Server Client Creation
+```typescript
+// utils/supabase/server.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
+```
+
+### Browser Client Creation
+```typescript
+// utils/supabase/client.ts
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+```
+
+### Middleware for Auth Refresh
+```typescript
+// middleware.ts
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/utils/supabase/middleware'
+
+export async function middleware(request: NextRequest) {
+  return await updateSession(request)
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
+
+// utils/supabase/middleware.ts
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+            supabaseResponse.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  // Refresh session if expired
+  await supabase.auth.getUser()
+
+  return supabaseResponse
+}
+```
+
+## 🛡️ Row Level Security (RLS)
+
+### Basic RLS Patterns
+```sql
+-- Enable RLS on table
+ALTER TABLE farms ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only see their own farms
+CREATE POLICY "Users can view own farms" ON farms
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can create farms for themselves
+CREATE POLICY "Users can create own farms" ON farms
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can update their own farms
+CREATE POLICY "Users can update own farms" ON farms
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can delete their own farms
+CREATE POLICY "Users can delete own farms" ON farms
+  FOR DELETE
+  USING (auth.uid() = user_id);
+```
+
+### Advanced RLS Patterns
+```sql
+-- Shared access through farm_members table
+CREATE POLICY "Members can view farms" ON farms
+  FOR SELECT
+  USING (
+    auth.uid() = user_id 
+    OR 
+    EXISTS (
+      SELECT 1 FROM farm_members
+      WHERE farm_members.farm_id = farms.id
+      AND farm_members.user_id = auth.uid()
+      AND farm_members.status = 'active'
+    )
+  );
+
+-- Role-based access
+CREATE POLICY "Admins can manage all devices" ON devices
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Time-based access
+CREATE POLICY "View recent sensor data" ON sensor_readings
+  FOR SELECT
+  USING (
+    created_at > NOW() - INTERVAL '7 days'
+    AND
+    EXISTS (
+      SELECT 1 FROM devices
+      WHERE devices.id = sensor_readings.device_id
+      AND devices.farm_id IN (
+        SELECT id FROM farms WHERE user_id = auth.uid()
+      )
+    )
+  );
+```
+
+### Service Role Bypass
+```typescript
+// Backend only - bypasses RLS
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!, // Service key bypasses RLS
+  {
+    auth: {
+      persistSession: false
+    }
+  }
+)
+```
+
+## 📊 Database Schema Design
+
+### Table Structure Example
+```sql
+-- Farms table with audit fields
+CREATE TABLE farms (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  location TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_farms_user_id ON farms(user_id);
+CREATE INDEX idx_farms_created_at ON farms(created_at DESC);
+
+-- Update trigger for updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_farms_updated_at BEFORE UPDATE ON farms
+  FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+```
+
+### Relationships and Foreign Keys
+```sql
+-- One-to-many: Farm has many rows
+CREATE TABLE rows (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  farm_id UUID REFERENCES farms(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  UNIQUE(farm_id, position)
+);
+
+-- Many-to-many: Users and farms through memberships
+CREATE TABLE farm_members (
+  farm_id UUID REFERENCES farms(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member',
+  status TEXT NOT NULL DEFAULT 'active',
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (farm_id, user_id)
+);
+```
+
+## 🔄 Real-time Subscriptions
+
+### Frontend Real-time Patterns
+```typescript
+// services/core/BaseRealtimeService.ts
+import { createClient } from '@/utils/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+
+export class SensorRealtimeService {
+  private subscriptions: Map<string, RealtimeChannel> = new Map()
+  
+  subscribeTOSensorUpdates(
+    farmId: string,
+    onUpdate: (reading: SensorReading) => void
+  ): () => void {
+    const supabase = createClient()
+    
+    const channel = supabase
+      .channel(`sensors:${farmId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sensor_readings',
+          filter: `farm_id=eq.${farmId}`
+        },
+        (payload) => {
+          onUpdate(payload.new as SensorReading)
+        }
+      )
+      .subscribe()
+    
+    this.subscriptions.set(farmId, channel)
+    
+    // Return unsubscribe function
+    return () => {
+      channel.unsubscribe()
+      this.subscriptions.delete(farmId)
+    }
+  }
+}
+```
+
+### Component Usage
+```typescript
+'use client'
+import { useEffect, useState } from 'react'
+import { SensorRealtimeService } from '@/services/realtime/SensorRealtimeService'
+
+export function LiveSensorDisplay({ farmId }: { farmId: string }) {
+  const [latestReading, setLatestReading] = useState<SensorReading>()
+  
+  useEffect(() => {
+    const service = new SensorRealtimeService()
+    const unsubscribe = service.subscribeTOSensorUpdates(
+      farmId,
+      (reading) => setLatestReading(reading)
+    )
+    
+    return unsubscribe
+  }, [farmId])
+  
+  return <div>{/* Display sensor data */}</div>
+}
+```
+
+## 🚀 Database Migrations
+
+### Migration File Structure
+```
+supabase/migrations/
+├── 20240101000000_initial_schema.sql
+├── 20240102000000_add_farms_table.sql
+├── 20240103000000_add_rls_policies.sql
+└── 20240104000000_add_sensor_tables.sql
+```
+
+### Migration Best Practices
+```sql
+-- migrations/20240103000000_add_sensor_tables.sql
+
+-- Migration: Add sensor tables
+-- Description: Creates tables for sensor data storage
+
+-- Check if table exists before creating
+CREATE TABLE IF NOT EXISTS sensors (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  device_id UUID REFERENCES devices(id) ON DELETE CASCADE NOT NULL,
+  sensor_type TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  min_value DECIMAL,
+  max_value DECIMAL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add RLS
+ALTER TABLE sensors ENABLE ROW LEVEL SECURITY;
+
+-- Add policies
+CREATE POLICY "Users can view sensors through devices" ON sensors
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM devices
+      JOIN farms ON devices.farm_id = farms.id
+      WHERE devices.id = sensors.device_id
+      AND farms.user_id = auth.uid()
+    )
+  );
+
+-- Add indexes
+CREATE INDEX idx_sensors_device_id ON sensors(device_id);
+CREATE INDEX idx_sensors_type ON sensors(sensor_type);
+
+-- Add comments for documentation
+COMMENT ON TABLE sensors IS 'Stores sensor metadata and configuration';
+COMMENT ON COLUMN sensors.sensor_type IS 'Type of sensor (temperature, humidity, etc)';
+```
+
+### Running Migrations
+```bash
+# Create new migration
+supabase migration new add_sensor_tables
+
+# Run migrations locally
+supabase db push
+
+# Run migrations in production
+supabase db push --linked
+
+# Generate TypeScript types
+supabase gen types typescript --linked > src/types/database.types.ts
+```
+
+## 🔍 Query Patterns
+
+### Efficient Queries with Joins
+```typescript
+// Get farm with all related data
+const { data: farm, error } = await supabase
+  .from('farms')
+  .select(`
+    *,
+    rows (
+      *,
+      racks (
+        *,
+        shelves (*)
+      )
+    ),
+    devices (
+      *,
+      sensors (
+        *,
+        sensor_readings (
+          value,
+          created_at
+        )
+      )
+    )
+  `)
+  .eq('id', farmId)
+  .single()
+```
+
+### Aggregations and Filters
+```typescript
+// Get sensor statistics
+const { data, error } = await supabase
+  .rpc('get_sensor_stats', {
+    p_farm_id: farmId,
+    p_start_date: startDate,
+    p_end_date: endDate
+  })
+
+// RPC function in database
+CREATE OR REPLACE FUNCTION get_sensor_stats(
+  p_farm_id UUID,
+  p_start_date TIMESTAMPTZ,
+  p_end_date TIMESTAMPTZ
+)
+RETURNS TABLE (
+  sensor_id UUID,
+  sensor_type TEXT,
+  avg_value DECIMAL,
+  min_value DECIMAL,
+  max_value DECIMAL,
+  reading_count BIGINT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.id as sensor_id,
+    s.sensor_type,
+    AVG(sr.value) as avg_value,
+    MIN(sr.value) as min_value,
+    MAX(sr.value) as max_value,
+    COUNT(*) as reading_count
+  FROM sensors s
+  JOIN sensor_readings sr ON s.id = sr.sensor_id
+  JOIN devices d ON s.device_id = d.id
+  WHERE d.farm_id = p_farm_id
+    AND sr.created_at BETWEEN p_start_date AND p_end_date
+  GROUP BY s.id, s.sensor_type;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+## 🔐 Authentication Patterns
+
+### Server-side Auth Check
+```typescript
+// app/(app)/layout.tsx
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+
+export default async function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  return <>{children}</>
+}
+```
+
+### Client-side Auth Hook
+```typescript
+// hooks/useUser.ts
+'use client'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import type { User } from '@supabase/supabase-js'
+
+export function useUser() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
+  return { user, loading }
+}
+```
+
+## 📋 Best Practices
+
+### DO's
+- ✅ Always use RLS for security
+- ✅ Create indexes for foreign keys and frequently queried columns
+- ✅ Use database functions for complex queries
+- ✅ Version control all migrations
+- ✅ Test RLS policies thoroughly
+- ✅ Use connection pooling in production
+- ✅ Set up proper backups
+
+### DON'Ts
+- ❌ Never expose service keys to frontend
+- ❌ Don't bypass RLS without good reason
+- ❌ Avoid storing sensitive data in JSONB columns
+- ❌ Don't modify existing migrations
+- ❌ Never use synchronous loops for batch operations
+
+### Performance Tips
+```sql
+-- Use partial indexes for filtered queries
+CREATE INDEX idx_active_devices ON devices(farm_id) 
+WHERE status = 'active';
+
+-- Use EXPLAIN ANALYZE to optimize queries
+EXPLAIN ANALYZE
+SELECT * FROM sensor_readings 
+WHERE device_id = '...' 
+AND created_at > NOW() - INTERVAL '1 day';
+
+-- Batch inserts for better performance
+INSERT INTO sensor_readings (sensor_id, value, created_at)
+SELECT 
+  unnest(ARRAY['id1', 'id2', 'id3']::UUID[]),
+  unnest(ARRAY[23.5, 24.1, 23.8]::DECIMAL[]),
+  unnest(ARRAY[NOW(), NOW(), NOW()]::TIMESTAMPTZ[]);
+```
+
+## 🔗 Related Documentation
+
+- **Service Layer**: See [10-service-layer.mdc](mdc:.cursor/rules/10-service-layer.mdc)
+- **Frontend Auth**: See [02-frontend-architecture.mdc](mdc:.cursor/rules/02-frontend-architecture.mdc)
+- **Backend Integration**: See [03-backend-architecture.mdc](mdc:.cursor/rules/03-backend-architecture.mdc)
+- **Real-time Patterns**: See [12-real-time-architecture.mdc](mdc:.cursor/rules/12-real-time-architecture.mdc)
+description:
+globs:
+alwaysApply: false
+---

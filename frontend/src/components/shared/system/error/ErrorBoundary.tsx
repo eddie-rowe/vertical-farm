@@ -1,9 +1,10 @@
 "use client";
 
-import React, { ErrorInfo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaExclamationTriangle, FaRedo, FaHome } from '@/lib/icons';
+import React, { ErrorInfo } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FaExclamationTriangle, FaRedo, FaHome } from "@/lib/icons";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -17,7 +18,10 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -29,12 +33,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo });
-    
+
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+    if (process.env.NODE_ENV === "development") {
+      console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
-    
+
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
   }
@@ -47,10 +51,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       if (this.props.fallback) {
         const FallbackComponent = this.props.fallback;
-        return <FallbackComponent error={this.state.error} resetError={this.resetError} />;
+        return (
+          <FallbackComponent
+            error={this.state.error}
+            resetError={this.resetError}
+          />
+        );
       }
 
-      return <DefaultErrorFallback error={this.state.error} resetError={this.resetError} />;
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          resetError={this.resetError}
+        />
+      );
     }
 
     return this.props.children;
@@ -62,7 +76,10 @@ interface ErrorFallbackProps {
   resetError: () => void;
 }
 
-export function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
+export function DefaultErrorFallback({
+  error,
+  resetError,
+}: ErrorFallbackProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md">
@@ -76,10 +93,11 @@ export function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) 
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            We encountered an unexpected error. Please try refreshing the page or contact support if the problem persists.
+            We encountered an unexpected error. Please try refreshing the page
+            or contact support if the problem persists.
           </p>
-          
-          {process.env.NODE_ENV === 'development' && error && (
+
+          {process.env.NODE_ENV === "development" && error && (
             <details className="text-left bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
               <summary className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Error Details (Development)
@@ -90,13 +108,20 @@ export function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) 
               </pre>
             </details>
           )}
-          
+
           <div className="flex gap-3 justify-center">
-            <Button onClick={resetError} variant="outline" className="flex items-center gap-2">
+            <Button
+              onClick={resetError}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
               <FaRedo className="w-4 h-4" />
               Try Again
             </Button>
-            <Button onClick={() => window.location.href = '/dashboard'} className="flex items-center gap-2">
+            <Button
+              onClick={() => (window.location.href = "/dashboard")}
+              className="flex items-center gap-2"
+            >
               <FaHome className="w-4 h-4" />
               Go Home
             </Button>
@@ -108,7 +133,13 @@ export function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) 
 }
 
 // Lightweight error boundary for smaller components
-export function ComponentErrorBoundary({ children, componentName }: { children: React.ReactNode; componentName?: string }) {
+export function ComponentErrorBoundary({
+  children,
+  componentName,
+}: {
+  children: React.ReactNode;
+  componentName?: string;
+}) {
   return (
     <ErrorBoundary
       fallback={({ resetError }) => (
@@ -118,7 +149,7 @@ export function ComponentErrorBoundary({ children, componentName }: { children: 
               <FaExclamationTriangle className="w-5 h-5" />
               <div className="flex-1">
                 <p className="font-medium">
-                  {componentName ? `${componentName} Error` : 'Component Error'}
+                  {componentName ? `${componentName} Error` : "Component Error"}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Failed to load this section
@@ -135,4 +166,4 @@ export function ComponentErrorBoundary({ children, componentName }: { children: 
       {children}
     </ErrorBoundary>
   );
-} 
+}

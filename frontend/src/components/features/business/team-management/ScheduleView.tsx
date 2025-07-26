@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Calendar, 
-  Clock, 
-  User, 
-  MapPin,
+import {
+  Plus,
+  Calendar,
+  Clock,
+  User,
   Edit,
   Eye,
-  RotateCcw
+  RotateCcw,
 } from "lucide-react";
-import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
 
 // Mock data for team schedules
 const scheduleData = {
@@ -24,7 +24,7 @@ const scheduleData = {
     totalEmployees: 8,
     activeShifts: 12,
     weeklyHours: 320,
-    overtimeHours: 24
+    overtimeHours: 24,
   },
   shifts: [
     {
@@ -38,7 +38,7 @@ const scheduleData = {
       location: "General Supervision",
       status: "scheduled",
       type: "regular",
-      notes: "Weekly team coordination"
+      notes: "Weekly team coordination",
     },
     {
       id: "SH002",
@@ -51,7 +51,7 @@ const scheduleData = {
       location: "Growth Towers 1-4",
       status: "active",
       type: "regular",
-      notes: "Nutrient system maintenance"
+      notes: "Nutrient system maintenance",
     },
     {
       id: "SH003",
@@ -64,7 +64,7 @@ const scheduleData = {
       location: "Harvest Area",
       status: "completed",
       type: "regular",
-      notes: "Morning harvest operations"
+      notes: "Morning harvest operations",
     },
     {
       id: "SH004",
@@ -77,7 +77,7 @@ const scheduleData = {
       location: "Equipment Bay",
       status: "scheduled",
       type: "regular",
-      notes: "Evening equipment maintenance"
+      notes: "Evening equipment maintenance",
     },
     {
       id: "SH005",
@@ -90,8 +90,8 @@ const scheduleData = {
       location: "Growth Towers 5-8",
       status: "scheduled",
       type: "overtime",
-      notes: "Extended maintenance window"
-    }
+      notes: "Extended maintenance window",
+    },
   ],
   upcomingShifts: [
     {
@@ -105,20 +105,26 @@ const scheduleData = {
       location: "Quality Lab",
       status: "scheduled",
       type: "regular",
-      notes: "Product quality assessments"
-    }
-  ]
+      notes: "Product quality assessments",
+    },
+  ],
 };
 
-type Shift = typeof scheduleData.shifts[0];
+type Shift = (typeof scheduleData.shifts)[0];
 
 export default function ScheduleView() {
   // Standardized search and filter hooks
-  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<Shift>({
-    searchFields: ['employee', 'role', 'location', 'notes'],
-    caseSensitive: false
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    hasSearch,
+    filterItems: searchFilterItems,
+  } = useFarmSearch<Shift>({
+    searchFields: ["employee", "role", "location", "notes"],
+    caseSensitive: false,
   });
-  
+
   const {
     filters,
     setFilter,
@@ -126,41 +132,47 @@ export default function ScheduleView() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<Shift>();
 
   // Filter definitions
   const filterDefinitions: FilterDefinition[] = [
     {
-      id: 'status',
-      label: 'Shift Status',
-      placeholder: 'Filter by status...',
+      id: "status",
+      label: "Shift Status",
+      placeholder: "Filter by status...",
       options: [
-        { value: 'scheduled', label: 'Scheduled' },
-        { value: 'active', label: 'Active' },
-        { value: 'completed', label: 'Completed' }
-      ]
+        { value: "scheduled", label: "Scheduled" },
+        { value: "active", label: "Active" },
+        { value: "completed", label: "Completed" },
+      ],
     },
     {
-      id: 'type',
-      label: 'Shift Type',
-      placeholder: 'Filter by type...',
+      id: "type",
+      label: "Shift Type",
+      placeholder: "Filter by type...",
       options: [
-        { value: 'regular', label: 'Regular' },
-        { value: 'overtime', label: 'Overtime' },
-        { value: 'early', label: 'Early Start' }
-      ]
-    }
+        { value: "regular", label: "Regular" },
+        { value: "overtime", label: "Overtime" },
+        { value: "early", label: "Early Start" },
+      ],
+    },
   ];
 
   // Filter change handlers
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    setFilter(filterId, value);
-  }, [setFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      setFilter(filterId, value);
+    },
+    [setFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // Combined all shifts
   const allShifts = [...scheduleData.shifts, ...scheduleData.upcomingShifts];
@@ -168,35 +180,49 @@ export default function ScheduleView() {
   // Combined filtering
   const filteredShifts = useMemo(() => {
     let result = allShifts;
-    
+
     // Apply search filter
     if (hasSearch) {
       result = searchFilterItems(result);
     }
-    
+
     // Apply other filters
     if (hasActiveFilters) {
       result = filterFilterItems(result);
     }
-    
+
     return result;
-  }, [allShifts, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
+  }, [
+    allShifts,
+    hasSearch,
+    searchFilterItems,
+    hasActiveFilters,
+    filterFilterItems,
+  ]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "scheduled": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "active": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "completed": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "scheduled":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "completed":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "overtime": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "early": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "regular": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "overtime":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "early":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "regular":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
@@ -209,8 +235,12 @@ export default function ScheduleView() {
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Employees</p>
-                <p className="text-2xl font-bold">{scheduleData.summary.totalEmployees}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Employees
+                </p>
+                <p className="text-2xl font-bold">
+                  {scheduleData.summary.totalEmployees}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -221,8 +251,12 @@ export default function ScheduleView() {
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active Shifts</p>
-                <p className="text-2xl font-bold">{scheduleData.summary.activeShifts}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Active Shifts
+                </p>
+                <p className="text-2xl font-bold">
+                  {scheduleData.summary.activeShifts}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -233,8 +267,12 @@ export default function ScheduleView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Weekly Hours</p>
-                <p className="text-2xl font-bold">{scheduleData.summary.weeklyHours}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Weekly Hours
+                </p>
+                <p className="text-2xl font-bold">
+                  {scheduleData.summary.weeklyHours}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -245,8 +283,12 @@ export default function ScheduleView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-red-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Overtime Hours</p>
-                <p className="text-2xl font-bold">{scheduleData.summary.overtimeHours}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Overtime Hours
+                </p>
+                <p className="text-2xl font-bold">
+                  {scheduleData.summary.overtimeHours}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -290,9 +332,9 @@ export default function ScheduleView() {
           Showing {filteredShifts.length} of {allShifts.length} shifts
         </span>
         {(hasSearch || hasActiveFilters) && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
               clearSearch();
               clearAllFilters();
@@ -313,8 +355,8 @@ export default function ScheduleView() {
                 No Shifts Found
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                {allShifts.length === 0 
-                  ? "No shifts scheduled." 
+                {allShifts.length === 0
+                  ? "No shifts scheduled."
                   : "No shifts match your current search and filters."}
               </p>
             </CardContent>
@@ -326,7 +368,9 @@ export default function ScheduleView() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-lg font-semibold">{shift.employee}</h3>
+                      <h3 className="text-lg font-semibold">
+                        {shift.employee}
+                      </h3>
                       <Badge className={getStatusColor(shift.status)}>
                         {shift.status}
                       </Badge>
@@ -334,7 +378,7 @@ export default function ScheduleView() {
                         {shift.type}
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600 dark:text-gray-400">Role</p>
@@ -342,25 +386,35 @@ export default function ScheduleView() {
                       </div>
                       <div>
                         <p className="text-gray-600 dark:text-gray-400">Date</p>
-                        <p className="font-medium">{new Date(shift.date).toLocaleDateString()}</p>
+                        <p className="font-medium">
+                          {new Date(shift.date).toLocaleDateString()}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-600 dark:text-gray-400">Time</p>
-                        <p className="font-medium">{shift.startTime} - {shift.endTime}</p>
+                        <p className="font-medium">
+                          {shift.startTime} - {shift.endTime}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Location</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Location
+                        </p>
                         <p className="font-medium">{shift.location}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Hours</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Hours
+                        </p>
                         <p className="font-medium">{shift.hours}h</p>
                       </div>
                     </div>
 
                     {shift.notes && (
                       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Notes</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          Notes
+                        </p>
                         <p className="text-sm">{shift.notes}</p>
                       </div>
                     )}
@@ -382,4 +436,4 @@ export default function ScheduleView() {
       </div>
     </div>
   );
-} 
+}

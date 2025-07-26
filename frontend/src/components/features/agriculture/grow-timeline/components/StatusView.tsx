@@ -1,6 +1,7 @@
-import React from 'react';
-import { GrowTimelineItem } from '../types';
-import { STATUS_COLORS, STATUS_LABELS, groupGrowsByStatus } from '../data';
+import React from "react";
+
+import { STATUS_COLORS, STATUS_LABELS, groupGrowsByStatus } from "../data";
+import { GrowTimelineItem } from "../types";
 
 interface StatusViewProps {
   grows: GrowTimelineItem[];
@@ -28,10 +29,12 @@ export const StatusView: React.FC<StatusViewProps> = ({
 
   const handleGrowContextMenu = (growId: string, event: React.MouseEvent) => {
     event.preventDefault();
-    const grow = grows.find(g => g.id === growId);
+    const grow = grows.find((g) => g.id === growId);
     if (grow) {
-      const actions = ['abort', 'complete', 'restart'];
-      const action = prompt(`Action for ${grow.shelfName}:\n${actions.join(', ')}`);
+      const actions = ["abort", "complete", "restart"];
+      const action = prompt(
+        `Action for ${grow.shelfName}:\n${actions.join(", ")}`,
+      );
       if (action && actions.includes(action)) {
         onGrowAction(growId, action);
       }
@@ -39,11 +42,22 @@ export const StatusView: React.FC<StatusViewProps> = ({
   };
 
   const getStatusStats = (statusGrows: GrowTimelineItem[]) => {
-    const totalProgress = statusGrows.reduce((sum, grow) => sum + grow.progress, 0);
-    const avgProgress = statusGrows.length > 0 ? Math.round(totalProgress / statusGrows.length) : 0;
-    const criticalAlerts = statusGrows.reduce((sum, grow) => sum + grow.criticalAlerts, 0);
-    const automationEnabled = statusGrows.filter(grow => grow.automationEnabled).length;
-    
+    const totalProgress = statusGrows.reduce(
+      (sum, grow) => sum + grow.progress,
+      0,
+    );
+    const avgProgress =
+      statusGrows.length > 0
+        ? Math.round(totalProgress / statusGrows.length)
+        : 0;
+    const criticalAlerts = statusGrows.reduce(
+      (sum, grow) => sum + grow.criticalAlerts,
+      0,
+    );
+    const automationEnabled = statusGrows.filter(
+      (grow) => grow.automationEnabled,
+    ).length;
+
     return { avgProgress, criticalAlerts, automationEnabled };
   };
 
@@ -52,8 +66,9 @@ export const StatusView: React.FC<StatusViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
         {Object.entries(statusGroups).map(([status, statusGrows]) => {
           const stats = getStatusStats(statusGrows);
-          const statusColor = STATUS_COLORS[status as keyof typeof STATUS_COLORS];
-          
+          const statusColor =
+            STATUS_COLORS[status as keyof typeof STATUS_COLORS];
+
           return (
             <div key={status} className="space-y-4">
               {/* Status Header */}
@@ -81,7 +96,9 @@ export const StatusView: React.FC<StatusViewProps> = ({
                 {stats.criticalAlerts > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Critical Alerts:</span>
-                    <span className="font-medium text-red-600">{stats.criticalAlerts}</span>
+                    <span className="font-medium text-red-600">
+                      {stats.criticalAlerts}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -97,15 +114,15 @@ export const StatusView: React.FC<StatusViewProps> = ({
                 {statusGrows.map((grow) => {
                   const isSelected = selectedGrows.includes(grow.id);
                   const isHovered = hoveredGrow === grow.id;
-                  
+
                   return (
                     <div
                       key={grow.id}
                       className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' 
-                          : 'border-gray-200 bg-white hover:border-gray-300'
-                      } ${isHovered ? 'shadow-md scale-102' : 'shadow-sm'}`}
+                        isSelected
+                          ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      } ${isHovered ? "shadow-md scale-102" : "shadow-sm"}`}
                       onClick={(e) => handleGrowClick(grow.id, e)}
                       onContextMenu={(e) => handleGrowContextMenu(grow.id, e)}
                       onMouseEnter={() => onGrowHover(grow.id)}
@@ -135,14 +152,18 @@ export const StatusView: React.FC<StatusViewProps> = ({
                         {/* Recipe & Species */}
                         <div className="text-xs text-gray-700">
                           <div>{grow.recipeName}</div>
-                          <div className="text-gray-500">{grow.speciesName}</div>
+                          <div className="text-gray-500">
+                            {grow.speciesName}
+                          </div>
                         </div>
 
                         {/* Progress Bar */}
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-600">Progress</span>
-                            <span className="font-medium">{grow.progress}%</span>
+                            <span className="font-medium">
+                              {grow.progress}%
+                            </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
@@ -159,25 +180,28 @@ export const StatusView: React.FC<StatusViewProps> = ({
                         <div className="flex justify-between text-xs text-gray-500">
                           <span>Day {grow.daysElapsed}</span>
                           <span>
-                            {grow.daysRemaining > 0 
+                            {grow.daysRemaining > 0
                               ? `${grow.daysRemaining} days left`
-                              : grow.status === 'completed' 
-                                ? 'Completed'
-                                : 'Overdue'
-                            }
+                              : grow.status === "completed"
+                                ? "Completed"
+                                : "Overdue"}
                           </span>
                         </div>
 
                         {/* Environmental Score */}
                         <div className="flex justify-between text-xs">
-                          <span className="text-gray-600">Environmental Score</span>
-                          <span className={`font-medium ${
-                            grow.environmentalScore >= 80 
-                              ? 'text-green-600' 
-                              : grow.environmentalScore >= 60 
-                                ? 'text-yellow-600' 
-                                : 'text-red-600'
-                          }`}>
+                          <span className="text-gray-600">
+                            Environmental Score
+                          </span>
+                          <span
+                            className={`font-medium ${
+                              grow.environmentalScore >= 80
+                                ? "text-green-600"
+                                : grow.environmentalScore >= 60
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                            }`}
+                          >
                             {grow.environmentalScore}/100
                           </span>
                         </div>
@@ -205,13 +229,15 @@ export const StatusView: React.FC<StatusViewProps> = ({
       {hoveredGrow && (
         <div className="fixed z-50 bg-gray-900 text-white p-3 rounded-lg shadow-lg pointer-events-none">
           {(() => {
-            const grow = grows.find(g => g.id === hoveredGrow);
+            const grow = grows.find((g) => g.id === hoveredGrow);
             if (!grow) return null;
 
             return (
               <div className="space-y-1 text-sm">
                 <div className="font-medium">{grow.shelfName}</div>
-                <div className="text-gray-300">{grow.recipeName} - {grow.speciesName}</div>
+                <div className="text-gray-300">
+                  {grow.recipeName} - {grow.speciesName}
+                </div>
                 <div className="text-gray-300">
                   Started: {new Date(grow.startDate).toLocaleDateString()}
                 </div>
@@ -219,7 +245,8 @@ export const StatusView: React.FC<StatusViewProps> = ({
                   Expected: {new Date(grow.endDate).toLocaleDateString()}
                 </div>
                 <div className="text-gray-300">
-                  Progress: {grow.progress}% ({grow.daysElapsed}/{grow.totalDays} days)
+                  Progress: {grow.progress}% ({grow.daysElapsed}/
+                  {grow.totalDays} days)
                 </div>
                 {grow.criticalAlerts > 0 && (
                   <div className="text-red-400">
@@ -233,4 +260,4 @@ export const StatusView: React.FC<StatusViewProps> = ({
       )}
     </div>
   );
-}; 
+};

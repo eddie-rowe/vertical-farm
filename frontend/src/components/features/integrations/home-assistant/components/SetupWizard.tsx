@@ -1,17 +1,22 @@
-'use client';
+"use client";
 
-import { FC, useState } from 'react';
-import { 
-  FaHome, FaCheck, FaExclamationTriangle, FaWifi
-} from 'react-icons/fa';
-import { Settings, ChevronRight, Wifi } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FarmControlButton } from '@/components/ui/farm-control-button';
-import { FarmInput } from '@/components/ui/farm-input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { HAConfig, SetupStep } from '@/types/integrations/homeassistant';
+import { Settings, ChevronRight, Wifi } from "lucide-react";
+import { FC } from "react";
+import { FaHome, FaCheck, FaExclamationTriangle } from "react-icons/fa";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FarmControlButton } from "@/components/ui/farm-control-button";
+import { FarmInput } from "@/components/ui/farm-input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { HAConfig, SetupStep } from "@/types/integrations/homeassistant";
 
 interface SetupWizardProps {
   config: HAConfig;
@@ -37,7 +42,7 @@ export const SetupWizard: FC<SetupWizardProps> = ({
   onSaveConfiguration,
 }) => {
   const getStepProgress = () => {
-    const steps = ['connection', 'test', 'discovery', 'complete'];
+    const steps = ["connection", "test", "discovery", "complete"];
     return (steps.indexOf(setupStep) + 1) * 25;
   };
 
@@ -56,8 +61,8 @@ export const SetupWizard: FC<SetupWizardProps> = ({
           Connect to Home Assistant
         </h1>
         <p className="text-control-secondary max-w-2xl mx-auto">
-          Integrate your Home Assistant instance to control lights, switches, and sensors 
-          directly from your vertical farming dashboard.
+          Integrate your Home Assistant instance to control lights, switches,
+          and sensors directly from your vertical farming dashboard.
         </p>
       </div>
 
@@ -76,19 +81,43 @@ export const SetupWizard: FC<SetupWizardProps> = ({
           <CardContent className="space-y-6">
             {/* Progress indicator */}
             <div className="flex items-center justify-between text-sm">
-              <span className={isStepActive('connection') ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+              <span
+                className={
+                  isStepActive("connection")
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-500"
+                }
+              >
                 Connection
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
-              <span className={isStepActive('test') ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+              <span
+                className={
+                  isStepActive("test")
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-500"
+                }
+              >
                 Test
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
-              <span className={isStepActive('discovery') ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+              <span
+                className={
+                  isStepActive("discovery")
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-500"
+                }
+              >
                 Discovery
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
-              <span className={isStepActive('complete') ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+              <span
+                className={
+                  isStepActive("complete")
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-500"
+                }
+              >
                 Complete
               </span>
             </div>
@@ -103,10 +132,12 @@ export const SetupWizard: FC<SetupWizardProps> = ({
                   id="name"
                   placeholder="e.g., Main Home Assistant"
                   value={config.name}
-                  onChange={(e) => onConfigChange({
-                    ...config,
-                    name: e.target.value
-                  })}
+                  onChange={(e) =>
+                    onConfigChange({
+                      ...config,
+                      name: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -116,10 +147,12 @@ export const SetupWizard: FC<SetupWizardProps> = ({
                   id="url"
                   placeholder="https://your-home-assistant.local:8123"
                   value={config.url}
-                  onChange={(e) => onConfigChange({
-                    ...config,
-                    url: e.target.value
-                  })}
+                  onChange={(e) =>
+                    onConfigChange({
+                      ...config,
+                      url: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -130,13 +163,16 @@ export const SetupWizard: FC<SetupWizardProps> = ({
                   type="password"
                   placeholder="Enter your Home Assistant access token"
                   value={config.token}
-                  onChange={(e) => onConfigChange({
-                    ...config,
-                    token: e.target.value
-                  })}
+                  onChange={(e) =>
+                    onConfigChange({
+                      ...config,
+                      token: e.target.value,
+                    })
+                  }
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Create a token in Home Assistant: Profile → Security → Long-Lived Access Tokens
+                  Create a token in Home Assistant: Profile → Security →
+                  Long-Lived Access Tokens
                 </p>
               </div>
             </div>
@@ -163,7 +199,7 @@ export const SetupWizard: FC<SetupWizardProps> = ({
 
             {/* Action buttons */}
             <div className="flex gap-3">
-              <FarmControlButton 
+              <FarmControlButton
                 onClick={onTestConnection}
                 disabled={!config.url || !config.token}
                 loading={isConnecting}
@@ -174,8 +210,8 @@ export const SetupWizard: FC<SetupWizardProps> = ({
                 Test Connection
               </FarmControlButton>
 
-              {setupStep === 'discovery' && (
-                <FarmControlButton 
+              {setupStep === "discovery" && (
+                <FarmControlButton
                   onClick={onSaveConfiguration}
                   disabled={!config.name || !config.url || !config.token}
                   loading={isSaving}
@@ -193,4 +229,4 @@ export const SetupWizard: FC<SetupWizardProps> = ({
       </div>
     </div>
   );
-}; 
+};

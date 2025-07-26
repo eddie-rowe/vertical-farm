@@ -1,179 +1,219 @@
-import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-// Using simple date input instead of calendar component
-import { cn } from '@/lib/utils'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar as CalendarIcon,
+import {
+  ChevronLeft,
+  ChevronRight,
   Leaf,
   Clock,
   BookOpen,
-  CheckCircle
-} from 'lucide-react'
+  CheckCircle,
+} from "lucide-react";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+// Using simple date input instead of calendar component
+import { cn } from "@/lib/utils";
 
 // Helper function to format dates without date-fns
 const formatDate = (date: Date) => {
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 interface GrowWizardModalProps {
-  isOpen: boolean
-  onClose: () => void
-  shelfId: string
-  shelfName: string
-  onSubmit: (growData: GrowSetupData) => void
+  isOpen: boolean;
+  onClose: () => void;
+  shelfId: string;
+  shelfName: string;
+  onSubmit: (growData: GrowSetupData) => void;
 }
 
 interface GrowSetupData {
-  cropType: string
-  variety: string
-  recipeId: string
+  cropType: string;
+  variety: string;
+  recipeId: string;
   customRecipe?: {
-    name: string
-    description: string
-    duration: number
-    stages: GrowStage[]
-  }
-  startDate: Date
-  estimatedHarvestDate: Date
-  notes: string
+    name: string;
+    description: string;
+    duration: number;
+    stages: GrowStage[];
+  };
+  startDate: Date;
+  estimatedHarvestDate: Date;
+  notes: string;
 }
 
 interface GrowStage {
-  name: string
-  duration: number
-  lightHours: number
-  temperature: number
-  humidity: number
-  nutrients: string
+  name: string;
+  duration: number;
+  lightHours: number;
+  temperature: number;
+  humidity: number;
+  nutrients: string;
 }
 
 const CROP_TYPES = [
-  { value: 'lettuce', label: 'Lettuce', varieties: ['Buttercrunch', 'Romaine', 'Red Oak', 'Green Leaf'] },
-  { value: 'basil', label: 'Basil', varieties: ['Genovese', 'Thai', 'Purple', 'Lemon'] },
-  { value: 'spinach', label: 'Spinach', varieties: ['Baby Leaf', 'Savoy', 'Flat Leaf'] },
-  { value: 'kale', label: 'Kale', varieties: ['Curly', 'Lacinato', 'Red Russian'] },
-  { value: 'arugula', label: 'Arugula', varieties: ['Wild', 'Astro', 'Slow Bolt'] },
-  { value: 'microgreens', label: 'Microgreens', varieties: ['Radish', 'Pea', 'Sunflower', 'Broccoli'] }
-]
+  {
+    value: "lettuce",
+    label: "Lettuce",
+    varieties: ["Buttercrunch", "Romaine", "Red Oak", "Green Leaf"],
+  },
+  {
+    value: "basil",
+    label: "Basil",
+    varieties: ["Genovese", "Thai", "Purple", "Lemon"],
+  },
+  {
+    value: "spinach",
+    label: "Spinach",
+    varieties: ["Baby Leaf", "Savoy", "Flat Leaf"],
+  },
+  {
+    value: "kale",
+    label: "Kale",
+    varieties: ["Curly", "Lacinato", "Red Russian"],
+  },
+  {
+    value: "arugula",
+    label: "Arugula",
+    varieties: ["Wild", "Astro", "Slow Bolt"],
+  },
+  {
+    value: "microgreens",
+    label: "Microgreens",
+    varieties: ["Radish", "Pea", "Sunflower", "Broccoli"],
+  },
+];
 
 const PRESET_RECIPES = [
-  { 
-    id: 'lettuce-basic', 
-    name: 'Basic Lettuce (30 days)', 
-    crop: 'lettuce',
+  {
+    id: "lettuce-basic",
+    name: "Basic Lettuce (30 days)",
+    crop: "lettuce",
     duration: 30,
-    description: 'Standard lettuce growing recipe with 16h light cycle'
+    description: "Standard lettuce growing recipe with 16h light cycle",
   },
-  { 
-    id: 'basil-intensive', 
-    name: 'Intensive Basil (35 days)', 
-    crop: 'basil',
+  {
+    id: "basil-intensive",
+    name: "Intensive Basil (35 days)",
+    crop: "basil",
     duration: 35,
-    description: 'High-yield basil recipe with extended light periods'
+    description: "High-yield basil recipe with extended light periods",
   },
-  { 
-    id: 'microgreens-fast', 
-    name: 'Fast Microgreens (14 days)', 
-    crop: 'microgreens',
+  {
+    id: "microgreens-fast",
+    name: "Fast Microgreens (14 days)",
+    crop: "microgreens",
     duration: 14,
-    description: 'Quick turnaround microgreens for continuous harvest'
-  }
-]
+    description: "Quick turnaround microgreens for continuous harvest",
+  },
+];
 
 export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
   isOpen,
   onClose,
   shelfId,
   shelfName,
-  onSubmit
+  onSubmit,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   const [growData, setGrowData] = useState<Partial<GrowSetupData>>({
-    startDate: new Date()
-  })
+    startDate: new Date(),
+  });
 
   const steps = [
-    { id: 1, title: 'Select Crop', icon: Leaf },
-    { id: 2, title: 'Choose Recipe', icon: BookOpen },
-    { id: 3, title: 'Set Schedule', icon: Clock },
-    { id: 4, title: 'Review & Start', icon: CheckCircle }
-  ]
+    { id: 1, title: "Select Crop", icon: Leaf },
+    { id: 2, title: "Choose Recipe", icon: BookOpen },
+    { id: 3, title: "Set Schedule", icon: Clock },
+    { id: 4, title: "Review & Start", icon: CheckCircle },
+  ];
 
-  const selectedCrop = CROP_TYPES.find(crop => crop.value === growData.cropType)
-  const availableRecipes = PRESET_RECIPES.filter(recipe => 
-    !growData.cropType || recipe.crop === growData.cropType
-  )
+  const selectedCrop = CROP_TYPES.find(
+    (crop) => crop.value === growData.cropType,
+  );
+  const availableRecipes = PRESET_RECIPES.filter(
+    (recipe) => !growData.cropType || recipe.crop === growData.cropType,
+  );
 
   const handleNext = () => {
     if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const handleSubmit = () => {
     if (isFormValid()) {
-      onSubmit(growData as GrowSetupData)
-      onClose()
-      resetForm()
+      onSubmit(growData as GrowSetupData);
+      onClose();
+      resetForm();
     }
-  }
+  };
 
   const resetForm = () => {
-    setCurrentStep(1)
-    setGrowData({ startDate: new Date() })
-  }
+    setCurrentStep(1);
+    setGrowData({ startDate: new Date() });
+  };
 
   const isFormValid = () => {
-    return growData.cropType && 
-           growData.variety && 
-           (growData.recipeId || growData.customRecipe) && 
-           growData.startDate
-  }
+    return (
+      growData.cropType &&
+      growData.variety &&
+      (growData.recipeId || growData.customRecipe) &&
+      growData.startDate
+    );
+  };
 
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return growData.cropType && growData.variety
+        return growData.cropType && growData.variety;
       case 2:
-        return growData.recipeId || growData.customRecipe
+        return growData.recipeId || growData.customRecipe;
       case 3:
-        return growData.startDate
+        return growData.startDate;
       case 4:
-        return isFormValid()
+        return isFormValid();
       default:
-        return false
+        return false;
     }
-  }
+  };
 
   const calculateHarvestDate = () => {
     if (growData.startDate && growData.recipeId) {
-      const recipe = PRESET_RECIPES.find(r => r.id === growData.recipeId)
+      const recipe = PRESET_RECIPES.find((r) => r.id === growData.recipeId);
       if (recipe) {
-        const harvestDate = new Date(growData.startDate)
-        harvestDate.setDate(harvestDate.getDate() + recipe.duration)
-        return harvestDate
+        const harvestDate = new Date(growData.startDate);
+        harvestDate.setDate(harvestDate.getDate() + recipe.duration);
+        return harvestDate;
       }
     }
-    return null
-  }
+    return null;
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -182,9 +222,11 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
           <div className="space-y-6">
             <div>
               <Label htmlFor="crop-type">Crop Type</Label>
-              <Select 
-                value={growData.cropType} 
-                onValueChange={(value) => setGrowData({...growData, cropType: value, variety: ''})}
+              <Select
+                value={growData.cropType}
+                onValueChange={(value) =>
+                  setGrowData({ ...growData, cropType: value, variety: "" })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a crop type" />
@@ -202,9 +244,11 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
             {selectedCrop && (
               <div>
                 <Label htmlFor="variety">Variety</Label>
-                <Select 
-                  value={growData.variety} 
-                  onValueChange={(value) => setGrowData({...growData, variety: value})}
+                <Select
+                  value={growData.variety}
+                  onValueChange={(value) =>
+                    setGrowData({ ...growData, variety: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a variety" />
@@ -220,7 +264,7 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
               </div>
             )}
           </div>
-        )
+        );
 
       case 2:
         return (
@@ -235,9 +279,11 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
                       "p-4 border rounded-lg cursor-pointer transition-colors",
                       growData.recipeId === recipe.id
                         ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300",
                     )}
-                    onClick={() => setGrowData({...growData, recipeId: recipe.id})}
+                    onClick={() =>
+                      setGrowData({ ...growData, recipeId: recipe.id })
+                    }
                   >
                     <div className="font-medium">{recipe.name}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-400">
@@ -248,15 +294,17 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
                     </div>
                   </div>
                 ))}
-                
-                <div 
+
+                <div
                   className={cn(
                     "p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
-                    growData.recipeId === 'custom'
+                    growData.recipeId === "custom"
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                      : "border-slate-300 dark:border-slate-600 hover:border-slate-400"
+                      : "border-slate-300 dark:border-slate-600 hover:border-slate-400",
                   )}
-                  onClick={() => setGrowData({...growData, recipeId: 'custom'})}
+                  onClick={() =>
+                    setGrowData({ ...growData, recipeId: "custom" })
+                  }
                 >
                   <div className="text-center text-slate-600 dark:text-slate-400">
                     + Create Custom Recipe
@@ -265,7 +313,7 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
               </div>
             </div>
           </div>
-        )
+        );
 
       case 3:
         return (
@@ -275,8 +323,17 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
               <Input
                 id="start-date"
                 type="date"
-                value={growData.startDate ? growData.startDate.toISOString().split('T')[0] : ''}
-                onChange={(e) => setGrowData({...growData, startDate: new Date(e.target.value)})}
+                value={
+                  growData.startDate
+                    ? growData.startDate.toISOString().split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  setGrowData({
+                    ...growData,
+                    startDate: new Date(e.target.value),
+                  })
+                }
                 className="w-full"
               />
             </div>
@@ -295,39 +352,61 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
               <Textarea
                 id="notes"
                 placeholder="Add any notes about this grow..."
-                value={growData.notes || ''}
-                onChange={(e) => setGrowData({...growData, notes: e.target.value})}
+                value={growData.notes || ""}
+                onChange={(e) =>
+                  setGrowData({ ...growData, notes: e.target.value })
+                }
               />
             </div>
           </div>
-        )
+        );
 
       case 4:
-        const selectedRecipe = PRESET_RECIPES.find(r => r.id === growData.recipeId)
+        const selectedRecipe = PRESET_RECIPES.find(
+          (r) => r.id === growData.recipeId,
+        );
         return (
           <div className="space-y-6">
             <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <h3 className="font-medium mb-3">Grow Summary</h3>
               <div className="space-y-2 text-sm">
-                <div><span className="font-medium">Location:</span> {shelfName}</div>
-                <div><span className="font-medium">Crop:</span> {selectedCrop?.label} - {growData.variety}</div>
-                <div><span className="font-medium">Recipe:</span> {selectedRecipe?.name}</div>
-                <div><span className="font-medium">Start Date:</span> {growData.startDate ? formatDate(growData.startDate) : 'Not set'}</div>
+                <div>
+                  <span className="font-medium">Location:</span> {shelfName}
+                </div>
+                <div>
+                  <span className="font-medium">Crop:</span>{" "}
+                  {selectedCrop?.label} - {growData.variety}
+                </div>
+                <div>
+                  <span className="font-medium">Recipe:</span>{" "}
+                  {selectedRecipe?.name}
+                </div>
+                <div>
+                  <span className="font-medium">Start Date:</span>{" "}
+                  {growData.startDate
+                    ? formatDate(growData.startDate)
+                    : "Not set"}
+                </div>
                 {calculateHarvestDate() && (
-                  <div><span className="font-medium">Estimated Harvest:</span> {formatDate(calculateHarvestDate()!)}</div>
+                  <div>
+                    <span className="font-medium">Estimated Harvest:</span>{" "}
+                    {formatDate(calculateHarvestDate()!)}
+                  </div>
                 )}
                 {growData.notes && (
-                  <div><span className="font-medium">Notes:</span> {growData.notes}</div>
+                  <div>
+                    <span className="font-medium">Notes:</span> {growData.notes}
+                  </div>
                 )}
               </div>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -342,44 +421,53 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
         {/* Progress Indicator */}
         <div className="flex items-center justify-between mb-6">
           {steps.map((step, index) => {
-            const Icon = step.icon
-            const isActive = currentStep === step.id
-            const isCompleted = currentStep > step.id
-            
+            const Icon = step.icon;
+            const isActive = currentStep === step.id;
+            const isCompleted = currentStep > step.id;
+
             return (
               <div key={step.id} className="flex items-center">
-                <div className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-full border-2",
-                  isActive && "border-green-500 bg-green-500 text-white",
-                  isCompleted && "border-green-500 bg-green-500 text-white",
-                  !isActive && !isCompleted && "border-slate-300 text-slate-400"
-                )}>
+                <div
+                  className={cn(
+                    "flex items-center justify-center w-8 h-8 rounded-full border-2",
+                    isActive && "border-green-500 bg-green-500 text-white",
+                    isCompleted && "border-green-500 bg-green-500 text-white",
+                    !isActive &&
+                      !isCompleted &&
+                      "border-slate-300 text-slate-400",
+                  )}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="ml-2">
-                  <div className={cn(
-                    "text-sm font-medium",
-                    (isActive || isCompleted) && "text-green-600 dark:text-green-400",
-                    !isActive && !isCompleted && "text-slate-400"
-                  )}>
+                  <div
+                    className={cn(
+                      "text-sm font-medium",
+                      (isActive || isCompleted) &&
+                        "text-green-600 dark:text-green-400",
+                      !isActive && !isCompleted && "text-slate-400",
+                    )}
+                  >
                     {step.title}
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={cn(
-                    "w-8 h-0.5 mx-4",
-                    isCompleted ? "bg-green-500" : "bg-slate-200 dark:bg-slate-700"
-                  )} />
+                  <div
+                    className={cn(
+                      "w-8 h-0.5 mx-4",
+                      isCompleted
+                        ? "bg-green-500"
+                        : "bg-slate-200 dark:bg-slate-700",
+                    )}
+                  />
                 )}
               </div>
-            )
+            );
           })}
         </div>
 
         {/* Step Content */}
-        <div className="min-h-[300px]">
-          {renderStep()}
-        </div>
+        <div className="min-h-[300px]">{renderStep()}</div>
 
         <DialogFooter>
           <div className="flex justify-between w-full">
@@ -391,12 +479,9 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
               <ChevronLeft className="w-4 h-4 mr-2" />
               Previous
             </Button>
-            
+
             {currentStep < steps.length ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-              >
+              <Button onClick={handleNext} disabled={!canProceed()}>
                 Next
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -414,5 +499,5 @@ export const GrowWizardModal: React.FC<GrowWizardModalProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+};

@@ -1,26 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Bell, BellOff, Check, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { 
-  subscribeToPushNotifications, 
+import { Bell, BellOff, Check, X } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
-  getVapidPublicKey 
-} from '@/lib/actions/push-notifications';
+  getVapidPublicKey,
+} from "@/lib/actions/push-notifications";
 
-type NotificationPermission = 'default' | 'granted' | 'denied';
+type NotificationPermission = "default" | "granted" | "denied";
 
 export default function NotificationManager() {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [vapidKey, setVapidKey] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if notifications are supported
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
       return;
     }
 
@@ -36,19 +38,19 @@ export default function NotificationManager() {
 
   const checkSubscriptionStatus = async () => {
     try {
-      if ('serviceWorker' in navigator) {
+      if ("serviceWorker" in navigator) {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         setIsSubscribed(!!subscription);
       }
     } catch (error) {
-      console.error('Failed to check subscription status:', error);
+      console.error("Failed to check subscription status:", error);
     }
   };
 
   const requestPermission = async () => {
-    if (!('Notification' in window)) {
-      alert('This browser does not support notifications');
+    if (!("Notification" in window)) {
+      alert("This browser does not support notifications");
       return;
     }
 
@@ -58,11 +60,11 @@ export default function NotificationManager() {
       const permission = await Notification.requestPermission();
       setPermission(permission);
 
-      if (permission === 'granted') {
+      if (permission === "granted") {
         await subscribeToNotifications();
       }
     } catch (error) {
-      console.error('Failed to request notification permission:', error);
+      console.error("Failed to request notification permission:", error);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +72,7 @@ export default function NotificationManager() {
 
   const subscribeToNotifications = async () => {
     if (!vapidKey) {
-      console.error('VAPID key not available');
+      console.error("VAPID key not available");
       return;
     }
 
@@ -78,7 +80,7 @@ export default function NotificationManager() {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
@@ -88,20 +90,20 @@ export default function NotificationManager() {
       const subscriptionData = {
         endpoint: subscription.endpoint,
         keys: {
-          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
-          auth: arrayBufferToBase64(subscription.getKey('auth')!),
+          p256dh: arrayBufferToBase64(subscription.getKey("p256dh")!),
+          auth: arrayBufferToBase64(subscription.getKey("auth")!),
         },
       };
 
       const result = await subscribeToPushNotifications(subscriptionData);
-      
+
       if (result.success) {
         setIsSubscribed(true);
       } else {
-        console.error('Failed to subscribe:', result.error);
+        console.error("Failed to subscribe:", result.error);
       }
     } catch (error) {
-      console.error('Failed to subscribe to notifications:', error);
+      console.error("Failed to subscribe to notifications:", error);
     } finally {
       setIsLoading(false);
     }
@@ -116,12 +118,12 @@ export default function NotificationManager() {
 
       if (subscription) {
         await subscription.unsubscribe();
-        
+
         const subscriptionData = {
           endpoint: subscription.endpoint,
           keys: {
-            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
-            auth: arrayBufferToBase64(subscription.getKey('auth')!),
+            p256dh: arrayBufferToBase64(subscription.getKey("p256dh")!),
+            auth: arrayBufferToBase64(subscription.getKey("auth")!),
           },
         };
 
@@ -129,24 +131,24 @@ export default function NotificationManager() {
         setIsSubscribed(false);
       }
     } catch (error) {
-      console.error('Failed to unsubscribe from notifications:', error);
+      console.error("Failed to unsubscribe from notifications:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Don't render in production for now (can be enabled later)
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     return null;
   }
 
   // Don't render if notifications aren't supported
-  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
     return null;
   }
 
   const getStatusBadge = () => {
-    if (permission === 'denied') {
+    if (permission === "denied") {
       return (
         <Badge variant="destructive" className="text-xs">
           <X className="h-3 w-3 mr-1" />
@@ -157,7 +159,10 @@ export default function NotificationManager() {
 
     if (isSubscribed) {
       return (
-        <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">
+        <Badge
+          variant="default"
+          className="text-xs bg-green-100 text-green-800 border-green-200"
+        >
           <Check className="h-3 w-3 mr-1" />
           Active
         </Badge>
@@ -184,11 +189,12 @@ export default function NotificationManager() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Get alerts for temperature changes, growth milestones, and system issues
+          Get alerts for temperature changes, growth milestones, and system
+          issues
         </p>
 
         <div className="flex space-x-2">
-          {permission === 'granted' && !isSubscribed && (
+          {permission === "granted" && !isSubscribed && (
             <Button
               onClick={subscribeToNotifications}
               disabled={isLoading}
@@ -196,11 +202,11 @@ export default function NotificationManager() {
               className="flex-1"
             >
               <Bell className="h-4 w-4 mr-2" />
-              {isLoading ? 'Enabling...' : 'Enable Alerts'}
+              {isLoading ? "Enabling..." : "Enable Alerts"}
             </Button>
           )}
 
-          {permission === 'default' && (
+          {permission === "default" && (
             <Button
               onClick={requestPermission}
               disabled={isLoading}
@@ -208,7 +214,7 @@ export default function NotificationManager() {
               className="flex-1"
             >
               <Bell className="h-4 w-4 mr-2" />
-              {isLoading ? 'Requesting...' : 'Allow Notifications'}
+              {isLoading ? "Requesting..." : "Allow Notifications"}
             </Button>
           )}
 
@@ -221,11 +227,11 @@ export default function NotificationManager() {
               className="flex-1"
             >
               <BellOff className="h-4 w-4 mr-2" />
-              {isLoading ? 'Disabling...' : 'Disable'}
+              {isLoading ? "Disabling..." : "Disable"}
             </Button>
           )}
 
-          {permission === 'denied' && (
+          {permission === "denied" && (
             <div className="text-xs text-muted-foreground">
               Enable notifications in browser settings to receive farm alerts
             </div>
@@ -238,10 +244,8 @@ export default function NotificationManager() {
 
 // Utility functions
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -254,7 +258,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
-  let binary = '';
-  bytes.forEach((b) => binary += String.fromCharCode(b));
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
   return window.btoa(binary);
-} 
+}

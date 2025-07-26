@@ -1,8 +1,15 @@
-
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function DraggableItem({ id, label, type }: { id: string; label: string; type: string }) {
+export default function DraggableItem({
+  id,
+  label,
+  type,
+}: {
+  id: string;
+  label: string;
+  type: string;
+}) {
   const {
     attributes,
     listeners,
@@ -35,8 +42,15 @@ export default function DraggableItem({ id, label, type }: { id: string; label: 
         {type === "rack" && "🗄️"}
         {type === "shelf" && "🧺"}
       </span>
-      <span className="font-semibold text-gray-900 dark:text-gray-100">{label}</span>
-      <span className="ml-auto text-xs text-gray-400 dark:text-gray-500" aria-label="Grab handle">⠿</span>
+      <span className="font-semibold text-gray-900 dark:text-gray-100">
+        {label}
+      </span>
+      <span
+        className="ml-auto text-xs text-gray-400 dark:text-gray-500"
+        aria-label="Grab handle"
+      >
+        ⠿
+      </span>
     </div>
   );
 }

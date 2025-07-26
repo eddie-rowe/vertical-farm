@@ -1,11 +1,18 @@
-export type CategoryStatus = 'good' | 'warning' | 'attention' | 'critical';
+export type CategoryStatus = "good" | "warning" | "attention" | "critical";
 
 export type QuickAction = {
   text: string;
   onClick: () => void;
 };
 
-export type DashboardView = 'executive' | 'financial' | 'operations' | 'growth' | 'quality' | 'risk' | 'team';
+export type DashboardView =
+  | "executive"
+  | "financial"
+  | "operations"
+  | "growth"
+  | "quality"
+  | "risk"
+  | "team";
 
 export interface CostBreakdown {
   category: string;
@@ -16,18 +23,18 @@ export interface CostBreakdown {
 export interface CostSuggestion {
   action: string;
   savings: number;
-  urgency: 'low' | 'medium' | 'high';
+  urgency: "low" | "medium" | "high";
 }
 
 export interface Alert {
   message: string;
-  type: 'warning' | 'error' | 'info';
+  type: "warning" | "error" | "info";
 }
 
 export interface SalesSuggestion {
   action: string;
   impact: string;
-  urgency: 'low' | 'medium' | 'high';
+  urgency: "low" | "medium" | "high";
 }
 
 export interface CustomerMetrics {
@@ -39,9 +46,9 @@ export interface CustomerMetrics {
 export interface Task {
   name: string;
   hours: number;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   assigned: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: "pending" | "in-progress" | "completed";
 }
 
 export interface TaskSuggestion {
@@ -51,7 +58,7 @@ export interface TaskSuggestion {
 
 export interface Preparation {
   task: string;
-  status: 'pending' | 'done' | 'verified';
+  status: "pending" | "done" | "verified";
 }
 
 export interface UpcomingEvent {
@@ -64,29 +71,29 @@ export interface UpcomingEvent {
 export interface CustomerTouchpoint {
   customer: string;
   lastContact: string;
-  status: 'dormant' | 'engaged' | 'at-risk';
+  status: "dormant" | "engaged" | "at-risk";
   suggestedAction: string;
-  urgency: 'low' | 'medium' | 'high';
+  urgency: "low" | "medium" | "high";
   value: string;
 }
 
 export interface StrategicNote {
   note: string;
   investigation: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   impact: string;
 }
 
 export interface RDOpportunity {
   experiment: string;
   goal: string;
-  status: 'planned' | 'testing' | 'research';
+  status: "planned" | "testing" | "research";
   impact: string;
 }
 
 export interface SystemAlert {
   alert: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
   action: string;
 }
 
@@ -129,10 +136,10 @@ export interface Category {
   id: string;
   title: string;
   status: CategoryStatus;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  priority: "low" | "medium" | "high" | "urgent";
   value: string;
   change: string;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   description: string;
   quickActions: QuickAction[];
 }
@@ -151,7 +158,7 @@ export interface ProgressIndicatorProps {
 
 export interface TrendIndicatorProps {
   value: string;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   label: string;
 }
 
@@ -165,7 +172,7 @@ export interface AchievementBadgeProps {
 export interface ActionButtonProps {
   action: string;
   impact: string;
-  urgency: 'low' | 'medium' | 'high';
+  urgency: "low" | "medium" | "high";
   onClick?: () => void;
 }
 
@@ -173,7 +180,7 @@ export interface StrategicCardProps {
   title: string;
   icon: any;
   children: React.ReactNode;
-  priority?: 'low' | 'normal' | 'high' | 'urgent';
+  priority?: "low" | "normal" | "high" | "urgent";
   className?: string;
 }
 
@@ -203,4 +210,4 @@ export interface ExecutiveSummaryProps {
 export interface DetailedViewProps {
   view: DashboardView;
   onBackToExecutive: () => void;
-} 
+}

@@ -29,7 +29,7 @@ permissions:
   id-token: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   deploy:
@@ -110,11 +110,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment || 'production' }}
         run: |
           echo "## 🚀 Cloudflare Deployment" >> $GITHUB_STEP_SUMMARY
           
           # Deploy based on environment
-          if [ "${{ inputs.environment || 'production' }}" = "production" ]; then
+          if [ "$DEPLOY_ENVIRONMENT" = "production" ]; then
             npx wrangler deploy --env production
             echo "✅ Deployed to production environment" >> $GITHUB_STEP_SUMMARY
           else
@@ -200,12 +201,15 @@ jobs:
             }' || echo "Health check monitor setup failed (may already exist)"
       
       - name: Generate deployment summary
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment || 'production' }}
+          WORKER_URL: ${{ secrets.CLOUDFLARE_WORKER_URL }}
         run: |
           echo "## 🎉 Cloudflare Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | ${{ inputs.environment || 'production' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Worker URL | ${{ secrets.CLOUDFLARE_WORKER_URL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | $DEPLOY_ENVIRONMENT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Worker URL | $WORKER_URL |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ✅ Deployed |" >> $GITHUB_STEP_SUMMARY
           echo "| Deployed At | $(date -u +%Y-%m-%dT%H:%M:%SZ) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

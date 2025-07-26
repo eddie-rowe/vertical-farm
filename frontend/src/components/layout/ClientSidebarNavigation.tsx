@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
-import { navItems } from './ServerSidebar';
+
+import { navItems } from "./ServerSidebar";
 
 type NavVariant = "primary" | "maintenance" | "offline" | "growing" | "default";
 
@@ -15,7 +17,7 @@ const ClientSidebarNavigation: React.FC = () => {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         const variant = isActive ? (item.variant as NavVariant) : "ghost";
-        
+
         return (
           <li key={item.href}>
             <Button
@@ -30,14 +32,18 @@ const ClientSidebarNavigation: React.FC = () => {
               }`}
             >
               <Link href={item.href} className="flex items-center gap-4 w-full">
-                <span className={`text-xl ${
-                  isActive 
-                    ? "text-white" 
-                    : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200"
-                }`}>
+                <span
+                  className={`text-xl ${
+                    isActive
+                      ? "text-white"
+                      : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200"
+                  }`}
+                >
                   {item.icon}
                 </span>
-                <span className="font-semibold text-base text-control-label">{item.label}</span>
+                <span className="font-semibold text-base text-control-label">
+                  {item.label}
+                </span>
               </Link>
             </Button>
           </li>
@@ -47,4 +53,4 @@ const ClientSidebarNavigation: React.FC = () => {
   );
 };
 
-export default ClientSidebarNavigation; 
+export default ClientSidebarNavigation;

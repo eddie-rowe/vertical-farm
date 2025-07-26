@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Toast,
@@ -8,15 +8,22 @@ import {
   ToastTitle,
   ToastViewport,
   ToastWithIcon,
-} from "@/components/ui/toast"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts } = useToast();
 
   return (
     <ToastProvider swipeDirection="right">
-      {toasts.map(function ({ id, title, description, action, variant, ...props }) {
+      {toasts.map(function ({
+        id,
+        title,
+        description,
+        action,
+        variant,
+        ...props
+      }) {
         return (
           <Toast key={id} variant={variant} {...props}>
             <div className="grid gap-1">
@@ -28,21 +35,21 @@ export function Toaster() {
             {action}
             <ToastClose />
           </Toast>
-        )
+        );
       })}
       <ToastViewport />
     </ToastProvider>
-  )
+  );
 }
 
 // Alternative enhanced toaster with icons
 export function ToasterWithIcons() {
-  const { toasts } = useToast()
+  const { toasts } = useToast();
 
   return (
     <ToastProvider swipeDirection="right">
       {toasts.map(function ({ id, title, description, variant }) {
-        if (!title) return null
+        if (!title) return null;
 
         return (
           <ToastWithIcon
@@ -54,9 +61,9 @@ export function ToasterWithIcons() {
               // Handle close if needed
             }}
           />
-        )
+        );
       })}
       <ToastViewport />
     </ToastProvider>
-  )
-} 
+  );
+}

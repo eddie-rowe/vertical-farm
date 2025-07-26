@@ -1,16 +1,16 @@
-import request from '@/lib/apiClient';
+import request from "@/lib/apiClient";
 
 export interface SquareConfig {
   id?: string;
   name: string;
   application_id: string;
   access_token: string;
-  environment: 'sandbox' | 'production';
+  environment: "sandbox" | "production";
   webhook_signature_key?: string;
   webhook_url?: string;
   is_active: boolean;
   last_sync_at?: string;
-  sync_status?: 'pending' | 'syncing' | 'success' | 'error';
+  sync_status?: "pending" | "syncing" | "success" | "error";
   sync_error?: string;
   created_at?: string;
   updated_at?: string;
@@ -20,7 +20,7 @@ export interface SquareConfigCreate {
   name: string;
   application_id: string;
   access_token: string;
-  environment: 'sandbox' | 'production';
+  environment: "sandbox" | "production";
   webhook_signature_key?: string;
   webhook_url?: string;
 }
@@ -29,7 +29,7 @@ export interface SquareConfigUpdate {
   name?: string;
   application_id?: string;
   access_token?: string;
-  environment?: 'sandbox' | 'production';
+  environment?: "sandbox" | "production";
   webhook_signature_key?: string;
   webhook_url?: string;
   is_active?: boolean;
@@ -263,14 +263,14 @@ export interface SquareWebhook {
 }
 
 class SquareService {
-  private baseUrl = '/api/v1/square';
+  private baseUrl = "/api/v1/square";
 
   // Configuration Management
   async getConfigs(): Promise<SquareConfig[]> {
     try {
       return await request<SquareConfig[]>(`${this.baseUrl}/configs`);
     } catch (error) {
-      console.error('Error fetching Square configs:', error);
+      console.error("Error fetching Square configs:", error);
       return [];
     }
   }
@@ -279,224 +279,294 @@ class SquareService {
     try {
       return await request<SquareConfig>(`${this.baseUrl}/configs/${configId}`);
     } catch (error) {
-      console.error('Error fetching Square config:', error);
+      console.error("Error fetching Square config:", error);
       return null;
     }
   }
 
   async createConfig(config: SquareConfigCreate): Promise<SquareConfig> {
     return await request<SquareConfig>(`${this.baseUrl}/configs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(config),
     });
   }
 
-  async updateConfig(configId: string, config: SquareConfigUpdate): Promise<SquareConfig> {
+  async updateConfig(
+    configId: string,
+    config: SquareConfigUpdate,
+  ): Promise<SquareConfig> {
     return await request<SquareConfig>(`${this.baseUrl}/configs/${configId}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(config),
     });
   }
 
   async deleteConfig(configId: string): Promise<void> {
     await request<void>(`${this.baseUrl}/configs/${configId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   // Connection Testing
   async testConnection(configId: string): Promise<SquareConnectionStatus> {
-    return await request<SquareConnectionStatus>(`${this.baseUrl}/test-connection?config_id=${configId}`, {
-      method: 'POST',
-    });
+    return await request<SquareConnectionStatus>(
+      `${this.baseUrl}/test-connection?config_id=${configId}`,
+      {
+        method: "POST",
+      },
+    );
   }
 
   // Square Data Fetching (requires configId)
   async getLocations(configId: string): Promise<SquareLocation[]> {
     try {
-      return await request<SquareLocation[]>(`${this.baseUrl}/locations?config_id=${configId}`);
+      return await request<SquareLocation[]>(
+        `${this.baseUrl}/locations?config_id=${configId}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square locations:', error);
+      console.error("Error fetching Square locations:", error);
       return [];
     }
   }
 
   async getProducts(configId: string): Promise<SquareProduct[]> {
     try {
-      return await request<SquareProduct[]>(`${this.baseUrl}/products?config_id=${configId}`);
+      return await request<SquareProduct[]>(
+        `${this.baseUrl}/products?config_id=${configId}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square products:', error);
+      console.error("Error fetching Square products:", error);
       return [];
     }
   }
 
   async getCustomers(configId: string): Promise<SquareCustomer[]> {
     try {
-      return await request<SquareCustomer[]>(`${this.baseUrl}/customers?config_id=${configId}`);
+      return await request<SquareCustomer[]>(
+        `${this.baseUrl}/customers?config_id=${configId}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square customers:', error);
+      console.error("Error fetching Square customers:", error);
       return [];
     }
   }
 
-  async getOrders(configId: string, locationId?: string): Promise<SquareOrder[]> {
+  async getOrders(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareOrder[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareOrder[]>(`${this.baseUrl}/orders?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareOrder[]>(
+        `${this.baseUrl}/orders?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square orders:', error);
+      console.error("Error fetching Square orders:", error);
       return [];
     }
   }
 
-  async getPayments(configId: string, locationId?: string): Promise<SquarePayment[]> {
+  async getPayments(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquarePayment[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquarePayment[]>(`${this.baseUrl}/payments?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquarePayment[]>(
+        `${this.baseUrl}/payments?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square payments:', error);
+      console.error("Error fetching Square payments:", error);
       return [];
     }
   }
 
   // New methods for additional Square endpoints
-  async getRefunds(configId: string, locationId?: string): Promise<SquareRefund[]> {
+  async getRefunds(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareRefund[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareRefund[]>(`${this.baseUrl}/refunds?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareRefund[]>(
+        `${this.baseUrl}/refunds?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square refunds:', error);
+      console.error("Error fetching Square refunds:", error);
       return [];
     }
   }
 
   async getDisputes(configId: string): Promise<SquareDispute[]> {
     try {
-      return await request<SquareDispute[]>(`${this.baseUrl}/disputes?config_id=${configId}`);
+      return await request<SquareDispute[]>(
+        `${this.baseUrl}/disputes?config_id=${configId}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square disputes:', error);
+      console.error("Error fetching Square disputes:", error);
       return [];
     }
   }
 
-  async getSubscriptions(configId: string, locationId?: string): Promise<SquareSubscription[]> {
+  async getSubscriptions(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareSubscription[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareSubscription[]>(`${this.baseUrl}/subscriptions?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareSubscription[]>(
+        `${this.baseUrl}/subscriptions?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square subscriptions:', error);
+      console.error("Error fetching Square subscriptions:", error);
       return [];
     }
   }
 
-  async getInvoices(configId: string, locationId?: string): Promise<SquareInvoice[]> {
+  async getInvoices(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareInvoice[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareInvoice[]>(`${this.baseUrl}/invoices?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareInvoice[]>(
+        `${this.baseUrl}/invoices?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square invoices:', error);
+      console.error("Error fetching Square invoices:", error);
       return [];
     }
   }
 
-  async getTeamMembers(configId: string, locationId?: string): Promise<SquareTeamMember[]> {
+  async getTeamMembers(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareTeamMember[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareTeamMember[]>(`${this.baseUrl}/team-members?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareTeamMember[]>(
+        `${this.baseUrl}/team-members?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square team members:', error);
+      console.error("Error fetching Square team members:", error);
       return [];
     }
   }
 
-  async getLabor(configId: string, locationId?: string): Promise<SquareLabor[]> {
+  async getLabor(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareLabor[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareLabor[]>(`${this.baseUrl}/labor?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareLabor[]>(
+        `${this.baseUrl}/labor?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square labor data:', error);
+      console.error("Error fetching Square labor data:", error);
       return [];
     }
   }
 
   async getMerchants(configId: string): Promise<SquareMerchant[]> {
     try {
-      return await request<SquareMerchant[]>(`${this.baseUrl}/merchants?config_id=${configId}`);
+      return await request<SquareMerchant[]>(
+        `${this.baseUrl}/merchants?config_id=${configId}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square merchants:', error);
+      console.error("Error fetching Square merchants:", error);
       return [];
     }
   }
 
-  async getPayouts(configId: string, locationId?: string): Promise<SquarePayout[]> {
+  async getPayouts(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquarePayout[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquarePayout[]>(`${this.baseUrl}/payouts?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquarePayout[]>(
+        `${this.baseUrl}/payouts?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square payouts:', error);
+      console.error("Error fetching Square payouts:", error);
       return [];
     }
   }
 
-  async getInventory(configId: string, locationId?: string): Promise<SquareInventoryCount[]> {
+  async getInventory(
+    configId: string,
+    locationId?: string,
+  ): Promise<SquareInventoryCount[]> {
     try {
       const params = new URLSearchParams({ config_id: configId });
-      if (locationId) params.append('location_id', locationId);
-      
-      return await request<SquareInventoryCount[]>(`${this.baseUrl}/inventory?${params.toString()}`);
+      if (locationId) params.append("location_id", locationId);
+
+      return await request<SquareInventoryCount[]>(
+        `${this.baseUrl}/inventory?${params.toString()}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square inventory:', error);
+      console.error("Error fetching Square inventory:", error);
       return [];
     }
   }
 
   async getStatus(configId?: string): Promise<SquareConnectionStatus> {
     try {
-      const params = configId ? `?config_id=${configId}` : '';
-      return await request<SquareConnectionStatus>(`${this.baseUrl}/status${params}`);
+      const params = configId ? `?config_id=${configId}` : "";
+      return await request<SquareConnectionStatus>(
+        `${this.baseUrl}/status${params}`,
+      );
     } catch (error) {
-      console.error('Error fetching Square status:', error);
-      return { connected: false, environment: 'sandbox', error_message: 'Connection failed' };
+      console.error("Error fetching Square status:", error);
+      return {
+        connected: false,
+        environment: "sandbox",
+        error_message: "Connection failed",
+      };
     }
   }
 
   async getActiveConfig(): Promise<SquareConfig | null> {
     try {
       const configs = await this.getConfigs();
-      return configs.find(config => config.is_active) || null;
+      return configs.find((config) => config.is_active) || null;
     } catch (error) {
-      console.error('Error fetching active Square config:', error);
+      console.error("Error fetching active Square config:", error);
       return null;
     }
   }
 
   async setActiveConfig(configId: string): Promise<SquareConfig> {
     try {
-      const response = await request<SquareConfig>(`${this.baseUrl}/configs/${configId}/activate`, {
-        method: 'PUT'
-      });
+      const response = await request<SquareConfig>(
+        `${this.baseUrl}/configs/${configId}/activate`,
+        {
+          method: "PUT",
+        },
+      );
       return response;
     } catch (error) {
-      console.error('Error setting active Square config:', error);
+      console.error("Error setting active Square config:", error);
       throw error;
     }
   }
 }
 
-export const squareService = new SquareService(); 
+export const squareService = new SquareService();

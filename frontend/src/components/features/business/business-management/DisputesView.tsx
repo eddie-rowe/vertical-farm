@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  AlertTriangle, 
+import {
+  AlertTriangle,
   DollarSign,
   AlertCircle,
   Clock,
   RefreshCw,
   Loader2,
   Eye,
-  CreditCard
 } from "lucide-react";
-import { businessManagementService, BusinessDispute } from "@/services/businessManagementService";
-import { FarmSearchAndFilter } from '@/components/ui/farm-search-and-filter';
-import { useFarmSearch, useFarmFilters } from '@/hooks';
-import type { FilterDefinition } from '@/components/ui/farm-search-and-filter';
+import { useState, useEffect, useMemo, useCallback } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
+import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
+import { useFarmSearch, useFarmFilters } from "@/hooks";
+import {
+  businessManagementService,
+  BusinessDispute,
+} from "@/services/businessManagementService";
 
 export default function DisputesView() {
   const [disputes, setDisputes] = useState<BusinessDispute[]>([]);
@@ -25,11 +28,17 @@ export default function DisputesView() {
   const [error, setError] = useState<string | null>(null);
 
   // Standardized search and filter hooks
-  const { searchTerm, setSearchTerm, clearSearch, hasSearch, filterItems: searchFilterItems } = useFarmSearch<BusinessDispute>({
-    searchFields: ['id', 'customer', 'reason'],
-    caseSensitive: false
+  const {
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
+    hasSearch,
+    filterItems: searchFilterItems,
+  } = useFarmSearch<BusinessDispute>({
+    searchFields: ["id", "customer", "reason"],
+    caseSensitive: false,
   });
-  
+
   const {
     filters,
     setFilter,
@@ -37,49 +46,61 @@ export default function DisputesView() {
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters
+    hasActiveFilters,
   } = useFarmFilters<BusinessDispute>();
 
   // Filter definitions
   const filterDefinitions: FilterDefinition[] = [
     {
-      id: 'status',
-      label: 'Dispute Status',
-      placeholder: 'Filter by status...',
+      id: "status",
+      label: "Dispute Status",
+      placeholder: "Filter by status...",
       options: [
-        { value: 'under_review', label: 'Under Review' },
-        { value: 'won', label: 'Won' },
-        { value: 'lost', label: 'Lost' },
-        { value: 'accepted', label: 'Accepted' }
-      ]
-    }
+        { value: "under_review", label: "Under Review" },
+        { value: "won", label: "Won" },
+        { value: "lost", label: "Lost" },
+        { value: "accepted", label: "Accepted" },
+      ],
+    },
   ];
 
   // Filter change handlers
-  const handleFilterChange = useCallback((filterId: string, value: string) => {
-    setFilter(filterId, value);
-  }, [setFilter]);
+  const handleFilterChange = useCallback(
+    (filterId: string, value: string) => {
+      setFilter(filterId, value);
+    },
+    [setFilter],
+  );
 
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    removeFilter(filterId);
-  }, [removeFilter]);
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      removeFilter(filterId);
+    },
+    [removeFilter],
+  );
 
   // Combined filtering
   const filteredDisputes = useMemo(() => {
     let result = disputes;
-    
+
     // Apply search filter
     if (hasSearch) {
       result = searchFilterItems(result);
     }
-    
+
     // Apply other filters
     if (hasActiveFilters) {
       result = filterFilterItems(result);
     }
-    
+
     return result;
-  }, [disputes, hasSearch, searchFilterItems, hasActiveFilters, filterFilterItems]);
+  }, [
+    disputes,
+    hasSearch,
+    searchFilterItems,
+    hasActiveFilters,
+    filterFilterItems,
+  ]);
 
   const fetchDisputes = async () => {
     try {
@@ -88,8 +109,10 @@ export default function DisputesView() {
       const fetchedDisputes = await businessManagementService.getDisputes(10);
       setDisputes(fetchedDisputes);
     } catch (err) {
-      console.error('Failed to fetch disputes:', err);
-      setError('Failed to load disputes from Square. Please check your Square integration.');
+      console.error("Failed to fetch disputes:", err);
+      setError(
+        "Failed to load disputes from Square. Please check your Square integration.",
+      );
     } finally {
       setLoading(false);
     }
@@ -101,44 +124,69 @@ export default function DisputesView() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "under_review": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "won": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "lost": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "accepted": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+      case "under_review":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "won":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "lost":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "accepted":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
-      case "under_review": return <Clock className="h-4 w-4" />;
-      case "won": return <AlertTriangle className="h-4 w-4" />;
-      case "lost": return <AlertCircle className="h-4 w-4" />;
-      default: return <AlertTriangle className="h-4 w-4" />;
+      case "under_review":
+        return <Clock className="h-4 w-4" />;
+      case "won":
+        return <AlertTriangle className="h-4 w-4" />;
+      case "lost":
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <AlertTriangle className="h-4 w-4" />;
     }
   };
 
-  const totalDisputes = disputes.reduce((sum, dispute) => sum + dispute.amount, 0);
-  const activeDisputes = disputes.filter(d => d.status.toLowerCase() === "under_review").length;
-  const wonDisputes = disputes.filter(d => d.status.toLowerCase() === "won").length;
+  const totalDisputes = disputes.reduce(
+    (sum, dispute) => sum + dispute.amount,
+    0,
+  );
+  const activeDisputes = disputes.filter(
+    (d) => d.status.toLowerCase() === "under_review",
+  ).length;
+  const wonDisputes = disputes.filter(
+    (d) => d.status.toLowerCase() === "won",
+  ).length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dispute Management</h2>
-          <p className="text-gray-600 dark:text-gray-400">Track and manage payment disputes from Square ({disputes.length} disputes loaded)</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Dispute Management
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Track and manage payment disputes from Square ({disputes.length}{" "}
+            disputes loaded)
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={fetchDisputes}
             disabled={loading}
             className="flex items-center gap-2"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {loading ? 'Loading...' : 'Refresh'}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {loading ? "Loading..." : "Refresh"}
           </Button>
         </div>
       </div>
@@ -150,8 +198,12 @@ export default function DisputesView() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Disputes</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{disputes.length}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Disputes
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {disputes.length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -161,8 +213,12 @@ export default function DisputesView() {
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-red-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">${totalDisputes.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Amount
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  ${totalDisputes.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -172,8 +228,12 @@ export default function DisputesView() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-yellow-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{activeDisputes}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Active
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {activeDisputes}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -184,7 +244,9 @@ export default function DisputesView() {
               <AlertTriangle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Won</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{wonDisputes}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {wonDisputes}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -210,9 +272,9 @@ export default function DisputesView() {
             Showing {filteredDisputes.length} of {disputes.length} disputes
           </span>
           {(hasSearch || hasActiveFilters) && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 clearSearch();
                 clearAllFilters();
@@ -241,7 +303,9 @@ export default function DisputesView() {
         <Card>
           <CardContent className="p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 dark:text-gray-400">Loading disputes from Square...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading disputes from Square...
+            </p>
           </CardContent>
         </Card>
       )}
@@ -255,8 +319,8 @@ export default function DisputesView() {
               No Disputes Found
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              {disputes.length === 0 
-                ? "No disputes available in your Square account." 
+              {disputes.length === 0
+                ? "No disputes available in your Square account."
                 : "No disputes match your current filters."}
             </p>
           </CardContent>
@@ -267,7 +331,10 @@ export default function DisputesView() {
       {!loading && filteredDisputes.length > 0 && (
         <div className="space-y-4">
           {filteredDisputes.map((dispute) => (
-            <Card key={dispute.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={dispute.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -278,23 +345,33 @@ export default function DisputesView() {
                         <span className="ml-1">{dispute.status}</span>
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Customer</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Customer
+                        </p>
                         <p className="font-medium">{dispute.customer}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Reason</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Reason
+                        </p>
                         <p className="font-medium">{dispute.reason}</p>
                       </div>
                       <div>
                         <p className="text-gray-600 dark:text-gray-400">Date</p>
-                        <p className="font-medium">{new Date(dispute.createdAt).toLocaleDateString()}</p>
+                        <p className="font-medium">
+                          {new Date(dispute.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-gray-600 dark:text-gray-400">Amount</p>
-                        <p className="font-semibold text-lg text-red-600">${dispute.amount.toLocaleString()}</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Amount
+                        </p>
+                        <p className="font-semibold text-lg text-red-600">
+                          ${dispute.amount.toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -312,4 +389,4 @@ export default function DisputesView() {
       )}
     </div>
   );
-} 
+}

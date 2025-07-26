@@ -1,12 +1,15 @@
 "use client";
 
-import * as React from "react";
 import { Search, X } from "lucide-react";
-import { FarmInput, type FarmInputProps } from "./farm-input";
-import { Button } from "./button";
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-export interface FarmSearchInputProps extends Omit<FarmInputProps, 'icon' | 'iconPosition'> {
+import { Button } from "./button";
+import { FarmInput, type FarmInputProps } from "./farm-input";
+
+export interface FarmSearchInputProps
+  extends Omit<FarmInputProps, "icon" | "iconPosition"> {
   /** Search value */
   value: string;
   /** Search change handler */
@@ -23,23 +26,30 @@ export interface FarmSearchInputProps extends Omit<FarmInputProps, 'icon' | 'ico
   onClear?: () => void;
 }
 
-export const FarmSearchInput = React.forwardRef<HTMLInputElement, FarmSearchInputProps>(
-  ({ 
-    value,
-    onSearchChange,
-    debounceMs = 300,
-    showClearButton = true,
-    searchContext,
-    placeholder: customPlaceholder,
-    onClear,
-    className,
-    ...props 
-  }, ref) => {
+export const FarmSearchInput = React.forwardRef<
+  HTMLInputElement,
+  FarmSearchInputProps
+>(
+  (
+    {
+      value,
+      onSearchChange,
+      debounceMs = 300,
+      showClearButton = true,
+      searchContext,
+      placeholder: customPlaceholder,
+      onClear,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const [internalValue, setInternalValue] = React.useState(value);
     const debounceTimer = React.useRef<NodeJS.Timeout | null>(null);
 
     // Generate consistent placeholder text
-    const placeholder = customPlaceholder || 
+    const placeholder =
+      customPlaceholder ||
       (searchContext ? `Search ${searchContext}...` : "Search...");
 
     // Sync external value changes
@@ -88,13 +98,10 @@ export const FarmSearchInput = React.forwardRef<HTMLInputElement, FarmSearchInpu
           placeholder={placeholder}
           icon={<Search className="h-4 w-4" />}
           iconPosition="left"
-          className={cn(
-            showClearButton && internalValue && "pr-10",
-            className
-          )}
+          className={cn(showClearButton && internalValue && "pr-10", className)}
           {...props}
         />
-        
+
         {showClearButton && internalValue && (
           <Button
             type="button"
@@ -109,7 +116,7 @@ export const FarmSearchInput = React.forwardRef<HTMLInputElement, FarmSearchInpu
         )}
       </div>
     );
-  }
+  },
 );
 
-FarmSearchInput.displayName = "FarmSearchInput"; 
+FarmSearchInput.displayName = "FarmSearchInput";

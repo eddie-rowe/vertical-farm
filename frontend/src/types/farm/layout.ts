@@ -3,28 +3,28 @@
  * Defines the hierarchical structure: Farm -> Row -> Rack -> Shelf
  */
 
-import { UUID, BaseEntity, Coordinates, Dimensions } from '../common';
+import { UUID, BaseEntity, Coordinates, Dimensions } from "../common";
 
 /** Area types for different farm sections */
-export type AreaType = 'grow_area' | 'germination_tent';
+export type AreaType = "grow_area" | "germination_tent";
 
 /** Row orientation options */
-export type RowOrientation = 'horizontal' | 'vertical';
+export type RowOrientation = "horizontal" | "vertical";
 
 /** Sensor types available in the system */
-export type SensorType = 
-  | 'temperature' 
-  | 'humidity' 
-  | 'co2' 
-  | 'ph' 
-  | 'ec' 
-  | 'water_level' 
-  | 'light_intensity' 
-  | 'air_flow' 
-  | 'soil_moisture';
+export type SensorType =
+  | "temperature"
+  | "humidity"
+  | "co2"
+  | "ph"
+  | "ec"
+  | "water_level"
+  | "light_intensity"
+  | "air_flow"
+  | "soil_moisture";
 
 /** Parent entity types for sensor assignments */
-export type ParentType = 'shelf' | 'rack' | 'row' | 'farm';
+export type ParentType = "shelf" | "rack" | "row" | "farm";
 
 /**
  * Germination-specific operational data
@@ -219,4 +219,4 @@ export interface TransplantCandidate {
   days_since_planting: number;
   /** Estimated transplant readiness score */
   readiness_score?: number;
-} 
+}

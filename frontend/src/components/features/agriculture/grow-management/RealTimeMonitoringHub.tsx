@@ -1,16 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Activity, 
+import {
+  Activity,
   AlertTriangle,
   CheckCircle,
-  Clock,
-  Zap,
   Droplets,
   Sun,
   Thermometer,
@@ -23,12 +16,13 @@ import {
   Play,
   Settings,
   Bell,
-  BellOff,
   Maximize2,
-  TrendingUp,
-  TrendingDown,
-  Minus
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EnvironmentalReading {
   id: string;
@@ -42,7 +36,7 @@ interface EnvironmentalReading {
   ph: number;
   ec: number;
   lastUpdate: string;
-  status: 'online' | 'offline' | 'warning' | 'error';
+  status: "online" | "offline" | "warning" | "error";
 }
 
 interface AutomationStatus {
@@ -59,8 +53,8 @@ interface AutomationStatus {
 
 interface SystemAlert {
   id: string;
-  type: 'environmental' | 'automation' | 'system' | 'harvest';
-  severity: 'info' | 'warning' | 'error' | 'critical';
+  type: "environmental" | "automation" | "system" | "harvest";
+  severity: "info" | "warning" | "error" | "critical";
   message: string;
   shelfId?: string;
   shelfName?: string;
@@ -81,10 +75,14 @@ export default function RealTimeMonitoringHub({
   onAlertClick,
   onShelfClick,
   isExpanded = false,
-  onExpandToggle
+  onExpandToggle,
 }: RealTimeMonitoringHubProps) {
-  const [environmentalData, setEnvironmentalData] = useState<EnvironmentalReading[]>([]);
-  const [automationStatus, setAutomationStatus] = useState<AutomationStatus[]>([]);
+  const [environmentalData, setEnvironmentalData] = useState<
+    EnvironmentalReading[]
+  >([]);
+  const [automationStatus, setAutomationStatus] = useState<AutomationStatus[]>(
+    [],
+  );
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
@@ -107,7 +105,7 @@ export default function RealTimeMonitoringHub({
           ph: 6.2,
           ec: 1.4,
           lastUpdate: new Date().toISOString(),
-          status: 'online'
+          status: "online",
         },
         {
           id: "env-2",
@@ -121,7 +119,7 @@ export default function RealTimeMonitoringHub({
           ph: 6.0,
           ec: 1.6,
           lastUpdate: new Date().toISOString(),
-          status: 'warning'
+          status: "warning",
         },
         {
           id: "env-3",
@@ -135,8 +133,8 @@ export default function RealTimeMonitoringHub({
           ph: 6.3,
           ec: 1.3,
           lastUpdate: new Date().toISOString(),
-          status: 'online'
-        }
+          status: "online",
+        },
       ];
 
       const mockAutomationStatus: AutomationStatus[] = [
@@ -148,7 +146,7 @@ export default function RealTimeMonitoringHub({
           nextAction: "Watering cycle",
           nextActionTime: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
           tasksQueued: 2,
-          efficiency: 94
+          efficiency: 94,
         },
         {
           id: "auto-2",
@@ -159,8 +157,8 @@ export default function RealTimeMonitoringHub({
           nextActionTime: new Date(Date.now() + 120 * 60 * 1000).toISOString(),
           tasksQueued: 1,
           lastError: "Humidity sensor timeout",
-          efficiency: 87
-        }
+          efficiency: 87,
+        },
       ];
 
       const mockAlerts: SystemAlert[] = [
@@ -172,7 +170,7 @@ export default function RealTimeMonitoringHub({
           shelfId: "shelf-2",
           shelfName: "Shelf A1-1-2",
           timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-          acknowledged: false
+          acknowledged: false,
         },
         {
           id: "alert-2",
@@ -182,7 +180,7 @@ export default function RealTimeMonitoringHub({
           shelfId: "shelf-2",
           shelfName: "Shelf A1-1-2",
           timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          acknowledged: false
+          acknowledged: false,
         },
         {
           id: "alert-3",
@@ -192,8 +190,8 @@ export default function RealTimeMonitoringHub({
           shelfId: "shelf-1",
           shelfName: "Shelf A1-1-1",
           timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          acknowledged: true
-        }
+          acknowledged: true,
+        },
       ];
 
       setEnvironmentalData(mockEnvironmentalData);
@@ -216,43 +214,63 @@ export default function RealTimeMonitoringHub({
     };
   }, [autoRefresh]);
 
-  const getStatusColor = (status: EnvironmentalReading['status']) => {
+  const getStatusColor = (status: EnvironmentalReading["status"]) => {
     switch (status) {
-      case 'online': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
-      case 'error': return 'text-red-500';
-      case 'offline': return 'text-gray-500';
-      default: return 'text-gray-500';
+      case "online":
+        return "text-green-500";
+      case "warning":
+        return "text-yellow-500";
+      case "error":
+        return "text-red-500";
+      case "offline":
+        return "text-gray-500";
+      default:
+        return "text-gray-500";
     }
   };
 
-  const getStatusIcon = (status: EnvironmentalReading['status']) => {
+  const getStatusIcon = (status: EnvironmentalReading["status"]) => {
     switch (status) {
-      case 'online': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'offline': return <WifiOff className="h-4 w-4 text-gray-500" />;
-      default: return <Wifi className="h-4 w-4 text-gray-500" />;
+      case "online":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case "error":
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case "offline":
+        return <WifiOff className="h-4 w-4 text-gray-500" />;
+      default:
+        return <Wifi className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getAlertIcon = (type: SystemAlert['type']) => {
+  const getAlertIcon = (type: SystemAlert["type"]) => {
     switch (type) {
-      case 'environmental': return <Thermometer className="h-4 w-4" />;
-      case 'automation': return <Bot className="h-4 w-4" />;
-      case 'system': return <Settings className="h-4 w-4" />;
-      case 'harvest': return <CheckCircle className="h-4 w-4" />;
-      default: return <Bell className="h-4 w-4" />;
+      case "environmental":
+        return <Thermometer className="h-4 w-4" />;
+      case "automation":
+        return <Bot className="h-4 w-4" />;
+      case "system":
+        return <Settings className="h-4 w-4" />;
+      case "harvest":
+        return <CheckCircle className="h-4 w-4" />;
+      default:
+        return <Bell className="h-4 w-4" />;
     }
   };
 
-  const getAlertSeverityColor = (severity: SystemAlert['severity']) => {
+  const getAlertSeverityColor = (severity: SystemAlert["severity"]) => {
     switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200';
-      case 'error': return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900 dark:text-red-200';
-      case 'warning': return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'info': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+      case "critical":
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200";
+      case "error":
+        return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900 dark:text-red-200";
+      case "warning":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200";
+      case "info":
+        return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-200";
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
@@ -260,7 +278,7 @@ export default function RealTimeMonitoringHub({
     const diff = Date.now() - new Date(timestamp).getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
     return `${minutes}m ago`;
   };
@@ -269,20 +287,24 @@ export default function RealTimeMonitoringHub({
     const diff = new Date(timestamp).getTime() - Date.now();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) return `in ${hours}h ${minutes % 60}m`;
     if (minutes > 0) return `in ${minutes}m`;
-    return 'now';
+    return "now";
   };
 
   const acknowledgeAlert = (alertId: string) => {
-    setAlerts(prev => prev.map(alert => 
-      alert.id === alertId ? { ...alert, acknowledged: true } : alert
-    ));
+    setAlerts((prev) =>
+      prev.map((alert) =>
+        alert.id === alertId ? { ...alert, acknowledged: true } : alert,
+      ),
+    );
   };
 
-  const unacknowledgedAlerts = alerts.filter(alert => !alert.acknowledged);
-  const criticalAlerts = unacknowledgedAlerts.filter(alert => alert.severity === 'critical' || alert.severity === 'error');
+  const unacknowledgedAlerts = alerts.filter((alert) => !alert.acknowledged);
+  const criticalAlerts = unacknowledgedAlerts.filter(
+    (alert) => alert.severity === "critical" || alert.severity === "error",
+  );
 
   if (isLoading) {
     return (
@@ -295,7 +317,9 @@ export default function RealTimeMonitoringHub({
   }
 
   return (
-    <div className={`space-y-4 ${isExpanded ? 'fixed inset-0 z-50 bg-white dark:bg-gray-900 p-4' : ''}`}>
+    <div
+      className={`space-y-4 ${isExpanded ? "fixed inset-0 z-50 bg-white dark:bg-gray-900 p-4" : ""}`}
+    >
       {/* Header */}
       <Card>
         <CardHeader className="pb-3">
@@ -324,16 +348,24 @@ export default function RealTimeMonitoringHub({
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setAutoRefresh(!autoRefresh)}
               >
-                {autoRefresh ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {autoRefresh ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
                 <RefreshCw className="h-4 w-4" />
               </Button>
               {onExpandToggle && (
@@ -343,7 +375,7 @@ export default function RealTimeMonitoringHub({
               )}
             </div>
           </div>
-          
+
           <div className="text-sm text-gray-600 dark:text-gray-400">
             Last updated: {lastUpdate.toLocaleTimeString()}
           </div>
@@ -365,20 +397,24 @@ export default function RealTimeMonitoringHub({
                 <div
                   key={reading.id}
                   className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                    selectedGrowId === reading.shelfId 
-                      ? 'ring-2 ring-blue-500 shadow-lg' 
-                      : 'hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600'
+                    selectedGrowId === reading.shelfId
+                      ? "ring-2 ring-blue-500 shadow-lg"
+                      : "hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600"
                   }`}
                   onClick={() => onShelfClick?.(reading.shelfId)}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(reading.status)}
-                      <span className="font-medium text-sm">{reading.shelfName}</span>
+                      <span className="font-medium text-sm">
+                        {reading.shelfName}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500">{formatTimeAgo(reading.lastUpdate)}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatTimeAgo(reading.lastUpdate)}
+                    </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div className="flex items-center gap-2">
                       <Thermometer className="h-3 w-3" />
@@ -393,7 +429,7 @@ export default function RealTimeMonitoringHub({
                       <span>{reading.lightLevel}%</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-3 text-sm mt-2">
                     <div className="flex items-center gap-2">
                       <Wind className="h-3 w-3" />
@@ -436,19 +472,25 @@ export default function RealTimeMonitoringHub({
                 alerts.map((alert) => (
                   <div
                     key={alert.id}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      getAlertSeverityColor(alert.severity)
-                    } ${alert.acknowledged ? 'opacity-60' : ''}`}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${getAlertSeverityColor(
+                      alert.severity,
+                    )} ${alert.acknowledged ? "opacity-60" : ""}`}
                     onClick={() => onAlertClick?.(alert)}
                   >
                     <div className="flex items-start gap-2">
                       {getAlertIcon(alert.type)}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{alert.message}</div>
+                        <div className="text-sm font-medium">
+                          {alert.message}
+                        </div>
                         {alert.shelfName && (
-                          <div className="text-xs opacity-75 mt-1">{alert.shelfName}</div>
+                          <div className="text-xs opacity-75 mt-1">
+                            {alert.shelfName}
+                          </div>
                         )}
-                        <div className="text-xs opacity-75 mt-1">{formatTimeAgo(alert.timestamp)}</div>
+                        <div className="text-xs opacity-75 mt-1">
+                          {formatTimeAgo(alert.timestamp)}
+                        </div>
                       </div>
                       {!alert.acknowledged && (
                         <Button
@@ -487,28 +529,42 @@ export default function RealTimeMonitoringHub({
                 className="p-3 rounded-lg border bg-gray-50 dark:bg-gray-900"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm">{automation.shelfName}</span>
-                  <Badge variant={automation.isEnabled ? "default" : "secondary"}>
+                  <span className="font-medium text-sm">
+                    {automation.shelfName}
+                  </span>
+                  <Badge
+                    variant={automation.isEnabled ? "default" : "secondary"}
+                  >
                     {automation.isEnabled ? "Active" : "Disabled"}
                   </Badge>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Next Action:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Next Action:
+                    </span>
                     <span>{automation.nextAction}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Scheduled:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Scheduled:
+                    </span>
                     <span>{formatTimeFromNow(automation.nextActionTime)}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Efficiency:</span>
-                    <span className="font-medium">{automation.efficiency}%</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Efficiency:
+                    </span>
+                    <span className="font-medium">
+                      {automation.efficiency}%
+                    </span>
                   </div>
                   {automation.tasksQueued > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Queued:</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Queued:
+                      </span>
                       <Badge variant="outline" className="text-xs">
                         {automation.tasksQueued} tasks
                       </Badge>
@@ -527,4 +583,4 @@ export default function RealTimeMonitoringHub({
       </Card>
     </div>
   );
-} 
+}

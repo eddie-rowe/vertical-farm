@@ -3,11 +3,18 @@
  * Types for assigning devices to farm locations and managing those assignments
  */
 
-import { UUID, BaseEntity } from '../common';
-import { DeviceType, DeviceCapabilities, DeviceState, DeviceAttributes, DeviceFilter } from './core';
+import { UUID, BaseEntity } from "../common";
+
+import {
+  DeviceType,
+  DeviceCapabilities,
+  DeviceState,
+  DeviceAttributes,
+  DeviceFilter,
+} from "./core";
 
 /** Farm hierarchy element types */
-export type ElementType = 'farm' | 'row' | 'rack' | 'shelf';
+export type ElementType = "farm" | "row" | "rack" | "shelf";
 
 /**
  * Device assignment record
@@ -186,9 +193,9 @@ export interface DeviceBrowserState {
   /** Show only unassigned devices */
   showOnlyUnassigned: boolean;
   /** Sort field */
-  sortBy: 'name' | 'type' | 'status' | 'area';
+  sortBy: "name" | "type" | "status" | "area";
   /** Sort order */
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
   /** Selected devices for bulk operations */
   selectedDevices: string[];
   /** Current page for pagination */
@@ -252,4 +259,4 @@ export interface DeviceAssignmentSummary {
   by_location_type: Record<ElementType, number>;
   /** Most recent assignment */
   latest_assignment?: DeviceAssignment;
-} 
+}

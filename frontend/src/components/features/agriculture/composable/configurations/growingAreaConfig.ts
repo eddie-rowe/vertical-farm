@@ -1,11 +1,12 @@
-import { AreaConfiguration } from './types'
+import { AreaConfiguration } from "./types";
 
 // ===== Growing Area Configuration =====
 
 export const growingAreaConfig: AreaConfiguration = {
-  areaType: 'grow_area',
-  name: 'Growing Area',
-  description: 'Full-featured configuration for active growing areas with comprehensive monitoring and control capabilities',
+  areaType: "grow_area",
+  name: "Growing Area",
+  description:
+    "Full-featured configuration for active growing areas with comprehensive monitoring and control capabilities",
 
   // ===== Layout Configuration =====
   layout: {
@@ -17,23 +18,23 @@ export const growingAreaConfig: AreaConfiguration = {
         md: 2,
         lg: 3,
         xl: 4,
-        '2xl': 5
+        "2xl": 5,
       },
       adaptiveLayout: true,
-      showDetailsBreakpoint: 'md'
+      showDetailsBreakpoint: "md",
     },
     spacing: {
-      areaGap: 'gap-6',
-      rackGap: 'gap-4',
-      shelfGap: 'gap-2',
-      containerPadding: 'p-6'
+      areaGap: "gap-6",
+      rackGap: "gap-4",
+      shelfGap: "gap-2",
+      containerPadding: "p-6",
     },
     sizing: {
-      minRackHeight: 'min-h-[300px]',
-      maxRackHeight: 'max-h-[600px]',
-      shelfAspectRatio: '3:2',
-      deviceIconSize: 'md'
-    }
+      minRackHeight: "min-h-[300px]",
+      maxRackHeight: "max-h-[600px]",
+      shelfAspectRatio: "3:2",
+      deviceIconSize: "md",
+    },
   },
 
   // ===== Interaction Configuration =====
@@ -42,36 +43,36 @@ export const growingAreaConfig: AreaConfiguration = {
     enableContextMenu: true,
     enableDragDrop: true,
     enableSelection: true,
-    selectionMode: 'single',
+    selectionMode: "single",
     enableKeyboardNav: true,
     enableTooltips: true,
     clickActions: [
       {
-        target: 'row',
-        action: 'select',
-        enabled: true
+        target: "row",
+        action: "select",
+        enabled: true,
       },
       {
-        target: 'rack',
-        action: 'select',
-        enabled: true
+        target: "rack",
+        action: "select",
+        enabled: true,
       },
       {
-        target: 'shelf',
-        action: 'select',
-        enabled: true
+        target: "shelf",
+        action: "select",
+        enabled: true,
       },
       {
-        target: 'rack',
-        action: 'edit',
-        enabled: true
+        target: "rack",
+        action: "edit",
+        enabled: true,
       },
       {
-        target: 'shelf',
-        action: 'edit',
-        enabled: true
-      }
-    ]
+        target: "shelf",
+        action: "edit",
+        enabled: true,
+      },
+    ],
   },
 
   // ===== Content Configuration =====
@@ -80,108 +81,108 @@ export const growingAreaConfig: AreaConfiguration = {
     showStatus: true,
     showMetrics: true,
     enableDensityView: true,
-    contentStyle: 'detailed',
-    customRenderers: []
+    contentStyle: "detailed",
+    customRenderers: [],
   },
 
   // ===== Overlay Configuration =====
   overlays: [
     {
-      id: 'devices',
-      name: 'Device Status',
+      id: "devices",
+      name: "Device Status",
       enabled: true,
       defaultVisible: true,
-      layer: 'devices',
+      layer: "devices",
       opacity: 1.0,
-      zIndex: 10
+      zIndex: 10,
     },
     {
-      id: 'monitoring',
-      name: 'Environmental Monitoring',
+      id: "monitoring",
+      name: "Environmental Monitoring",
       enabled: true,
       defaultVisible: false,
-      layer: 'monitoring',
+      layer: "monitoring",
       opacity: 0.8,
-      zIndex: 20
+      zIndex: 20,
     },
     {
-      id: 'automation',
-      name: 'Automation Status',
+      id: "automation",
+      name: "Automation Status",
       enabled: true,
       defaultVisible: false,
-      layer: 'automation',
+      layer: "automation",
       opacity: 0.9,
-      zIndex: 15
+      zIndex: 15,
     },
     {
-      id: 'grows',
-      name: 'Grow Information',
+      id: "grows",
+      name: "Grow Information",
       enabled: true,
       defaultVisible: true,
-      layer: 'grows',
+      layer: "grows",
       opacity: 1.0,
-      zIndex: 5
+      zIndex: 5,
     },
     {
-      id: 'alerts',
-      name: 'Alert Indicators',
+      id: "alerts",
+      name: "Alert Indicators",
       enabled: true,
       defaultVisible: true,
-      layer: 'alerts',
+      layer: "alerts",
       opacity: 1.0,
-      zIndex: 30
-    }
+      zIndex: 30,
+    },
   ],
 
   // ===== Modal Configuration =====
   modals: [
     {
-      id: 'elementDetail',
-      name: 'Element Detail Editor',
+      id: "elementDetail",
+      name: "Element Detail Editor",
       enabled: true,
-      trigger: 'double-click',
-      target: 'rack',
-      component: 'ElementDetailModal',
-      size: 'lg'
+      trigger: "double-click",
+      target: "rack",
+      component: "ElementDetailModal",
+      size: "lg",
     },
     {
-      id: 'shelfDetail',
-      name: 'Shelf Detail Editor',
+      id: "shelfDetail",
+      name: "Shelf Detail Editor",
       enabled: true,
-      trigger: 'double-click',
-      target: 'shelf',
-      component: 'ElementDetailModal',
-      size: 'md'
+      trigger: "double-click",
+      target: "shelf",
+      component: "ElementDetailModal",
+      size: "md",
     },
     {
-      id: 'growWizard',
-      name: 'Grow Setup Wizard',
+      id: "growWizard",
+      name: "Grow Setup Wizard",
       enabled: true,
-      trigger: 'context-menu',
-      target: 'shelf',
-      component: 'GrowWizardModal',
-      size: 'xl'
+      trigger: "context-menu",
+      target: "shelf",
+      component: "GrowWizardModal",
+      size: "xl",
     },
     {
-      id: 'deviceAssignment',
-      name: 'Device Assignment',
+      id: "deviceAssignment",
+      name: "Device Assignment",
       enabled: true,
-      trigger: 'context-menu',
-      target: 'rack',
-      component: 'ElementDetailModal',
-      size: 'lg'
+      trigger: "context-menu",
+      target: "rack",
+      component: "ElementDetailModal",
+      size: "lg",
     },
     {
-      id: 'layerConfig',
-      name: 'Layer Configuration',
+      id: "layerConfig",
+      name: "Layer Configuration",
       enabled: true,
-      trigger: 'hotkey',
-      target: 'area',
-      component: 'LayerOverlayModal',
-      size: 'xl'
-    }
-  ]
-}
+      trigger: "hotkey",
+      target: "area",
+      component: "LayerOverlayModal",
+      size: "xl",
+    },
+  ],
+};
 
 // ===== Preset Configurations =====
 
@@ -192,7 +193,7 @@ export const growingAreaPresets: Record<string, AreaConfiguration> = {
   // Simplified configuration for basic usage
   simple: {
     ...growingAreaConfig,
-    name: 'Simple Growing Area',
+    name: "Simple Growing Area",
     layout: {
       ...growingAreaConfig.layout,
       responsive: {
@@ -202,32 +203,32 @@ export const growingAreaPresets: Record<string, AreaConfiguration> = {
           md: 1,
           lg: 2,
           xl: 3,
-          '2xl': 3
-        }
-      }
+          "2xl": 3,
+        },
+      },
     },
     interactions: {
       ...growingAreaConfig.interactions,
       enableDragDrop: false,
-      enableContextMenu: false
+      enableContextMenu: false,
     },
     content: {
       ...growingAreaConfig.content,
-      contentStyle: 'standard' as const,
-      enableDensityView: false
+      contentStyle: "standard" as const,
+      enableDensityView: false,
     },
-    overlays: growingAreaConfig.overlays.filter(overlay => 
-      ['devices', 'grows', 'alerts'].includes(overlay.id)
+    overlays: growingAreaConfig.overlays.filter((overlay) =>
+      ["devices", "grows", "alerts"].includes(overlay.id),
     ),
-    modals: growingAreaConfig.modals.filter(modal => 
-      ['elementDetail', 'shelfDetail'].includes(modal.id)
-    )
+    modals: growingAreaConfig.modals.filter((modal) =>
+      ["elementDetail", "shelfDetail"].includes(modal.id),
+    ),
   },
 
   // Commercial/Enterprise configuration
   commercial: {
     ...growingAreaConfig,
-    name: 'Commercial Growing Area',
+    name: "Commercial Growing Area",
     layout: {
       ...growingAreaConfig.layout,
       responsive: {
@@ -237,60 +238,62 @@ export const growingAreaPresets: Record<string, AreaConfiguration> = {
           md: 4,
           lg: 6,
           xl: 8,
-          '2xl': 10
-        }
+          "2xl": 10,
+        },
       },
       spacing: {
         ...growingAreaConfig.layout.spacing,
-        areaGap: 'gap-4',
-        rackGap: 'gap-3',
-        containerPadding: 'p-4'
-      }
+        areaGap: "gap-4",
+        rackGap: "gap-3",
+        containerPadding: "p-4",
+      },
     },
     content: {
       ...growingAreaConfig.content,
-      contentStyle: 'minimal' as const,
-      showMetrics: true
-    }
+      contentStyle: "minimal" as const,
+      showMetrics: true,
+    },
   },
 
   // Research/Lab configuration
   research: {
     ...growingAreaConfig,
-    name: 'Research Growing Area',
+    name: "Research Growing Area",
     overlays: [
       ...growingAreaConfig.overlays,
       {
-        id: 'research_data',
-        name: 'Research Data',
+        id: "research_data",
+        name: "Research Data",
         enabled: true,
         defaultVisible: true,
-        layer: 'custom',
+        layer: "custom",
         opacity: 0.7,
-        zIndex: 25
-      }
+        zIndex: 25,
+      },
     ],
     modals: [
       ...growingAreaConfig.modals,
       {
-        id: 'dataCollection',
-        name: 'Data Collection',
+        id: "dataCollection",
+        name: "Data Collection",
         enabled: true,
-        trigger: 'context-menu',
-        target: 'shelf',
-        component: 'ElementDetailModal',
-        size: 'xl'
-      }
-    ]
-  }
-}
+        trigger: "context-menu",
+        target: "shelf",
+        component: "ElementDetailModal",
+        size: "xl",
+      },
+    ],
+  },
+};
 
 // ===== Export helpers =====
 
-export function getGrowingAreaConfig(preset: string = 'standard'): AreaConfiguration {
-  return growingAreaPresets[preset] || growingAreaPresets.standard
+export function getGrowingAreaConfig(
+  preset: string = "standard",
+): AreaConfiguration {
+  return growingAreaPresets[preset] || growingAreaPresets.standard;
 }
 
 export function getAvailableGrowingAreaPresets(): string[] {
-  return Object.keys(growingAreaPresets)
-} 
+  return Object.keys(growingAreaPresets);
+}

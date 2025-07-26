@@ -1,5 +1,5 @@
-'use client';
-import { supabase } from '@/lib/supabaseClient';
+"use client";
+import { supabase } from "@/lib/supabaseClient";
 
 // Define the type for Farm data based on your schema
 // Adjust this based on your actual farms table structure in database-schema.md
@@ -14,9 +14,9 @@ export interface Farm {
 
 // Enum for PermissionLevel, matching backend
 export enum PermissionLevel {
-  VIEWER = 'viewer',
-  EDITOR = 'editor',
-  MANAGER = 'manager',
+  VIEWER = "viewer",
+  EDITOR = "editor",
+  MANAGER = "manager",
 }
 
 // Interface for UserPermission data, matching backend UserPermission model
@@ -62,9 +62,9 @@ export interface UserPermissionUpdatePayload {
  * Relies on RLS policies for security.
  */
 export const getFarms = async (): Promise<Farm[]> => {
-  const { data, error } = await supabase.from('farms').select('*');
+  const { data, error } = await supabase.from("farms").select("*");
   if (error) {
-    console.error('Error fetching farms direct from Supabase:', error);
+    console.error("Error fetching farms direct from Supabase:", error);
     throw error;
   }
   return data || [];
@@ -75,7 +75,11 @@ export const getFarms = async (): Promise<Farm[]> => {
  * Relies on RLS policies for security.
  */
 export const getFarmById = async (id: string): Promise<Farm | null> => {
-  const { data, error } = await supabase.from('farms').select('*').eq('id', id).single();
+  const { data, error } = await supabase
+    .from("farms")
+    .select("*")
+    .eq("id", id)
+    .single();
   if (error) {
     console.error(`Error fetching farm ${id} direct from Supabase:`, error);
     throw error;
@@ -87,18 +91,20 @@ export const getFarmById = async (id: string): Promise<Farm | null> => {
  * Creates a new farm using Supabase directly.
  * @param farmData - The data for the new farm.
  */
-export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Farm | null> => {
+export const createFarm = async (
+  farmData: Omit<Farm, "id" | "created_at" | "updated_at" | "user_id">,
+): Promise<Farm | null> => {
   const { data, error } = await supabase
-    .from('farms')
+    .from("farms")
     .insert([farmData])
     .select()
     .single();
-  
+
   if (error) {
-    console.error('Error creating farm via Supabase:', error);
+    console.error("Error creating farm via Supabase:", error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -107,24 +113,27 @@ export const createFarm = async (farmData: Omit<Farm, 'id' | 'created_at' | 'upd
  * @param id - The ID of the farm to update.
  * @param farmData - The partial data to update the farm with.
  */
-export const updateFarm = async (id: string, farmData: Partial<Omit<Farm, 'id' | 'created_at' | 'user_id'>>): Promise<Farm | null> => {
+export const updateFarm = async (
+  id: string,
+  farmData: Partial<Omit<Farm, "id" | "created_at" | "user_id">>,
+): Promise<Farm | null> => {
   const payload = { ...farmData };
-  if ('updated_at' in payload) {
+  if ("updated_at" in payload) {
     delete (payload as Partial<Farm>).updated_at;
   }
-  
+
   const { data, error } = await supabase
-    .from('farms')
+    .from("farms")
     .update(payload)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`Error updating farm ${id} via Supabase:`, error);
     throw error;
   }
-  
+
   return data;
 };
 
@@ -133,11 +142,8 @@ export const updateFarm = async (id: string, farmData: Partial<Omit<Farm, 'id' |
  * @param id - The ID of the farm to delete.
  */
 export const deleteFarm = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('farms')
-    .delete()
-    .eq('id', id);
-  
+  const { error } = await supabase.from("farms").delete().eq("id", id);
+
   if (error) {
     console.error(`Error deleting farm ${id} via Supabase:`, error);
     throw error;
@@ -146,5 +152,5 @@ export const deleteFarm = async (id: string): Promise<void> => {
 
 // --- Farm User Permission Management ---
 // User permissions are now handled through Supabase RLS policies
-// and the main supabaseService.ts file. These FastAPI endpoints 
-// have been deprecated in favor of the Supabase PostGREST migration. 
+// and the main supabaseService.ts file. These FastAPI endpoints
+// have been deprecated in favor of the Supabase PostGREST migration.

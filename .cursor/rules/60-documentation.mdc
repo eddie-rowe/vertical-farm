@@ -1,0 +1,11 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+- **Documentation Updates:**
+  - Keep examples synchronized with code
+  - Update references to external docs
+  - Maintain links between related rules
+  - Document breaking changes

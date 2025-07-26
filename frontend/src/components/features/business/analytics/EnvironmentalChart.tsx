@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import DataChart, { ChartConfig, ChartData } from './DataChart';
+import React from "react";
+
+import DataChart, { ChartConfig, ChartData } from "./DataChart";
 
 export interface EnvironmentalData {
   timestamp: string;
@@ -16,65 +17,72 @@ interface EnvironmentalChartProps {
   data: EnvironmentalData[];
   title?: string;
   height?: number;
-  timeRange?: '1h' | '24h' | '7d' | '30d';
+  timeRange?: "1h" | "24h" | "7d" | "30d";
   className?: string;
   loading?: boolean;
   showAllMetrics?: boolean;
-  selectedMetrics?: Array<'temperature' | 'humidity' | 'co2' | 'lightLevel' | 'vpd'>;
+  selectedMetrics?: Array<
+    "temperature" | "humidity" | "co2" | "lightLevel" | "vpd"
+  >;
 }
 
 const METRIC_CONFIGS = {
   temperature: {
-    label: 'Temperature',
-    color: '#ef4444', // red-500
+    label: "Temperature",
+    color: "#ef4444", // red-500
     formatter: (value: number) => `${value.toFixed(1)}°F`,
-    unit: '°F',
+    unit: "°F",
   },
   humidity: {
-    label: 'Humidity',
-    color: '#3b82f6', // blue-500
+    label: "Humidity",
+    color: "#3b82f6", // blue-500
     formatter: (value: number) => `${value.toFixed(1)}%`,
-    unit: '%',
+    unit: "%",
   },
   co2: {
-    label: 'CO₂',
-    color: '#10b981', // emerald-500
+    label: "CO₂",
+    color: "#10b981", // emerald-500
     formatter: (value: number) => `${value.toFixed(0)} ppm`,
-    unit: 'ppm',
+    unit: "ppm",
   },
   lightLevel: {
-    label: 'Light Level',
-    color: '#f59e0b', // amber-500
+    label: "Light Level",
+    color: "#f59e0b", // amber-500
     formatter: (value: number) => `${value.toFixed(0)} PPFD`,
-    unit: 'PPFD',
+    unit: "PPFD",
   },
   vpd: {
-    label: 'VPD',
-    color: '#8b5cf6', // violet-500
+    label: "VPD",
+    color: "#8b5cf6", // violet-500
     formatter: (value: number) => `${value.toFixed(2)} kPa`,
-    unit: 'kPa',
+    unit: "kPa",
   },
 };
 
-const DEFAULT_METRICS: Array<keyof typeof METRIC_CONFIGS> = ['temperature', 'humidity', 'co2', 'lightLevel'];
+const DEFAULT_METRICS: Array<keyof typeof METRIC_CONFIGS> = [
+  "temperature",
+  "humidity",
+  "co2",
+  "lightLevel",
+];
 
 export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
   data,
-  title = 'Environmental Conditions',
+  title = "Environmental Conditions",
   height = 350,
-  className = '',
+  className = "",
   loading = false,
   showAllMetrics = false,
   selectedMetrics = DEFAULT_METRICS,
 }) => {
   // Determine which metrics to show
-  const metricsToShow = showAllMetrics 
-    ? Object.keys(METRIC_CONFIGS) as Array<keyof typeof METRIC_CONFIGS>
+  const metricsToShow = showAllMetrics
+    ? (Object.keys(METRIC_CONFIGS) as Array<keyof typeof METRIC_CONFIGS>)
     : selectedMetrics;
 
   // Prepare chart configuration
   const chartConfig: ChartConfig = {
-    type: 'line',
+    type: "line",
     title,
     height,
     showGrid: true,
@@ -84,49 +92,42 @@ export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
     tension: 0.3,
     pointRadius: 2,
     borderWidth: 2,
-    xAxisKey: 'timestamp',
+    xAxisKey: "timestamp",
     yAxisKeys: metricsToShow,
-    colors: metricsToShow.map(metric => METRIC_CONFIGS[metric].color),
+    colors: metricsToShow.map((metric) => METRIC_CONFIGS[metric].color),
     formatters: Object.fromEntries(
-      metricsToShow.map(metric => [
-        metric,
-        METRIC_CONFIGS[metric].formatter
-      ])
+      metricsToShow.map((metric) => [metric, METRIC_CONFIGS[metric].formatter]),
     ),
   };
 
   // Transform data for Chart.js format with readable timestamps
-  const chartData: ChartData[] = data.map(item => ({
-    timestamp: new Date(item.timestamp).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const chartData: ChartData[] = data.map((item) => ({
+    timestamp: new Date(item.timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }),
     ...Object.fromEntries(
-      metricsToShow.map(metric => [metric, item[metric]])
+      metricsToShow.map((metric) => [metric, item[metric]]),
     ),
   }));
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <DataChart
-        data={chartData}
-        config={chartConfig}
-        loading={loading}
-      />
-      
+      <DataChart data={chartData} config={chartConfig} loading={loading} />
+
       {/* Metrics Legend with Current Values */}
       {data.length > 0 && !loading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-          {metricsToShow.map(metric => {
+          {metricsToShow.map((metric) => {
             const latestValue = data[data.length - 1]?.[metric];
             const config = METRIC_CONFIGS[metric];
-            
+
             return (
               <div key={metric} className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: config.color }}
                   />
@@ -135,7 +136,9 @@ export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
                   </span>
                 </div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {latestValue !== undefined ? config.formatter(latestValue) : 'N/A'}
+                  {latestValue !== undefined
+                    ? config.formatter(latestValue)
+                    : "N/A"}
                 </div>
               </div>
             );
@@ -146,4 +149,4 @@ export const EnvironmentalChart: React.FC<EnvironmentalChartProps> = ({
   );
 };
 
-export default EnvironmentalChart; 
+export default EnvironmentalChart;

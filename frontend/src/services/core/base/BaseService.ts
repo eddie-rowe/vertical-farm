@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { supabase } from '@/lib/supabaseClient';
-import { AuthService } from '../auth/AuthService';
-import { ErrorHandler } from '../utils/errorHandler';
+import { supabase } from "@/lib/supabaseClient";
+
+import { AuthService } from "../auth/AuthService";
+import { ErrorHandler } from "../utils/errorHandler";
 
 export abstract class BaseService {
   protected authService: AuthService;
@@ -13,7 +14,7 @@ export abstract class BaseService {
 
   protected async executeWithAuth<T>(
     operation: () => Promise<T>,
-    context: string
+    context: string,
   ): Promise<T> {
     return ErrorHandler.withErrorHandling(async () => {
       await this.authService.requireAuth();
@@ -23,11 +24,11 @@ export abstract class BaseService {
 
   protected async executeQuery<T>(
     query: () => Promise<{ data: T; error: any }>,
-    context: string
+    context: string,
   ): Promise<T> {
     return ErrorHandler.withErrorHandling(async () => {
       const { data, error } = await query();
-      
+
       if (error) {
         throw error;
       }
@@ -37,19 +38,19 @@ export abstract class BaseService {
   }
 
   protected logOperation(operation: string, details?: any): void {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(`[${this.constructor.name}] ${operation}`, details);
     }
   }
 
-  protected validateId(id: string, fieldName: string = 'id'): void {
-    if (!id || typeof id !== 'string' || id.trim() === '') {
+  protected validateId(id: string, fieldName: string = "id"): void {
+    if (!id || typeof id !== "string" || id.trim() === "") {
       throw new Error(`Invalid ${fieldName}: must be a non-empty string`);
     }
   }
 
   protected validateRequired(value: any, fieldName: string): void {
-    if (value === null || value === undefined || value === '') {
+    if (value === null || value === undefined || value === "") {
       throw new Error(`${fieldName} is required`);
     }
   }
@@ -57,4 +58,4 @@ export abstract class BaseService {
   protected getSupabaseClient() {
     return supabase;
   }
-} 
+}

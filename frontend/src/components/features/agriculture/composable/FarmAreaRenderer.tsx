@@ -1,24 +1,36 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { Row, AreaType } from '@/types/farm'
-import { AreaConfiguration } from './configurations/types'
-import { FarmAreaProvider, useFarmArea } from './providers/FarmAreaProvider'
-import { LayoutLayer, RackLayout } from './layers/LayoutLayer'
-import { InteractionLayer, RowInteraction, RackInteraction, ShelfInteraction } from './layers/InteractionLayer'
-import { ContentLayer, RowContent, RackContent, ShelfContent } from './layers/ContentLayer'
-import { ElementDetailModal, GrowWizardModal, LayerOverlayModal } from './modals'
-import { cn } from '@/lib/utils'
+import React from "react";
+
+import { Row, AreaType } from "@/types/farm";
+
+import { germinationAreaPresets } from "./configurations/germinationAreaConfig";
+import { growingAreaPresets } from "./configurations/growingAreaConfig";
+import { growingAreaConfig } from "./configurations/growingAreaConfig";
+import { AreaConfiguration } from "./configurations/types";
+import { ContentLayer, RowContent, RackContent } from "./layers/ContentLayer";
+import {
+  InteractionLayer,
+  RowInteraction,
+  RackInteraction,
+} from "./layers/InteractionLayer";
+import { LayoutLayer, RackLayout } from "./layers/LayoutLayer";
+import {
+  ElementDetailModal,
+  GrowWizardModal,
+  LayerOverlayModal,
+} from "./modals";
+import { FarmAreaProvider, useFarmArea } from "./providers/FarmAreaProvider";
 
 interface FarmAreaRendererProps {
-  rows: Row[]
-  areaType: AreaType
-  configuration: AreaConfiguration
-  className?: string
-  onRowSelect?: (row: Row | null) => void
-  onRackSelect?: (rack: any | null) => void
-  onShelfSelect?: (shelf: any | null) => void
-  onDoubleClick?: (element: any, type: 'row' | 'rack' | 'shelf') => void
+  rows: Row[];
+  areaType: AreaType;
+  configuration: AreaConfiguration;
+  className?: string;
+  onRowSelect?: (row: Row | null) => void;
+  onRackSelect?: (rack: any | null) => void;
+  onShelfSelect?: (shelf: any | null) => void;
+  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
 }
 
 export function FarmAreaRenderer({
@@ -29,7 +41,7 @@ export function FarmAreaRenderer({
   onRowSelect,
   onRackSelect,
   onShelfSelect,
-  onDoubleClick
+  onDoubleClick,
 }: FarmAreaRendererProps) {
   return (
     <FarmAreaProvider configuration={configuration}>
@@ -43,19 +55,19 @@ export function FarmAreaRenderer({
         onDoubleClick={onDoubleClick}
       />
     </FarmAreaProvider>
-  )
+  );
 }
 
 // ===== Internal Content Component =====
 
 interface FarmAreaContentProps {
-  rows: Row[]
-  areaType: AreaType
-  className?: string
-  onRowSelect?: (row: Row | null) => void
-  onRackSelect?: (rack: any | null) => void
-  onShelfSelect?: (shelf: any | null) => void
-  onDoubleClick?: (element: any, type: 'row' | 'rack' | 'shelf') => void
+  rows: Row[];
+  areaType: AreaType;
+  className?: string;
+  onRowSelect?: (row: Row | null) => void;
+  onRackSelect?: (rack: any | null) => void;
+  onShelfSelect?: (shelf: any | null) => void;
+  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
 }
 
 function FarmAreaContent({
@@ -65,10 +77,10 @@ function FarmAreaContent({
   onRowSelect,
   onRackSelect,
   onShelfSelect,
-  onDoubleClick
+  onDoubleClick,
 }: FarmAreaContentProps) {
-  const { state, actions, configuration } = useFarmArea()
-  
+  const { state, actions, configuration } = useFarmArea();
+
   return (
     <>
       <InteractionLayer className={className}>
@@ -88,22 +100,22 @@ function FarmAreaContent({
           </LayoutLayer>
         </ContentLayer>
       </InteractionLayer>
-      
+
       {/* Modal Rendering */}
       <ModalRenderer />
     </>
-  )
+  );
 }
 
 // ===== Row Renderer =====
 
 interface RowRendererProps {
-  row: Row
-  areaType: AreaType
-  onRowSelect?: (row: Row | null) => void
-  onRackSelect?: (rack: any | null) => void
-  onShelfSelect?: (shelf: any | null) => void
-  onDoubleClick?: (element: any, type: 'row' | 'rack' | 'shelf') => void
+  row: Row;
+  areaType: AreaType;
+  onRowSelect?: (row: Row | null) => void;
+  onRackSelect?: (rack: any | null) => void;
+  onShelfSelect?: (shelf: any | null) => void;
+  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
 }
 
 function RowRenderer({
@@ -112,7 +124,7 @@ function RowRenderer({
   onRowSelect,
   onRackSelect,
   onShelfSelect,
-  onDoubleClick
+  onDoubleClick,
 }: RowRendererProps) {
   return (
     <RowInteraction row={row}>
@@ -135,17 +147,17 @@ function RowRenderer({
         </RackLayout>
       </div>
     </RowInteraction>
-  )
+  );
 }
 
 // ===== Rack Renderer =====
 
 interface RackRendererProps {
-  rack: any
-  areaType: AreaType
-  onRackSelect?: (rack: any | null) => void
-  onShelfSelect?: (shelf: any | null) => void
-  onDoubleClick?: (element: any, type: 'row' | 'rack' | 'shelf') => void
+  rack: any;
+  areaType: AreaType;
+  onRackSelect?: (rack: any | null) => void;
+  onShelfSelect?: (shelf: any | null) => void;
+  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
 }
 
 function RackRenderer({
@@ -153,46 +165,49 @@ function RackRenderer({
   areaType,
   onRackSelect,
   onShelfSelect,
-  onDoubleClick
+  onDoubleClick,
 }: RackRendererProps) {
   return (
     <RackInteraction rack={rack}>
       <RackContent rack={rack} areaType={areaType} />
     </RackInteraction>
-  )
+  );
 }
 
 // ===== Modal Renderer =====
 
 function ModalRenderer() {
-  const { state, actions, configuration } = useFarmArea()
-  
-  const activeModalConfig = configuration.modals.find(modal => 
-    modal.id === state.activeModal && modal.enabled
-  )
-  
+  const { state, actions, configuration } = useFarmArea();
+
+  const activeModalConfig = configuration.modals.find(
+    (modal) => modal.id === state.activeModal && modal.enabled,
+  );
+
   if (!activeModalConfig || !state.activeModal) {
-    return null
+    return null;
   }
-  
+
   const handleClose = () => {
-    actions.hideModal()
-  }
-  
+    actions.hideModal();
+  };
+
   const modalProps = {
     isOpen: true,
-    onClose: handleClose
-  }
-  
+    onClose: handleClose,
+  };
+
   // Map component names to actual components
   switch (activeModalConfig.component) {
-    case 'ElementDetailModal':
-      const elementType = state.selectedElement?.type === 'device' ? 'shelf' : (state.selectedElement?.type || 'rack')
+    case "ElementDetailModal":
+      const elementType =
+        state.selectedElement?.type === "device"
+          ? "shelf"
+          : state.selectedElement?.type || "rack";
       return (
         <ElementDetailModal
           {...modalProps}
           element={state.selectedElement?.data || null}
-          elementType={elementType as 'row' | 'rack' | 'shelf'}
+          elementType={elementType as "row" | "rack" | "shelf"}
           onUpdate={() => {
             // Handle update
           }}
@@ -200,24 +215,26 @@ function ModalRenderer() {
             // Handle delete
           }}
         />
-      )
-    
-    case 'GrowWizardModal':
-      if (!state.selectedShelf) return null
+      );
+
+    case "GrowWizardModal":
+      if (!state.selectedShelf) return null;
       return (
         <GrowWizardModal
           {...modalProps}
           shelfId={state.selectedShelf.id}
-          shelfName={state.selectedShelf.name || `Shelf ${state.selectedShelf.id}`}
+          shelfName={
+            state.selectedShelf.name || `Shelf ${state.selectedShelf.id}`
+          }
           onSubmit={(growData) => {
             // Handle grow setup
-            console.log('Grow setup:', growData)
-            handleClose()
+            console.log("Grow setup:", growData);
+            handleClose();
           }}
         />
-      )
-    
-    case 'LayerOverlayModal':
+      );
+
+    case "LayerOverlayModal":
       return (
         <LayerOverlayModal
           {...modalProps}
@@ -225,78 +242,93 @@ function ModalRenderer() {
           activeOverlayIds={state.visibleOverlays}
           onUpdateOverlays={(overlays) => {
             // Handle overlay updates
-            console.log('Updated overlays:', overlays)
+            console.log("Updated overlays:", overlays);
           }}
         />
-      )
-    
+      );
+
     default:
-      console.warn(`Unknown modal component: ${activeModalConfig.component}`)
-      return null
+      console.warn(`Unknown modal component: ${activeModalConfig.component}`);
+      return null;
   }
 }
 
 // ===== Convenience Exports =====
 
-export { FarmAreaProvider } from './providers/FarmAreaProvider'
-export { growingAreaConfig, growingAreaPresets } from './configurations/growingAreaConfig'
-export { germinationAreaConfig, germinationAreaPresets } from './configurations/germinationAreaConfig'
-export type { AreaConfiguration } from './configurations/types'
+export { FarmAreaProvider } from "./providers/FarmAreaProvider";
+export {
+  growingAreaConfig,
+  growingAreaPresets,
+} from "./configurations/growingAreaConfig";
+export {
+  germinationAreaConfig,
+  germinationAreaPresets,
+} from "./configurations/germinationAreaConfig";
+export type { AreaConfiguration } from "./configurations/types";
 
 // ===== Configuration Helpers =====
 
-import { growingAreaPresets } from './configurations/growingAreaConfig'
-import { germinationAreaPresets } from './configurations/germinationAreaConfig'
-import { growingAreaConfig } from './configurations/growingAreaConfig'
-
-export function createFarmAreaConfig(areaType: AreaType, preset?: string): AreaConfiguration {
+export function createFarmAreaConfig(
+  areaType: AreaType,
+  preset?: string,
+): AreaConfiguration {
   switch (areaType) {
-    case 'grow_area':
-      return preset && growingAreaPresets[preset] ? growingAreaPresets[preset] : growingAreaPresets.standard
-    
-    case 'germination_tent':
-      return preset && germinationAreaPresets[preset] ? germinationAreaPresets[preset] : germinationAreaPresets.standard
-    
+    case "grow_area":
+      return preset && growingAreaPresets[preset]
+        ? growingAreaPresets[preset]
+        : growingAreaPresets.standard;
+
+    case "germination_tent":
+      return preset && germinationAreaPresets[preset]
+        ? germinationAreaPresets[preset]
+        : germinationAreaPresets.standard;
+
     default:
-      return growingAreaConfig
+      return growingAreaConfig;
   }
 }
 
 export function getAvailablePresets(areaType: AreaType): string[] {
   switch (areaType) {
-    case 'grow_area':
-      return ['standard', 'simple', 'commercial', 'research']
-    
-    case 'germination_tent':
-      return ['standard', 'compact', 'research', 'production', 'hobby']
-    
+    case "grow_area":
+      return ["standard", "simple", "commercial", "research"];
+
+    case "germination_tent":
+      return ["standard", "compact", "research", "production", "hobby"];
+
     default:
-      return ['standard']
+      return ["standard"];
   }
 }
 
 // ===== Usage Example Component =====
 
 interface ExampleUsageProps {
-  rows: Row[]
-  areaType: AreaType
-  preset?: string
+  rows: Row[];
+  areaType: AreaType;
+  preset?: string;
 }
 
-export function ExampleFarmAreaUsage({ rows, areaType, preset = 'standard' }: ExampleUsageProps) {
-  const configuration = createFarmAreaConfig(areaType, preset)
-  
+export function ExampleFarmAreaUsage({
+  rows,
+  areaType,
+  preset = "standard",
+}: ExampleUsageProps) {
+  const configuration = createFarmAreaConfig(areaType, preset);
+
   return (
     <div className="p-6">
       <FarmAreaRenderer
         rows={rows}
         areaType={areaType}
         configuration={configuration}
-        onRowSelect={(row) => console.log('Row selected:', row)}
-        onRackSelect={(rack) => console.log('Rack selected:', rack)}
-        onShelfSelect={(shelf) => console.log('Shelf selected:', shelf)}
-        onDoubleClick={(element, type) => console.log('Double clicked:', type, element)}
+        onRowSelect={(row) => console.log("Row selected:", row)}
+        onRackSelect={(rack) => console.log("Rack selected:", rack)}
+        onShelfSelect={(shelf) => console.log("Shelf selected:", shelf)}
+        onDoubleClick={(element, type) =>
+          console.log("Double clicked:", type, element)
+        }
       />
     </div>
-  )
-} 
+  );
+}

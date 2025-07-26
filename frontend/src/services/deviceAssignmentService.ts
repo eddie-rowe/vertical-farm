@@ -1,13 +1,21 @@
-import { HADevice, DeviceAssignment, DeviceFilter, DeviceAssignmentRequest, AssignmentTarget } from '@/types/device-assignment';
-import { supabase } from '@/lib/supabaseClient';
-import { getCurrentUser } from '@/services/supabaseService';
+import { supabase } from "@/lib/supabaseClient";
+import { getCurrentUser } from "@/services/supabaseService";
+import {
+  HADevice,
+  DeviceAssignment,
+  DeviceFilter,
+  DeviceAssignmentRequest,
+  AssignmentTarget,
+} from "@/types/device-assignment";
 
 class DeviceAssignmentService {
   private haService: any = null;
 
   private async getHAService() {
     if (!this.haService) {
-      const { default: homeAssistantService } = await import('@/services/homeAssistantService');
+      const { default: homeAssistantService } = await import(
+        "@/services/homeAssistantService"
+      );
       this.haService = homeAssistantService;
     }
     return this.haService;
@@ -23,48 +31,49 @@ class DeviceAssignmentService {
 
       let filteredDevices = allDevices;
 
-             // Apply filters
-       if (filters) {
-         if (filters.domain) {
-           filteredDevices = filteredDevices.filter((device: HADevice) => 
-             device.domain === filters.domain
-           );
-         }
+      // Apply filters
+      if (filters) {
+        if (filters.domain) {
+          filteredDevices = filteredDevices.filter(
+            (device: HADevice) => device.domain === filters.domain,
+          );
+        }
 
-         if (filters.area) {
-           filteredDevices = filteredDevices.filter((device: HADevice) => 
-             device.area === filters.area
-           );
-         }
+        if (filters.area) {
+          filteredDevices = filteredDevices.filter(
+            (device: HADevice) => device.area === filters.area,
+          );
+        }
 
-         if (filters.status) {
-           filteredDevices = filteredDevices.filter((device: HADevice) => {
-             const isOnline = device.state !== 'unavailable' && device.state !== 'unknown';
-             switch (filters.status) {
-               case 'online':
-                 return isOnline;
-               case 'offline':
-                 return !isOnline;
-               case 'unavailable':
-                 return device.state === 'unavailable';
-               default:
-                 return true;
-             }
-           });
-         }
+        if (filters.status) {
+          filteredDevices = filteredDevices.filter((device: HADevice) => {
+            const isOnline =
+              device.state !== "unavailable" && device.state !== "unknown";
+            switch (filters.status) {
+              case "online":
+                return isOnline;
+              case "offline":
+                return !isOnline;
+              case "unavailable":
+                return device.state === "unavailable";
+              default:
+                return true;
+            }
+          });
+        }
 
-         if (filters.assigned !== undefined) {
-           const assignedDevices = await this.getAssignedDeviceEntityIds();
-           filteredDevices = filteredDevices.filter((device: HADevice) => {
-             const isAssigned = assignedDevices.includes(device.entity_id);
-             return filters.assigned ? isAssigned : !isAssigned;
-           });
-         }
-       }
+        if (filters.assigned !== undefined) {
+          const assignedDevices = await this.getAssignedDeviceEntityIds();
+          filteredDevices = filteredDevices.filter((device: HADevice) => {
+            const isAssigned = assignedDevices.includes(device.entity_id);
+            return filters.assigned ? isAssigned : !isAssigned;
+          });
+        }
+      }
 
       return filteredDevices;
     } catch (error) {
-      console.error('Error fetching available devices:', error);
+      console.error("Error fetching available devices:", error);
       throw error;
     }
   }
@@ -72,24 +81,28 @@ class DeviceAssignmentService {
   /**
    * Search devices with enhanced search capabilities
    */
-  async searchDevices(searchTerm: string, filters?: DeviceFilter): Promise<HADevice[]> {
+  async searchDevices(
+    searchTerm: string,
+    filters?: DeviceFilter,
+  ): Promise<HADevice[]> {
     try {
       const devices = await this.getAvailableDevices(filters);
-      
+
       if (!searchTerm.trim()) {
         return devices;
       }
 
       const searchLower = searchTerm.toLowerCase();
-      return devices.filter(device => 
-        device.friendly_name?.toLowerCase().includes(searchLower) ||
-        device.entity_id.toLowerCase().includes(searchLower) ||
-        device.domain.toLowerCase().includes(searchLower) ||
-        device.area?.toLowerCase().includes(searchLower) ||
-        device.device_class?.toLowerCase().includes(searchLower)
+      return devices.filter(
+        (device) =>
+          device.friendly_name?.toLowerCase().includes(searchLower) ||
+          device.entity_id.toLowerCase().includes(searchLower) ||
+          device.domain.toLowerCase().includes(searchLower) ||
+          device.area?.toLowerCase().includes(searchLower) ||
+          device.device_class?.toLowerCase().includes(searchLower),
       );
     } catch (error) {
-      console.error('Error searching devices:', error);
+      console.error("Error searching devices:", error);
       throw error;
     }
   }
@@ -97,29 +110,31 @@ class DeviceAssignmentService {
   /**
    * Get devices assigned to a specific target (farm/row/rack/shelf)
    */
-  async getAssignedDevices(target: AssignmentTarget): Promise<DeviceAssignment[]> {
+  async getAssignedDevices(
+    target: AssignmentTarget,
+  ): Promise<DeviceAssignment[]> {
     try {
       const user = await getCurrentUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error("User not authenticated");
 
       let query = supabase
-        .from('device_assignments')
-        .select('*')
-        .eq('user_id', user.id);
+        .from("device_assignments")
+        .select("*")
+        .eq("user_id", user.id);
 
       // Add target-specific filter
       switch (target.type) {
-        case 'farm':
-          query = query.eq('farm_id', target.id);
+        case "farm":
+          query = query.eq("farm_id", target.id);
           break;
-        case 'row':
-          query = query.eq('row_id', target.id);
+        case "row":
+          query = query.eq("row_id", target.id);
           break;
-        case 'rack':
-          query = query.eq('rack_id', target.id);
+        case "rack":
+          query = query.eq("rack_id", target.id);
           break;
-        case 'shelf':
-          query = query.eq('shelf_id', target.id);
+        case "shelf":
+          query = query.eq("shelf_id", target.id);
           break;
       }
 
@@ -128,7 +143,7 @@ class DeviceAssignmentService {
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching assigned devices:', error);
+      console.error("Error fetching assigned devices:", error);
       throw error;
     }
   }
@@ -142,14 +157,14 @@ class DeviceAssignmentService {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('device_assignments')
-        .select('entity_id')
-        .eq('user_id', user.id);
+        .from("device_assignments")
+        .select("entity_id")
+        .eq("user_id", user.id);
 
       if (error) throw error;
-      return data?.map(item => item.entity_id) || [];
+      return data?.map((item) => item.entity_id) || [];
     } catch (error) {
-      console.error('Error fetching assigned device entity IDs:', error);
+      console.error("Error fetching assigned device entity IDs:", error);
       return [];
     }
   }
@@ -157,21 +172,24 @@ class DeviceAssignmentService {
   /**
    * Assign a device to a target location
    */
-  async assignDevice(deviceData: DeviceAssignmentRequest, target: AssignmentTarget): Promise<DeviceAssignment> {
+  async assignDevice(
+    deviceData: DeviceAssignmentRequest,
+    target: AssignmentTarget,
+  ): Promise<DeviceAssignment> {
     try {
       const user = await getCurrentUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error("User not authenticated");
 
       // Get integration ID (find Home Assistant integration if exists)
       const { data: integration, error: integrationError } = await supabase
-        .from('integrations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('type', 'home_assistant')
+        .from("integrations")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("type", "home_assistant")
         .maybeSingle();
 
       if (integrationError) {
-        console.warn('Error fetching integration:', integrationError);
+        console.warn("Error fetching integration:", integrationError);
       }
 
       const assignmentData: any = {
@@ -180,41 +198,42 @@ class DeviceAssignmentService {
         entity_type: deviceData.entity_type,
         user_id: user.id,
         assigned_by: user.id,
-        integration_id: integration?.id
+        integration_id: integration?.id,
       };
 
       // Set only the target field (database constraint requires exactly one level)
       switch (target.type) {
-        case 'farm':
+        case "farm":
           assignmentData.farm_id = target.id;
           break;
-        case 'row':
+        case "row":
           assignmentData.row_id = target.id;
           break;
-        case 'rack':
+        case "rack":
           assignmentData.rack_id = target.id;
           break;
-        case 'shelf':
+        case "shelf":
           assignmentData.shelf_id = target.id;
           break;
       }
 
       const { data, error } = await supabase
-        .from('device_assignments')
+        .from("device_assignments")
         .insert([assignmentData])
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          throw new Error('This device is already assigned to this location');
+        if (error.code === "23505") {
+          // Unique constraint violation
+          throw new Error("This device is already assigned to this location");
         }
         throw error;
       }
 
       return data;
     } catch (error) {
-      console.error('Error assigning device:', error);
+      console.error("Error assigning device:", error);
       throw error;
     }
   }
@@ -225,13 +244,13 @@ class DeviceAssignmentService {
   async unassignDevice(assignmentId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('device_assignments')
+        .from("device_assignments")
         .delete()
-        .eq('id', assignmentId);
+        .eq("id", assignmentId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error unassigning device:', error);
+      console.error("Error unassigning device:", error);
       throw error;
     }
   }
@@ -241,34 +260,34 @@ class DeviceAssignmentService {
    */
   getDeviceTypes(): Array<{ value: string; label: string; icon: string }> {
     return [
-      { value: 'light', label: 'Lights', icon: '💡' },
-      { value: 'switch', label: 'Switches', icon: '🔌' },
-      { value: 'fan', label: 'Fans', icon: '🌪️' },
-      { value: 'sensor', label: 'Sensors', icon: '📊' },
-      { value: 'valve', label: 'Valves', icon: '💧' },
-      { value: 'pump', label: 'Pumps', icon: '⚡' },
-      { value: 'camera', label: 'Cameras', icon: '📷' },
-      { value: 'climate', label: 'Climate', icon: '🌡️' }
+      { value: "light", label: "Lights", icon: "💡" },
+      { value: "switch", label: "Switches", icon: "🔌" },
+      { value: "fan", label: "Fans", icon: "🌪️" },
+      { value: "sensor", label: "Sensors", icon: "📊" },
+      { value: "valve", label: "Valves", icon: "💧" },
+      { value: "pump", label: "Pumps", icon: "⚡" },
+      { value: "camera", label: "Cameras", icon: "📷" },
+      { value: "climate", label: "Climate", icon: "🌡️" },
     ];
   }
 
   /**
    * Get contextual device suggestions based on target type
    */
-  getContextualDeviceTypes(targetType: AssignmentTarget['type']): string[] {
+  getContextualDeviceTypes(targetType: AssignmentTarget["type"]): string[] {
     switch (targetType) {
-      case 'shelf':
-        return ['light', 'sensor', 'camera'];
-      case 'rack':
-        return ['light', 'fan', 'sensor', 'valve'];
-      case 'row':
-        return ['fan', 'pump', 'valve', 'climate'];
-      case 'farm':
-        return ['sensor', 'camera', 'climate', 'pump'];
+      case "shelf":
+        return ["light", "sensor", "camera"];
+      case "rack":
+        return ["light", "fan", "sensor", "valve"];
+      case "row":
+        return ["fan", "pump", "valve", "climate"];
+      case "farm":
+        return ["sensor", "camera", "climate", "pump"];
       default:
-        return ['light', 'switch', 'fan', 'sensor'];
+        return ["light", "switch", "fan", "sensor"];
     }
   }
 }
 
-export default new DeviceAssignmentService(); 
+export default new DeviceAssignmentService();

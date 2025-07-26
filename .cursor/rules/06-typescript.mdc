@@ -1,0 +1,475 @@
+---
+description: TypeScript type safety patterns, interfaces, generics, and strict typing requirements
+globs: "**/*.{ts,tsx,d.ts}"
+alwaysApply: false
+---
+
+# TypeScript Best Practices - Vertical Farm Project
+
+## 🎯 Core Principles
+
+### Strict Type Safety
+- **Enable strict mode**: All TypeScript config options
+- **No implicit any**: Every value must have a type
+- **Type everything**: Parameters, returns, variables
+- **Prefer unknown over any**: For truly unknown types
+
+### Type-First Development
+- **Design types before implementation**
+- **Use types as documentation**
+- **Leverage type inference where appropriate**
+- **Export types alongside implementations**
+
+## 📘 Type System Fundamentals
+
+### Interface vs Type Alias
+```typescript
+// ✅ DO: Use interface for object shapes (extendable)
+export interface Farm extends BaseEntity {
+  name: string
+  location?: string
+  user_id: string
+  devices?: Device[]
+}
+
+// ✅ DO: Use type alias for unions, intersections, utilities
+export type DeviceStatus = 'online' | 'offline' | 'maintenance'
+export type CreateFarmData = Omit<Farm, 'id' | 'created_at' | 'updated_at'>
+export type ApiResponse<T> = { data: T } | { error: string }
+```
+
+### Generic Constraints
+```typescript
+// ✅ DO: Use meaningful generic constraints
+export abstract class BaseCRUDService<T extends BaseEntity> {
+  abstract readonly tableName: string
+  
+  async getById<K extends keyof T>(
+    id: string, 
+    select?: K[]
+  ): Promise<Pick<T, K> | null> {
+    // Type-safe implementation
+  }
+}
+
+// ✅ DO: Multiple generic parameters with clear names
+export type EntityMap<TEntity extends BaseEntity, TKey extends keyof TEntity> = {
+  [K in TEntity[TKey] & string]: TEntity
+}
+
+// ❌ DON'T: Unconstrained or poorly named generics
+export class Service<T, U, V> { } // What are T, U, V?
+```
+
+## 🔍 Type Guards & Narrowing
+
+### User-Defined Type Guards
+```typescript
+// ✅ DO: Create reusable type guards
+export function isFarm(obj: unknown): obj is Farm {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'name' in obj &&
+    typeof (obj as Farm).name === 'string' &&
+    'user_id' in obj
+  )
+}
+
+// ✅ DO: Guard for arrays
+export function isDeviceArray(value: unknown): value is Device[] {
+  return Array.isArray(value) && value.every(isDevice)
+}
+
+// ✅ DO: Discriminated union guards
+export function isSensorReading(data: DeviceData): data is SensorReading {
+  return data.type === 'sensor' && 'value' in data
+}
+```
+
+### Type Narrowing Patterns
+```typescript
+// ✅ DO: Use discriminated unions effectively
+export type DeviceEvent = 
+  | { type: 'connected'; device: Device; timestamp: Date }
+  | { type: 'disconnected'; device: Device; reason: string }
+  | { type: 'data'; device: Device; reading: SensorReading }
+
+export function handleDeviceEvent(event: DeviceEvent) {
+  switch (event.type) {
+    case 'connected':
+      console.log(`Device ${event.device.id} connected`)
+      break
+    case 'disconnected':
+      console.log(`Device ${event.device.id} disconnected: ${event.reason}`)
+      break
+    case 'data':
+      processSensorReading(event.reading)
+      break
+    default:
+      // TypeScript knows this is unreachable
+      const _exhaustive: never = event
+  }
+}
+```
+
+## 🛠️ Utility Types
+
+### Built-in Utilities
+```typescript
+// ✅ DO: Leverage TypeScript's utility types
+export type FarmUpdate = Partial<CreateFarmData>
+export type RequiredFarm = Required<Farm>
+export type FarmPreview = Pick<Farm, 'id' | 'name' | 'location'>
+export type FarmWithoutDates = Omit<Farm, 'created_at' | 'updated_at'>
+
+// ✅ DO: Combine utilities
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
+}
+
+// ✅ DO: Extract and Exclude with unions
+type SensorTypes = 'temperature' | 'humidity' | 'ph' | 'light'
+type EnvironmentalSensors = Extract<SensorTypes, 'temperature' | 'humidity'>
+type NonEnvironmentalSensors = Exclude<SensorTypes, EnvironmentalSensors>
+```
+
+### Custom Utility Types
+```typescript
+// ✅ DO: Create project-specific utilities
+export type Nullable<T> = T | null
+export type Optional<T> = T | undefined
+export type Maybe<T> = T | null | undefined
+
+// Deep readonly for immutable data structures
+export type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P]
+}
+
+// Type-safe object keys
+export type KeysOfType<T, U> = {
+  [K in keyof T]: T[K] extends U ? K : never
+}[keyof T]
+
+// Usage
+type NumericFarmKeys = KeysOfType<Farm, number> // 'sensor_count' | 'device_count'
+```
+
+## 🎭 Discriminated Unions
+
+### Complex State Management
+```typescript
+// ✅ DO: Model complex states with discriminated unions
+export type AsyncState<T> = 
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: Error }
+
+export function useAsyncFarm(farmId: string): AsyncState<Farm> {
+  const [state, setState] = useState<AsyncState<Farm>>({ status: 'idle' })
+  
+  useEffect(() => {
+    setState({ status: 'loading' })
+    
+    farmService.getById(farmId)
+      .then(data => setState({ status: 'success', data }))
+      .catch(error => setState({ status: 'error', error }))
+  }, [farmId])
+  
+  return state
+}
+
+// Usage with exhaustive checking
+function renderFarmState(state: AsyncState<Farm>) {
+  switch (state.status) {
+    case 'idle':
+      return <div>Ready to load</div>
+    case 'loading':
+      return <Spinner />
+    case 'success':
+      return <FarmDetails farm={state.data} />
+    case 'error':
+      return <ErrorMessage error={state.error} />
+  }
+}
+```
+
+## 📝 Template Literal Types
+
+### API Route Types
+```typescript
+// ✅ DO: Use template literals for type-safe strings
+export type ApiEndpoint = 
+  | `/farms`
+  | `/farms/${string}`
+  | `/farms/${string}/devices`
+  | `/devices/${string}/readings`
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+
+// Type-safe API client
+export class ApiClient {
+  async request<T>(
+    endpoint: ApiEndpoint,
+    method: HttpMethod,
+    body?: unknown
+  ): Promise<T> {
+    // Implementation
+  }
+}
+
+// ✅ DO: Event name patterns
+export type FarmEvent = `farm:${
+  | 'created'
+  | 'updated'
+  | 'deleted'
+  | `device:${'added' | 'removed'}`
+}`
+```
+
+### CSS Class Name Types
+```typescript
+// ✅ DO: Type-safe CSS classes
+export type ButtonVariant = 'primary' | 'secondary' | 'danger'
+export type ButtonSize = 'sm' | 'md' | 'lg'
+
+export type ButtonClassName = 
+  | `btn-${ButtonVariant}`
+  | `btn-${ButtonSize}`
+  | `btn-${ButtonVariant}-${ButtonSize}`
+```
+
+## 🔄 Conditional Types
+
+### Advanced Type Inference
+```typescript
+// ✅ DO: Use conditional types for flexible APIs
+export type ExtractArrayType<T> = T extends (infer U)[] ? U : never
+export type UnwrapPromise<T> = T extends Promise<infer U> ? U : T
+
+// Real-world example
+export type ServiceResponse<T> = T extends BaseEntity
+  ? Promise<T>
+  : T extends BaseEntity[]
+  ? Promise<T>
+  : never
+
+// ✅ DO: Conditional type with multiple conditions
+export type SerializableValue<T> = 
+  T extends string | number | boolean | null ? T :
+  T extends Date ? string :
+  T extends Array<infer U> ? SerializableValue<U>[] :
+  T extends object ? { [K in keyof T]: SerializableValue<T[K]> } :
+  never
+```
+
+## 🗺️ Mapped Types
+
+### Dynamic Object Types
+```typescript
+// ✅ DO: Create flexible mapped types
+export type EntityState<T extends Record<string, BaseEntity>> = {
+  [K in keyof T]: {
+    entities: Record<string, T[K]>
+    ids: string[]
+    loading: boolean
+    error: Error | null
+  }
+}
+
+// Usage
+type AppState = EntityState<{
+  farms: Farm
+  devices: Device
+  sensors: Sensor
+}>
+
+// ✅ DO: Mapped types with modifiers
+export type Setters<T> = {
+  [K in keyof T as `set${Capitalize<string & K>}`]: (value: T[K]) => void
+}
+
+// Usage
+type FarmSetters = Setters<Farm>
+// Results in: { setId: (value: string) => void, setName: (value: string) => void, ... }
+```
+
+## 🏗️ Type Architecture
+
+### Domain Modeling
+```typescript
+// ✅ DO: Organize types by domain
+// types/farm/layout.ts
+export interface Farm extends BaseEntity {
+  name: string
+  location?: string
+  rows: Row[]
+}
+
+export interface Row extends BaseEntity {
+  farm_id: string
+  position: number
+  racks: Rack[]
+}
+
+export interface Rack extends BaseEntity {
+  row_id: string
+  position: number
+  shelves: Shelf[]
+}
+
+// types/device/index.ts
+export type DeviceCategory = 'sensor' | 'actuator' | 'controller'
+
+export interface BaseDevice extends BaseEntity {
+  category: DeviceCategory
+  status: DeviceStatus
+}
+
+export interface Sensor extends BaseDevice {
+  category: 'sensor'
+  reading_type: SensorType
+  current_value?: number
+}
+```
+
+### Service Type Patterns
+```typescript
+// ✅ DO: Type service methods precisely
+export interface CRUDService<T extends BaseEntity> {
+  getAll(options?: QueryOptions): Promise<T[]>
+  getById(id: string): Promise<T | null>
+  create(data: Omit<T, 'id' | 'created_at' | 'updated_at'>): Promise<T>
+  update(id: string, data: Partial<Omit<T, 'id'>>): Promise<T>
+  delete(id: string): Promise<void>
+}
+
+// ✅ DO: Use function overloads for flexibility
+export class FarmService {
+  find(id: string): Promise<Farm | null>
+  find(ids: string[]): Promise<Farm[]>
+  find(predicate: (farm: Farm) => boolean): Promise<Farm[]>
+  find(arg: string | string[] | ((farm: Farm) => boolean)): Promise<Farm | Farm[] | null> {
+    // Implementation with type narrowing
+  }
+}
+```
+
+## ⚡ Performance Types
+
+### Avoid Type Instantiation Issues
+```typescript
+// ❌ DON'T: Create excessively deep type hierarchies
+type Deep<T, N extends number> = N extends 0 ? T : Deep<[T], Prev[N]>
+
+// ✅ DO: Keep type hierarchies shallow and simple
+type MaxDepth3<T> = {
+  level1: {
+    level2: {
+      level3: T
+    }
+  }
+}
+
+// ✅ DO: Use type aliases to break complexity
+type ComplexUnion = A | B | C | D | E
+type SimplifiedUnion = ComplexUnion | F | G // Don't inline everything
+```
+
+## 🧪 Testing Types
+
+### Type Testing Utilities
+```typescript
+// ✅ DO: Create type testing utilities
+export type Equals<T, U> = 
+  (<G>() => G extends T ? 1 : 2) extends
+  (<G>() => G extends U ? 1 : 2) ? true : false
+
+// Type assertions for tests
+export type Assert<T extends true> = T
+export type AssertEquals<T, U> = Assert<Equals<T, U>>
+
+// Usage in tests
+type _test1 = AssertEquals<ExtractArrayType<string[]>, string> // ✅ Passes
+type _test2 = AssertEquals<ExtractArrayType<string[]>, number> // ❌ Fails
+```
+
+## 📋 TypeScript Configuration
+
+### Recommended tsconfig.json
+```json
+{
+  "compilerOptions": {
+    // Strict type checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    
+    // Additional checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    
+    // Module resolution
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    
+    // Paths
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### Type Assertions Misuse
+```typescript
+// ❌ DON'T: Use type assertions to lie to TypeScript
+const farm = {} as Farm // Dangerous!
+
+// ✅ DO: Use type guards or proper initialization
+const farm: Partial<Farm> = {}
+if (isFarm(farm)) {
+  // Now TypeScript knows it's a complete Farm
+}
+
+// ❌ DON'T: Double assertions
+const value = (input as any) as Farm
+
+// ✅ DO: Use unknown and narrow properly
+const value = input as unknown
+if (isFarm(value)) {
+  // Safe to use as Farm
+}
+```
+
+### Any Propagation
+```typescript
+// ❌ DON'T: Let 'any' spread through your codebase
+function processData(data: any) {
+  return data.map((item: any) => item.value) // any everywhere!
+}
+
+// ✅ DO: Use generics or specific types
+function processData<T extends { value: unknown }>(data: T[]): unknown[] {
+  return data.map(item => item.value)
+}
+```
+
+Remember: **TypeScript is a tool for catching errors before runtime**. The more specific your types, the more bugs TypeScript can catch for you!
+description:
+globs:
+alwaysApply: false
+---

@@ -3,7 +3,7 @@
  * Types specific to Home Assistant integration
  */
 
-import { DeviceState, DeviceAttributes } from './core';
+import { DeviceState, DeviceAttributes } from "./core";
 
 /**
  * Home Assistant device entity
@@ -124,7 +124,7 @@ export interface HAEntityDiscovery {
  */
 export interface HAWebSocketMessage {
   /** Message type */
-  type: 'event' | 'result' | 'pong';
+  type: "event" | "result" | "pong";
   /** Message ID */
   id?: number;
   /** Event data */
@@ -179,4 +179,4 @@ export interface HAScene {
   entities: Record<string, unknown>;
   /** Scene icon */
   icon?: string;
-} 
+}
