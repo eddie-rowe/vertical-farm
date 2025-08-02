@@ -1,0 +1,212 @@
+# Dependabot configuration for Vertical Farm project
+# This file helps keep dependencies up to date while minimizing noise
+# and providing good learning opportunities for the team
+
+version: 2
+updates:
+  # Frontend dependencies (Next.js/React)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Group minor and patch updates to reduce PR noise
+    groups:
+      # Minor and patch updates (grouped for efficiency)
+      minor-patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        exclude-patterns:
+          - "@types/*"  # Type definitions can be updated individually
+      # Major updates (separate for careful review)
+      major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+    # Labels for easy categorization
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "automated"
+    # Assign to team for review
+    assignees:
+      - "eddie-rowe"
+    # Commit message format
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    # PR title format
+    pull-request-branch-name:
+      separator: "/"
+    # Ignore certain updates to reduce noise
+    ignore:
+      # Ignore major updates for critical packages
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      # Ignore updates to dev dependencies that don't affect production
+      - dependency-name: "@types/*"
+        update-types: ["version-update:semver-minor"]
+    # Open PR limit to avoid overwhelming the team
+    open-pull-requests-limit: 5
+
+
+
+  # Backend dependencies (Python/FastAPI)
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Group updates for backend
+    groups:
+      # Minor and patch updates
+      minor-patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Major updates (separate for careful review)
+      major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+    # Labels for categorization
+    labels:
+      - "dependencies"
+      - "backend"
+      - "automated"
+    # Assign to team for review
+    assignees:
+      - "eddie-rowe"
+    # Commit message format
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    # PR title format
+    pull-request-branch-name:
+      separator: "/"
+    # Ignore certain updates
+    ignore:
+      # Ignore major updates for critical packages
+      - dependency-name: "fastapi"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pydantic"
+        update-types: ["version-update:semver-major"]
+      # Ignore dev dependencies that don't affect production
+      - dependency-name: "pytest*"
+        update-types: ["version-update:semver-minor"]
+    # Open PR limit
+    open-pull-requests-limit: 5
+
+  # GitHub Actions (for CI/CD)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Group all action updates together
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    # Labels
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "automated"
+    # Assign to team
+    assignees:
+      - "eddie-rowe"
+    # Commit message
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+    # PR title
+    pull-request-branch-name:
+      separator: "/"
+    # Open PR limit
+    open-pull-requests-limit: 3
+
+  # Docker dependencies (docker-compose.yml and Dockerfiles)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    # Labels
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+    # Assign to team
+    assignees:
+      - "eddie-rowe"
+    # Commit message
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    # PR title
+    pull-request-branch-name:
+      separator: "/"
+    # Open PR limit
+    open-pull-requests-limit: 2
+
+  # Frontend Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+      - "automated"
+    assignees:
+      - "eddie-rowe"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    open-pull-requests-limit: 1
+
+  # Backend Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+      - "automated"
+    assignees:
+      - "eddie-rowe"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    open-pull-requests-limit: 1 
