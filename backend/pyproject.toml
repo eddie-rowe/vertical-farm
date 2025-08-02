@@ -70,7 +70,7 @@ monitoring = [
 
 test = [
     "pytest>=8.3.0,<8.4.0",
-    "pytest-cov>=6.1.0,<6.2.0", 
+    "pytest-cov>=6.1.0,<6.3.0", 
     "pytest-asyncio>=0.26.0,<0.27.0",
     "pytest-mock>=3.14.0,<3.15.0",
     "pytest-xdist>=3.6.0,<3.7.0",  # For parallel test execution (-n auto)
