@@ -1,0 +1,4929 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/09-migration/postgrest-migration-guide/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../SEMANTIC-TOKEN-MIGRATION/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>PostgREST Migration Guide - Vertical Farm Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#postgrest-migration-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Vertical Farm Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PostgREST Migration Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Vertical Farm Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Backend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/frontend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/automation-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Automation Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/edge-computing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Computing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/caching-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/LAYER_OVERLAY_SYSTEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Layer Overlay System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/responsibilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Responsibilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/ci-cd-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI/CD Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/improvement-recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Improvement Recommendations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Phases
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            Project Phases
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/PHASE2_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2 README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/PHASE3_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 3 README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Style Standardization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            Style Standardization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-INTEGRATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integration Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-api/reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/cloudflare-config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloudflare Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/cloudflare-caching-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloudflare Caching Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/PWA_IMPLEMENTATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PWA Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/production-testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Testing Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/security-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Additional Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Security
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Security
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-security/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/CACHING_IMPLEMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/SUPABASE_QUEUES_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Queues Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/SETUP_HOME_ASSISTANT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home Assistant Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/DARK-MODE-GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dark Mode Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/ui-ux-design-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Design Evaluation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_3" id="__nav_9_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Phases
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_3">
+            <span class="md-nav__icon md-icon"></span>
+            Project Phases
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/changes-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changes Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/TONIGHT_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tonight Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/ORGANIZATION_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Organization Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hermes Synchronization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/edge-function-consolidation-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Function Consolidation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/phase-2c-completion-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2C Completion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_4" id="__nav_9_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Performance Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_4">
+            <span class="md-nav__icon md-icon"></span>
+            Performance Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/k6-database-load-test-2025-06-12/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    K6 Database Load Test
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/cache-vs-no-cache-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cache vs No-Cache Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/caching-issues-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Issues Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/caching-optimization-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Optimization Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/PHASE-1-COMPLETE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Complete
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-1-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-1-caching-performance-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Caching Performance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-2a-schema-optimization-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2A Schema Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Queue Usage Opportunities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/supabase-optimization-recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_5" id="__nav_9_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Reviews
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Reviews
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/edge-functions-caching-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Functions Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/frontend-assessment-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Assessment Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grow Parameters Code Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grow Parameters Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/security-report-frontend-backend-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Frontend/Backend
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/security-vulnerability-review-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Vulnerability Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/2025-06-19-supabase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Audit 2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-audit-completion-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Audit Completion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_6" id="__nav_9_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Analysis & Research
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_6">
+            <span class="md-nav__icon md-icon"></span>
+            Analysis & Research
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/cursor-workflow-research-2025-05-17/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cursor Workflow Research
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/cursor-workflow-techniques-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cursor Workflow Techniques
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inspiration UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Square Integration Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/ui-ux-analysis-2025-05-18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Playwright Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/vertical_farm_ui_ux_review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Vertical Farm UI/UX Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Vertigro UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_7" id="__nav_9_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Migration Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_7">
+            <span class="md-nav__icon md-icon"></span>
+            Migration Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Consolidation Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/migration-testing-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Testing Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/phase-2b-migration-consolidation-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2B Migration Consolidation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_8" id="__nav_9_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Task Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_8">
+            <span class="md-nav__icon md-icon"></span>
+            Task Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Task Complexity Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Migration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Migration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    PostgREST Migration Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    PostgREST Migration Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-backend-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      FastAPI Backend Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-fastapi-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current FastAPI Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Classification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Classification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eliminate-80-of-code-replace-with-postgrestsupabase" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟢 ELIMINATE (80% of code) - Replace with PostGREST/Supabase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simplify-15-of-code-minimal-fastapi-edge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟡 SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhance-5-of-code-database-functions-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 ENHANCE (5% of code) - Database Functions + Triggers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postgrest-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostGREST Advanced Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PostGREST Advanced Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complex-queries-made-simple" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Queries Made Simple
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-functions-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Functions Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-frontend-migration-2-3-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Frontend Migration (2-3 hours)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Frontend Migration (2-3 hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-authentication-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1: Authentication Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-crud-operations-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2: CRUD Operations Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-complex-queries-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3: Complex Queries Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-backend-simplification-1-hour" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Backend Simplification (1 hour)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Backend Simplification (1 hour)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-remove-crud-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1: Remove CRUD Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-minimal-fastapi-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2: Minimal FastAPI Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-database-function-integration-30-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Database Function Integration (30 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Database Function Integration (30 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-leverage-existing-database-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1: Leverage Existing Database Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-real-time-subscriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2: Real-time Subscriptions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-and-after-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before and After Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Before and After Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crud-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      CRUD Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Queries
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Benefits
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Benefits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expected-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Metrics Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Outcomes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Outcomes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-reduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reduction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-velocity-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Velocity Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Timeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Timeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#total-estimated-time-4-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      Total Estimated Time: ~4 hours
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Total Estimated Time: ~4 hours">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-frontend-migration-2-3-hours_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Frontend Migration (2-3 hours)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-backend-simplification-1-hour_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Backend Simplification (1 hour)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-database-function-integration-30-minutes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Database Function Integration (30 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rls-policy-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      RLS Policy Conflicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-query-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Query Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-subscription-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Subscription Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Documentation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SEMANTIC-TOKEN-MIGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Semantic Token Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../check_home_assistant_table.sql" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Check Home Assistant Table
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../check_user_home_assistant_config.sql" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Check User Config
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-backend-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      FastAPI Backend Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-fastapi-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current FastAPI Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Classification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Classification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eliminate-80-of-code-replace-with-postgrestsupabase" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟢 ELIMINATE (80% of code) - Replace with PostGREST/Supabase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simplify-15-of-code-minimal-fastapi-edge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟡 SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhance-5-of-code-database-functions-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 ENHANCE (5% of code) - Database Functions + Triggers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postgrest-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostGREST Advanced Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PostGREST Advanced Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complex-queries-made-simple" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Queries Made Simple
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-functions-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Functions Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-frontend-migration-2-3-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Frontend Migration (2-3 hours)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Frontend Migration (2-3 hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-authentication-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1: Authentication Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-crud-operations-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2: CRUD Operations Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-complex-queries-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3: Complex Queries Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-backend-simplification-1-hour" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Backend Simplification (1 hour)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Backend Simplification (1 hour)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-remove-crud-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1: Remove CRUD Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-minimal-fastapi-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2: Minimal FastAPI Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-database-function-integration-30-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Database Function Integration (30 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Database Function Integration (30 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-leverage-existing-database-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1: Leverage Existing Database Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-real-time-subscriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2: Real-time Subscriptions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-and-after-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before and After Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Before and After Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crud-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      CRUD Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Queries
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Benefits
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Benefits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expected-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Metrics Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Outcomes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expected Outcomes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-reduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reduction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-velocity-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Velocity Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Timeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Timeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#total-estimated-time-4-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      Total Estimated Time: ~4 hours
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Total Estimated Time: ~4 hours">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-frontend-migration-2-3-hours_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Frontend Migration (2-3 hours)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-backend-simplification-1-hour_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Backend Simplification (1 hour)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-database-function-integration-30-minutes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Database Function Integration (30 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Migration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rls-policy-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      RLS Policy Conflicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-query-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Query Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-subscription-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Subscription Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Documentation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="postgrest-migration-guide">PostGREST Migration Guide</h1>
+<h2 id="overview">Overview</h2>
+<p>This comprehensive guide covers the migration from FastAPI to PostGREST/Supabase for the Vertical Farm project. This migration will reduce backend code by 75% while improving performance by 2-3x and leveraging advanced database features.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#current-state-analysis">Current State Analysis</a></li>
+<li><a href="#migration-strategy">Migration Strategy</a></li>
+<li><a href="#implementation-phases">Implementation Phases</a></li>
+<li><a href="#code-examples">Code Examples</a></li>
+<li><a href="#performance-benefits">Performance Benefits</a></li>
+<li><a href="#migration-timeline">Migration Timeline</a></li>
+</ol>
+<h2 id="current-state-analysis">Current State Analysis</h2>
+<h3 id="fastapi-backend-overview">FastAPI Backend Overview</h3>
+<ul>
+<li><strong>Total Files:</strong> 11 endpoint files (~58KB total)</li>
+<li><strong>Total Lines:</strong> ~1,180 lines of code</li>
+<li><strong>Main Components:</strong> Authentication, CRUD operations, Home Assistant integration</li>
+</ul>
+<h3 id="current-fastapi-endpoints">Current FastAPI Endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Size</th>
+<th>Purpose</th>
+<th>Migration Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>auth.py</td>
+<td>2.3KB</td>
+<td>Authentication</td>
+<td>🟢 Replace with Supabase Auth</td>
+</tr>
+<tr>
+<td>login.py</td>
+<td>1.7KB</td>
+<td>Login/logout</td>
+<td>🟢 Replace with Supabase Auth</td>
+</tr>
+<tr>
+<td>users.py</td>
+<td>1.9KB</td>
+<td>User management</td>
+<td>🟢 Replace with Supabase</td>
+</tr>
+<tr>
+<td>farms.py</td>
+<td>4.9KB</td>
+<td>Farm CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>rows.py</td>
+<td>6.6KB</td>
+<td>Row CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>racks.py</td>
+<td>7.4KB</td>
+<td>Rack CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>shelves.py</td>
+<td>8.9KB</td>
+<td>Shelf CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>fans.py</td>
+<td>7.8KB</td>
+<td>Fan device CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>sensor_devices.py</td>
+<td>8.6KB</td>
+<td>Sensor CRUD</td>
+<td>🟢 Replace with PostGREST</td>
+</tr>
+<tr>
+<td>user_permissions.py</td>
+<td>8.5KB</td>
+<td>Permissions</td>
+<td>🟢 Replace with RLS</td>
+</tr>
+<tr>
+<td>home_assistant.py</td>
+<td>38KB</td>
+<td>External integration</td>
+<td>🟡 Keep minimal FastAPI</td>
+</tr>
+</tbody>
+</table>
+<h3 id="migration-classification">Migration Classification</h3>
+<h4 id="eliminate-80-of-code-replace-with-postgrestsupabase">🟢 <strong>ELIMINATE (80% of code) - Replace with PostGREST/Supabase</strong></h4>
+<p><strong>Standard CRUD Operations</strong>
+All basic Create, Read, Update, Delete operations can be handled entirely by Supabase PostGREST:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># ❌ Current FastAPI - 50+ lines of boilerplate</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/farms/</span><span class="si">{farm_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_farm</span><span class="p">(</span><span class="n">farm_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farm</span> <span class="o">=</span> <span class="k">await</span> <span class="n">db_session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">select</span><span class="p">(</span><span class="n">Farm</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Farm</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">farm_id</span><span class="p">,</span> <span class="n">Farm</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">farm</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/farms&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_farm</span><span class="p">(</span><span class="n">farm_data</span><span class="p">:</span> <span class="n">FarmCreate</span><span class="p">,</span> <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farm</span> <span class="o">=</span> <span class="n">Farm</span><span class="p">(</span><span class="o">**</span><span class="n">farm_data</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">user_id</span><span class="o">=</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">db_session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">farm</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">db_session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1">// ✅ PostGREST/Supabase - 2 lines, auto-authenticated via RLS</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">farm</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">farmId</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">single</span><span class="p">()</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">newFarm</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">insert</span><span class="p">([</span><span class="nx">farmData</span><span class="p">])</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">()</span>
+</code></pre></div>
+<p><strong>Endpoints Perfect for PostGREST Replacement</strong></p>
+<table>
+<thead>
+<tr>
+<th>Current FastAPI Endpoint</th>
+<th>PostGREST Replacement</th>
+<th>Lines Saved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/farms</code></td>
+<td><code>farms?select=*</code></td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td><code>POST /api/farms</code></td>
+<td><code>farms</code> (POST)</td>
+<td>~25 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/farms/{id}/rows</code></td>
+<td><code>rows?farm_id=eq.{id}&amp;select=*,racks(*)</code></td>
+<td>~40 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/devices</code></td>
+<td><code>device_assignments?select=*,shelves(*)</code></td>
+<td>~35 lines</td>
+</tr>
+<tr>
+<td><code>PUT /api/devices/{id}</code></td>
+<td><code>device_assignments?id=eq.{id}</code> (PATCH)</td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td><code>GET /api/schedules</code></td>
+<td><code>schedules?select=*,grow_recipes(*)</code></td>
+<td>~45 lines</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Elimination: ~200+ lines of boilerplate code</strong></p>
+<h4 id="simplify-15-of-code-minimal-fastapi-edge-functions">🟡 <strong>SIMPLIFY (15% of code) - Minimal FastAPI + Edge Functions</strong></h4>
+<p><strong>Home Assistant Integration</strong>
+Complex external API integration that should remain in FastAPI:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Keep in FastAPI - Complex external API integration</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/integrations/home-assistant/sync&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">sync_home_assistant_devices</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">HAConfig</span><span class="p">):</span>
+    <span class="c1"># Multi-step process:</span>
+    <span class="c1"># 1. Call Home Assistant API</span>
+    <span class="c1"># 2. Process device entities</span>
+    <span class="c1"># 3. Update multiple database tables</span>
+    <span class="c1"># 4. Send notifications</span>
+    <span class="c1"># 5. Update device assignments</span>
+</code></pre></div>
+<p><strong>Background Jobs</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Keep in FastAPI - Scheduled operations with Celery</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/farms/</span><span class="si">{farm_id}</span><span class="s2">/automate&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_farm_automation</span><span class="p">(</span><span class="n">farm_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># Complex business logic:</span>
+    <span class="c1"># 1. Read sensor data</span>
+    <span class="c1"># 2. Apply growing algorithms</span>
+    <span class="c1"># 3. Control devices via Home Assistant</span>
+    <span class="c1"># 4. Log actions and results</span>
+</code></pre></div></p>
+<h4 id="enhance-5-of-code-database-functions-triggers">🔴 <strong>ENHANCE (5% of code) - Database Functions + Triggers</strong></h4>
+<p>Move complex operations to PostgreSQL for better performance:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Farm statistics (already implemented)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">get_farm_statistics</span><span class="p">(</span><span class="s1">&#39;farm-uuid&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Device status monitoring (already implemented)  </span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">get_device_status_summary</span><span class="p">(</span><span class="s1">&#39;farm-uuid&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Search functionality (already implemented)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">search_devices</span><span class="p">(</span><span class="s1">&#39;pump&#39;</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="migration-strategy">Migration Strategy</h2>
+<h3 id="postgrest-advanced-features">PostGREST Advanced Features</h3>
+<h4 id="complex-queries-made-simple">Complex Queries Made Simple</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get farm with complete hierarchy and device status</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="sb">`</span>
+<span class="sb">    *,</span>
+<span class="sb">    rows (</span>
+<span class="sb">      *,</span>
+<span class="sb">      racks (</span>
+<span class="sb">        *,</span>
+<span class="sb">        shelves (</span>
+<span class="sb">          *,</span>
+<span class="sb">          device_assignments (</span>
+<span class="sb">            *,</span>
+<span class="sb">            user_device_configs (*)</span>
+<span class="sb">          )</span>
+<span class="sb">        )</span>
+<span class="sb">      )</span>
+<span class="sb">    )</span>
+<span class="sb">  `</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">userId</span><span class="p">)</span>
+
+<span class="c1">// Advanced filtering and aggregation</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;sensor_readings&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;device_id, avg(value)&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">gte</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01-01&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">order</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ascending</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="w"> </span><span class="p">})</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">limit</span><span class="p">(</span><span class="mf">100</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="database-functions-integration">Database Functions Integration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use the functions we implemented in the audit</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">stats</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;get_farm_statistics&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">farm_uuid</span><span class="o">:</span><span class="w"> </span><span class="kt">farmId</span>
+<span class="p">})</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">devices</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;search_devices&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">search_term</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;light&#39;</span>
+<span class="p">})</span>
+</code></pre></div>
+<h2 id="implementation-phases">Implementation Phases</h2>
+<h3 id="phase-1-frontend-migration-2-3-hours">Phase 1: Frontend Migration (2-3 hours)</h3>
+<h4 id="11-authentication-migration">1.1: Authentication Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: FastAPI calls</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/auth/login&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="kt">JSON.stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">email</span><span class="p">,</span><span class="w"> </span><span class="nx">password</span><span class="w"> </span><span class="p">})</span>
+<span class="p">});</span>
+
+<span class="c1">// After: Supabase Auth</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">auth</span><span class="p">.</span><span class="nx">signInWithPassword</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">email</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">password</span>
+<span class="p">});</span>
+</code></pre></div>
+<h4 id="12-crud-operations-migration">1.2: CRUD Operations Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: FastAPI farms endpoint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/farms&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">farms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+
+<span class="c1">// After: Supabase PostGREST</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">farms</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">);</span>
+</code></pre></div>
+<h4 id="13-complex-queries-migration">1.3: Complex Queries Migration</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Custom FastAPI endpoint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`/api/farms/</span><span class="si">${</span><span class="nx">farmId</span><span class="si">}</span><span class="sb">/devices`</span><span class="p">);</span>
+
+<span class="c1">// After: Supabase with joins</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">devices</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;device_assignments&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="sb">`</span>
+<span class="sb">    *,</span>
+<span class="sb">    farms(name),</span>
+<span class="sb">    rows(name),</span>
+<span class="sb">    racks(name),</span>
+<span class="sb">    shelves(name)</span>
+<span class="sb">  `</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;farm_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">farmId</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="phase-2-backend-simplification-1-hour">Phase 2: Backend Simplification (1 hour)</h3>
+<h4 id="21-remove-crud-endpoints">2.1: Remove CRUD Endpoints</h4>
+<p>Delete the following files (they're no longer needed):
+- <code>farms.py</code> - Replace with direct Supabase calls
+- <code>rows.py</code> - Replace with direct Supabase calls
+- <code>racks.py</code> - Replace with direct Supabase calls
+- <code>shelves.py</code> - Replace with direct Supabase calls
+- <code>auth.py</code> - Replace with Supabase Auth
+- <code>login.py</code> - Replace with Supabase Auth
+- <code>users.py</code> - Replace with Supabase Auth
+- <code>fans.py</code> - Replace with direct Supabase calls
+- <code>sensor_devices.py</code> - Replace with direct Supabase calls
+- <code>user_permissions.py</code> - Replace with RLS policies</p>
+<h4 id="22-minimal-fastapi-structure">2.2: Minimal FastAPI Structure</h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># main.py - Simplified FastAPI app</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.routers</span><span class="w"> </span><span class="kn">import</span> <span class="n">home_assistant</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Vertical Farm API - External Integrations&quot;</span><span class="p">)</span>
+
+<span class="c1"># Only keep external integrations</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">home_assistant</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api/integrations&quot;</span><span class="p">)</span>
+
+<span class="c1"># Health check endpoint</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">,</span> <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;external-integrations&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="phase-3-database-function-integration-30-minutes">Phase 3: Database Function Integration (30 minutes)</h3>
+<h4 id="31-leverage-existing-database-functions">3.1: Leverage Existing Database Functions</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use complex database functions for advanced operations</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">farmStats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;get_farm_statistics&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">farm_uuid</span><span class="o">:</span><span class="w"> </span><span class="kt">farmId</span>
+<span class="p">});</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">deviceStatus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;get_device_status_summary&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">farm_uuid</span><span class="o">:</span><span class="w"> </span><span class="kt">farmId</span>
+<span class="p">});</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">searchResults</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">rpc</span><span class="p">(</span><span class="s1">&#39;search_devices&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">search_term</span><span class="o">:</span><span class="w"> </span><span class="kt">query</span>
+<span class="p">});</span>
+</code></pre></div>
+<h4 id="32-real-time-subscriptions">3.2: Real-time Subscriptions</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Real-time updates for device status</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">channel</span><span class="p">(</span><span class="s1">&#39;device-updates&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;postgres_changes&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">event</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">schema</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;public&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">table</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;device_assignments&#39;</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Update UI in real-time</span>
+<span class="w">    </span><span class="nx">updateDeviceStatus</span><span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="ow">new</span><span class="p">);</span>
+<span class="w">  </span><span class="p">})</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">subscribe</span><span class="p">();</span>
+</code></pre></div>
+<h2 id="code-examples">Code Examples</h2>
+<h3 id="before-and-after-comparison">Before and After Comparison</h3>
+<h4 id="authentication">Authentication</h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Before: FastAPI (25 lines)</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/auth/login&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">login</span><span class="p">(</span><span class="n">credentials</span><span class="p">:</span> <span class="n">LoginCredentials</span><span class="p">):</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="n">authenticate_user</span><span class="p">(</span><span class="n">credentials</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="n">credentials</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="mi">401</span><span class="p">,</span> <span class="s2">&quot;Invalid credentials&quot;</span><span class="p">)</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">create_jwt_token</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">,</span> <span class="s2">&quot;token_type&quot;</span><span class="p">:</span> <span class="s2">&quot;bearer&quot;</span><span class="p">}</span>
+
+<span class="c1"># After: Removed entirely - handled by Supabase Auth</span>
+</code></pre></div>
+<h4 id="crud-operations">CRUD Operations</h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Before: FastAPI (40 lines for basic CRUD)</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/farms&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_farms</span><span class="p">(</span><span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farms</span> <span class="o">=</span> <span class="k">await</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">select</span><span class="p">(</span><span class="n">Farm</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Farm</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span> <span class="k">for</span> <span class="n">farm</span> <span class="ow">in</span> <span class="n">farms</span><span class="p">]</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/farms&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_farm</span><span class="p">(</span><span class="n">farm_data</span><span class="p">:</span> <span class="n">FarmCreate</span><span class="p">,</span> <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)):</span>
+    <span class="n">farm</span> <span class="o">=</span> <span class="n">Farm</span><span class="p">(</span><span class="o">**</span><span class="n">farm_data</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">user_id</span><span class="o">=</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">farm</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">FarmResponse</span><span class="p">(</span><span class="o">**</span><span class="n">farm</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+
+<span class="c1"># After: Removed entirely - handled by PostGREST</span>
+</code></pre></div>
+<h4 id="complex-queries">Complex Queries</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Custom FastAPI endpoint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`/api/farms/</span><span class="si">${</span><span class="nx">farmId</span><span class="si">}</span><span class="sb">/complete-status`</span><span class="p">);</span>
+
+<span class="c1">// After: Single Supabase query with joins</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">supabase</span>
+<span class="w">  </span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;farms&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="sb">`</span>
+<span class="sb">    *,</span>
+<span class="sb">    rows (</span>
+<span class="sb">      *,</span>
+<span class="sb">      racks (</span>
+<span class="sb">        *,</span>
+<span class="sb">        shelves (</span>
+<span class="sb">          *,</span>
+<span class="sb">          device_assignments (</span>
+<span class="sb">            *,</span>
+<span class="sb">            user_device_configs (*),</span>
+<span class="sb">            device_status:device_status_summary()</span>
+<span class="sb">          )</span>
+<span class="sb">        )</span>
+<span class="sb">      )</span>
+<span class="sb">    )</span>
+<span class="sb">  `</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">farmId</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">single</span><span class="p">();</span>
+</code></pre></div>
+<h2 id="performance-benefits">Performance Benefits</h2>
+<h3 id="expected-improvements">Expected Improvements</h3>
+<h4 id="query-performance">Query Performance</h4>
+<ul>
+<li><strong>2-3x faster</strong> CRUD operations (no ORM overhead)</li>
+<li><strong>Direct database access</strong> eliminates FastAPI processing layer</li>
+<li><strong>HTTP caching</strong> works perfectly with PostGREST</li>
+<li><strong>Connection pooling</strong> optimized at database level</li>
+</ul>
+<h4 id="real-time-capabilities">Real-time Capabilities</h4>
+<ul>
+<li><strong>Native WebSocket subscriptions</strong> for live updates</li>
+<li><strong>Automatic change notifications</strong> via PostgreSQL triggers</li>
+<li><strong>Real-time device status</strong> updates without polling</li>
+</ul>
+<h4 id="caching-benefits">Caching Benefits</h4>
+<ul>
+<li><strong>HTTP cache headers</strong> automatically generated</li>
+<li><strong>ETag support</strong> for conditional requests</li>
+<li><strong>Client-side caching</strong> with automatic invalidation</li>
+</ul>
+<h3 id="performance-metrics-comparison">Performance Metrics Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>FastAPI</th>
+<th>PostGREST</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Avg Response Time</td>
+<td>150ms</td>
+<td>50ms</td>
+<td>3x faster</td>
+</tr>
+<tr>
+<td>Throughput</td>
+<td>100 req/s</td>
+<td>300 req/s</td>
+<td>3x higher</td>
+</tr>
+<tr>
+<td>Memory Usage</td>
+<td>150MB</td>
+<td>50MB</td>
+<td>3x lower</td>
+</tr>
+<tr>
+<td>Code Maintenance</td>
+<td>High</td>
+<td>Low</td>
+<td>75% reduction</td>
+</tr>
+</tbody>
+</table>
+<h2 id="expected-outcomes">Expected Outcomes</h2>
+<h3 id="code-reduction">Code Reduction</h3>
+<ul>
+<li><strong>From:</strong> ~1,180 lines FastAPI → <strong>To:</strong> ~300 lines (75% reduction)</li>
+<li><strong>From:</strong> 11 endpoint files → <strong>To:</strong> 1 file (home_assistant.py only)</li>
+<li><strong>From:</strong> ~58KB backend → <strong>To:</strong> ~15KB backend (74% reduction)</li>
+</ul>
+<h3 id="development-velocity-improvements">Development Velocity Improvements</h3>
+<ul>
+<li><strong>Zero boilerplate</strong> for new endpoints</li>
+<li><strong>Auto-generated APIs</strong> from schema changes</li>
+<li><strong>Built-in filtering/pagination</strong> </li>
+<li><strong>Type-safe</strong> operations with generated types</li>
+<li><strong>Automatic documentation</strong> (OpenAPI spec)</li>
+</ul>
+<h3 id="maintenance-benefits">Maintenance Benefits</h3>
+<ul>
+<li><strong>Single source of truth</strong> (database schema)</li>
+<li><strong>Simplified deployment</strong> (fewer moving parts)</li>
+<li><strong>Better error handling</strong> (database-level constraints)</li>
+<li><strong>Centralized access control</strong> (RLS policies)</li>
+</ul>
+<h2 id="migration-timeline">Migration Timeline</h2>
+<h3 id="total-estimated-time-4-hours">Total Estimated Time: ~4 hours</h3>
+<h4 id="phase-1-frontend-migration-2-3-hours_1">Phase 1: Frontend Migration (2-3 hours)</h4>
+<ul>
+<li>[ ] Replace authentication calls with Supabase Auth</li>
+<li>[ ] Convert CRUD operations to Supabase client calls</li>
+<li>[ ] Update complex queries to use PostGREST joins</li>
+<li>[ ] Test all frontend functionality</li>
+</ul>
+<h4 id="phase-2-backend-simplification-1-hour_1">Phase 2: Backend Simplification (1 hour)</h4>
+<ul>
+<li>[ ] Remove CRUD endpoint files</li>
+<li>[ ] Keep only Home Assistant integration</li>
+<li>[ ] Update deployment configuration</li>
+<li>[ ] Test external integrations</li>
+</ul>
+<h4 id="phase-3-database-function-integration-30-minutes_1">Phase 3: Database Function Integration (30 minutes)</h4>
+<ul>
+<li>[ ] Update frontend to use database functions</li>
+<li>[ ] Implement real-time subscriptions</li>
+<li>[ ] Test advanced features</li>
+<li>[ ] Performance validation</li>
+</ul>
+<h2 id="migration-checklist">Migration Checklist</h2>
+<h3 id="pre-migration">Pre-Migration</h3>
+<ul>
+<li>[ ] Audit current FastAPI endpoints</li>
+<li>[ ] Identify PostGREST candidates vs FastAPI-only</li>
+<li>[ ] Backup current database and code</li>
+<li>[ ] Test RLS policies with direct API calls</li>
+</ul>
+<h3 id="during-migration">During Migration</h3>
+<ul>
+<li>[ ] Update frontend to use Supabase client</li>
+<li>[ ] Test each endpoint replacement</li>
+<li>[ ] Migrate complex queries to database functions</li>
+<li>[ ] Verify authentication and authorization</li>
+</ul>
+<h3 id="post-migration">Post-Migration</h3>
+<ul>
+<li>[ ] Deploy minimal FastAPI for remaining use cases</li>
+<li>[ ] Monitor performance improvements</li>
+<li>[ ] Update documentation</li>
+<li>[ ] Train team on new architecture</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="rls-policy-conflicts">RLS Policy Conflicts</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Verify RLS policies are working correctly</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">farms</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">();</span>
+</code></pre></div>
+<h4 id="complex-query-performance">Complex Query Performance</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Add indexes for complex joins</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_device_assignments_farm_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">device_assignments</span><span class="p">(</span><span class="n">farm_id</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_shelves_rack_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">shelves</span><span class="p">(</span><span class="n">rack_id</span><span class="p">);</span>
+</code></pre></div>
+<h4 id="real-time-subscription-issues">Real-time Subscription Issues</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Ensure proper channel cleanup</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">supabase</span><span class="p">.</span><span class="nx">channel</span><span class="p">(</span><span class="s1">&#39;changes&#39;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">();</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+</code></pre></div>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="../">Database Schema</a> - Database migration overview</li>
+<li><a href="../check_home_assistant_table.sql">SQL Migration Files</a> - Database structure validation</li>
+<li><a href="../../03-api/">API Documentation</a> - API endpoint reference</li>
+<li><a href="../../05-testing/production-testing-strategy/">Performance Testing</a> - Performance validation</li>
+</ul>
+<hr />
+<p><em>Last Updated: [Current Date]</em>
+<em>Consolidated from: postgrest-analysis.md, postgrest-strategy.md</em> </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
