@@ -91,36 +91,13 @@ vertical-farm/
 - Docker (for full-stack/local deployment)
 - Supabase account (for auth/data)
 
-### Quickstart
+### Getting Started
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-org/vertical-farm.git
-   cd vertical-farm
-   ```
+**⚡ Quick Setup:** Get running in 5 minutes with our [**Quickstart Guide**](docs/getting-started/quickstart.md)
 
-2. **Start with Docker Compose (recommended):**
-   ```bash
-   docker-compose up --build
-   ```
-   - Frontend: [http://localhost:3000](http://localhost:3000)
-   - Backend: [http://localhost:8000](http://localhost:8000)
+**📚 Full Documentation:** See [**docs/**](docs/README.md) for comprehensive guides, API reference, and architecture details
 
-3. **Or run frontend and backend separately:**
-
-   **Frontend:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-   **Backend:**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   uvicorn main:app --reload
-   ```
+**🤝 Contributing:** Ready to contribute? See [**CONTRIBUTING.md**](CONTRIBUTING.md) for development workflow
 
 ---
 

@@ -1,0 +1,11 @@
+{
+  "backup_name": "schema_backup_20250822_150100",
+  "timestamp": "20250822_150100",
+  "date": "2025-08-22T15:01:30-05:00",
+  "type": "comprehensive_schema_backup",
+  "file": "schema_backup_20250822_150100.sql",
+  "size": "260K",
+  "project_root": "/Users/eddie.rowe/Repos/vertical-farm",
+  "git_commit": "760fed0a96b9c704436b2c1a5888c3cded8e7215",
+  "git_branch": "feature-add-claude-code"
+}

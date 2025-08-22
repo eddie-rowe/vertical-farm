@@ -7,64 +7,36 @@ Welcome! This guide helps you contribute to the Vertical Farm project effectivel
 ### Prerequisites
 - Docker and Docker Compose
 - Git
-- npm
-- Python
+- Supabase CLI ([Install guide](https://supabase.com/docs/guides/cli))
 - Claude Code
-- Cursor IDE
-  - GitHub MCP server
-  - Sequential Thinking MCP server
-  - Context7 MCP Server
-  - Playwright MCP server
-  - Supabase MCP server
+- Cursor IDE (with MCP servers: GitHub, Sequential Thinking, Context7, Playwright, Supabase)
 
-### Receiving developer secrets
-1. Reach out to @eddie-rowe - he will send you the required secrets for developing on the platform
+### Development Environment Setup
 
-### Setup
-1. **Clone** the repository
-2. **Set up environment variables:**
-   ```bash
-   # Copy environment files
-   cp .env.example .env
-   ```
-3. **Configure development values:**
-   ```bash
-   # Edit .env file with your development values
-   # Required for local development:
-   
-    # Supabase
-    SUPABASE_URL=https://PROJECT_ID.supabase.co
-    SUPABASE_ANON_KEY=
-    SUPABASE_SERVICE_KEY=
-    SUPABASE_JWT_SECRET=
-    SUPABASE_ACCESS_TOKEN=
-    SUPABASE_DB_PASSWORD=
+**⚡ First time setup:** Follow the [**Quickstart Guide**](docs/getting-started/quickstart.md) to get your development environment running in 5 minutes.
 
-    # Next.js frontend
-    NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_ID.supabase.co
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=
-    NEXT_PUBLIC_API_URL=http://localhost:8000
-   ```
-4. **Start development environment:**
-   ```bash
-   # Start all services with Docker Compose
-   docker-compose up -d
-   ```
-5. **Verify all services are online:**
-   ```bash
-   # Check container status
-   docker-compose ps
-   
-   # View logs if any services failed
-   docker-compose logs
-   ```
-6. **Access the application:**
-   - Frontend: http://localhost:3000
-7. **Log in with test user:**
-   - Email: (See Receiving developer secrets section above)
-   - Password: (See Receiving developer secrets above)
+**🔄 Already set up:** Use these commands for daily development:
+```bash
+# Start development environment
+make up
+
+# Stop when done
+make down
+```
 
 ## 🔄 Development Workflow
+
+### Quick workflow
+
+1. clone and change directory into repository
+2. Open up Claude Code and ask it to run each of these commands
+3. `make up`
+4. `make plan ISSUE=###` then review/modify plan
+5. `make dev ISSUE=###` then guide agents to develop the feature
+6. ensure everything works as expected
+7. `make test ISSUE=###`
+8. `make deploy`
+9. `make finalize` 
 
 ### 1. Grabbing a task
 
@@ -137,16 +109,23 @@ Call context7 MCP server to retrieve relevant up to date dcoumentation when nece
 
     ```bash
     # Start development environment
-    docker-compose up -d
+    # First ensure Supabase is running
+    supabase status  # Check if running
+    supabase start   # Start if needed
+    
+    # Then start your app containers
+    docker-compose -f docker-compose.yml up -d
 
     # Stop services
-    docker-compose down
+    docker-compose -f docker-compose.yml down
+    supabase stop  # Also stop Supabase when done
 
     # Rebuild containers (after dependency changes)
-    docker-compose up -d --build
+    docker-compose -f docker-compose.yml up -d --build
 
     # View running services
     docker-compose ps
+    supabase status  # Check Supabase services
     ```
 
 - Running Tests with Docker
@@ -173,6 +152,7 @@ Call context7 MCP server to retrieve relevant up to date dcoumentation when nece
     # Frontend: http://localhost:3000
     # Backend API: http://localhost:8000
     # API Docs: http://localhost:8000/docs
+    # Supabase Studio: http://localhost:54323
 
     # View logs for debugging
     docker-compose logs -f frontend
@@ -265,6 +245,28 @@ Call context7 MCP server to retrieve relevant up to date dcoumentation when nece
 - **Implement RLS policies** for security
 - **Test queries** for performance
 - **Backup data** before major changes
+
+#### Working with Supabase Locally
+```bash
+# Create a new migration
+supabase migration new your_migration_name
+
+# Apply migrations (happens automatically on start)
+supabase start
+
+# Reset database to clean state
+supabase db reset
+
+# Check migration status
+supabase migration list
+
+# Generate TypeScript types from your schema
+supabase gen types typescript --local > frontend/types/database.ts
+
+# Access database directly
+supabase db dump  # Export schema
+psql postgresql://postgres:postgres@localhost:54322/postgres  # Direct connection
+```
 
 ## 🚨 Emergency Procedures
 

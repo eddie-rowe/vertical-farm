@@ -116,3 +116,9 @@ frontend/junit.xml
 # Coverage directories
 **/htmlcov*/
 **/coverage/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.*.local

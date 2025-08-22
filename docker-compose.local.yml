@@ -1,0 +1,129 @@
+# Local Development Docker Compose Configuration
+# Uses Supabase CLI for database (not included in this compose file)
+# Start with: docker-compose -f docker-compose.local.yml up
+
+services:
+  backend:
+    container_name: vf-backend-local
+    hostname: backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./backend:/app/backend
+      - backend-logs:/app/backend/logs
+    environment:
+      # Supabase URLs (defaults to local CLI)
+      - SUPABASE_URL=${SUPABASE_URL:-http://host.docker.internal:54321}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      
+      # App Configuration
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://localhost:8000","http://host.docker.internal:3000"]}
+      - FRONTEND_HOST=${FRONTEND_HOST:-http://localhost:3000}
+      - PROJECT_NAME=${PROJECT_NAME:-vertical-farm-local}
+      - API_V1_STR=${API_V1_STR:-/api/v1}
+      - DEBUG=${DEBUG:-true}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+      
+      # Datadog (optional for local)
+      - DD_SERVICE=vertical-farm-backend-local
+      - DD_ENV=local
+      - DD_VERSION=dev
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_ENABLED=false  # Disable tracing locally
+      
+      # Background Tasks
+      - BACKGROUND_TASKS_ENABLED=true
+      - BACKGROUND_TASK_SYSTEM=supabase
+      
+      # Python dev settings
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "fastapi", "service": "vertical-farm-backend-local"}]'
+    networks:
+      - vertical-farm-local
+    extra_hosts:
+      # Allow containers to connect to host's Supabase CLI
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    container_name: vf-frontend-local
+    hostname: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Build args for Next.js (use host.docker.internal for Supabase CLI)
+        NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./frontend:/app
+      - /app/node_modules  # Exclude node_modules
+      - /app/.next         # Exclude build directory
+    environment:
+      # Runtime environment variables
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-http://localhost:54321}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY}}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      
+      # Datadog RUM (optional for local)
+      - NEXT_PUBLIC_DD_RUM_APPLICATION_ID=${DD_RUM_APPLICATION_ID_LOCAL:-}
+      - NEXT_PUBLIC_DD_RUM_CLIENT_TOKEN=${DD_RUM_CLIENT_TOKEN_LOCAL:-}
+      - NEXT_PUBLIC_DD_SITE=datadoghq.com
+      - NEXT_PUBLIC_DD_SERVICE=vertical-farm-frontend-local
+      - NEXT_PUBLIC_DD_ENV=local
+      
+      # Next.js dev settings
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true  # For file watching in Docker
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - backend
+    networks:
+      - vertical-farm-local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Optional: Include Datadog agent for local monitoring
+  datadog:
+    container_name: vf-dd-agent-local
+    hostname: dd-agent
+    image: datadog/agent:latest
+    environment:
+      - DD_API_KEY=${DD_API_KEY_LOCAL:-dummy_key_for_local}
+      - DD_SITE=datadoghq.com
+      - DD_SERVICE=vertical-farm-local
+      - DD_ENV=local
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_APM_ENABLED=false  # Disable APM for local dev
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_HOSTNAME=vertical-farm-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - backend-logs:/app/backend/logs:ro
+    networks:
+      - vertical-farm-local
+    profiles:
+      - monitoring  # Only start if --profile monitoring is used
+
+networks:
+  vertical-farm-local:
+    driver: bridge
+
+volumes:
+  backend-logs:
