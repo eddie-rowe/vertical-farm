@@ -1,88 +1,132 @@
 # Vertical Farm Documentation
 
-Welcome to the comprehensive documentation for the Vertical Farm project. This documentation is organized into numbered sections for easy navigation and logical flow.
-
-## 📁 Documentation Structure
-
-### [01-architecture/](./01-architecture/)
-System architecture documentation including frontend, backend, database schemas, automation systems, and data flow diagrams. Contains technical design decisions and architectural patterns.
-
-### [02-development/](./02-development/)
-Development-related documentation including CI/CD workflows, contributing guidelines, release notes, and improvement recommendations. Essential reading for developers.
-
-### [03-api/](./03-api/)
-API documentation and reference materials. Includes endpoint specifications, authentication, and usage examples.
-
-### [04-deployment/](./04-deployment/)
-Deployment guides and configuration for various environments. Covers Cloudflare setup, caching strategies, and deployment workflows.
-
-### [05-testing/](./05-testing/)
-Testing strategies, guides, and results. Includes unit testing, integration testing, and security testing documentation.
-
-### [06-security/](./06-security/)
-Security model, policies, and testing results. Contains security guidelines and vulnerability assessments.
-
-### [07-guides/](./07-guides/)
-User guides and setup instructions for various integrations and features. Step-by-step tutorials and configuration guides.
-
-### [08-reports/](./08-reports/)
-Project reports, summaries, and historical documentation organized by category:
-- `audits/` - Security and system audits
-- `migration-reports/` - Database migration reports
-- `optimization-reports/` - Performance optimization analyses
-- `project-summaries/` - Project phase summaries and organizational reports
-- `performance-analysis/` - Performance testing results
-- `reviews/` - Code reviews and assessments
-- `screenshots/` - Visual documentation
-
-### [09-migration/](./09-migration/)
-Database migration scripts, strategies, and documentation. Contains SQL files and migration planning documents.
+Welcome to the comprehensive documentation for the Vertical Farm Management Platform - a full-stack IoT solution combining Next.js 15, FastAPI, Supabase, and Cloudflare Workers for smart agriculture automation.
 
 ## 🚀 Quick Start
 
-1. **For Developers**: Start with [02-development/](./02-development/) for setup and contributing guidelines
-2. **For Deployment**: Check [04-deployment/](./04-deployment/) for environment setup
-3. **For API Usage**: Reference [03-api/](./03-api/) for endpoint documentation
-4. **For Architecture Understanding**: Review [01-architecture/](./01-architecture/) for system design
+**New to the project?** Start here based on your role:
 
-## 📋 Document Types
+- **👩‍💻 Developer** → [Getting Started Guide](getting-started/README.md)
+- **🔧 DevOps Engineer** → [Operations Overview](operations/README.md) 
+- **📚 API Consumer** → [API Reference](reference/api/README.md)
+- **🎨 Frontend Developer** → [Frontend Guide](guides/features/README.md)
 
-- **README.md** - Overview and navigation for each section
-- **Guide files** - Step-by-step instructions (e.g., `SETUP_*.md`)
-- **Reference files** - Technical specifications and API docs
-- **Report files** - Analysis, testing results, and summaries
-- **Strategy files** - Planning and architectural decisions
+## ⚡ Development Setup
 
-## 🔍 Finding Information
+```bash
+# Prerequisites: Node.js 18+, Python 3.13+, Docker
+# Install Supabase CLI
+brew install supabase/tap/supabase
 
-- Use the numbered directory structure for logical navigation
-- Each section contains a README with detailed contents
-- Search functionality works best with specific technical terms
-- Cross-references are provided where relevant
+# Start development environment (recommended)
+make up
 
-## 📝 Contributing to Documentation
+# Access the application
+# Frontend: http://localhost:3000
+# Backend: http://localhost:8000
+# Supabase Studio: http://localhost:54323
+```
 
-When adding new documentation:
+**Alternative setup methods:**
+- **Docker Compose**: `docker-compose up --build`
+- **Manual setup**: See [Environment Setup](getting-started/environment-setup.md)
+- **Detailed workflow**: [Docker Workflow Guide](development/docker-workflow.md)
 
-1. Place files in the appropriate numbered directory
-2. Follow the naming conventions established in each section
-3. Update the relevant README.md file
-4. Use clear, descriptive filenames
-5. Include proper markdown formatting and links
+## 📚 Documentation Structure
 
-## 🏗️ Architecture Overview
+### 🎯 [Getting Started](getting-started/)
+Your entry point to the platform - setup, architecture overview, and quick tutorials.
 
-The Vertical Farm system consists of:
-- **Frontend**: Next.js application with real-time updates
-- **Backend**: FastAPI with Supabase integration
-- **Database**: PostgreSQL with automated migrations
-- **Deployment**: Cloudflare Workers and edge computing
-- **Integrations**: Home Assistant and IoT device management
+### 📖 [Reference](reference/)
+Technical specifications, API documentation, and system architecture details.
 
-For detailed technical information, see [01-architecture/](./01-architecture/).
+### 📋 [Guides](guides/)
+Task-oriented how-to guides for features, integrations, and troubleshooting.
+
+### 🛠️ [Development](development/)
+Contribution guidelines, coding standards, and development workflows.
+
+### 🚀 [Operations](operations/)
+Production deployment, monitoring, security, and infrastructure management.
+
+### 📦 [Archive](archive/)
+Historical reports, completed migrations, and legacy documentation.
+
+## 🔍 Find What You Need
+
+| I want to... | Go to |
+|--------------|-------|
+| Set up my development environment | [Quickstart Guide](getting-started/quickstart.md) |
+| Understand the system architecture | [Architecture Overview](getting-started/architecture-overview.md) |
+| Learn about the API | [API Reference](reference/api/) |
+| Deploy to production | [Deployment Guide](operations/deployment/) |
+| Integrate Home Assistant | [Home Assistant Guide](guides/integrations/home-assistant.md) |
+| Run tests | [Testing Guide](development/testing-guide.md) |
+| Report a bug | [Contributing](development/contributing.md) |
+
+## 🏗️ Platform Architecture
+
+**Tech Stack**: Next.js 15 + React 19 + TypeScript + Python 3.13 + FastAPI + Supabase + Cloudflare Workers
+
+```mermaid
+graph TB
+    A[Next.js 15 Frontend<br/>React 19 + TypeScript] --> B[Cloudflare Workers<br/>Edge Computing]
+    B --> C[FastAPI Backend<br/>Python 3.13]
+    C --> D[Supabase Database<br/>PostgreSQL + RLS]
+    A --> E[Supabase Auth<br/>JWT + RLS]
+    F[Home Assistant<br/>IoT Hub] --> C
+    G[IoT Devices<br/>Sensors + Controllers] --> F
+    H[Square Payments<br/>Business Operations] --> C
+```
+
+**Project Structure**:
+```
+vertical-farm/
+├── frontend/          # Next.js 15 application
+├── backend/           # FastAPI Python backend  
+├── cloudflare/        # Edge functions and workers
+├── supabase/          # Database migrations and functions
+├── scripts/           # Automation and deployment scripts
+├── monitoring/        # Datadog dashboards and alerts
+├── tests/             # Cross-platform integration tests
+└── docs/              # This comprehensive documentation
+```
+
+## 📊 Key Features
+
+### 🌱 **Agriculture Management**
+- **Multi-tier Farm Hierarchy**: Farms → Rows → Racks → Shelves organization
+- **Grow Recipe System**: Automated growing parameters and schedules
+- **Plant Lifecycle Tracking**: From seed to harvest monitoring
+
+### 🏭 **IoT & Automation**
+- **Real-time Device Control**: Sensors, fans, lights, pumps integration
+- **Home Assistant Integration**: Comprehensive IoT device management
+- **Visual Layer Overlay System**: Multi-layer farm visualization
+- **Automated Responses**: Condition-based device automation
+
+### 📊 **Business Operations** 
+- **Square Payment Integration**: Revenue tracking and payment processing
+- **Performance Analytics**: Yield optimization and cost analysis
+- **Multi-user Support**: Role-based access control with RLS
+- **Datadog Monitoring**: Production-grade observability
+
+### 💻 **Technical Excellence**
+- **Service Layer Architecture**: Mandatory pattern for all data operations
+- **PWA Support**: Mobile-first design with offline capabilities
+- **Edge Computing**: Cloudflare Workers for global performance
+- **Modern Stack**: Next.js 15, React 19, Python 3.13, TypeScript
+
+## 🤝 Contributing to Documentation
+
+Found something unclear or missing? See our [Documentation Guidelines](development/contributing.md#documentation) to contribute.
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](../CONTRIBUTING.md)
+- **Discussions**: [GitHub Discussions](../CONTRIBUTING.md)
+- **Architecture Questions**: See [Architecture Reference](reference/architecture/)
 
 ---
 
-Last Updated: June 2025  
-Documentation Structure: v2.0  
-Total Sections: 9 
+*Last Updated: January 2025 | Active Documents: 44 | Structure Version: 2.0 | [Migration Guide](archive/migrations/MIGRATION_FROM_OLD_STRUCTURE.md)*
