@@ -8,21 +8,21 @@
       
       
       
-        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/">
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/caching-optimization-results/">
       
       
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
     
     
       
-        <title>Vertical Farm Documentation</title>
+        <title>Caching Optimization Results & Analysis - Vertical Farm Documentation</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.7e37652d.min.css">
       
       
 
@@ -41,7 +41,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vertical-farm-documentation" class="md-skip">
+        <a href="#caching-optimization-results-analysis" class="md-skip">
           Skip to content
         </a>
       
@@ -76,7 +76,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+    <a href="../../../.." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -96,7 +96,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Caching Optimization Results &amp; Analysis
             
           </span>
         </div>
@@ -188,7 +188,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+    <a href="../../../.." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -215,32 +215,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
         
   
   
@@ -251,200 +229,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Quick Start
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#development-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      ⚡ Development Setup
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 Documentation Structure
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📚 Documentation Structure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      🎯 Getting Started
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      📖 Reference
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#guides" class="md-nav__link">
-    <span class="md-ellipsis">
-      📋 Guides
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Development
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#archive" class="md-nav__link">
-    <span class="md-ellipsis">
-      📦 Archive
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#find-what-you-need" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔍 Find What You Need
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏗️ Platform Architecture
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Key Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📊 Key Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#agriculture-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      🌱 Agriculture Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#iot-automation" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏭 IoT &amp; Automation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#business-operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Business Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#technical-excellence" class="md-nav__link">
-    <span class="md-ellipsis">
-      💻 Technical Excellence
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contributing-to-documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      🤝 Contributing to Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
-    <span class="md-ellipsis">
-      📞 Support
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -499,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/README.md" class="md-nav__link">
+      <a href="../../../../01-architecture/README.md" class="md-nav__link">
         
   
   
@@ -522,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/overview.md" class="md-nav__link">
+      <a href="../../../../01-architecture/overview.md" class="md-nav__link">
         
   
   
@@ -545,7 +329,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/backend.md" class="md-nav__link">
+      <a href="../../../../01-architecture/backend.md" class="md-nav__link">
         
   
   
@@ -568,7 +352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/frontend.md" class="md-nav__link">
+      <a href="../../../../01-architecture/frontend.md" class="md-nav__link">
         
   
   
@@ -591,7 +375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/database-schema.md" class="md-nav__link">
+      <a href="../../../../01-architecture/database-schema.md" class="md-nav__link">
         
   
   
@@ -614,7 +398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/automation-architecture.md" class="md-nav__link">
+      <a href="../../../../01-architecture/automation-architecture.md" class="md-nav__link">
         
   
   
@@ -637,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/edge-computing.md" class="md-nav__link">
+      <a href="../../../../01-architecture/edge-computing.md" class="md-nav__link">
         
   
   
@@ -660,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/caching-strategy.md" class="md-nav__link">
+      <a href="../../../../01-architecture/caching-strategy.md" class="md-nav__link">
         
   
   
@@ -683,7 +467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/LAYER_OVERLAY_SYSTEM.md" class="md-nav__link">
+      <a href="../../../../01-architecture/LAYER_OVERLAY_SYSTEM.md" class="md-nav__link">
         
   
   
@@ -706,7 +490,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/responsibilities.md" class="md-nav__link">
+      <a href="../../../../01-architecture/responsibilities.md" class="md-nav__link">
         
   
   
@@ -779,7 +563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/README.md" class="md-nav__link">
+      <a href="../../../../02-development/README.md" class="md-nav__link">
         
   
   
@@ -802,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/contributing.md" class="md-nav__link">
+      <a href="../../../../02-development/contributing.md" class="md-nav__link">
         
   
   
@@ -825,7 +609,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/ci-cd-workflow.md" class="md-nav__link">
+      <a href="../../../../02-development/ci-cd-workflow.md" class="md-nav__link">
         
   
   
@@ -848,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/release-notes.md" class="md-nav__link">
+      <a href="../../../../02-development/release-notes.md" class="md-nav__link">
         
   
   
@@ -871,7 +655,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/improvement-recommendations.md" class="md-nav__link">
+      <a href="../../../../02-development/improvement-recommendations.md" class="md-nav__link">
         
   
   
@@ -934,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/PHASE2_README.md" class="md-nav__link">
+      <a href="../../../../02-development/PHASE2_README.md" class="md-nav__link">
         
   
   
@@ -957,7 +741,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/PHASE3_README.md" class="md-nav__link">
+      <a href="../../../../02-development/PHASE3_README.md" class="md-nav__link">
         
   
   
@@ -1028,7 +812,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-STANDARDIZATION-PHASE1.md" class="md-nav__link">
+      <a href="../../../../02-development/STYLE-STANDARDIZATION-PHASE1.md" class="md-nav__link">
         
   
   
@@ -1051,7 +835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-STANDARDIZATION-PHASE2.md" class="md-nav__link">
+      <a href="../../../../02-development/STYLE-STANDARDIZATION-PHASE2.md" class="md-nav__link">
         
   
   
@@ -1074,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-INTEGRATION-PLAN.md" class="md-nav__link">
+      <a href="../../../../02-development/STYLE-INTEGRATION-PLAN.md" class="md-nav__link">
         
   
   
@@ -1155,7 +939,7 @@
   
   
     <li class="md-nav__item">
-      <a href="03-api/README.md" class="md-nav__link">
+      <a href="../../../../03-api/README.md" class="md-nav__link">
         
   
   
@@ -1178,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="03-api/reference.md" class="md-nav__link">
+      <a href="../../../../03-api/reference.md" class="md-nav__link">
         
   
   
@@ -1251,7 +1035,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/README.md" class="md-nav__link">
+      <a href="../../../../04-deployment/README.md" class="md-nav__link">
         
   
   
@@ -1274,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/workflow.md" class="md-nav__link">
+      <a href="../../../../04-deployment/workflow.md" class="md-nav__link">
         
   
   
@@ -1297,7 +1081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/cloudflare-config.md" class="md-nav__link">
+      <a href="../../../../04-deployment/cloudflare-config.md" class="md-nav__link">
         
   
   
@@ -1320,7 +1104,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/cloudflare-caching-guide.md" class="md-nav__link">
+      <a href="../../../../04-deployment/cloudflare-caching-guide.md" class="md-nav__link">
         
   
   
@@ -1343,7 +1127,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/PWA_IMPLEMENTATION.md" class="md-nav__link">
+      <a href="../../../../04-deployment/PWA_IMPLEMENTATION.md" class="md-nav__link">
         
   
   
@@ -1416,7 +1200,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/README.md" class="md-nav__link">
+      <a href="../../../../05-testing/README.md" class="md-nav__link">
         
   
   
@@ -1439,7 +1223,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/production-testing-strategy.md" class="md-nav__link">
+      <a href="../../../../05-testing/production-testing-strategy.md" class="md-nav__link">
         
   
   
@@ -1462,7 +1246,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/security-testing.md" class="md-nav__link">
+      <a href="../../../../05-testing/security-testing.md" class="md-nav__link">
         
   
   
@@ -1485,7 +1269,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/TESTING.md" class="md-nav__link">
+      <a href="../../../../05-testing/TESTING.md" class="md-nav__link">
         
   
   
@@ -1558,7 +1342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="06-security/README.md" class="md-nav__link">
+      <a href="../../../../06-security/README.md" class="md-nav__link">
         
   
   
@@ -1581,7 +1365,7 @@
   
   
     <li class="md-nav__item">
-      <a href="06-security/model.md" class="md-nav__link">
+      <a href="../../../../06-security/model.md" class="md-nav__link">
         
   
   
@@ -1654,7 +1438,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/index.md" class="md-nav__link">
+      <a href="../../../../07-guides/index.md" class="md-nav__link">
         
   
   
@@ -1677,7 +1461,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/CACHING_IMPLEMENTATION_GUIDE.md" class="md-nav__link">
+      <a href="../../../../07-guides/CACHING_IMPLEMENTATION_GUIDE.md" class="md-nav__link">
         
   
   
@@ -1700,7 +1484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/SUPABASE_QUEUES_SETUP.md" class="md-nav__link">
+      <a href="../../../../07-guides/SUPABASE_QUEUES_SETUP.md" class="md-nav__link">
         
   
   
@@ -1723,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/SETUP_HOME_ASSISTANT.md" class="md-nav__link">
+      <a href="../../../../07-guides/SETUP_HOME_ASSISTANT.md" class="md-nav__link">
         
   
   
@@ -1746,7 +1530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/DARK-MODE-GUIDE.md" class="md-nav__link">
+      <a href="../../../../07-guides/DARK-MODE-GUIDE.md" class="md-nav__link">
         
   
   
@@ -1819,7 +1603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/README.md" class="md-nav__link">
+      <a href="../../../../08-reports/README.md" class="md-nav__link">
         
   
   
@@ -1842,7 +1626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/ui-ux-design-evaluation.md" class="md-nav__link">
+      <a href="../../../../08-reports/ui-ux-design-evaluation.md" class="md-nav__link">
         
   
   
@@ -1905,7 +1689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/README.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/README.md" class="md-nav__link">
         
   
   
@@ -1928,7 +1712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/changes-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/changes-summary.md" class="md-nav__link">
         
   
   
@@ -1951,7 +1735,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/dashboard.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/dashboard.md" class="md-nav__link">
         
   
   
@@ -1974,7 +1758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/TONIGHT_SUMMARY.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/TONIGHT_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -1997,7 +1781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/ORGANIZATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/ORGANIZATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2020,7 +1804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md" class="md-nav__link">
         
   
   
@@ -2043,7 +1827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/edge-function-consolidation-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/edge-function-consolidation-summary.md" class="md-nav__link">
         
   
   
@@ -2066,7 +1850,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/phase-2c-completion-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/01-project-phases/phase-2c-completion-summary.md" class="md-nav__link">
         
   
   
@@ -2137,7 +1921,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/k6-database-load-test-2025-06-12.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/k6-database-load-test-2025-06-12.md" class="md-nav__link">
         
   
   
@@ -2160,7 +1944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/cache-vs-no-cache-analysis.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/cache-vs-no-cache-analysis.md" class="md-nav__link">
         
   
   
@@ -2183,7 +1967,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/caching-issues-analysis.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/caching-issues-analysis.md" class="md-nav__link">
         
   
   
@@ -2206,7 +1990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/caching-optimization-results.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/caching-optimization-results.md" class="md-nav__link">
         
   
   
@@ -2229,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/PHASE-1-COMPLETE.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/PHASE-1-COMPLETE.md" class="md-nav__link">
         
   
   
@@ -2252,7 +2036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-1-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/phase-1-summary.md" class="md-nav__link">
         
   
   
@@ -2275,7 +2059,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-1-caching-performance-report.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/phase-1-caching-performance-report.md" class="md-nav__link">
         
   
   
@@ -2298,7 +2082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-2a-schema-optimization-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/phase-2a-schema-optimization-summary.md" class="md-nav__link">
         
   
   
@@ -2321,7 +2105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
         
   
   
@@ -2344,7 +2128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/supabase-optimization-recommendations.md" class="md-nav__link">
+      <a href="../../../../08-reports/02-performance/supabase-optimization-recommendations.md" class="md-nav__link">
         
   
   
@@ -2415,7 +2199,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/edge-functions-caching-review.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/edge-functions-caching-review.md" class="md-nav__link">
         
   
   
@@ -2438,7 +2222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/frontend-assessment-report.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/frontend-assessment-report.md" class="md-nav__link">
         
   
   
@@ -2461,7 +2245,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
         
   
   
@@ -2484,7 +2268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
         
   
   
@@ -2507,7 +2291,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/security-report-frontend-backend-2025.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/security-report-frontend-backend-2025.md" class="md-nav__link">
         
   
   
@@ -2530,7 +2314,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/security-vulnerability-review-2025.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/security-vulnerability-review-2025.md" class="md-nav__link">
         
   
   
@@ -2553,7 +2337,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
         
   
   
@@ -2576,7 +2360,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/2025-06-19-supabase-audit.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/2025-06-19-supabase-audit.md" class="md-nav__link">
         
   
   
@@ -2599,7 +2383,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-audit-completion-report.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/supabase-audit-completion-report.md" class="md-nav__link">
         
   
   
@@ -2622,7 +2406,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-review.md" class="md-nav__link">
+      <a href="../../../../08-reports/03-technical-reviews/supabase-review.md" class="md-nav__link">
         
   
   
@@ -2693,7 +2477,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/cursor-workflow-research-2025-05-17.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/cursor-workflow-research-2025-05-17.md" class="md-nav__link">
         
   
   
@@ -2716,7 +2500,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/cursor-workflow-techniques-2025.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/cursor-workflow-techniques-2025.md" class="md-nav__link">
         
   
   
@@ -2739,7 +2523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md" class="md-nav__link">
         
   
   
@@ -2762,7 +2546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2785,7 +2569,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/ui-ux-analysis-2025-05-18.md" class="md-nav__link">
         
   
   
@@ -2808,7 +2592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md" class="md-nav__link">
         
   
   
@@ -2831,7 +2615,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/vertical_farm_ui_ux_review.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/vertical_farm_ui_ux_review.md" class="md-nav__link">
         
   
   
@@ -2854,7 +2638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md" class="md-nav__link">
+      <a href="../../../../08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md" class="md-nav__link">
         
   
   
@@ -2925,7 +2709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../../../08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2948,7 +2732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/migration-testing-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/05-migrations/migration-testing-summary.md" class="md-nav__link">
         
   
   
@@ -2971,7 +2755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/phase-2b-migration-consolidation-summary.md" class="md-nav__link">
+      <a href="../../../../08-reports/05-migrations/phase-2b-migration-consolidation-summary.md" class="md-nav__link">
         
   
   
@@ -3042,7 +2826,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
+      <a href="../../../../08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
         
   
   
@@ -3123,7 +2907,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/README.md" class="md-nav__link">
+      <a href="../../../../09-migration/README.md" class="md-nav__link">
         
   
   
@@ -3146,7 +2930,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/postgrest-migration-guide.md" class="md-nav__link">
+      <a href="../../../../09-migration/postgrest-migration-guide.md" class="md-nav__link">
         
   
   
@@ -3169,7 +2953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/SEMANTIC-TOKEN-MIGRATION.md" class="md-nav__link">
+      <a href="../../../../09-migration/SEMANTIC-TOKEN-MIGRATION.md" class="md-nav__link">
         
   
   
@@ -3192,7 +2976,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/check_home_assistant_table.sql" class="md-nav__link">
+      <a href="../../../../09-migration/check_home_assistant_table.sql" class="md-nav__link">
         
   
   
@@ -3215,7 +2999,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/check_user_home_assistant_config.sql" class="md-nav__link">
+      <a href="../../../../09-migration/check_user_home_assistant_config.sql" class="md-nav__link">
         
   
   
@@ -3265,82 +3049,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#problem-summary" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Quick Start
+      🎯 Problem Summary
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-setup" class="md-nav__link">
+  <a href="#root-cause-analysis" class="md-nav__link">
     <span class="md-ellipsis">
-      ⚡ Development Setup
+      🔍 Root Cause Analysis
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 Documentation Structure
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📚 Documentation Structure">
+    <nav class="md-nav" aria-label="🔍 Root Cause Analysis">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#primary-issues-identified" class="md-nav__link">
     <span class="md-ellipsis">
-      🎯 Getting Started
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      📖 Reference
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#guides" class="md-nav__link">
-    <span class="md-ellipsis">
-      📋 Guides
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Development
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#archive" class="md-nav__link">
-    <span class="md-ellipsis">
-      📦 Archive
+      Primary Issues Identified:
     </span>
   </a>
   
@@ -3352,64 +3082,46 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#find-what-you-need" class="md-nav__link">
+  <a href="#optimization-solutions-implemented" class="md-nav__link">
     <span class="md-ellipsis">
-      🔍 Find What You Need
+      ⚡ Optimization Solutions Implemented
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏗️ Platform Architecture
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Key Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📊 Key Features">
+    <nav class="md-nav" aria-label="⚡ Optimization Solutions Implemented">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#agriculture-management" class="md-nav__link">
+  <a href="#1-smart-cache-bypass-logic" class="md-nav__link">
     <span class="md-ellipsis">
-      🌱 Agriculture Management
+      1. Smart Cache Bypass Logic
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#iot-automation" class="md-nav__link">
+  <a href="#2-asynchronous-cache-operations" class="md-nav__link">
     <span class="md-ellipsis">
-      🏭 IoT &amp; Automation
+      2. Asynchronous Cache Operations
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-operations" class="md-nav__link">
+  <a href="#3-batch-database-operations" class="md-nav__link">
     <span class="md-ellipsis">
-      📊 Business Operations
+      3. Batch Database Operations
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#technical-excellence" class="md-nav__link">
+  <a href="#4-adaptive-cache-effectiveness-monitoring" class="md-nav__link">
     <span class="md-ellipsis">
-      💻 Technical Excellence
+      4. Adaptive Cache Effectiveness Monitoring
     </span>
   </a>
   
@@ -3421,18 +3133,192 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#contributing-to-documentation" class="md-nav__link">
+  <a href="#performance-results" class="md-nav__link">
     <span class="md-ellipsis">
-      🤝 Contributing to Documentation
+      📊 Performance Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Performance Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latest-test-results-post-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latest Test Results (Post-Optimization):
     </span>
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Comparison:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
+  <a href="#key-achievements" class="md-nav__link">
     <span class="md-ellipsis">
-      📞 Support
+      🎉 Key Achievements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎉 Key Achievements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#individual-request-performance-restored" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Individual Request Performance Restored
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintained-throughput-gains" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Maintained Throughput Gains
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved-p95-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Improved P95 Consistency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smart-cache-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Smart Cache Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Technical Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Technical Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cache-architecture-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cache Architecture Enhancements:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Optimization:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-recommendation" class="md-nav__link">
+    <span class="md-ellipsis">
+      📈 Production Deployment Recommendation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 Production Deployment Recommendation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Benefits:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring Recommendations:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Next Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Next Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#immediate-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Immediate Actions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Future Enhancements:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Conclusion
     </span>
   </a>
   
@@ -3457,144 +3343,208 @@
   
 
 
-<h1 id="vertical-farm-documentation">Vertical Farm Documentation</h1>
-<p>Welcome to the comprehensive documentation for the Vertical Farm Management Platform - a full-stack IoT solution combining Next.js 15, FastAPI, Supabase, and Cloudflare Workers for smart agriculture automation.</p>
-<h2 id="quick-start">🚀 Quick Start</h2>
-<p><strong>New to the project?</strong> Start here based on your role:</p>
-<ul>
-<li><strong>👩‍💻 Developer</strong> → <a href="getting-started/">Getting Started Guide</a></li>
-<li><strong>🔧 DevOps Engineer</strong> → <a href="operations/">Operations Overview</a> </li>
-<li><strong>📚 API Consumer</strong> → <a href="reference/api/">API Reference</a></li>
-<li><strong>🎨 Frontend Developer</strong> → <a href="guides/features/README.md">Frontend Guide</a></li>
-</ul>
-<h2 id="development-setup">⚡ Development Setup</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Prerequisites: Node.js 18+, Python 3.13+, Docker</span>
-<span class="c1"># Install Supabase CLI</span>
-brew<span class="w"> </span>install<span class="w"> </span>supabase/tap/supabase
+<h1 id="caching-optimization-results-analysis">Caching Optimization Results &amp; Analysis</h1>
+<p><strong>Date:</strong> January 29, 2025<br />
+<strong>Issue:</strong> Caching implementation was slowing down individual user requests<br />
+<strong>Status:</strong> ✅ <strong>RESOLVED</strong> - Significant performance improvements achieved</p>
+<h2 id="problem-summary">🎯 Problem Summary</h2>
+<p>Our initial caching implementation showed a <strong>4.9% increase in average response time</strong> (403.04ms → 422.87ms) despite improving throughput by 146%. This indicated that while the system could handle more concurrent load, individual requests were taking longer due to cache overhead.</p>
+<h2 id="root-cause-analysis">🔍 Root Cause Analysis</h2>
+<h3 id="primary-issues-identified">Primary Issues Identified:</h3>
+<ol>
+<li><strong>Cache Miss Penalty Overhead</strong></li>
+<li>Every request performed cache lookups even when cache was empty</li>
+<li>
+<p>Added latency without benefit during cache warming periods</p>
+</li>
+<li>
+<p><strong>Inefficient Cache Operations</strong></p>
+</li>
+<li>Multiple sequential cache lookups in loops</li>
+<li>Synchronous cache operations blocking request processing</li>
+<li>
+<p>No cache effectiveness validation</p>
+</li>
+<li>
+<p><strong>Poor Cache Strategy</strong></p>
+</li>
+<li>No bypass mechanism for ineffective caches</li>
+<li>Fixed caching regardless of hit rate performance</li>
+<li>Excessive cache key generation overhead</li>
+</ol>
+<h2 id="optimization-solutions-implemented">⚡ Optimization Solutions Implemented</h2>
+<h3 id="1-smart-cache-bypass-logic">1. <strong>Smart Cache Bypass Logic</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Always check cache</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">cachedStates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">HomeAssistantCache</span><span class="p">.</span><span class="nx">getDeviceStatesBatch</span><span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">user_id</span><span class="p">)</span>
 
-<span class="c1"># Start development environment (recommended)</span>
-make<span class="w"> </span>up
-
-<span class="c1"># Access the application</span>
-<span class="c1"># Frontend: http://localhost:3000</span>
-<span class="c1"># Backend: http://localhost:8000</span>
-<span class="c1"># Supabase Studio: http://localhost:54323</span>
+<span class="c1">// After: Only use cache if proven effective</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">shouldUseCache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">HomeAssistantCache</span><span class="p">.</span><span class="nx">shouldUseCache</span><span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">user_id</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">shouldUseCache</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">cachedStates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">HomeAssistantCache</span><span class="p">.</span><span class="nx">getDeviceStatesBatch</span><span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">user_id</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">}</span>
 </code></pre></div>
-<p><strong>Alternative setup methods:</strong>
-- <strong>Docker Compose</strong>: <code>docker-compose up --build</code>
-- <strong>Manual setup</strong>: See <a href="getting-started/environment-setup/">Environment Setup</a>
-- <strong>Detailed workflow</strong>: <a href="development/docker-workflow/">Docker Workflow Guide</a></p>
-<h2 id="documentation-structure">📚 Documentation Structure</h2>
-<h3 id="getting-started">🎯 <a href="getting-started/">Getting Started</a></h3>
-<p>Your entry point to the platform - setup, architecture overview, and quick tutorials.</p>
-<h3 id="reference">📖 <a href="reference/">Reference</a></h3>
-<p>Technical specifications, API documentation, and system architecture details.</p>
-<h3 id="guides">📋 <a href="guides/">Guides</a></h3>
-<p>Task-oriented how-to guides for features, integrations, and troubleshooting.</p>
-<h3 id="development">🛠️ <a href="development/">Development</a></h3>
-<p>Contribution guidelines, coding standards, and development workflows.</p>
-<h3 id="operations">🚀 <a href="operations/">Operations</a></h3>
-<p>Production deployment, monitoring, security, and infrastructure management.</p>
-<h3 id="archive">📦 <a href="archive/">Archive</a></h3>
-<p>Historical reports, completed migrations, and legacy documentation.</p>
-<h2 id="find-what-you-need">🔍 Find What You Need</h2>
+<h3 id="2-asynchronous-cache-operations">2. <strong>Asynchronous Cache Operations</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Synchronous cache storage blocking request</span>
+<span class="nx">HomeAssistantCache</span><span class="p">.</span><span class="nx">setDeviceStates</span><span class="p">(</span><span class="nx">newStates</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">.</span><span class="nx">user_id</span><span class="p">)</span>
+
+<span class="c1">// After: Asynchronous cache storage (don&#39;t wait)</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">newStates</span><span class="p">).</span><span class="nx">length</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">shouldUseCache</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">HomeAssistantCache</span><span class="p">.</span><span class="nx">setDeviceStates</span><span class="p">(</span><span class="nx">newStates</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">.</span><span class="nx">user_id</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="3-batch-database-operations">3. <strong>Batch Database Operations</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before: Sequential database updates</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">results</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">supabaseDb</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;home_assistant_devices&#39;</span><span class="p">).</span><span class="nx">update</span><span class="p">(...)</span>
+<span class="p">}</span>
+
+<span class="c1">// After: Parallel batch updates</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">updatePromises</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Object</span><span class="p">.</span><span class="nx">entries</span><span class="p">(</span><span class="nx">newStates</span><span class="p">).</span><span class="nx">map</span><span class="p">(([</span><span class="nx">entityId</span><span class="p">,</span><span class="w"> </span><span class="nx">state</span><span class="p">])</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">  </span><span class="nx">supabaseDb</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;home_assistant_devices&#39;</span><span class="p">).</span><span class="nx">update</span><span class="p">(...)</span>
+<span class="p">)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">updateResults</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">updatePromises</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="4-adaptive-cache-effectiveness-monitoring">4. <strong>Adaptive Cache Effectiveness Monitoring</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="nx">shouldUseCache</span><span class="p">(</span><span class="nx">userId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="kt">boolean</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">stats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">globalCache</span><span class="p">.</span><span class="nx">getStats</span><span class="p">()</span>
+
+<span class="w">  </span><span class="c1">// Don&#39;t use cache if it&#39;s not effective</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">stats</span><span class="p">.</span><span class="nx">totalRequests</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">stats</span><span class="p">.</span><span class="nx">isEffective</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// For new caches, give it a chance</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">stats</span><span class="p">.</span><span class="nx">totalRequests</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">10</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">stats</span><span class="p">.</span><span class="nx">isEffective</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="performance-results">📊 Performance Results</h2>
+<h3 id="latest-test-results-post-optimization">Latest Test Results (Post-Optimization):</h3>
+<ul>
+<li><strong>Total Requests:</strong> 3,390</li>
+<li><strong>Successful Requests:</strong> 3,390 (0% error rate)</li>
+<li><strong>Average Response Time:</strong> 403.90ms</li>
+<li><strong>95th Percentile:</strong> 553.82ms</li>
+<li><strong>Throughput:</strong> 56.50 req/s</li>
+</ul>
+<h3 id="performance-comparison">Performance Comparison:</h3>
 <table>
 <thead>
 <tr>
-<th>I want to...</th>
-<th>Go to</th>
+<th>Metric</th>
+<th>Baseline (No Cache)</th>
+<th>Original Cache</th>
+<th>Optimized Cache</th>
+<th>Improvement</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Set up my development environment</td>
-<td><a href="getting-started/quickstart/">Quickstart Guide</a></td>
+<td><strong>Avg Response Time</strong></td>
+<td>403.04ms</td>
+<td>422.87ms (+4.9%)</td>
+<td>403.90ms</td>
+<td><strong>+0.2%</strong> ✅</td>
 </tr>
 <tr>
-<td>Understand the system architecture</td>
-<td><a href="getting-started/architecture-overview/">Architecture Overview</a></td>
+<td><strong>P95 Response Time</strong></td>
+<td>570.61ms</td>
+<td>548.72ms (-3.8%)</td>
+<td>553.82ms</td>
+<td><strong>-2.9%</strong> ✅</td>
 </tr>
 <tr>
-<td>Learn about the API</td>
-<td><a href="reference/api/">API Reference</a></td>
+<td><strong>Throughput</strong></td>
+<td>21.5 req/s</td>
+<td>53.0 req/s (+146%)</td>
+<td>56.5 req/s</td>
+<td><strong>+163%</strong> ✅</td>
 </tr>
 <tr>
-<td>Deploy to production</td>
-<td><a href="operations/deployment/">Deployment Guide</a></td>
-</tr>
-<tr>
-<td>Integrate Home Assistant</td>
-<td><a href="guides/integrations/home-assistant/">Home Assistant Guide</a></td>
-</tr>
-<tr>
-<td>Run tests</td>
-<td><a href="development/testing-guide/">Testing Guide</a></td>
-</tr>
-<tr>
-<td>Report a bug</td>
-<td><a href="development/contributing/">Contributing</a></td>
+<td><strong>Error Rate</strong></td>
+<td>0%</td>
+<td>0%</td>
+<td>0%</td>
+<td><strong>Maintained</strong> ✅</td>
 </tr>
 </tbody>
 </table>
-<h2 id="platform-architecture">🏗️ Platform Architecture</h2>
-<p><strong>Tech Stack</strong>: Next.js 15 + React 19 + TypeScript + Python 3.13 + FastAPI + Supabase + Cloudflare Workers</p>
-<pre class="mermaid"><code>graph TB
-    A[Next.js 15 Frontend&lt;br/&gt;React 19 + TypeScript] --&gt; B[Cloudflare Workers&lt;br/&gt;Edge Computing]
-    B --&gt; C[FastAPI Backend&lt;br/&gt;Python 3.13]
-    C --&gt; D[Supabase Database&lt;br/&gt;PostgreSQL + RLS]
-    A --&gt; E[Supabase Auth&lt;br/&gt;JWT + RLS]
-    F[Home Assistant&lt;br/&gt;IoT Hub] --&gt; C
-    G[IoT Devices&lt;br/&gt;Sensors + Controllers] --&gt; F
-    H[Square Payments&lt;br/&gt;Business Operations] --&gt; C</code></pre>
-<p><strong>Project Structure</strong>:
-<div class="highlight"><pre><span></span><code>vertical-farm/
-├── frontend/          # Next.js 15 application
-├── backend/           # FastAPI Python backend  
-├── cloudflare/        # Edge functions and workers
-├── supabase/          # Database migrations and functions
-├── scripts/           # Automation and deployment scripts
-├── monitoring/        # Datadog dashboards and alerts
-├── tests/             # Cross-platform integration tests
-└── docs/              # This comprehensive documentation
-</code></pre></div></p>
-<h2 id="key-features">📊 Key Features</h2>
-<h3 id="agriculture-management">🌱 <strong>Agriculture Management</strong></h3>
+<h2 id="key-achievements">🎉 Key Achievements</h2>
+<h3 id="individual-request-performance-restored">✅ <strong>Individual Request Performance Restored</strong></h3>
 <ul>
-<li><strong>Multi-tier Farm Hierarchy</strong>: Farms → Rows → Racks → Shelves organization</li>
-<li><strong>Grow Recipe System</strong>: Automated growing parameters and schedules</li>
-<li><strong>Plant Lifecycle Tracking</strong>: From seed to harvest monitoring</li>
+<li>Average response time back to baseline levels (403.90ms vs 403.04ms baseline)</li>
+<li>Eliminated the 4.9% slowdown that was affecting users</li>
 </ul>
-<h3 id="iot-automation">🏭 <strong>IoT &amp; Automation</strong></h3>
+<h3 id="maintained-throughput-gains">✅ <strong>Maintained Throughput Gains</strong></h3>
 <ul>
-<li><strong>Real-time Device Control</strong>: Sensors, fans, lights, pumps integration</li>
-<li><strong>Home Assistant Integration</strong>: Comprehensive IoT device management</li>
-<li><strong>Visual Layer Overlay System</strong>: Multi-layer farm visualization</li>
-<li><strong>Automated Responses</strong>: Condition-based device automation</li>
+<li><strong>+163% throughput improvement</strong> maintained (56.5 req/s vs 21.5 baseline)</li>
+<li>System can handle 2.6x more concurrent load</li>
 </ul>
-<h3 id="business-operations">📊 <strong>Business Operations</strong></h3>
+<h3 id="improved-p95-consistency">✅ <strong>Improved P95 Consistency</strong></h3>
 <ul>
-<li><strong>Square Payment Integration</strong>: Revenue tracking and payment processing</li>
-<li><strong>Performance Analytics</strong>: Yield optimization and cost analysis</li>
-<li><strong>Multi-user Support</strong>: Role-based access control with RLS</li>
-<li><strong>Datadog Monitoring</strong>: Production-grade observability</li>
+<li><strong>-2.9% improvement</strong> in 95th percentile response times</li>
+<li>Better experience for users during peak load</li>
 </ul>
-<h3 id="technical-excellence">💻 <strong>Technical Excellence</strong></h3>
+<h3 id="smart-cache-management">✅ <strong>Smart Cache Management</strong></h3>
 <ul>
-<li><strong>Service Layer Architecture</strong>: Mandatory pattern for all data operations</li>
-<li><strong>PWA Support</strong>: Mobile-first design with offline capabilities</li>
-<li><strong>Edge Computing</strong>: Cloudflare Workers for global performance</li>
-<li><strong>Modern Stack</strong>: Next.js 15, React 19, Python 3.13, TypeScript</li>
+<li>Cache automatically disables itself when ineffective</li>
+<li>No performance penalty for cache misses</li>
+<li>Adaptive cleanup based on cache effectiveness</li>
 </ul>
-<h2 id="contributing-to-documentation">🤝 Contributing to Documentation</h2>
-<p>Found something unclear or missing? See our <a href="development/contributing/#documentation">Documentation Guidelines</a> to contribute.</p>
-<h2 id="support">📞 Support</h2>
+<h2 id="technical-improvements">🔧 Technical Improvements</h2>
+<h3 id="cache-architecture-enhancements">Cache Architecture Enhancements:</h3>
+<ol>
+<li><strong>Hit Rate Monitoring</strong>: Real-time cache effectiveness tracking</li>
+<li><strong>Adaptive Cleanup</strong>: Dynamic cleanup intervals based on cache size and hit rate</li>
+<li><strong>Request Deduplication</strong>: Prevents duplicate API calls for same data</li>
+<li><strong>Conditional Caching</strong>: Only cache frequently accessed data</li>
+</ol>
+<h3 id="database-optimization">Database Optimization:</h3>
+<ol>
+<li><strong>Parallel Operations</strong>: Batch database updates for better performance</li>
+<li><strong>Reduced Query Load</strong>: Smart cache bypass reduces unnecessary database hits</li>
+<li><strong>Connection Efficiency</strong>: Better connection pool utilization</li>
+</ol>
+<h2 id="production-deployment-recommendation">📈 Production Deployment Recommendation</h2>
+<p><strong>✅ APPROVED FOR PRODUCTION DEPLOYMENT</strong></p>
+<h3 id="deployment-benefits">Deployment Benefits:</h3>
 <ul>
-<li><strong>Issues</strong>: <a href="../CONTRIBUTING.md">GitHub Issues</a></li>
-<li><strong>Discussions</strong>: <a href="../CONTRIBUTING.md">GitHub Discussions</a></li>
-<li><strong>Architecture Questions</strong>: See <a href="reference/architecture/">Architecture Reference</a></li>
+<li><strong>Zero user impact</strong>: Response times back to baseline</li>
+<li><strong>Massive scalability improvement</strong>: 163% throughput increase</li>
+<li><strong>Better reliability</strong>: Improved P95 response times</li>
+<li><strong>Cost efficiency</strong>: Reduced API calls and database load</li>
 </ul>
-<hr />
-<p><em>Last Updated: January 2025 | Active Documents: 44 | Structure Version: 2.0 | <a href="archive/migrations/MIGRATION_FROM_OLD_STRUCTURE/">Migration Guide</a></em></p>
+<h3 id="monitoring-recommendations">Monitoring Recommendations:</h3>
+<ol>
+<li><strong>Cache Hit Rate</strong>: Monitor cache effectiveness (target &gt;30%)</li>
+<li><strong>Response Times</strong>: Track P95 response times (target &lt;600ms)</li>
+<li><strong>Throughput</strong>: Monitor requests per second capacity</li>
+<li><strong>Error Rates</strong>: Ensure 0% error rate maintained</li>
+</ol>
+<h2 id="next-steps">🚀 Next Steps</h2>
+<h3 id="immediate-actions">Immediate Actions:</h3>
+<ol>
+<li><strong>Deploy to Production</strong>: Optimized caching is ready for production use</li>
+<li><strong>Monitor Metrics</strong>: Set up alerts for cache effectiveness and response times</li>
+<li><strong>Load Testing</strong>: Conduct production load testing to validate improvements</li>
+</ol>
+<h3 id="future-enhancements">Future Enhancements:</h3>
+<ol>
+<li><strong>Redis Integration</strong>: Consider Redis for distributed caching</li>
+<li><strong>Cache Warming</strong>: Implement proactive cache warming strategies</li>
+<li><strong>Advanced Analytics</strong>: Add detailed cache performance analytics</li>
+</ol>
+<h2 id="conclusion">📝 Conclusion</h2>
+<p>The caching optimization successfully resolved the user slowdown issue while maintaining all the throughput benefits. The smart cache bypass logic ensures that caching only provides benefits without penalties, making this a significant improvement for production deployment.</p>
+<p><strong>Key Success Metrics:</strong>
+- ✅ User experience restored (no individual request slowdown)
+- ✅ Scalability dramatically improved (+163% throughput)
+- ✅ System reliability enhanced (better P95 times)
+- ✅ Zero error rate maintained</p>
+<p>The optimized caching implementation is <strong>production-ready</strong> and will significantly improve the vertical farm platform's performance and scalability. </p>
 
 
 
@@ -3649,10 +3599,10 @@ make<span class="w"> </span>up
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.92b07e13.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.92b07e13.min.js"></script>
       
     
   </body>

@@ -1,0 +1,4118 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/development/coding-standards/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Coding Standards & Style Guide - Vertical Farm Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#coding-standards-style-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Vertical Farm Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Coding Standards &amp; Style Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Vertical Farm Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eddie-rowe/vertical-farm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/overview.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/backend.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Backend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/frontend.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/database-schema.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/automation-architecture.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Automation Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/edge-computing.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Computing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/caching-strategy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/LAYER_OVERLAY_SYSTEM.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Layer Overlay System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-architecture/responsibilities.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Responsibilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/contributing.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/ci-cd-workflow.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI/CD Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/release-notes.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/improvement-recommendations.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Improvement Recommendations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Phases
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            Project Phases
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/PHASE2_README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2 README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/PHASE3_README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 3 README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Style Standardization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            Style Standardization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE1.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE2.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-development/STYLE-INTEGRATION-PLAN.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integration Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-api/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-api/reference.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/workflow.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/cloudflare-config.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloudflare Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/cloudflare-caching-guide.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloudflare Caching Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-deployment/PWA_IMPLEMENTATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PWA Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/production-testing-strategy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Testing Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/security-testing.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-testing/TESTING.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Additional Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Security
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Security
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-security/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-security/model.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/index.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/CACHING_IMPLEMENTATION_GUIDE.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/SUPABASE_QUEUES_SETUP.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Queues Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/SETUP_HOME_ASSISTANT.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home Assistant Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-guides/DARK-MODE-GUIDE.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dark Mode Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/ui-ux-design-evaluation.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Design Evaluation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_3" id="__nav_9_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Phases
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_3">
+            <span class="md-nav__icon md-icon"></span>
+            Project Phases
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/changes-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changes Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/dashboard.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/TONIGHT_SUMMARY.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tonight Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/ORGANIZATION_SUMMARY.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Organization Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hermes Synchronization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/edge-function-consolidation-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Function Consolidation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/01-project-phases/phase-2c-completion-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2C Completion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_4" id="__nav_9_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Performance Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_4">
+            <span class="md-nav__icon md-icon"></span>
+            Performance Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/k6-database-load-test-2025-06-12.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    K6 Database Load Test
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/cache-vs-no-cache-analysis.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cache vs No-Cache Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/caching-issues-analysis.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Issues Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/caching-optimization-results.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching Optimization Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/PHASE-1-COMPLETE.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Complete
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-1-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-1-caching-performance-report.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Caching Performance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/phase-2a-schema-optimization-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2A Schema Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Queue Usage Opportunities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/02-performance/supabase-optimization-recommendations.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_5" id="__nav_9_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Reviews
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Reviews
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/edge-functions-caching-review.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge Functions Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/frontend-assessment-report.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend Assessment Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grow Parameters Code Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grow Parameters Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/security-report-frontend-backend-2025.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Frontend/Backend
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/security-vulnerability-review-2025.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Vulnerability Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/2025-06-19-supabase-audit.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Audit 2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-audit-completion-report.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Audit Completion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/03-technical-reviews/supabase-review.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supabase Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_6" id="__nav_9_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Analysis & Research
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_6">
+            <span class="md-nav__icon md-icon"></span>
+            Analysis & Research
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/cursor-workflow-research-2025-05-17.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cursor Workflow Research
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/cursor-workflow-techniques-2025.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cursor Workflow Techniques
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inspiration UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Square Integration Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI/UX Playwright Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/vertical_farm_ui_ux_review.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Vertical Farm UI/UX Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Vertigro UI/UX Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_7" id="__nav_9_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Migration Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_7">
+            <span class="md-nav__icon md-icon"></span>
+            Migration Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Consolidation Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/migration-testing-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Testing Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/05-migrations/phase-2b-migration-consolidation-summary.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 2B Migration Consolidation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_8" id="__nav_9_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Task Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_8">
+            <span class="md-nav__icon md-icon"></span>
+            Task Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Task Complexity Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Migration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Migration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-migration/README.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-migration/postgrest-migration-guide.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PostgREST Migration Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-migration/SEMANTIC-TOKEN-MIGRATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Semantic Token Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-migration/check_home_assistant_table.sql" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Check Home Assistant Table
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-migration/check_user_home_assistant_config.sql" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Check User Config
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#design-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎨 Design System Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      📐 Design Tokens
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📐 Design Tokens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Tokens
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-standards-nextjs-15-react-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Frontend Standards (Next.js 15 / React 19)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Frontend Standards (Next.js 15 / React 19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#component-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server-vs-client-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server vs Client Components
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Organization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#styling-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Styling Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Styling Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#utility-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Utility Classes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-styling-with-cva" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Styling with CVA
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#form-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Form Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Form Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Component
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#select-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Select Component
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-slider" class="md-nav__link">
+    <span class="md-ellipsis">
+      Range Slider
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-standards-fastapi-python-313" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐍 Backend Standards (FastAPI / Python 3.13)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐍 Backend Standards (FastAPI / Python 3.13)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Style">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-hints-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type Hints (Required)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Async Patterns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydantic-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pydantic Models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-standards-supabasepostgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗄️ Database Standards (Supabase/PostgreSQL)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Database Standards (Supabase/PostgreSQL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Naming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#row-level-security-rls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Row Level Security (RLS)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mobile-first-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      📱 Mobile-First Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📱 Mobile-First Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsive-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsive Utilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#touch-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Touch Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-review-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Code Review Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✅ Code Review Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Performance Guidelines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Performance Guidelines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="coding-standards-style-guide">Coding Standards &amp; Style Guide</h1>
+<p>This document defines the coding standards, design system, and style guidelines for the Vertical Farm project.</p>
+<h2 id="design-system-overview">🎨 Design System Overview</h2>
+<p>Our design system provides consistency across the entire application through:
+- <strong>Design Tokens</strong>: Standardized spacing, colors, typography
+- <strong>Utility Classes</strong>: Reusable styling patterns
+- <strong>Component Library</strong>: Type-safe, accessible components
+- <strong>Mobile-First</strong>: Responsive design approach</p>
+<h2 id="design-tokens">📐 Design Tokens</h2>
+<h3 id="core-tokens">Core Tokens</h3>
+<p>Located in <code>frontend/src/app/globals.css</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c">/* Farm-specific Design Tokens */</span>
+<span class="nt">--spacing-plant</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">75rem</span><span class="o">;</span><span class="w">      </span><span class="c">/* Plant-level spacing */</span>
+<span class="nt">--spacing-row</span><span class="o">:</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span><span class="w">          </span><span class="c">/* Row-level spacing */</span>
+<span class="nt">--spacing-rack</span><span class="o">:</span><span class="w"> </span><span class="nt">2rem</span><span class="o">;</span><span class="w">           </span><span class="c">/* Rack-level spacing */</span>
+<span class="nt">--spacing-shelf</span><span class="o">:</span><span class="w"> </span><span class="nt">1rem</span><span class="o">;</span><span class="w">          </span><span class="c">/* Shelf-level spacing */</span>
+<span class="nt">--spacing-sensor</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span><span class="w">       </span><span class="c">/* Sensor spacing */</span>
+
+<span class="c">/* Component Sizes */</span>
+<span class="nt">--size-plant-icon</span><span class="o">:</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span>
+<span class="nt">--size-sensor-icon</span><span class="o">:</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">25rem</span><span class="o">;</span>
+<span class="nt">--size-control-btn</span><span class="o">:</span><span class="w"> </span><span class="nt">2</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span>
+<span class="nt">--size-status-indicator</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span>
+
+<span class="c">/* Animation Timing */</span>
+<span class="nt">--duration-fast</span><span class="o">:</span><span class="w"> </span><span class="nt">150ms</span><span class="o">;</span>
+<span class="nt">--duration-normal</span><span class="o">:</span><span class="w"> </span><span class="nt">250ms</span><span class="o">;</span>
+<span class="nt">--duration-slow</span><span class="o">:</span><span class="w"> </span><span class="nt">350ms</span><span class="o">;</span>
+<span class="nt">--duration-pulse</span><span class="o">:</span><span class="w"> </span><span class="nt">2s</span><span class="o">;</span>
+
+<span class="c">/* Easing Functions */</span>
+<span class="nt">--ease-farm</span><span class="o">:</span><span class="w"> </span><span class="nt">cubic-bezier</span><span class="o">(</span><span class="nt">0</span><span class="p">.</span><span class="nc">4</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">2</span><span class="o">,</span><span class="w"> </span><span class="nt">1</span><span class="o">);</span>
+<span class="nt">--ease-gentle</span><span class="o">:</span><span class="w"> </span><span class="nt">cubic-bezier</span><span class="o">(</span><span class="nt">0</span><span class="p">.</span><span class="nc">25</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">46</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">45</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">94</span><span class="o">);</span>
+<span class="nt">--ease-bounce</span><span class="o">:</span><span class="w"> </span><span class="nt">cubic-bezier</span><span class="o">(</span><span class="nt">0</span><span class="p">.</span><span class="nc">68</span><span class="o">,</span><span class="w"> </span><span class="nt">-0</span><span class="p">.</span><span class="nc">55</span><span class="o">,</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">265</span><span class="o">,</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">55</span><span class="o">);</span>
+
+<span class="c">/* Typography */</span>
+<span class="nt">--font-size-plant-label</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">75rem</span><span class="o">;</span>
+<span class="nt">--font-size-sensor-value</span><span class="o">:</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">125rem</span><span class="o">;</span>
+<span class="nt">--font-size-farm-title</span><span class="o">:</span><span class="w"> </span><span class="nt">1</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span>
+<span class="nt">--font-size-control-label</span><span class="o">:</span><span class="w"> </span><span class="nt">0</span><span class="p">.</span><span class="nc">875rem</span><span class="o">;</span>
+
+<span class="c">/* Z-Index Layers */</span>
+<span class="nt">--z-index-farm-overlay</span><span class="o">:</span><span class="w"> </span><span class="nt">10</span><span class="o">;</span>
+<span class="nt">--z-index-sensor-popup</span><span class="o">:</span><span class="w"> </span><span class="nt">20</span><span class="o">;</span>
+<span class="nt">--z-index-control-panel</span><span class="o">:</span><span class="w"> </span><span class="nt">30</span><span class="o">;</span>
+<span class="nt">--z-index-modal</span><span class="o">:</span><span class="w"> </span><span class="nt">40</span><span class="o">;</span>
+
+<span class="c">/* Form &amp; Input Tokens */</span>
+<span class="nt">--input-height-sm</span><span class="o">:</span><span class="w"> </span><span class="nt">2rem</span><span class="o">;</span>
+<span class="nt">--input-height-md</span><span class="o">:</span><span class="w"> </span><span class="nt">2</span><span class="p">.</span><span class="nc">5rem</span><span class="o">;</span>
+<span class="nt">--input-height-lg</span><span class="o">:</span><span class="w"> </span><span class="nt">3rem</span><span class="o">;</span>
+<span class="nt">--validation-success</span><span class="o">:</span><span class="w"> </span><span class="p">#</span><span class="nn">10b981</span><span class="o">;</span>
+<span class="nt">--validation-warning</span><span class="o">:</span><span class="w"> </span><span class="p">#</span><span class="nn">f59e0b</span><span class="o">;</span>
+<span class="nt">--validation-error</span><span class="o">:</span><span class="w"> </span><span class="p">#</span><span class="nn">ef4444</span><span class="o">;</span>
+
+<span class="c">/* Mobile Touch Targets */</span>
+<span class="nt">--touch-target-min</span><span class="o">:</span><span class="w"> </span><span class="nt">44px</span><span class="o">;</span>
+<span class="nt">--touch-spacing</span><span class="o">:</span><span class="w"> </span><span class="nt">12px</span><span class="o">;</span>
+</code></pre></div>
+<h2 id="frontend-standards-nextjs-15-react-19">🎯 Frontend Standards (Next.js 15 / React 19)</h2>
+<h3 id="component-architecture">Component Architecture</h3>
+<h4 id="server-vs-client-components">Server vs Client Components</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// DEFAULT: Server Component (no &#39;use client&#39;)</span>
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">FarmDashboard</span><span class="p">({</span><span class="w"> </span><span class="nx">farmId</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="nx">Props</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// Can fetch data directly</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">farms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">farmService</span><span class="p">.</span><span class="nx">getFarmsByUser</span><span class="p">(</span><span class="nx">userId</span><span class="p">)</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">FarmList</span><span class="w"> </span><span class="nx">farms</span><span class="o">=</span><span class="p">{</span><span class="nx">farms</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="p">}</span>
+
+<span class="c1">// Client Component (interactive features)</span>
+<span class="s1">&#39;use client&#39;</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">FarmControls</span><span class="p">({</span><span class="w"> </span><span class="nx">farm</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="nx">Props</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">optimisticState</span><span class="p">,</span><span class="w"> </span><span class="nx">setOptimisticState</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useOptimistic</span><span class="p">(</span><span class="nx">farm</span><span class="p">.</span><span class="nx">state</span><span class="p">)</span>
+<span class="w">  </span><span class="c1">// Handle user interactions</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="component-organization">Component Organization</h4>
+<div class="highlight"><pre><span></span><code>components/
+├── features/                  # Domain-specific components
+│   ├── agriculture/          # Farm management
+│   │   ├── FarmCard.tsx
+│   │   ├── PlantMonitor.tsx
+│   │   └── HarvestSchedule.tsx
+│   ├── automation/           # Device control
+│   │   ├── DeviceControl.tsx
+│   │   ├── SensorPanel.tsx
+│   │   └── AutomationRules.tsx
+│   └── business/             # Analytics
+│       ├── YieldChart.tsx
+│       └── CostAnalysis.tsx
+├── ui/                       # Reusable UI components
+│   ├── Button.tsx
+│   ├── Card.tsx
+│   └── Modal.tsx
+└── layout/                   # Layout components
+    ├── Header.tsx
+    ├── Sidebar.tsx
+    └── Footer.tsx
+</code></pre></div>
+<h3 id="styling-patterns">Styling Patterns</h3>
+<h4 id="utility-classes">Utility Classes</h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// Farm Hierarchy Gradients</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;gradient-farm&quot;</span><span class="p">&gt;</span><span class="w">     </span><span class="p">{</span><span class="cm">/* Blue gradient for farms */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;gradient-row&quot;</span><span class="p">&gt;</span><span class="w">      </span><span class="p">{</span><span class="cm">/* Green gradient for rows */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;gradient-rack&quot;</span><span class="p">&gt;</span><span class="w">     </span><span class="p">{</span><span class="cm">/* Yellow gradient for racks */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;gradient-shelf&quot;</span><span class="p">&gt;</span><span class="w">    </span><span class="p">{</span><span class="cm">/* Purple gradient for shelves */</span><span class="p">}</span>
+
+<span class="c1">// Typography Utilities</span>
+<span class="p">&lt;</span><span class="nt">h1</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-farm-title&quot;</span><span class="p">&gt;</span><span class="nx">Farm</span><span class="w"> </span><span class="nx">Dashboard</span><span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">span</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-sensor-value&quot;</span><span class="p">&gt;</span><span class="mf">24.5</span><span class="err">°</span><span class="nx">C</span><span class="p">&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">label</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-control-label&quot;</span><span class="p">&gt;</span><span class="nx">Enable</span><span class="w"> </span><span class="nx">Automation</span><span class="p">&lt;/</span><span class="nt">label</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">small</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-plant-label&quot;</span><span class="p">&gt;</span><span class="nx">Planted</span><span class="o">:</span><span class="w"> </span><span class="kt">2024</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mf">15</span><span class="p">&lt;/</span><span class="nt">small</span><span class="p">&gt;</span>
+
+<span class="c1">// State Patterns</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;state-active&quot;</span><span class="p">&gt;</span><span class="w">      </span><span class="p">{</span><span class="cm">/* Green ring, active state */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;state-maintenance&quot;</span><span class="p">&gt;</span><span class="w"> </span><span class="p">{</span><span class="cm">/* Amber ring, maintenance */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;state-offline&quot;</span><span class="p">&gt;</span><span class="w">     </span><span class="p">{</span><span class="cm">/* Red ring, offline */</span><span class="p">}</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;state-growing&quot;</span><span class="p">&gt;</span><span class="w">     </span><span class="p">{</span><span class="cm">/* Pulsing animation */</span><span class="p">}</span>
+
+<span class="c1">// Component Utilities</span>
+<span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;farm-control-btn&quot;</span><span class="p">&gt;</span><span class="nx">Control</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;plant-card&quot;</span><span class="p">&gt;</span><span class="nx">Plant</span><span class="w"> </span><span class="nx">Information</span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;sensor-panel&quot;</span><span class="p">&gt;</span><span class="nx">Sensor</span><span class="w"> </span><span class="nx">Data</span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;farm-grid&quot;</span><span class="p">&gt;</span><span class="nx">Grid</span><span class="w"> </span><span class="nx">Layout</span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;rack-layout&quot;</span><span class="p">&gt;</span><span class="nx">Rack</span><span class="w"> </span><span class="nx">Structure</span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<h4 id="component-styling-with-cva">Component Styling with CVA</h4>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">cva</span><span class="p">,</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">VariantProps</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;class-variance-authority&#39;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">buttonVariants</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cva</span><span class="p">(</span>
+<span class="w">  </span><span class="s1">&#39;farm-control-btn transition-all duration-normal ease-farm&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">variants</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">variant</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;bg-white text-gray-900&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">primary</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;gradient-farm text-white&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">maintenance</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;state-maintenance&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">offline</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;state-offline&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">growing</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;state-growing animate-pulse-slow&#39;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">sm</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;h-8 px-3 text-sm&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;h-10 px-4&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">lg</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;h-12 px-6 text-lg touch-target&#39;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">defaultVariants</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">variant</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;default&#39;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">ButtonProps</span><span class="w"> </span>
+<span class="w">  </span><span class="k">extends</span><span class="w"> </span><span class="nx">React</span><span class="p">.</span><span class="nx">ButtonHTMLAttributes</span><span class="o">&lt;</span><span class="nx">HTMLButtonElement</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">VariantProps</span><span class="o">&lt;</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">buttonVariants</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">icon?</span><span class="o">:</span><span class="w"> </span><span class="kt">React.ReactNode</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">FarmControlButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">forwardRef</span><span class="o">&lt;</span><span class="nx">HTMLButtonElement</span><span class="p">,</span><span class="w"> </span><span class="nx">ButtonProps</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">  </span><span class="p">({</span><span class="w"> </span><span class="nx">className</span><span class="p">,</span><span class="w"> </span><span class="nx">variant</span><span class="p">,</span><span class="w"> </span><span class="nx">size</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="p">,</span><span class="w"> </span><span class="nx">children</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nx">props</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nx">ref</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">button</span>
+<span class="w">        </span><span class="nx">className</span><span class="o">=</span><span class="p">{</span><span class="nx">cn</span><span class="p">(</span><span class="nx">buttonVariants</span><span class="p">({</span><span class="w"> </span><span class="nx">variant</span><span class="p">,</span><span class="w"> </span><span class="nx">size</span><span class="p">,</span><span class="w"> </span><span class="nx">className</span><span class="w"> </span><span class="p">}))}</span>
+<span class="w">        </span><span class="nx">ref</span><span class="o">=</span><span class="p">{</span><span class="nx">ref</span><span class="p">}</span>
+<span class="w">        </span><span class="p">{...</span><span class="nx">props</span><span class="p">}</span>
+<span class="w">      </span><span class="o">&gt;</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">icon</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">span</span><span class="w"> </span><span class="nx">className</span><span class="o">=</span><span class="s2">&quot;mr-2&quot;</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">icon</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/span&gt;}</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">children</span><span class="p">}</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/button&gt;</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="form-components">Form Components</h3>
+<h4 id="input-component">Input Component</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="nx">FarmInput</span>
+<span class="w">  </span><span class="nx">label</span><span class="o">=</span><span class="s2">&quot;Plant Name&quot;</span>
+<span class="w">  </span><span class="nx">placeholder</span><span class="o">=</span><span class="s2">&quot;Enter plant name...&quot;</span>
+<span class="w">  </span><span class="nx">icon</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">Leaf</span><span class="w"> </span><span class="nx">className</span><span class="o">=</span><span class="s2">&quot;h-4 w-4&quot;</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">helpText</span><span class="o">=</span><span class="s2">&quot;Unique identifier for this plant&quot;</span>
+<span class="w">  </span><span class="nx">errorText</span><span class="o">=</span><span class="s2">&quot;This field is required&quot;</span>
+<span class="w">  </span><span class="nx">validation</span><span class="o">=</span><span class="s2">&quot;error&quot;</span>
+<span class="w">  </span><span class="nx">inputSize</span><span class="o">=</span><span class="s2">&quot;lg&quot;</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h4 id="select-component">Select Component</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="nx">FarmSelect</span>
+<span class="w">  </span><span class="nx">label</span><span class="o">=</span><span class="s2">&quot;Plant Species&quot;</span>
+<span class="w">  </span><span class="nx">options</span><span class="o">=</span><span class="p">{[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;lettuce&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Lettuce (Lactuca sativa)&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;spinach&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Spinach (Spinacia oleracea)&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]}</span>
+<span class="w">  </span><span class="nx">placeholder</span><span class="o">=</span><span class="s2">&quot;Select species...&quot;</span>
+<span class="w">  </span><span class="nx">helpText</span><span class="o">=</span><span class="s2">&quot;Choose from available plant species&quot;</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h4 id="range-slider">Range Slider</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="nx">FarmRangeSlider</span>
+<span class="w">  </span><span class="nx">label</span><span class="o">=</span><span class="s2">&quot;pH Level&quot;</span>
+<span class="w">  </span><span class="nx">min</span><span class="o">=</span><span class="p">{</span><span class="mf">5.0</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">max</span><span class="o">=</span><span class="p">{</span><span class="mf">7.0</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">step</span><span class="o">=</span><span class="p">{</span><span class="mf">0.1</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="mf">6.2</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">unit</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="w">  </span><span class="nx">markPoints</span><span class="o">=</span><span class="p">{[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">5.5</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;5.5&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">6.0</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;6.0&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">6.5</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;6.5&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]}</span>
+<span class="w">  </span><span class="nx">helpText</span><span class="o">=</span><span class="s2">&quot;Optimal pH for nutrient uptake&quot;</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h3 id="performance-optimization">Performance Optimization</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use React 19&#39;s &quot;use cache&quot; directive</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">cache</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">getCachedFarmData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cache</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">farmId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="s1">&#39;use cache&#39;</span>
+<span class="w">  </span><span class="nx">cacheLife</span><span class="o">:</span><span class="w"> </span><span class="kt">3600</span><span class="w"> </span><span class="c1">// Cache for 1 hour</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">farms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">farmService</span><span class="p">.</span><span class="nx">getFarmById</span><span class="p">(</span><span class="nx">farmId</span><span class="p">)</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">farms</span>
+<span class="p">})</span>
+
+<span class="c1">// Optimistic updates with useOptimistic</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">DeviceToggle</span><span class="p">({</span><span class="w"> </span><span class="nx">device</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">optimisticState</span><span class="p">,</span><span class="w"> </span><span class="nx">setOptimisticState</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useOptimistic</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">device</span><span class="p">.</span><span class="nx">isOn</span><span class="p">,</span>
+<span class="w">    </span><span class="p">(</span><span class="nx">currentState</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">newState</span>
+<span class="w">  </span><span class="p">)</span>
+
+<span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">toggle</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setOptimisticState</span><span class="p">(</span><span class="o">!</span><span class="nx">optimisticState</span><span class="p">)</span>
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">deviceService</span><span class="p">.</span><span class="nx">toggle</span><span class="p">(</span><span class="nx">device</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="backend-standards-fastapi-python-313">🐍 Backend Standards (FastAPI / Python 3.13)</h2>
+<h3 id="project-structure">Project Structure</h3>
+<div class="highlight"><pre><span></span><code>backend/app/
+├── api/v1/              # API endpoints
+│   ├── farms.py
+│   ├── devices.py
+│   └── analytics.py
+├── core/                # Core functionality
+│   ├── config.py
+│   ├── security.py
+│   └── exceptions.py
+├── crud/                # Database operations
+│   ├── base.py
+│   └── farm.py
+├── models/              # SQLAlchemy models
+│   └── farm.py
+├── schemas/             # Pydantic schemas
+│   └── farm.py
+├── services/            # Business logic
+│   ├── base.py
+│   └── farm_service.py
+└── tests/               # Test files
+    ├── unit/
+    └── integration/
+</code></pre></div>
+<h3 id="code-style">Code Style</h3>
+<h4 id="type-hints-required">Type Hints (Required)</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">UUID</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_farm_by_id</span><span class="p">(</span>
+    <span class="n">farm_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="n">include_devices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Farm</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve a farm by ID with optional device information.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        farm_id: The unique identifier of the farm</span>
+<span class="sd">        user_id: The ID of the requesting user</span>
+<span class="sd">        include_devices: Whether to include device data</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Farm object if found and user has access, None otherwise</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        PermissionError: If user lacks access to the farm</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<h4 id="async-patterns">Async Patterns</h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Always use async/await for I/O operations</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_farm</span><span class="p">(</span><span class="n">farm_data</span><span class="p">:</span> <span class="n">FarmCreate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Farm</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">get_db</span><span class="p">()</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
+        <span class="n">farm</span> <span class="o">=</span> <span class="n">Farm</span><span class="p">(</span><span class="o">**</span><span class="n">farm_data</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">farm</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">farm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">farm</span>
+
+<span class="c1"># Use asyncio for concurrent operations</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process_sensor_data</span><span class="p">(</span><span class="n">sensor_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]):</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fetch_sensor_data</span><span class="p">(</span><span class="n">sensor_id</span><span class="p">)</span> 
+        <span class="k">for</span> <span class="n">sensor_id</span> <span class="ow">in</span> <span class="n">sensor_ids</span>
+    <span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div>
+<h4 id="error-handling">Error Handling</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FarmService</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">update_farm</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">farm_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+        <span class="n">farm_update</span><span class="p">:</span> <span class="n">FarmUpdate</span><span class="p">,</span>
+        <span class="n">user_id</span><span class="p">:</span> <span class="n">UUID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Farm</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">farm</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_farm</span><span class="p">(</span><span class="n">farm_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">farm</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span>
+                    <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Farm </span><span class="si">{</span><span class="n">farm_id</span><span class="si">}</span><span class="s2"> not found&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Update logic</span>
+            <span class="k">return</span> <span class="n">updated_farm</span>
+
+        <span class="k">except</span> <span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Farm name already exists&quot;</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error updating farm </span><span class="si">{</span><span class="n">farm_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_500_INTERNAL_SERVER_ERROR</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Failed to update farm&quot;</span>
+            <span class="p">)</span>
+</code></pre></div>
+<h4 id="pydantic-models">Pydantic Models</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FarmBase</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">size_sqm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Farm name cannot be empty&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FarmCreate</span><span class="p">(</span><span class="n">FarmBase</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Farm</span><span class="p">(</span><span class="n">FarmBase</span><span class="p">):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="n">UUID</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">updated_at</span><span class="p">:</span> <span class="n">datetime</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+        <span class="n">from_attributes</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Python 3.13 Pydantic v2</span>
+</code></pre></div>
+<h3 id="api-design">API Design</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">Query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api/v1/farms&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;farms&quot;</span><span class="p">])</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">List</span><span class="p">[</span><span class="n">FarmResponse</span><span class="p">])</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">list_farms</span><span class="p">(</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+    <span class="n">search</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Farm</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List all farms accessible to the current user.</span>
+
+<span class="sd">    - **skip**: Number of records to skip (pagination)</span>
+<span class="sd">    - **limit**: Maximum number of records to return</span>
+<span class="sd">    - **search**: Optional search term for farm name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">service</span> <span class="o">=</span> <span class="n">FarmService</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="n">service</span><span class="o">.</span><span class="n">list_user_farms</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span>
+        <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+        <span class="n">search</span><span class="o">=</span><span class="n">search</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h2 id="database-standards-supabasepostgresql">🗄️ Database Standards (Supabase/PostgreSQL)</h2>
+<h3 id="migration-naming">Migration Naming</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Format: YYYYMMDDHHMMSS_descriptive_name.sql</span>
+<span class="c1">-- Example: 20240115143000_add_sensor_calibration_table.sql</span>
+
+<span class="c1">-- Always include up and down migrations</span>
+<span class="c1">-- UP Migration</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">sensor_calibration</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">gen_random_uuid</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">sensor_id</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sensors</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">calibrated_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">calibration_data</span><span class="w"> </span><span class="n">JSONB</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_by</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="c1">-- Create indexes for foreign keys</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_sensor_calibration_sensor_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">sensor_calibration</span><span class="p">(</span><span class="n">sensor_id</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_sensor_calibration_created_by</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">sensor_calibration</span><span class="p">(</span><span class="n">created_by</span><span class="p">);</span>
+
+<span class="c1">-- DOWN Migration (commented)</span>
+<span class="c1">-- DROP TABLE IF EXISTS sensor_calibration;</span>
+</code></pre></div>
+<h3 id="row-level-security-rls">Row Level Security (RLS)</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Enable RLS on all tables</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">farms</span><span class="w"> </span><span class="n">ENABLE</span><span class="w"> </span><span class="k">ROW</span><span class="w"> </span><span class="k">LEVEL</span><span class="w"> </span><span class="k">SECURITY</span><span class="p">;</span>
+
+<span class="c1">-- Policy: Users can only see their own farms</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="n">POLICY</span><span class="w"> </span><span class="ss">&quot;Users can view own farms&quot;</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">farms</span>
+<span class="w">    </span><span class="k">FOR</span><span class="w"> </span><span class="k">SELECT</span>
+<span class="w">    </span><span class="k">TO</span><span class="w"> </span><span class="n">authenticated</span>
+<span class="w">    </span><span class="k">USING</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">());</span>
+
+<span class="c1">-- Policy: Users can create farms for themselves</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="n">POLICY</span><span class="w"> </span><span class="ss">&quot;Users can create own farms&quot;</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">farms</span>
+<span class="w">    </span><span class="k">FOR</span><span class="w"> </span><span class="k">INSERT</span>
+<span class="w">    </span><span class="k">TO</span><span class="w"> </span><span class="n">authenticated</span>
+<span class="w">    </span><span class="k">WITH</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">());</span>
+
+<span class="c1">-- Policy: Users can update their own farms</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="n">POLICY</span><span class="w"> </span><span class="ss">&quot;Users can update own farms&quot;</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">farms</span>
+<span class="w">    </span><span class="k">FOR</span><span class="w"> </span><span class="k">UPDATE</span>
+<span class="w">    </span><span class="k">TO</span><span class="w"> </span><span class="n">authenticated</span>
+<span class="w">    </span><span class="k">USING</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">())</span>
+<span class="w">    </span><span class="k">WITH</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">());</span>
+
+<span class="c1">-- Policy: Users can delete their own farms</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="n">POLICY</span><span class="w"> </span><span class="ss">&quot;Users can delete own farms&quot;</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">farms</span>
+<span class="w">    </span><span class="k">FOR</span><span class="w"> </span><span class="k">DELETE</span>
+<span class="w">    </span><span class="k">TO</span><span class="w"> </span><span class="n">authenticated</span>
+<span class="w">    </span><span class="k">USING</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">auth</span><span class="p">.</span><span class="n">uid</span><span class="p">());</span>
+</code></pre></div>
+<h2 id="mobile-first-design">📱 Mobile-First Design</h2>
+<h3 id="responsive-utilities">Responsive Utilities</h3>
+<div class="highlight"><pre><span></span><code><span class="c">/* Mobile-first breakpoints */</span>
+<span class="c">/* Default: Mobile (&lt;640px) */</span>
+<span class="c">/* sm: 640px+ */</span>
+<span class="c">/* md: 768px+ */</span>
+<span class="c">/* lg: 1024px+ */</span>
+<span class="c">/* xl: 1280px+ */</span>
+
+<span class="c">/* Mobile container with appropriate padding */</span>
+<span class="p">.</span><span class="nc">mobile-container</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--spacing-plant</span><span class="p">);</span>
+<span class="w">  </span><span class="k">max-width</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="kt">%</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c">/* Touch-friendly targets */</span>
+<span class="p">.</span><span class="nc">touch-target</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">min-height</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--touch-target-min</span><span class="p">);</span>
+<span class="w">  </span><span class="k">min-width</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--touch-target-min</span><span class="p">);</span>
+<span class="w">  </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--touch-spacing</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c">/* Mobile stack layout */</span>
+<span class="p">.</span><span class="nc">mobile-stack</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">display</span><span class="p">:</span><span class="w"> </span><span class="kc">flex</span><span class="p">;</span>
+<span class="w">  </span><span class="k">flex-direction</span><span class="p">:</span><span class="w"> </span><span class="kc">column</span><span class="p">;</span>
+<span class="w">  </span><span class="k">gap</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--spacing-row</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c">/* Responsive grid */</span>
+<span class="p">.</span><span class="nc">mobile-grid</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">display</span><span class="p">:</span><span class="w"> </span><span class="k">grid</span><span class="p">;</span>
+<span class="w">  </span><span class="k">grid-template-columns</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="n">fr</span><span class="p">;</span>
+<span class="w">  </span><span class="k">gap</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--spacing-plant</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="p">@</span><span class="k">media</span><span class="w"> </span><span class="o">(</span><span class="nt">min-width</span><span class="o">:</span><span class="w"> </span><span class="nt">640px</span><span class="o">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="p">.</span><span class="nc">mobile-grid</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">grid-template-columns</span><span class="p">:</span><span class="w"> </span><span class="nf">repeat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="n">fr</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">@</span><span class="k">media</span><span class="w"> </span><span class="o">(</span><span class="nt">min-width</span><span class="o">:</span><span class="w"> </span><span class="nt">1024px</span><span class="o">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="p">.</span><span class="nc">mobile-grid</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">grid-template-columns</span><span class="p">:</span><span class="w"> </span><span class="nf">repeat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="n">fr</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="touch-optimization">Touch Optimization</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Large touch targets for mobile</span>
+<span class="o">&lt;</span><span class="nx">FarmControlButton</span><span class="w"> </span>
+<span class="w">  </span><span class="nx">size</span><span class="o">=</span><span class="s2">&quot;lg&quot;</span><span class="w">  </span><span class="c1">// Uses touch-target class</span>
+<span class="w">  </span><span class="nx">variant</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span>
+<span class="w">  </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">handleAction</span><span class="p">}</span>
+<span class="o">&gt;</span>
+<span class="w">  </span><span class="nx">Control</span><span class="w"> </span><span class="nx">Device</span>
+<span class="o">&lt;</span><span class="err">/FarmControlButton&gt;</span>
+
+<span class="c1">// Mobile-optimized forms</span>
+<span class="o">&lt;</span><span class="nx">form</span><span class="w"> </span><span class="nx">className</span><span class="o">=</span><span class="s2">&quot;mobile-stack&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">FarmInput</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">inputSize</span><span class="o">=</span><span class="s2">&quot;lg&quot;</span>
+<span class="w">    </span><span class="nx">label</span><span class="o">=</span><span class="s2">&quot;Temperature&quot;</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">=</span><span class="s2">&quot;number&quot;</span>
+<span class="w">    </span><span class="nx">inputMode</span><span class="o">=</span><span class="s2">&quot;decimal&quot;</span><span class="w">  </span><span class="c1">// Mobile keyboard optimization</span>
+<span class="w">  </span><span class="o">/&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">FarmSelect</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">inputSize</span><span class="o">=</span><span class="s2">&quot;lg&quot;</span>
+<span class="w">    </span><span class="nx">options</span><span class="o">=</span><span class="p">{</span><span class="nx">options</span><span class="p">}</span>
+<span class="w">  </span><span class="o">/&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">FarmControlButton</span><span class="w"> </span><span class="nx">size</span><span class="o">=</span><span class="s2">&quot;lg&quot;</span><span class="w"> </span><span class="kr">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="nx">Save</span><span class="w"> </span><span class="nx">Settings</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="err">/FarmControlButton&gt;</span>
+<span class="o">&lt;</span><span class="err">/form&gt;</span>
+</code></pre></div>
+<h2 id="code-review-checklist">✅ Code Review Checklist</h2>
+<h3 id="frontend">Frontend</h3>
+<ul>
+<li>[ ] Server Components used by default</li>
+<li>[ ] Service layer pattern followed (no direct Supabase calls)</li>
+<li>[ ] Proper error handling with user-friendly messages</li>
+<li>[ ] TypeScript types for all props and returns</li>
+<li>[ ] Accessibility: ARIA labels, keyboard navigation</li>
+<li>[ ] Mobile responsive design tested</li>
+<li>[ ] Performance: No unnecessary re-renders</li>
+<li>[ ] Design tokens used instead of hardcoded values</li>
+</ul>
+<h3 id="backend">Backend</h3>
+<ul>
+<li>[ ] Type hints on all functions</li>
+<li>[ ] Async/await used consistently</li>
+<li>[ ] Proper error handling with appropriate HTTP status codes</li>
+<li>[ ] Pydantic models for request/response validation</li>
+<li>[ ] Database queries optimized with proper indexes</li>
+<li>[ ] RLS policies implemented for new tables</li>
+<li>[ ] API documentation updated</li>
+<li>[ ] Unit tests for business logic</li>
+</ul>
+<h3 id="general">General</h3>
+<ul>
+<li>[ ] No sensitive data in code</li>
+<li>[ ] Environment variables used for configuration</li>
+<li>[ ] Code follows established patterns</li>
+<li>[ ] Tests written and passing</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] No console.log or print statements</li>
+<li>[ ] Imports properly organized</li>
+</ul>
+<h2 id="performance-guidelines">🚀 Performance Guidelines</h2>
+<h3 id="frontend-performance">Frontend Performance</h3>
+<ul>
+<li>Lighthouse score &gt;90 for all metrics</li>
+<li>First Contentful Paint &lt;1.5s</li>
+<li>Time to Interactive &lt;3.5s</li>
+<li>Bundle size monitored and optimized</li>
+<li>Images optimized with Next.js Image component</li>
+<li>Code splitting with dynamic imports</li>
+</ul>
+<h3 id="backend-performance">Backend Performance</h3>
+<ul>
+<li>API response time &lt;200ms (p95)</li>
+<li>Database queries &lt;50ms for indexed queries</li>
+<li>Proper caching strategy implemented</li>
+<li>Connection pooling configured</li>
+<li>Background tasks for heavy operations</li>
+<li>Rate limiting on public endpoints</li>
+</ul>
+<h3 id="database-performance">Database Performance</h3>
+<ul>
+<li>Indexes on all foreign keys</li>
+<li>Composite indexes for common query patterns</li>
+<li>EXPLAIN ANALYZE on complex queries</li>
+<li>Vacuum and analyze scheduled regularly</li>
+<li>Connection pooling via Supavisor</li>
+<li>Query result caching where appropriate</li>
+</ul>
+<hr />
+<p><em>This style guide is a living document. Propose changes via pull request with justification for the modification.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>

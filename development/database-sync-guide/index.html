@@ -8,21 +8,21 @@
       
       
       
-        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/">
+        <link rel="canonical" href="https://eddie-rowe.github.io/vertical-farm/development/database-sync-guide/">
       
       
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
     
     
       
-        <title>Vertical Farm Documentation</title>
+        <title>Database Sync Guide - Vertical Farm Documentation</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
       
 
@@ -41,7 +41,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vertical-farm-documentation" class="md-skip">
+        <a href="#database-sync-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -76,7 +76,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+    <a href="../.." title="Vertical Farm Documentation" class="md-header__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -96,7 +96,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Database Sync Guide
             
           </span>
         </div>
@@ -188,7 +188,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
+    <a href="../.." title="Vertical Farm Documentation" class="md-nav__button md-logo" aria-label="Vertical Farm Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -215,32 +215,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -251,200 +229,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Quick Start
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#development-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      ⚡ Development Setup
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 Documentation Structure
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📚 Documentation Structure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      🎯 Getting Started
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      📖 Reference
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#guides" class="md-nav__link">
-    <span class="md-ellipsis">
-      📋 Guides
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Development
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#archive" class="md-nav__link">
-    <span class="md-ellipsis">
-      📦 Archive
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#find-what-you-need" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔍 Find What You Need
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏗️ Platform Architecture
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Key Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📊 Key Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#agriculture-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      🌱 Agriculture Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#iot-automation" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏭 IoT &amp; Automation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#business-operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Business Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#technical-excellence" class="md-nav__link">
-    <span class="md-ellipsis">
-      💻 Technical Excellence
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contributing-to-documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      🤝 Contributing to Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
-    <span class="md-ellipsis">
-      📞 Support
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -499,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/README.md" class="md-nav__link">
+      <a href="../../01-architecture/README.md" class="md-nav__link">
         
   
   
@@ -522,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/overview.md" class="md-nav__link">
+      <a href="../../01-architecture/overview.md" class="md-nav__link">
         
   
   
@@ -545,7 +329,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/backend.md" class="md-nav__link">
+      <a href="../../01-architecture/backend.md" class="md-nav__link">
         
   
   
@@ -568,7 +352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/frontend.md" class="md-nav__link">
+      <a href="../../01-architecture/frontend.md" class="md-nav__link">
         
   
   
@@ -591,7 +375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/database-schema.md" class="md-nav__link">
+      <a href="../../01-architecture/database-schema.md" class="md-nav__link">
         
   
   
@@ -614,7 +398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/automation-architecture.md" class="md-nav__link">
+      <a href="../../01-architecture/automation-architecture.md" class="md-nav__link">
         
   
   
@@ -637,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/edge-computing.md" class="md-nav__link">
+      <a href="../../01-architecture/edge-computing.md" class="md-nav__link">
         
   
   
@@ -660,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/caching-strategy.md" class="md-nav__link">
+      <a href="../../01-architecture/caching-strategy.md" class="md-nav__link">
         
   
   
@@ -683,7 +467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/LAYER_OVERLAY_SYSTEM.md" class="md-nav__link">
+      <a href="../../01-architecture/LAYER_OVERLAY_SYSTEM.md" class="md-nav__link">
         
   
   
@@ -706,7 +490,7 @@
   
   
     <li class="md-nav__item">
-      <a href="01-architecture/responsibilities.md" class="md-nav__link">
+      <a href="../../01-architecture/responsibilities.md" class="md-nav__link">
         
   
   
@@ -779,7 +563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/README.md" class="md-nav__link">
+      <a href="../../02-development/README.md" class="md-nav__link">
         
   
   
@@ -802,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/contributing.md" class="md-nav__link">
+      <a href="../../02-development/contributing.md" class="md-nav__link">
         
   
   
@@ -825,7 +609,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/ci-cd-workflow.md" class="md-nav__link">
+      <a href="../../02-development/ci-cd-workflow.md" class="md-nav__link">
         
   
   
@@ -848,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/release-notes.md" class="md-nav__link">
+      <a href="../../02-development/release-notes.md" class="md-nav__link">
         
   
   
@@ -871,7 +655,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/improvement-recommendations.md" class="md-nav__link">
+      <a href="../../02-development/improvement-recommendations.md" class="md-nav__link">
         
   
   
@@ -934,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/PHASE2_README.md" class="md-nav__link">
+      <a href="../../02-development/PHASE2_README.md" class="md-nav__link">
         
   
   
@@ -957,7 +741,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/PHASE3_README.md" class="md-nav__link">
+      <a href="../../02-development/PHASE3_README.md" class="md-nav__link">
         
   
   
@@ -1028,7 +812,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-STANDARDIZATION-PHASE1.md" class="md-nav__link">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE1.md" class="md-nav__link">
         
   
   
@@ -1051,7 +835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-STANDARDIZATION-PHASE2.md" class="md-nav__link">
+      <a href="../../02-development/STYLE-STANDARDIZATION-PHASE2.md" class="md-nav__link">
         
   
   
@@ -1074,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="02-development/STYLE-INTEGRATION-PLAN.md" class="md-nav__link">
+      <a href="../../02-development/STYLE-INTEGRATION-PLAN.md" class="md-nav__link">
         
   
   
@@ -1155,7 +939,7 @@
   
   
     <li class="md-nav__item">
-      <a href="03-api/README.md" class="md-nav__link">
+      <a href="../../03-api/README.md" class="md-nav__link">
         
   
   
@@ -1178,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="03-api/reference.md" class="md-nav__link">
+      <a href="../../03-api/reference.md" class="md-nav__link">
         
   
   
@@ -1251,7 +1035,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/README.md" class="md-nav__link">
+      <a href="../../04-deployment/README.md" class="md-nav__link">
         
   
   
@@ -1274,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/workflow.md" class="md-nav__link">
+      <a href="../../04-deployment/workflow.md" class="md-nav__link">
         
   
   
@@ -1297,7 +1081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/cloudflare-config.md" class="md-nav__link">
+      <a href="../../04-deployment/cloudflare-config.md" class="md-nav__link">
         
   
   
@@ -1320,7 +1104,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/cloudflare-caching-guide.md" class="md-nav__link">
+      <a href="../../04-deployment/cloudflare-caching-guide.md" class="md-nav__link">
         
   
   
@@ -1343,7 +1127,7 @@
   
   
     <li class="md-nav__item">
-      <a href="04-deployment/PWA_IMPLEMENTATION.md" class="md-nav__link">
+      <a href="../../04-deployment/PWA_IMPLEMENTATION.md" class="md-nav__link">
         
   
   
@@ -1416,7 +1200,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/README.md" class="md-nav__link">
+      <a href="../../05-testing/README.md" class="md-nav__link">
         
   
   
@@ -1439,7 +1223,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/production-testing-strategy.md" class="md-nav__link">
+      <a href="../../05-testing/production-testing-strategy.md" class="md-nav__link">
         
   
   
@@ -1462,7 +1246,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/security-testing.md" class="md-nav__link">
+      <a href="../../05-testing/security-testing.md" class="md-nav__link">
         
   
   
@@ -1485,7 +1269,7 @@
   
   
     <li class="md-nav__item">
-      <a href="05-testing/TESTING.md" class="md-nav__link">
+      <a href="../../05-testing/TESTING.md" class="md-nav__link">
         
   
   
@@ -1558,7 +1342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="06-security/README.md" class="md-nav__link">
+      <a href="../../06-security/README.md" class="md-nav__link">
         
   
   
@@ -1581,7 +1365,7 @@
   
   
     <li class="md-nav__item">
-      <a href="06-security/model.md" class="md-nav__link">
+      <a href="../../06-security/model.md" class="md-nav__link">
         
   
   
@@ -1654,7 +1438,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/index.md" class="md-nav__link">
+      <a href="../../07-guides/index.md" class="md-nav__link">
         
   
   
@@ -1677,7 +1461,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/CACHING_IMPLEMENTATION_GUIDE.md" class="md-nav__link">
+      <a href="../../07-guides/CACHING_IMPLEMENTATION_GUIDE.md" class="md-nav__link">
         
   
   
@@ -1700,7 +1484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/SUPABASE_QUEUES_SETUP.md" class="md-nav__link">
+      <a href="../../07-guides/SUPABASE_QUEUES_SETUP.md" class="md-nav__link">
         
   
   
@@ -1723,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/SETUP_HOME_ASSISTANT.md" class="md-nav__link">
+      <a href="../../07-guides/SETUP_HOME_ASSISTANT.md" class="md-nav__link">
         
   
   
@@ -1746,7 +1530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="07-guides/DARK-MODE-GUIDE.md" class="md-nav__link">
+      <a href="../../07-guides/DARK-MODE-GUIDE.md" class="md-nav__link">
         
   
   
@@ -1819,7 +1603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/README.md" class="md-nav__link">
+      <a href="../../08-reports/README.md" class="md-nav__link">
         
   
   
@@ -1842,7 +1626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/ui-ux-design-evaluation.md" class="md-nav__link">
+      <a href="../../08-reports/ui-ux-design-evaluation.md" class="md-nav__link">
         
   
   
@@ -1905,7 +1689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/README.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/README.md" class="md-nav__link">
         
   
   
@@ -1928,7 +1712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/changes-summary.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/changes-summary.md" class="md-nav__link">
         
   
   
@@ -1951,7 +1735,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/dashboard.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/dashboard.md" class="md-nav__link">
         
   
   
@@ -1974,7 +1758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/TONIGHT_SUMMARY.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/TONIGHT_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -1997,7 +1781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/ORGANIZATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/ORGANIZATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2020,7 +1804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT.md" class="md-nav__link">
         
   
   
@@ -2043,7 +1827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/edge-function-consolidation-summary.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/edge-function-consolidation-summary.md" class="md-nav__link">
         
   
   
@@ -2066,7 +1850,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/01-project-phases/phase-2c-completion-summary.md" class="md-nav__link">
+      <a href="../../08-reports/01-project-phases/phase-2c-completion-summary.md" class="md-nav__link">
         
   
   
@@ -2137,7 +1921,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/k6-database-load-test-2025-06-12.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/k6-database-load-test-2025-06-12.md" class="md-nav__link">
         
   
   
@@ -2160,7 +1944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/cache-vs-no-cache-analysis.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/cache-vs-no-cache-analysis.md" class="md-nav__link">
         
   
   
@@ -2183,7 +1967,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/caching-issues-analysis.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/caching-issues-analysis.md" class="md-nav__link">
         
   
   
@@ -2206,7 +1990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/caching-optimization-results.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/caching-optimization-results.md" class="md-nav__link">
         
   
   
@@ -2229,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/PHASE-1-COMPLETE.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/PHASE-1-COMPLETE.md" class="md-nav__link">
         
   
   
@@ -2252,7 +2036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-1-summary.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/phase-1-summary.md" class="md-nav__link">
         
   
   
@@ -2275,7 +2059,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-1-caching-performance-report.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/phase-1-caching-performance-report.md" class="md-nav__link">
         
   
   
@@ -2298,7 +2082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/phase-2a-schema-optimization-summary.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/phase-2a-schema-optimization-summary.md" class="md-nav__link">
         
   
   
@@ -2321,7 +2105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
+      <a href="../../08-reports/02-performance/queue-usage-opps-2025-06-13.txt" class="md-nav__link">
         
   
   
@@ -2344,7 +2128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/02-performance/supabase-optimization-recommendations.md" class="md-nav__link">
+      <a href="../../08-reports/02-performance/supabase-optimization-recommendations.md" class="md-nav__link">
         
   
   
@@ -2415,7 +2199,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/edge-functions-caching-review.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/edge-functions-caching-review.md" class="md-nav__link">
         
   
   
@@ -2438,7 +2222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/frontend-assessment-report.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/frontend-assessment-report.md" class="md-nav__link">
         
   
   
@@ -2461,7 +2245,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-code-review-2024-01-20.md" class="md-nav__link">
         
   
   
@@ -2484,7 +2268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20.md" class="md-nav__link">
         
   
   
@@ -2507,7 +2291,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/security-report-frontend-backend-2025.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/security-report-frontend-backend-2025.md" class="md-nav__link">
         
   
   
@@ -2530,7 +2314,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/security-vulnerability-review-2025.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/security-vulnerability-review-2025.md" class="md-nav__link">
         
   
   
@@ -2553,7 +2337,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/supabase-architecture-2025-06-13.txt" class="md-nav__link">
         
   
   
@@ -2576,7 +2360,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/2025-06-19-supabase-audit.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/2025-06-19-supabase-audit.md" class="md-nav__link">
         
   
   
@@ -2599,7 +2383,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-audit-completion-report.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/supabase-audit-completion-report.md" class="md-nav__link">
         
   
   
@@ -2622,7 +2406,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/03-technical-reviews/supabase-review.md" class="md-nav__link">
+      <a href="../../08-reports/03-technical-reviews/supabase-review.md" class="md-nav__link">
         
   
   
@@ -2693,7 +2477,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/cursor-workflow-research-2025-05-17.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/cursor-workflow-research-2025-05-17.md" class="md-nav__link">
         
   
   
@@ -2716,7 +2500,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/cursor-workflow-techniques-2025.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/cursor-workflow-techniques-2025.md" class="md-nav__link">
         
   
   
@@ -2739,7 +2523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18.md" class="md-nav__link">
         
   
   
@@ -2762,7 +2546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/SQUARE_INTEGRATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2785,7 +2569,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/ui-ux-analysis-2025-05-18.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/ui-ux-analysis-2025-05-18.md" class="md-nav__link">
         
   
   
@@ -2808,7 +2592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations.md" class="md-nav__link">
         
   
   
@@ -2831,7 +2615,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/vertical_farm_ui_ux_review.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/vertical_farm_ui_ux_review.md" class="md-nav__link">
         
   
   
@@ -2854,7 +2638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md" class="md-nav__link">
+      <a href="../../08-reports/04-analysis/vertigro-uiux-analysis-2025-05-17.md" class="md-nav__link">
         
   
   
@@ -2925,7 +2709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md" class="md-nav__link">
+      <a href="../../08-reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY.md" class="md-nav__link">
         
   
   
@@ -2948,7 +2732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/migration-testing-summary.md" class="md-nav__link">
+      <a href="../../08-reports/05-migrations/migration-testing-summary.md" class="md-nav__link">
         
   
   
@@ -2971,7 +2755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/05-migrations/phase-2b-migration-consolidation-summary.md" class="md-nav__link">
+      <a href="../../08-reports/05-migrations/phase-2b-migration-consolidation-summary.md" class="md-nav__link">
         
   
   
@@ -3042,7 +2826,7 @@
   
   
     <li class="md-nav__item">
-      <a href="08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
+      <a href="../../08-reports/07-task-reports/task-complexity-report.json" class="md-nav__link">
         
   
   
@@ -3123,7 +2907,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/README.md" class="md-nav__link">
+      <a href="../../09-migration/README.md" class="md-nav__link">
         
   
   
@@ -3146,7 +2930,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/postgrest-migration-guide.md" class="md-nav__link">
+      <a href="../../09-migration/postgrest-migration-guide.md" class="md-nav__link">
         
   
   
@@ -3169,7 +2953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/SEMANTIC-TOKEN-MIGRATION.md" class="md-nav__link">
+      <a href="../../09-migration/SEMANTIC-TOKEN-MIGRATION.md" class="md-nav__link">
         
   
   
@@ -3192,7 +2976,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/check_home_assistant_table.sql" class="md-nav__link">
+      <a href="../../09-migration/check_home_assistant_table.sql" class="md-nav__link">
         
   
   
@@ -3215,7 +2999,7 @@
   
   
     <li class="md-nav__item">
-      <a href="09-migration/check_user_home_assistant_config.sql" class="md-nav__link">
+      <a href="../../09-migration/check_user_home_assistant_config.sql" class="md-nav__link">
         
   
   
@@ -3265,82 +3049,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Quick Start
+      Overview
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-setup" class="md-nav__link">
+  <a href="#current-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      ⚡ Development Setup
+      Current Setup
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#documentation-structure" class="md-nav__link">
+  <a href="#sync-scenarios" class="md-nav__link">
     <span class="md-ellipsis">
-      📚 Documentation Structure
+      Sync Scenarios
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📚 Documentation Structure">
+    <nav class="md-nav" aria-label="Sync Scenarios">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#1-fresh-local-setup-default" class="md-nav__link">
     <span class="md-ellipsis">
-      🎯 Getting Started
+      1. Fresh Local Setup (Default)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#reference" class="md-nav__link">
+  <a href="#2-sync-latest-production-schema" class="md-nav__link">
     <span class="md-ellipsis">
-      📖 Reference
+      2. Sync Latest Production Schema
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#guides" class="md-nav__link">
+  <a href="#3-add-seed-data" class="md-nav__link">
     <span class="md-ellipsis">
-      📋 Guides
+      3. Add Seed Data
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
+  <a href="#4-export-production-data-carefully" class="md-nav__link">
     <span class="md-ellipsis">
-      🛠️ Development
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#archive" class="md-nav__link">
-    <span class="md-ellipsis">
-      📦 Archive
+      4. Export Production Data (Carefully!)
     </span>
   </a>
   
@@ -3352,64 +3118,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#find-what-you-need" class="md-nav__link">
+  <a href="#migration-workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      🔍 Find What You Need
+      Migration Workflow
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      🏗️ Platform Architecture
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      📊 Key Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📊 Key Features">
+    <nav class="md-nav" aria-label="Migration Workflow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#agriculture-management" class="md-nav__link">
+  <a href="#check-migration-status" class="md-nav__link">
     <span class="md-ellipsis">
-      🌱 Agriculture Management
+      Check Migration Status
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#iot-automation" class="md-nav__link">
+  <a href="#create-new-migrations" class="md-nav__link">
     <span class="md-ellipsis">
-      🏭 IoT &amp; Automation
+      Create New Migrations
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-operations" class="md-nav__link">
+  <a href="#apply-migrations" class="md-nav__link">
     <span class="md-ellipsis">
-      📊 Business Operations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#technical-excellence" class="md-nav__link">
-    <span class="md-ellipsis">
-      💻 Technical Excellence
+      Apply Migrations
     </span>
   </a>
   
@@ -3421,20 +3160,95 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#contributing-to-documentation" class="md-nav__link">
+  <a href="#best-practices" class="md-nav__link">
     <span class="md-ellipsis">
-      🤝 Contributing to Documentation
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ DO:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dont" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❌ DON'T:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Commands
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
+  <a href="#sync-checklist" class="md-nav__link">
     <span class="md-ellipsis">
-      📞 Support
+      Sync Checklist
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-out-of-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Schema out of sync"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Migration failed"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cant-connect-to-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Can't connect to production"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3457,144 +3271,172 @@
   
 
 
-<h1 id="vertical-farm-documentation">Vertical Farm Documentation</h1>
-<p>Welcome to the comprehensive documentation for the Vertical Farm Management Platform - a full-stack IoT solution combining Next.js 15, FastAPI, Supabase, and Cloudflare Workers for smart agriculture automation.</p>
-<h2 id="quick-start">🚀 Quick Start</h2>
-<p><strong>New to the project?</strong> Start here based on your role:</p>
-<ul>
-<li><strong>👩‍💻 Developer</strong> → <a href="getting-started/">Getting Started Guide</a></li>
-<li><strong>🔧 DevOps Engineer</strong> → <a href="operations/">Operations Overview</a> </li>
-<li><strong>📚 API Consumer</strong> → <a href="reference/api/">API Reference</a></li>
-<li><strong>🎨 Frontend Developer</strong> → <a href="guides/features/README.md">Frontend Guide</a></li>
-</ul>
-<h2 id="development-setup">⚡ Development Setup</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Prerequisites: Node.js 18+, Python 3.13+, Docker</span>
-<span class="c1"># Install Supabase CLI</span>
-brew<span class="w"> </span>install<span class="w"> </span>supabase/tap/supabase
-
-<span class="c1"># Start development environment (recommended)</span>
-make<span class="w"> </span>up
-
-<span class="c1"># Access the application</span>
-<span class="c1"># Frontend: http://localhost:3000</span>
-<span class="c1"># Backend: http://localhost:8000</span>
-<span class="c1"># Supabase Studio: http://localhost:54323</span>
+<h1 id="database-sync-guide">Database Sync Guide</h1>
+<h2 id="overview">Overview</h2>
+<p>Supabase CLI provides several ways to keep your local and production databases in sync:</p>
+<ol>
+<li><strong>Migrations</strong> (Already in place) - Schema structure</li>
+<li><strong>Seed Data</strong> - Sample/test data for development</li>
+<li><strong>Production Sync</strong> - Pull latest schema changes from production</li>
+</ol>
+<h2 id="current-setup">Current Setup</h2>
+<p>Your project has <strong>40 migration files</strong> that define:
+- Tables and columns
+- Functions and stored procedures
+- Row Level Security (RLS) policies
+- Views and indexes
+- Queue system setup</p>
+<p>When you run <code>make up</code>, these migrations are automatically applied to your local database.</p>
+<h2 id="sync-scenarios">Sync Scenarios</h2>
+<h3 id="1-fresh-local-setup-default">1. Fresh Local Setup (Default)</h3>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>up<span class="w">                    </span><span class="c1"># Applies all migrations</span>
+supabase<span class="w"> </span>studio<span class="w">           </span><span class="c1"># View your database</span>
 </code></pre></div>
-<p><strong>Alternative setup methods:</strong>
-- <strong>Docker Compose</strong>: <code>docker-compose up --build</code>
-- <strong>Manual setup</strong>: See <a href="getting-started/environment-setup/">Environment Setup</a>
-- <strong>Detailed workflow</strong>: <a href="development/docker-workflow/">Docker Workflow Guide</a></p>
-<h2 id="documentation-structure">📚 Documentation Structure</h2>
-<h3 id="getting-started">🎯 <a href="getting-started/">Getting Started</a></h3>
-<p>Your entry point to the platform - setup, architecture overview, and quick tutorials.</p>
-<h3 id="reference">📖 <a href="reference/">Reference</a></h3>
-<p>Technical specifications, API documentation, and system architecture details.</p>
-<h3 id="guides">📋 <a href="guides/">Guides</a></h3>
-<p>Task-oriented how-to guides for features, integrations, and troubleshooting.</p>
-<h3 id="development">🛠️ <a href="development/">Development</a></h3>
-<p>Contribution guidelines, coding standards, and development workflows.</p>
-<h3 id="operations">🚀 <a href="operations/">Operations</a></h3>
-<p>Production deployment, monitoring, security, and infrastructure management.</p>
-<h3 id="archive">📦 <a href="archive/">Archive</a></h3>
-<p>Historical reports, completed migrations, and legacy documentation.</p>
-<h2 id="find-what-you-need">🔍 Find What You Need</h2>
-<table>
-<thead>
-<tr>
-<th>I want to...</th>
-<th>Go to</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Set up my development environment</td>
-<td><a href="getting-started/quickstart/">Quickstart Guide</a></td>
-</tr>
-<tr>
-<td>Understand the system architecture</td>
-<td><a href="getting-started/architecture-overview/">Architecture Overview</a></td>
-</tr>
-<tr>
-<td>Learn about the API</td>
-<td><a href="reference/api/">API Reference</a></td>
-</tr>
-<tr>
-<td>Deploy to production</td>
-<td><a href="operations/deployment/">Deployment Guide</a></td>
-</tr>
-<tr>
-<td>Integrate Home Assistant</td>
-<td><a href="guides/integrations/home-assistant/">Home Assistant Guide</a></td>
-</tr>
-<tr>
-<td>Run tests</td>
-<td><a href="development/testing-guide/">Testing Guide</a></td>
-</tr>
-<tr>
-<td>Report a bug</td>
-<td><a href="development/contributing/">Contributing</a></td>
-</tr>
-</tbody>
-</table>
-<h2 id="platform-architecture">🏗️ Platform Architecture</h2>
-<p><strong>Tech Stack</strong>: Next.js 15 + React 19 + TypeScript + Python 3.13 + FastAPI + Supabase + Cloudflare Workers</p>
-<pre class="mermaid"><code>graph TB
-    A[Next.js 15 Frontend&lt;br/&gt;React 19 + TypeScript] --&gt; B[Cloudflare Workers&lt;br/&gt;Edge Computing]
-    B --&gt; C[FastAPI Backend&lt;br/&gt;Python 3.13]
-    C --&gt; D[Supabase Database&lt;br/&gt;PostgreSQL + RLS]
-    A --&gt; E[Supabase Auth&lt;br/&gt;JWT + RLS]
-    F[Home Assistant&lt;br/&gt;IoT Hub] --&gt; C
-    G[IoT Devices&lt;br/&gt;Sensors + Controllers] --&gt; F
-    H[Square Payments&lt;br/&gt;Business Operations] --&gt; C</code></pre>
-<p><strong>Project Structure</strong>:
-<div class="highlight"><pre><span></span><code>vertical-farm/
-├── frontend/          # Next.js 15 application
-├── backend/           # FastAPI Python backend  
-├── cloudflare/        # Edge functions and workers
-├── supabase/          # Database migrations and functions
-├── scripts/           # Automation and deployment scripts
-├── monitoring/        # Datadog dashboards and alerts
-├── tests/             # Cross-platform integration tests
-└── docs/              # This comprehensive documentation
-</code></pre></div></p>
-<h2 id="key-features">📊 Key Features</h2>
-<h3 id="agriculture-management">🌱 <strong>Agriculture Management</strong></h3>
+<p>Your local database will have:
+- ✅ All tables and schema from migrations
+- ✅ Empty tables (no data)
+- ✅ Same structure as production</p>
+<h3 id="2-sync-latest-production-schema">2. Sync Latest Production Schema</h3>
+<p>If production has schema changes not in migrations:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pull latest schema from production</span>
+./scripts/sync-production-schema.sh
+
+<span class="c1"># This will:</span>
+<span class="c1"># 1. Connect to production (using .env.production)</span>
+<span class="c1"># 2. Generate new migration files for any changes</span>
+<span class="c1"># 3. Apply them to local database</span>
+</code></pre></div>
+<h3 id="3-add-seed-data">3. Add Seed Data</h3>
+<p>Create test data for local development:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create a seed file</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>supabase/seed.sql<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">-- Insert test users</span>
+<span class="s">INSERT INTO auth.users (id, email) VALUES </span>
+<span class="s">  (&#39;00000000-0000-0000-0000-000000000001&#39;, &#39;test@example.com&#39;);</span>
+
+<span class="s">-- Insert test farms</span>
+<span class="s">INSERT INTO farms (id, name, user_id, location) VALUES </span>
+<span class="s">  (&#39;11111111-1111-1111-1111-111111111111&#39;, &#39;Test Farm&#39;, &#39;00000000-0000-0000-0000-000000000001&#39;, &#39;Test Location&#39;);</span>
+
+<span class="s">-- Insert test devices</span>
+<span class="s">INSERT INTO devices (id, farm_id, name, type) VALUES </span>
+<span class="s">  (&#39;22222222-2222-2222-2222-222222222222&#39;, &#39;11111111-1111-1111-1111-111111111111&#39;, &#39;Test Sensor&#39;, &#39;sensor&#39;);</span>
+<span class="s">EOF</span>
+
+<span class="c1"># Apply seed data</span>
+supabase<span class="w"> </span>db<span class="w"> </span>reset<span class="w">          </span><span class="c1"># Resets DB and applies migrations + seed</span>
+</code></pre></div>
+<h3 id="4-export-production-data-carefully">4. Export Production Data (Carefully!)</h3>
+<p>For specific reference data only:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># DON&#39;T export user data or sensitive information</span>
+<span class="c1"># DO export things like:</span>
+<span class="c1"># - Device types</span>
+<span class="c1"># - Grow recipes</span>
+<span class="c1"># - Configuration defaults</span>
+
+<span class="c1"># From Supabase Dashboard:</span>
+<span class="c1"># 1. Go to SQL Editor</span>
+<span class="c1"># 2. Run: SELECT * FROM grow_recipes WHERE is_public = true</span>
+<span class="c1"># 3. Export as CSV</span>
+<span class="c1"># 4. Import to local via Supabase Studio</span>
+</code></pre></div>
+<h2 id="migration-workflow">Migration Workflow</h2>
+<h3 id="check-migration-status">Check Migration Status</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># See which migrations have been applied</span>
+supabase<span class="w"> </span>migration<span class="w"> </span>list
+
+<span class="c1"># View migration history</span>
+supabase<span class="w"> </span>db<span class="w"> </span>migrations<span class="w"> </span>list
+</code></pre></div>
+<h3 id="create-new-migrations">Create New Migrations</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># After making changes in Supabase Studio</span>
+supabase<span class="w"> </span>db<span class="w"> </span>diff<span class="w"> </span>-f<span class="w"> </span>my_new_feature
+
+<span class="c1"># Creates: supabase/migrations/[timestamp]_my_new_feature.sql</span>
+</code></pre></div>
+<h3 id="apply-migrations">Apply Migrations</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Apply pending migrations</span>
+supabase<span class="w"> </span>migration<span class="w"> </span>up
+
+<span class="c1"># Reset and reapply all migrations</span>
+supabase<span class="w"> </span>db<span class="w"> </span>reset
+</code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="do">✅ DO:</h3>
 <ul>
-<li><strong>Multi-tier Farm Hierarchy</strong>: Farms → Rows → Racks → Shelves organization</li>
-<li><strong>Grow Recipe System</strong>: Automated growing parameters and schedules</li>
-<li><strong>Plant Lifecycle Tracking</strong>: From seed to harvest monitoring</li>
+<li>Keep migrations in version control</li>
+<li>Use migrations for schema changes</li>
+<li>Create seed data for testing</li>
+<li>Pull production schema periodically</li>
+<li>Test migrations locally first</li>
 </ul>
-<h3 id="iot-automation">🏭 <strong>IoT &amp; Automation</strong></h3>
+<h3 id="dont">❌ DON'T:</h3>
 <ul>
-<li><strong>Real-time Device Control</strong>: Sensors, fans, lights, pumps integration</li>
-<li><strong>Home Assistant Integration</strong>: Comprehensive IoT device management</li>
-<li><strong>Visual Layer Overlay System</strong>: Multi-layer farm visualization</li>
-<li><strong>Automated Responses</strong>: Condition-based device automation</li>
+<li>Copy production user data locally</li>
+<li>Edit existing migration files</li>
+<li>Skip migrations and modify DB directly</li>
+<li>Commit .env.production with real credentials</li>
+<li>Use production API keys locally</li>
 </ul>
-<h3 id="business-operations">📊 <strong>Business Operations</strong></h3>
-<ul>
-<li><strong>Square Payment Integration</strong>: Revenue tracking and payment processing</li>
-<li><strong>Performance Analytics</strong>: Yield optimization and cost analysis</li>
-<li><strong>Multi-user Support</strong>: Role-based access control with RLS</li>
-<li><strong>Datadog Monitoring</strong>: Production-grade observability</li>
-</ul>
-<h3 id="technical-excellence">💻 <strong>Technical Excellence</strong></h3>
-<ul>
-<li><strong>Service Layer Architecture</strong>: Mandatory pattern for all data operations</li>
-<li><strong>PWA Support</strong>: Mobile-first design with offline capabilities</li>
-<li><strong>Edge Computing</strong>: Cloudflare Workers for global performance</li>
-<li><strong>Modern Stack</strong>: Next.js 15, React 19, Python 3.13, TypeScript</li>
-</ul>
-<h2 id="contributing-to-documentation">🤝 Contributing to Documentation</h2>
-<p>Found something unclear or missing? See our <a href="development/contributing/#documentation">Documentation Guidelines</a> to contribute.</p>
-<h2 id="support">📞 Support</h2>
-<ul>
-<li><strong>Issues</strong>: <a href="../CONTRIBUTING.md">GitHub Issues</a></li>
-<li><strong>Discussions</strong>: <a href="../CONTRIBUTING.md">GitHub Discussions</a></li>
-<li><strong>Architecture Questions</strong>: See <a href="reference/architecture/">Architecture Reference</a></li>
-</ul>
-<hr />
-<p><em>Last Updated: January 2025 | Active Documents: 44 | Structure Version: 2.0 | <a href="archive/migrations/MIGRATION_FROM_OLD_STRUCTURE/">Migration Guide</a></em></p>
+<h2 id="common-commands">Common Commands</h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># View your local database</span>
+supabase<span class="w"> </span>studio
+
+<span class="c1"># Check database status</span>
+supabase<span class="w"> </span>status
+
+<span class="c1"># Reset database (drops and recreates)</span>
+supabase<span class="w"> </span>db<span class="w"> </span>reset
+
+<span class="c1"># Create a DB dump</span>
+supabase<span class="w"> </span>db<span class="w"> </span>dump<span class="w"> </span>-f<span class="w"> </span>backup.sql
+
+<span class="c1"># Restore from dump</span>
+supabase<span class="w"> </span>db<span class="w"> </span>restore<span class="w"> </span>-f<span class="w"> </span>backup.sql
+</code></pre></div>
+<h2 id="sync-checklist">Sync Checklist</h2>
+<p>When starting fresh:
+- [ ] Run <code>make up</code> to start Supabase
+- [ ] Verify migrations applied: <code>supabase migration list</code>
+- [ ] Check schema in Studio: <code>supabase studio</code>
+- [ ] Add seed data if needed
+- [ ] Run <code>make test-prod</code> to test production connection</p>
+<p>When production schema changes:
+- [ ] Pull latest changes: <code>./scripts/sync-production-schema.sh</code>
+- [ ] Review new migration files
+- [ ] Test locally
+- [ ] Commit new migrations</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="schema-out-of-sync">"Schema out of sync"</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pull latest from production</span>
+supabase<span class="w"> </span>db<span class="w"> </span>pull<span class="w"> </span>--project-ref<span class="w"> </span><span class="o">[</span>your-project-ref<span class="o">]</span>
+
+<span class="c1"># Diff against local</span>
+supabase<span class="w"> </span>db<span class="w"> </span>diff
+
+<span class="c1"># Apply changes</span>
+supabase<span class="w"> </span>migration<span class="w"> </span>up
+</code></pre></div>
+<h3 id="migration-failed">"Migration failed"</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check migration status</span>
+supabase<span class="w"> </span>migration<span class="w"> </span>list
+
+<span class="c1"># Reset and try again</span>
+supabase<span class="w"> </span>db<span class="w"> </span>reset
+
+<span class="c1"># Check logs</span>
+supabase<span class="w"> </span>logs
+</code></pre></div>
+<h3 id="cant-connect-to-production">"Can't connect to production"</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify credentials</span>
+cat<span class="w"> </span>.env.production<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>SUPABASE_URL
+
+<span class="c1"># Test connection</span>
+curl<span class="w"> </span><span class="o">[</span>your-supabase-url<span class="o">]</span>/rest/v1/
+
+<span class="c1"># Check project ref</span>
+<span class="c1"># URL format: https://[project-ref].supabase.co</span>
+</code></pre></div>
 
 
 
@@ -3649,10 +3491,10 @@ make<span class="w"> </span>up
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.92b07e13.min.js"></script>
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
       
     
   </body>
