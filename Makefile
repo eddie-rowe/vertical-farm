@@ -313,33 +313,127 @@ plan:
 	@echo ""
 	@echo "Execute the workflow in .claude/commands/workflows/01_planning/issue-analysis.md with argument: $(ISSUE)"
 	@echo ""
-	@echo "💡 After analysis, use 'make dev FEATURE=\"your feature description\"' to start implementation"
+	@echo "💡 After analysis, use 'make dev FEATURE=\"your feature description\"' to start implementation, then 'make test FEATURE=\"your feature description\"' to validate"
 
-## Start Claude-powered feature development workflow  
+## Start Claude-powered feature development workflow (supports both ISSUE and FEATURE)
 dev:
 	@echo "⚡ Starting Claude-powered feature development workflow..."
 	@echo ""
-	@if [ -z "$(FEATURE)" ]; then \
-		echo "❌ Please provide a feature description:"; \
+	@# Handle both ISSUE and FEATURE parameters
+	@if [ -n "$(ISSUE)" ]; then \
+		echo "📋 Developing from GitHub issue: $(ISSUE)"; \
+		echo "🤖 Claude will first analyze the issue, then start development..."; \
+		echo ""; \
+		echo "Please run this command in Claude Code:"; \
+		echo ""; \
+		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(ISSUE)"; \
+	elif [ -n "$(FEATURE)" ]; then \
+		echo "🔨 Developing feature: $(FEATURE)"; \
+		echo "🤖 Invoking Claude with feature development workflow..."; \
+		echo ""; \
+		echo "Please run this command in Claude Code:"; \
+		echo ""; \
+		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(FEATURE)"; \
+	else \
+		echo "❌ Please provide either an issue number or feature description:"; \
+		echo "   make dev ISSUE=123"; \
+		echo "   make dev ISSUE=https://github.com/user/repo/issues/123"; \
 		echo "   make dev FEATURE=\"Add temperature monitoring dashboard\""; \
-		echo "   make dev FEATURE=\"Implement user authentication system\""; \
 		exit 1; \
 	fi
-	@echo "🔨 Developing feature: $(FEATURE)"
-	@echo "🤖 Invoking Claude with feature development workflow..."
+	@echo ""
+	@echo "🔄 Claude will orchestrate specialized agents for:"
+	@echo "  • Issue analysis (if GitHub issue provided)"
+	@echo "  • Backend architecture & API design"
+	@echo "  • Frontend components & service layer"
+	@echo "  • Comprehensive testing coverage"
+	@echo "  • Code review & quality assurance"
+	@echo ""
+	@echo "💡 After development: 'make test FEATURE=\"your feature\"' for validation"
+
+## Start Claude-powered feature testing workflow
+test:
+	@echo "🧪 Starting Claude-powered feature testing workflow..."
+	@echo ""
+	@if [ -z "$(FEATURE)" ]; then \
+		echo "❌ Please provide a feature description to test:"; \
+		echo "   make test FEATURE=\"temperature monitoring dashboard\""; \
+		echo "   make test FEATURE=\"user authentication system\""; \
+		echo "   make test FEATURE=\"grow setup tab with real data\""; \
+		exit 1; \
+	fi
+	@echo "🔍 Testing feature: $(FEATURE)"
+	@echo "🤖 Invoking Claude with comprehensive testing workflow..."
 	@echo ""
 	@echo "Claude will orchestrate:"
-	@echo "  1. Backend Architecture Design (API + data model)"
-	@echo "  2. Frontend Implementation (UI components)"
-	@echo "  3. Test Coverage (unit, integration, e2e)"
-	@echo "  4. Production Deployment (CI/CD + containers)"
+	@echo "  1. UI/UX Feature Testing (Playwright with real data)"
+	@echo "  2. Backend Integration Testing (API + service layer)"
+	@echo "  3. Code Quality Review (architecture compliance)"
+	@echo "  4. Performance Impact Testing (regression analysis)"
+	@echo "  5. Security Validation (RLS policies + auth flows)"
+	@echo "  6. Database Integration Testing (Supabase + real data)"
 	@echo ""
-	@echo "Opening Claude Code with feature development workflow..."
+	@echo "Opening Claude Code with feature testing workflow..."
 	@echo "Please run this command in Claude Code:"
 	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(FEATURE)"
+	@echo "Execute the workflow in .claude/commands/workflows/03_testing/feature-testing.md with argument: $(FEATURE)"
 	@echo ""
-	@echo "💡 Tip: Run tests with 'make test-all' after development is complete"
+	@echo "💡 Tip: Use 'make test-all' for quick unit/e2e tests, 'make test FEATURE=...' for comprehensive feature validation"
+
+## Start Claude-powered feature validation workflow using git diff and Playwright
+validate:
+	@echo "🔍 Starting Claude-powered feature validation workflow..."
+	@echo ""
+	@if [ -z "$(ISSUE)" ]; then \
+		echo "❌ Please provide an issue number:"; \
+		echo "   make validate ISSUE=65"; \
+		echo "   make validate ISSUE=123"; \
+		exit 1; \
+	fi
+	@echo "📋 Validating implementation for issue: $(ISSUE)"
+	@echo "🤖 Invoking Claude with feature validation workflow..."
+	@echo ""
+	@echo "Claude will:"
+	@echo "  1. Analyze git diff to understand what changed"
+	@echo "  2. Use Playwright to explore and validate features"
+	@echo "  3. Test user workflows end-to-end"
+	@echo "  4. Validate responsive design and accessibility"
+	@echo "  5. Generate validation report with evidence"
+	@echo ""
+	@echo "Opening Claude Code with feature validation workflow..."
+	@echo "Please run this command in Claude Code:"
+	@echo ""
+	@echo "Execute the workflow in .claude/commands/workflows/03_testing/feature-validation.md with argument: $(ISSUE)"
+	@echo ""
+	@echo "💡 This workflow analyzes actual code changes and validates implementation"
+
+## Start Claude-powered deployment workflow for completed issues
+deploy:
+	@echo "🚀 Starting Claude-powered deployment workflow..."
+	@echo ""
+	@if [ -z "$(ISSUE)" ]; then \
+		echo "❌ Please provide an issue number:"; \
+		echo "   make deploy ISSUE=65"; \
+		echo "   make deploy ISSUE=123"; \
+		exit 1; \
+	fi
+	@echo "📦 Deploying implementation for issue: $(ISSUE)"
+	@echo "🤖 Invoking Claude with deployment workflow..."
+	@echo ""
+	@echo "Claude will orchestrate:"
+	@echo "  1. Code Quality Review & Final Testing"
+	@echo "  2. Git Operations (add, commit, push)"
+	@echo "  3. GitHub Issue Update (work summary)"
+	@echo "  4. Pull Request Creation & Setup"
+	@echo "  5. Deployment Preparation & Validation"
+	@echo "  6. Team Notification & Review Assignment"
+	@echo ""
+	@echo "Opening Claude Code with deployment workflow..."
+	@echo "Please run this command in Claude Code:"
+	@echo ""
+	@echo "Execute the workflow in .claude/commands/workflows/04_deployment/issue-deployment.md with argument: $(ISSUE)"
+	@echo ""
+	@echo "💡 This workflow handles complete issue deployment lifecycle"
 
 # --- Help ---
 
