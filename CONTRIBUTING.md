@@ -28,15 +28,27 @@ make down
 
 ### Quick workflow
 
-1. clone and change directory into repository
-2. Open up Claude Code and ask it to run each of these commands
-3. `make up`
-4. `make plan ISSUE=###` then review/modify plan
-5. `make dev ISSUE=###` then guide agents to develop the feature
-6. ensure everything works as expected
-7. `make test ISSUE=###`
-8. `make deploy`
-9. `make finalize` 
+1. Clone and change directory into repository in your terminal
+```sh
+git clone https://github.com/eddie-rowe/vertical-farm.git
+cd vertical-farm
+```
+2. Open up the [Vertical Farm GitHub Project](https://github.com/users/eddie-rowe/projects/6) in your browser 
+3. and find the Issue you're going to work on then click "Create a branch for this issue"
+4. Run the generated content in your terminal
+```sh
+git fetch origin
+git checkout THE-BRANCH-NAME-THAT-GETS-GENERATED
+```
+
+1. Open up Claude Code and ask it to run each of these commands in order to develop the feature
+   1. `make up`
+   2. `make plan ISSUE=###` then review/modify plan
+   3. `make dev ISSUE=###` then guide agents to develop the feature
+   4. `make validate ISSUE=###` and ensure everything works as expected
+   5. `make test ISSUE=###`
+   6. `make deploy`
+   7. `make finalize` 
 
 ### 1. Grabbing a task
 
