@@ -34,7 +34,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       
@@ -168,7 +168,7 @@ jobs:
       
       - name: Upload coverage to Codecov
         if: matrix.node-version == '22' && matrix.test-type == 'unit'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./frontend/coverage/unit/lcov.info
           directory: ./frontend
@@ -199,7 +199,7 @@ jobs:
   #   
   #   steps:
   #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v5
   #       with:
   #         fetch-depth: 0
   #     
