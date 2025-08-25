@@ -6,7 +6,7 @@ export interface HADevice {
   domain: string;
   last_updated?: string;
   last_changed?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
   device_class?: string;
   unit_of_measurement?: string;
   area?: string;

@@ -210,7 +210,7 @@ jobs:
             --framework docker_compose \
             --output json \
             --output-file checkov-results.json \
-            . || true
+            --directory . || true
           
           # Analyze Checkov results
           if [ -f checkov-results.json ]; then
