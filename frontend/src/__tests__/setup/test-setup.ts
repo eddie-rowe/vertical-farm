@@ -11,7 +11,7 @@ import { TextEncoder, TextDecoder } from 'util';
 
 // Polyfills for Node.js environment
 global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+global.TextDecoder = TextDecoder as typeof global.TextDecoder;
 
 // Mock performance API for Node.js
 if (!global.performance) {
@@ -24,7 +24,7 @@ if (!global.performance) {
     getEntriesByName: () => [],
     getEntriesByType: () => [],
     getEntries: () => [],
-  } as any;
+  } as Performance;
 }
 
 /**
@@ -72,7 +72,7 @@ export const testUtils = {
   /**
    * Create a mock function with specific behavior
    */
-  createMockFn: <T extends (...args: any[]) => any>(
+  createMockFn: <T extends (...args: unknown[]) => unknown>(
     implementation?: T,
     name?: string
   ): jest.MockedFunction<T> => {
@@ -118,7 +118,7 @@ export const testUtils = {
    * Assert that a function throws with a specific message
    */
   expectToThrowWithMessage: async (
-    fn: () => Promise<any> | any,
+    fn: () => Promise<unknown> | unknown,
     expectedMessage: string
   ): Promise<void> => {
     try {
@@ -224,7 +224,7 @@ export const testDataBuilders = {
   /**
    * Build a test user
    */
-  user: (overrides: Partial<any> = {}) => ({
+  user: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     email: 'test@example.com',
     created_at: testUtils.createTimestamp(-30),
@@ -235,7 +235,7 @@ export const testDataBuilders = {
   /**
    * Build a test farm
    */
-  farm: (overrides: Partial<any> = {}) => ({
+  farm: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     name: 'Test Farm',
     location: 'Test Location',
@@ -250,7 +250,7 @@ export const testDataBuilders = {
   /**
    * Build a test species
    */
-  species: (overrides: Partial<any> = {}) => ({
+  species: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     name: 'Test Species',
     scientific_name: 'Testicus speciesus',
@@ -265,7 +265,7 @@ export const testDataBuilders = {
   /**
    * Build a test grow recipe
    */
-  growRecipe: (overrides: Partial<any> = {}) => ({
+  growRecipe: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     species_id: 'species-1',
     name: 'Test Recipe',
@@ -281,7 +281,7 @@ export const testDataBuilders = {
   /**
    * Build a test grow
    */
-  grow: (overrides: Partial<any> = {}) => ({
+  grow: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     name: 'Test Grow',
     grow_recipe_id: 'recipe-1',
@@ -300,7 +300,7 @@ export const testDataBuilders = {
   /**
    * Build a test shelf
    */
-  shelf: (overrides: Partial<any> = {}) => ({
+  shelf: (overrides: Partial<Record<string, unknown>> = {}) => ({
     id: testUtils.generateTestId(),
     name: 'Test Shelf',
     rack_id: 'rack-1',
@@ -340,7 +340,7 @@ export const testAssertions = {
   ) => {
     const matchingItems = array.filter(item =>
       Object.entries(properties).every(([key, value]) =>
-        (item as any)[key] === value
+        (item as Record<string, unknown>)[key] === value
       )
     );
     expect(matchingItems).toHaveLength.greaterThan(0);
@@ -363,7 +363,7 @@ export const testAssertions = {
   /**
    * Assert that an object has the required properties
    */
-  toHaveRequiredProperties: <T extends Record<string, any>>(
+  toHaveRequiredProperties: <T extends Record<string, unknown>>(
     obj: T,
     requiredProperties: (keyof T)[]
   ) => {
@@ -377,8 +377,8 @@ export const testAssertions = {
    * Assert that a function is called with specific arguments
    */
   toHaveBeenCalledWithMatching: (
-    mockFn: jest.MockedFunction<any>,
-    matcher: (args: any[]) => boolean
+    mockFn: jest.MockedFunction<(...args: unknown[]) => unknown>,
+    matcher: (args: unknown[]) => boolean
   ) => {
     const calls = mockFn.mock.calls;
     const matchingCalls = calls.filter(matcher);
@@ -396,7 +396,7 @@ beforeAll(async () => {
 
   // Configure console for tests
   const originalConsoleError = console.error;
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     // Suppress expected React warnings in tests
     if (
       typeof args[0] === 'string' &&
@@ -430,12 +430,10 @@ afterEach(() => {
 /**
  * Custom Jest matchers
  */
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeWithinRange(min: number, max: number): R;
-      toResolveWithin(timeLimit: number): Promise<R>;
-    }
+declare module '@jest/expect' {
+  interface Matchers<R> {
+    toBeWithinRange(min: number, max: number): R;
+    toResolveWithin(timeLimit: number): Promise<R>;
   }
 }
 
@@ -456,10 +454,12 @@ expect.extend({
   },
 });
 
-export default {
+const testSetupExports = {
   testConfig,
   testUtils,
   mockImplementations,
   testDataBuilders,
   testAssertions,
 };
+
+export default testSetupExports;
