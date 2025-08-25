@@ -207,7 +207,7 @@ jobs:
           # Scan infrastructure files (Dockerfile, docker-compose, Kubernetes, etc.)
           checkov \
             --framework dockerfile \
-            --framework docker_compose \
+            --framework docker-compose \
             --output json \
             --output-file checkov-results.json \
             --directory . || true
