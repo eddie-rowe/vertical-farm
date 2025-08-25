@@ -42,13 +42,14 @@ git checkout THE-BRANCH-NAME-THAT-GETS-GENERATED
 ```
 
 1. Open up Claude Code and ask it to run each of these commands in order to develop the feature
-   1. `make up`
+   1. `make up` to stand up the local development environment
    2. `make plan ISSUE=###` then review/modify plan
    3. `make dev ISSUE=###` then guide agents to develop the feature
    4. `make validate ISSUE=###` and ensure everything works as expected
    5. `make test ISSUE=###`
-   6. `make deploy`
-   7. `make finalize` 
+   6. `make deploy ISSUE=###`
+   7. `make pipeline PR=###` to troubleshoot GitHub CI/CD errors
+   8. `make finalize` to update docs and close the ISSUE
 
 ### 1. Grabbing a task
 

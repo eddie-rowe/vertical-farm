@@ -929,7 +929,7 @@ export const testDataUtils = {
   },
 };
 
-export default {
+const databaseFixtures = {
   species: mockSpeciesFixtures,
   recipes: mockGrowRecipeFixtures,
   farms: mockFarmFixtures,
@@ -939,3 +939,5 @@ export default {
   generateLarge: generateLargeDatasets,
   utils: testDataUtils,
 };
+
+export default databaseFixtures;

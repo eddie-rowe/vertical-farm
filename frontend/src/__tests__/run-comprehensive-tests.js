@@ -19,7 +19,7 @@
  *   --help          Show help
  */
 
-const { execSync, spawn } = require('child_process');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -132,8 +132,19 @@ const runCommand = (command, options = {}) => {
       log(`Running: ${command}`);
     }
 
-    const child = spawn(command, [], {
-      shell: true,
+    // Sanitize command to prevent injection attacks
+    const [cmd, ...args] = command.split(' ').filter(arg => arg.trim() !== '');
+    
+    // Whitelist of allowed commands for test execution
+    const allowedCommands = ['npm', 'npx', 'node', 'jest', 'eslint', 'tsc', 'playwright'];
+    if (!allowedCommands.some(allowed => cmd === allowed || cmd.endsWith(`/${allowed}`) || cmd.endsWith(`\\${allowed}`))) {
+      reject(new Error(`Command '${cmd}' is not in the allowed list for security reasons`));
+      return;
+    }
+
+    // Security: Using spawn with separated args and validated cmd (not shell: true)
+    // The command is validated against allowlist above to prevent injection
+    const child = spawn(cmd, args, {
       stdio: options.verbose ? 'inherit' : 'pipe',
       env: { ...process.env, ...options.env },
     });

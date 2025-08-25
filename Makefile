@@ -18,7 +18,9 @@ NEXT_SRC=frontend
 	# Meta
 	setup format-all test-all help \\
 	# Security & Vulnerability Scanning
-	security-python security-node security-docker security-secrets security-snyk-python security-snyk-node
+	security-python security-node security-docker security-secrets security-snyk-python security-snyk-node \\
+	# Claude Workflows
+	pipeline plan dev test validate deploy
 
 # --- Backend Workflows ---
 
@@ -289,6 +291,33 @@ security: security-python security-node security-docker security-secrets securit
 
 # --- Claude-Powered Development Workflows ---
 
+## Debug and fix GitHub Actions pipeline failures
+pipeline:
+	@echo "🔧 Starting Claude-powered pipeline debugging workflow..."
+	@echo ""
+	@if [ -z "$(PR)" ]; then \
+		echo "❌ Please provide a PR number:"; \
+		echo "   make pipeline PR=123"; \
+		echo "   make pipeline PR=456"; \
+		exit 1; \
+	fi
+	@echo "🚨 Debugging pipeline for PR: $(PR)"
+	@echo "🤖 Invoking Claude with pipeline debugging workflow..."
+	@echo ""
+	@echo "Claude will:"
+	@echo "  1. Retrieve GitHub Actions logs and errors"
+	@echo "  2. Analyze failure patterns and root causes"
+	@echo "  3. Apply domain-specific fixes using specialized agents"
+	@echo "  4. Re-trigger the workflow automatically"
+	@echo "  5. Monitor and validate the fix"
+	@echo ""
+	@echo "Opening Claude Code with pipeline debugging workflow..."
+	@echo "Please run this command in Claude Code:"
+	@echo ""
+	@echo "Execute the workflow in .claude/commands/workflows/05_deployment/pipeline-debug.md with argument: $(PR)"
+	@echo ""
+	@echo "💡 This workflow uses specialized agents for backend, frontend, security, and deployment fixes"
+
 ## Start Claude-powered issue analysis and planning workflow
 plan:
 	@echo "🤖 Starting Claude-powered issue analysis workflow..."
@@ -439,6 +468,6 @@ deploy:
 
 ## List all available Makefile commands and their descriptions
 help:
-	@echo "\\nAvailable Makefile targets:\\n"
-	@grep -E '^[a-zA-Z0-9_-]+:|^##' Makefile | \\
-		awk 'BEGIN {FS = ":|##"} /^[a-zA-Z0-9_-]+:/ {printf "\\033[36m%-25s\\033[0m %s\\n", $$1, $$3}'
+	@echo "\nAvailable Makefile targets:\n"
+	@grep -E '^[a-zA-Z0-9_-]+:|^##' Makefile | \
+		awk 'BEGIN {FS = ":|##"} /^[a-zA-Z0-9_-]+:/ {printf "\033[36m%-25s\033[0m %s\n", $$1, $$3}'
