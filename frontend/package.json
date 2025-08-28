@@ -12,7 +12,7 @@
     "autoflake": "next lint --fix",
     "clean-imports": "next lint --fix --quiet",
     "test": "jest",
-    "test:e2e": "playwright test",
+    "test:e2e": "echo 'E2E tests disabled to prevent large file generation'",
     "test:realtime": "node ../test-realtime-subscriptions.js",
     "test:auth": "node ../test-auth-permissions.js",
     "test:iot": "node ../test-iot-integration.js",

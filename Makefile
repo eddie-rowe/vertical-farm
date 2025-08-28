@@ -243,7 +243,7 @@ format-all:
 	$(MAKE) lint-frontend
 
 ## Run comprehensive local testing (mirrors GitHub Actions pipeline)
-test-all: test-lint test-security test-backend test-frontend
+test-all: test-lint test-security test-build test-backend test-frontend
 	@echo ""
 	@echo "✅ All local tests completed successfully!"
 	@echo "🚀 Your code should pass GitHub Actions pipeline"
@@ -252,7 +252,6 @@ test-all: test-lint test-security test-backend test-frontend
 test-ci-tests:
 	$(MAKE) test-backend
 	$(MAKE) test-frontend
-	$(MAKE) test-e2e
 
 ## Run all linting checks (mirrors GitHub Actions)
 test-lint: test-lint-backend test-lint-frontend
@@ -280,6 +279,22 @@ test-lint-frontend:
 ## Run security checks (mirrors GitHub Actions security scans)
 test-security: test-security-backend test-security-frontend test-security-secrets
 	@echo "✅ All security checks completed"
+
+## Run build checks (mirrors GitHub Actions builds)
+test-build: test-build-frontend test-build-backend
+	@echo "✅ All build checks completed"
+
+## Run frontend build (mirrors GitHub Actions)
+test-build-frontend:
+	@echo "🏗️  Running frontend build check..."
+	cd frontend && npm run build
+	@echo "✅ Frontend build completed"
+
+## Run backend build check (basic validation)
+test-build-backend:
+	@echo "🏗️  Running backend build check..."
+	cd backend && python -m py_compile app/main.py
+	@echo "✅ Backend build check completed"
 
 ## Run backend security checks
 test-security-backend:
