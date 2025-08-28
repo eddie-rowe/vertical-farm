@@ -144,6 +144,71 @@ interface ServiceError {
 - **Real-time Types** - Supabase subscription and real-time data types
 - **Layer Overlay Types** - Visual layer state management types
 
+## Enhanced Error Prevention (Lessons from Debugging Sessions)
+
+**Critical TypeScript Safety Checks (MANDATORY):**
+
+### 1. Interface Property Validation
+Before using any object property, verify it exists in the interface:
+```typescript
+// ❌ WRONG: Assuming properties exist
+{recipeSpecies?.image} // Property 'image' does not exist on type 'Species'
+
+// ✅ CORRECT: Check interface first, then use or add property
+interface Species {
+  name: string
+  // image?: string  // Add if needed, or use alternative
+}
+{recipeSpecies?.name} // Use existing properties only
+```
+
+### 2. Type-Safe Arithmetic Operations
+Always ensure numeric types before mathematical operations:
+```typescript
+// ❌ WRONG: Unsafe division with unknown types  
+Math.round((device.attributes.brightness / 255) * 100)
+
+// ✅ CORRECT: Type-safe number conversion
+Math.round((Number(device.attributes.brightness) / 255) * 100)
+```
+
+### 3. Cascading Error Prevention
+Fix root type issues before they cascade through build pipeline:
+```typescript
+// ❌ WRONG: Ignoring type errors that cascade
+const farmData: FarmWithCapacity = selectedFarmData
+farmData.rows?.map(row => ...) // Property 'rows' doesn't exist, cascades
+
+// ✅ CORRECT: Address root type definitions first
+interface FarmWithCapacity extends Farm {
+  status: FarmStatus
+  capacity: FarmCapacity
+  // Add missing properties or use correct type
+}
+```
+
+### 4. Safe Type Assertions
+Use proper type guards instead of unsafe assertions:
+```typescript  
+// ❌ WRONG: Unsafe destructuring of unknown types
+const { entity_id, state } = message.data // Property 'entity_id' does not exist
+
+// ✅ CORRECT: Safe type assertion with proper typing
+const { entity_id, state } = message.data as DeviceUpdateMessage
+// OR better: proper type guards
+if (isDeviceUpdateMessage(message.data)) {
+  const { entity_id, state } = message.data
+}
+```
+
+### 5. Progressive Error Fixing Strategy
+When encountering cascading TypeScript errors:
+1. **Stop immediately** - Don't continue with other changes
+2. **Identify root cause** - Find the original missing/incorrect type
+3. **Fix types first** - Update interfaces before usage
+4. **Verify build** - Ensure TypeScript compiles before proceeding
+5. **Test incrementally** - Validate fixes don't break other code
+
 ## Output Requirements
 - Service classes extending BaseService/BaseCRUDService
 - Singleton implementation with getInstance() method

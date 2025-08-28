@@ -552,6 +552,31 @@ deploy:
 	@echo ""
 	@echo "💡 This workflow handles complete issue deployment lifecycle"
 
+## Start Claude-powered reflection workflow for improving development processes
+reflect:
+	@echo "🔍 Starting Claude-powered reflection workflow..."
+	@echo ""
+	@# Handle optional parameters with defaults
+	@COMMITS_PARAM=$${COMMITS:-10}; \
+	SCOPE_PARAM=$${SCOPE:-all}; \
+	echo "📊 Analyzing last $$COMMITS_PARAM commits with scope: $$SCOPE_PARAM"; \
+	echo "🤖 Invoking Claude with reflection workflow..."; \
+	echo ""; \
+	echo "Claude will:"; \
+	echo "  1. Analyze recent development patterns and challenges"; \
+	echo "  2. Review error logs and debugging sessions"; \
+	echo "  3. Update agent/workflow definitions to prevent similar issues"; \
+	echo "  4. Check style consistency across similar files"; \
+	echo "  5. Generate improvement recommendations"; \
+	echo "  6. Update .claude/ configurations automatically"; \
+	echo ""; \
+	echo "Opening Claude Code with reflection workflow..."; \
+	echo "Please run this command in Claude Code:"; \
+	echo ""; \
+	echo "Execute the workflow in .claude/commands/workflows/maintenance/development-reflection.md with arguments: COMMITS=$$COMMITS_PARAM SCOPE=$$SCOPE_PARAM"; \
+	echo ""; \
+	echo "💡 Use 'make reflect COMMITS=5 SCOPE=typescript' to focus on specific areas"
+
 # --- Help ---
 
 ## List all available Makefile commands and their descriptions
