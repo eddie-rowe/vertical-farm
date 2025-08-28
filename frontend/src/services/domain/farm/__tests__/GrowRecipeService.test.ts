@@ -239,7 +239,7 @@ describe('GrowRecipeService', () => {
   describe('Complex Query Operations', () => {
     describe('getRecipesBySpecies', () => {
       it('should fetch recipes for a specific species', async () => {
-        const lettuce recipes = mockGrowRecipeData.filter(r => r.species_id === 'species-1');
+        const lettuceRecipes = mockGrowRecipeData.filter(r => r.species_id === 'species-1');
         mockSupabaseClient.order.mockResolvedValueOnce({
           data: lettuceRecipes,
           error: null,

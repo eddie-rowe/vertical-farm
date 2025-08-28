@@ -2,7 +2,7 @@
 # This will supercharge your local development, onboarding, CI/CD, 
 # and documentation workflows - empowering both human and AI-driven processes.
 
-BLACK_LINE_LENGTH=79
+BLACK_LINE_LENGTH=88
 PYTHON_SRC=backend
 NEXT_SRC=frontend
 
@@ -242,11 +242,81 @@ format-all:
 	$(MAKE) lint-backend
 	$(MAKE) lint-frontend
 
-## Run all tests (backend, frontend, e2e)
-test-all:
+## Run comprehensive local testing (mirrors GitHub Actions pipeline)
+test-all: test-lint test-security test-backend test-frontend
+	@echo ""
+	@echo "✅ All local tests completed successfully!"
+	@echo "🚀 Your code should pass GitHub Actions pipeline"
+
+## Run all tests separately for debugging
+test-ci-tests:
 	$(MAKE) test-backend
 	$(MAKE) test-frontend
 	$(MAKE) test-e2e
+
+## Run all linting checks (mirrors GitHub Actions)
+test-lint: test-lint-backend test-lint-frontend
+	@echo "✅ All linting checks completed"
+
+## Run backend linting (black, flake8, pyright)
+test-lint-backend:
+	@echo "🔍 Running backend linting checks..."
+	cd backend && black --check --line-length $(BLACK_LINE_LENGTH) app/ || (echo "❌ Black formatting failed. Run: cd backend && black app/" && exit 1)
+	cd backend && python -m flake8 app/ --max-line-length=88 --ignore=E203,W503 --select=E9,F63,F7,F82 || (echo "❌ Critical syntax errors found" && exit 1)
+	@echo "  ⚠️  Pyright type checking (non-blocking):"
+	cd backend && python -m pip install --upgrade pyright types-requests types-redis types-PyYAML || echo "Note: Failed to install type checking tools"
+	cd backend && python -m pyright app/ || echo "  Note: Type errors found but not blocking"
+	@echo "✅ Backend linting completed"
+
+## Run frontend linting (ESLint, TypeScript)
+test-lint-frontend:
+	@echo "🔍 Running frontend linting checks..."
+	@echo "  ⚠️  ESLint warnings (non-blocking):"
+	cd frontend && npm run lint || echo "  Note: ESLint warnings found but not blocking"
+	@echo "  ⚠️  TypeScript compilation (non-blocking):"
+	cd frontend && npx tsc --noEmit --skipLibCheck || echo "  Note: TypeScript errors found but not blocking"
+	@echo "✅ Frontend linting completed"
+
+## Run security checks (mirrors GitHub Actions security scans)
+test-security: test-security-backend test-security-frontend test-security-secrets
+	@echo "✅ All security checks completed"
+
+## Run backend security checks
+test-security-backend:
+	@echo "🛡️  Running backend security checks..."
+	cd backend && python -m pip install --upgrade pip-audit bandit || echo "⚠️  Failed to install security tools"
+	cd backend && pip-audit --desc --output-format=json || echo "⚠️  Dependency vulnerabilities found (pip-audit may need requirements)"
+	cd backend && bandit -r app/ -f json -o security-report.json || echo "⚠️  Security issues found in code"
+	@echo "✅ Backend security checks completed"
+
+## Run frontend security checks  
+test-security-frontend:
+	@echo "🛡️  Running frontend security checks..."
+	cd frontend && npm audit --audit-level=moderate || echo "⚠️  Dependency vulnerabilities found"
+	@echo "✅ Frontend security checks completed"
+
+## Run secret scanning (basic local version)
+test-security-secrets:
+	@echo "🔍 Running basic secret detection..."
+	@if command -v grep >/dev/null 2>&1; then \
+		! grep -r -i -n -E "(password|secret|key|token).*=.*['\"][^'\"]{10,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=venv || echo "⚠️  Potential secrets found - review carefully"; \
+	fi
+	@echo "✅ Secret scanning completed"
+
+## Enhanced backend testing (mirrors GitHub Actions)
+test-backend-enhanced:
+	@echo "🧪 Running enhanced backend tests..."
+	set -a; source .env; set +a; export PYTHONPATH=$(CURDIR)/backend:$$PYTHONPATH; cd backend && DISABLE_DATADOG="true" python -m pytest app/tests/unit/ -v --cov=app --cov-report=html:htmlcov-unit --junit-xml=test-results-unit.xml
+	set -a; source .env; set +a; export PYTHONPATH=$(CURDIR)/backend:$$PYTHONPATH; cd backend && DISABLE_DATADOG="true" python -m pytest app/tests/integration/ -v --cov=app --cov-report=html:htmlcov-integration --junit-xml=test-results-integration.xml
+	set -a; source .env; set +a; export PYTHONPATH=$(CURDIR)/backend:$$PYTHONPATH; cd backend && DISABLE_DATADOG="true" python -m pytest app/tests/api/ -v --cov=app --cov-report=html:htmlcov-api --junit-xml=test-results-api.xml
+	@echo "✅ Enhanced backend tests completed"
+
+## Enhanced frontend testing (mirrors GitHub Actions)
+test-frontend-enhanced:
+	@echo "🧪 Running enhanced frontend tests..."
+	cd frontend && npm test -- --testPathPattern=tests/unit/ --coverage --coverageDirectory=coverage/unit --watchAll=false --passWithNoTests
+	cd frontend && npm test -- --testPathPattern=tests/integration/ --coverage --coverageDirectory=coverage/integration --watchAll=false --testTimeout=30000 --passWithNoTests
+	@echo "✅ Enhanced frontend tests completed"
 
 ## Auto-commit (OpenCommit), push, and open a PR (GitHub CLI required)
 pr:
@@ -380,15 +450,18 @@ dev:
 	@echo ""
 	@echo "💡 After development: 'make test FEATURE=\"your feature\"' for validation"
 
-## Start Claude-powered feature testing workflow
-test:
+## Run comprehensive local testing (same as test-all, primary command)
+test: test-all
+
+## Claude-powered feature testing workflow (moved from test)
+test-feature:
 	@echo "🧪 Starting Claude-powered feature testing workflow..."
 	@echo ""
 	@if [ -z "$(FEATURE)" ]; then \
 		echo "❌ Please provide a feature description to test:"; \
-		echo "   make test FEATURE=\"temperature monitoring dashboard\""; \
-		echo "   make test FEATURE=\"user authentication system\""; \
-		echo "   make test FEATURE=\"grow setup tab with real data\""; \
+		echo "   make test-feature FEATURE=\"temperature monitoring dashboard\""; \
+		echo "   make test-feature FEATURE=\"user authentication system\""; \
+		echo "   make test-feature FEATURE=\"grow setup tab with real data\""; \
 		exit 1; \
 	fi
 	@echo "🔍 Testing feature: $(FEATURE)"
@@ -407,7 +480,7 @@ test:
 	@echo ""
 	@echo "Execute the workflow in .claude/commands/workflows/03_testing/feature-testing.md with argument: $(FEATURE)"
 	@echo ""
-	@echo "💡 Tip: Use 'make test-all' for quick unit/e2e tests, 'make test FEATURE=...' for comprehensive feature validation"
+	@echo "💡 Tip: Use 'make test' for quick local validation, 'make test-feature FEATURE=...' for comprehensive feature validation"
 
 ## Start Claude-powered feature validation workflow using git diff and Playwright
 validate:

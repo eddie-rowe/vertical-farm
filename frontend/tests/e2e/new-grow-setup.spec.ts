@@ -368,7 +368,7 @@ test.describe('New Grow Setup Wizard', () => {
       
       // Check for recipe details
       const recipeCard = growSetupPage.recipeCards.first();
-      await expect(recipeCard.locator(':has-text("Easy")').or(recipeCard.locator(':has-text("Medium")').or(recipeCard.locator(':has-text("Hard")'))))).toBeVisible();
+      await expect(recipeCard.locator(':has-text("Easy")').or(recipeCard.locator(':has-text("Medium")').or(recipeCard.locator(':has-text("Hard")')))).toBeVisible();
       await expect(recipeCard.locator(':has-text("days")')).toBeVisible();
       await expect(recipeCard.locator(':has-text("light")')).toBeVisible();
     });
