@@ -24,7 +24,7 @@ if (!global.performance) {
     getEntriesByName: () => [],
     getEntriesByType: () => [],
     getEntries: () => [],
-  } as Performance;
+  } as unknown as Performance;
 }
 
 /**
@@ -76,7 +76,7 @@ export const testUtils = {
     implementation?: T,
     name?: string
   ): jest.MockedFunction<T> => {
-    const mockFn = jest.fn(implementation) as jest.MockedFunction<T>;
+    const mockFn = jest.fn(implementation) as unknown as jest.MockedFunction<T>;
     if (name) {
       Object.defineProperty(mockFn, 'name', { value: name });
     }
@@ -343,7 +343,7 @@ export const testAssertions = {
         (item as Record<string, unknown>)[key] === value
       )
     );
-    expect(matchingItems).toHaveLength.greaterThan(0);
+    expect(matchingItems.length).toBeGreaterThan(0);
   },
 
   /**
@@ -368,7 +368,7 @@ export const testAssertions = {
     requiredProperties: (keyof T)[]
   ) => {
     requiredProperties.forEach(prop => {
-      expect(obj).toHaveProperty(prop);
+      expect(obj).toHaveProperty(String(prop));
       expect(obj[prop]).toBeDefined();
     });
   },
@@ -382,7 +382,7 @@ export const testAssertions = {
   ) => {
     const calls = mockFn.mock.calls;
     const matchingCalls = calls.filter(matcher);
-    expect(matchingCalls).toHaveLength.greaterThan(0);
+    expect(matchingCalls.length).toBeGreaterThan(0);
   },
 };
 
@@ -390,8 +390,7 @@ export const testAssertions = {
  * Global test setup
  */
 beforeAll(async () => {
-  // Set test environment variables
-  process.env.NODE_ENV = 'test';
+  // Environment already set to test by Jest
   process.env.JEST = 'true';
 
   // Configure console for tests
@@ -428,31 +427,10 @@ afterEach(() => {
 });
 
 /**
- * Custom Jest matchers
+ * Test setup complete - Jest environment configured
  */
-declare module '@jest/expect' {
-  interface Matchers<R> {
-    toBeWithinRange(min: number, max: number): R;
-    toResolveWithin(timeLimit: number): Promise<R>;
-  }
-}
 
-expect.extend({
-  toBeWithinRange(received: number, min: number, max: number) {
-    const pass = received >= min && received <= max;
-    if (pass) {
-      return {
-        message: () => `expected ${received} not to be within range ${min} to ${max}`,
-        pass: true,
-      };
-    } else {
-      return {
-        message: () => `expected ${received} to be within range ${min} to ${max}`,
-        pass: false,
-      };
-    }
-  },
-});
+// Custom Jest matchers removed for simplicity
 
 const testSetupExports = {
   testConfig,

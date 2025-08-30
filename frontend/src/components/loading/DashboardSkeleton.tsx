@@ -22,7 +22,7 @@ export function DashboardSkeleton() {
         {/* Performance Metrics Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index}>
+            <Card key={`metric-${index}`}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -57,7 +57,7 @@ export function DashboardSkeleton() {
               <div className="space-y-4">
                 {Array.from({ length: 2 }).map((_, index) => (
                   <div
-                    key={index}
+                    key={`env-status-${index}`}
                     className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
                   >
                     <div className="flex justify-between items-center mb-3">
@@ -66,7 +66,7 @@ export function DashboardSkeleton() {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {Array.from({ length: 4 }).map((_, metricIndex) => (
-                        <div key={metricIndex} className="text-center">
+                        <div key={`metric-${index}-${metricIndex}`} className="text-center">
                           <Skeleton className="w-4 h-4 mx-auto mb-1" />
                           <Skeleton className="h-3 w-16 mx-auto mb-1" />
                           <Skeleton className="h-4 w-12 mx-auto" />
@@ -91,7 +91,7 @@ export function DashboardSkeleton() {
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
-                    key={index}
+                    key={`system-status-${index}`}
                     className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
                   >
                     <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export function DashboardSkeleton() {
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <div
-                    key={index}
+                    key={`alert-${index}`}
                     className="p-3 rounded-lg border-l-4 border-gray-200"
                   >
                     <div className="flex justify-between items-start">
@@ -151,7 +151,7 @@ export function DashboardSkeleton() {
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <div
-                    key={index}
+                    key={`activity-${index}`}
                     className="flex items-start gap-3 p-2 rounded-lg"
                   >
                     <Skeleton className="w-2 h-2 rounded-full mt-2 flex-shrink-0" />

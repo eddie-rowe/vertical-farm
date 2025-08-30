@@ -201,7 +201,7 @@ export default function AlertHistoryPage() {
   });
 
   const {
-    filters,
+    filters: _filters,
     setFilter,
     removeFilter,
     clearAllFilters,
@@ -473,7 +473,7 @@ export default function AlertHistoryPage() {
                     </p>
                     <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
                       {alert.actions.map((action, index) => (
-                        <li key={index}>{action}</li>
+                        <li key={`${alert.id}-action-${index}`}>{action}</li>
                       ))}
                     </ul>
                   </div>

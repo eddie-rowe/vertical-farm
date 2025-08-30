@@ -321,7 +321,8 @@ test.describe('New Grow Setup Wizard', () => {
 
   test.describe('Farm Selection', () => {
     test('should display available farms with details', async () => {
-      await expect(growSetupPage.farmCards).toHaveCount.greaterThan(0);
+      const farmCardCount = await growSetupPage.farmCards.count();
+      expect(farmCardCount).toBeGreaterThan(0);
       
       // Check for farm details
       const farmCard = growSetupPage.farmCards.first();
@@ -364,7 +365,8 @@ test.describe('New Grow Setup Wizard', () => {
     });
 
     test('should display available recipes with details', async () => {
-      await expect(growSetupPage.recipeCards).toHaveCount.greaterThan(0);
+      const recipeCardCount = await growSetupPage.recipeCards.count();
+      expect(recipeCardCount).toBeGreaterThan(0);
       
       // Check for recipe details
       const recipeCard = growSetupPage.recipeCards.first();
@@ -444,7 +446,8 @@ test.describe('New Grow Setup Wizard', () => {
       await expect(page.locator(':has-text("Rack")')).toBeVisible();
       
       // Should show shelves
-      await expect(growSetupPage.shelfButtons).toHaveCount.greaterThan(0);
+      const shelfButtonCount = await growSetupPage.shelfButtons.count();
+      expect(shelfButtonCount).toBeGreaterThan(0);
     });
 
     test('should show shelf status indicators', async ({ page }) => {
@@ -462,7 +465,7 @@ test.describe('New Grow Setup Wizard', () => {
       await expect(page.locator(`text="${shelfCount}"`)).toBeVisible();
       
       // Selected shelves should be highlighted
-      const selectedShelves = growSetupPage.shelfButtons.filter({ hasClass: /border-green-500/ });
+      const selectedShelves = growSetupPage.shelfButtons.filter({ has: page.locator('.border-green-500') });
       expect(await selectedShelves.count()).toBe(shelfCount);
     });
 
@@ -666,12 +669,14 @@ test.describe('New Grow Setup Wizard', () => {
       // Test tablet viewport
       await page.setViewportSize({ width: 768, height: 1024 });
       
-      await expect(growSetupPage.farmCards).toHaveCount.greaterThan(0);
+      const mobileCardCount = await growSetupPage.farmCards.count();
+      expect(mobileCardCount).toBeGreaterThan(0);
       
       // Test desktop viewport
       await page.setViewportSize({ width: 1920, height: 1080 });
       
-      await expect(growSetupPage.farmCards).toHaveCount.greaterThan(0);
+      const desktopCardCount = await growSetupPage.farmCards.count();
+      expect(desktopCardCount).toBeGreaterThan(0);
     });
   });
 

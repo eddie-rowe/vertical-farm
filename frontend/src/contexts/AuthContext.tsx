@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
       } = await supabase.auth.getSession();
       if (error) {
-        console.error("Error getting initial session:", error);
+        // Error getting initial session
       } else {
         setSession(session);
         setUser(session?.user ?? null);
@@ -51,8 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
-
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -60,16 +58,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Handle different auth events
       switch (event) {
         case "SIGNED_IN":
-          console.log("User signed in");
+          // User signed in
           break;
         case "SIGNED_OUT":
-          console.log("User signed out");
+          // User signed out
           break;
         case "TOKEN_REFRESHED":
-          console.log("Token refreshed successfully");
+          // Token refreshed successfully
           break;
         case "USER_UPDATED":
-          console.log("User updated");
+          // User updated
           break;
       }
     });
@@ -101,7 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.success("Signed in successfully");
       }
     } catch (error: any) {
-      console.error("Sign in error:", error);
       toast.error(error.message || "Failed to sign in");
       throw error;
     } finally {
@@ -132,7 +129,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         }
       } catch (error: any) {
-        console.error("Sign up error:", error);
         toast.error(error.message || "Failed to create account");
         throw error;
       } finally {
@@ -149,7 +145,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.error("Sign out error:", error);
         toast.error("Failed to sign out");
         throw error;
       }
@@ -157,7 +152,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // State will be updated automatically via onAuthStateChange
       toast.success("Signed out successfully");
     } catch (error: any) {
-      console.error("Sign out error:", error);
       toast.error(error.message || "Failed to sign out");
       throw error;
     } finally {
@@ -178,7 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       toast.success("Password reset email sent! Please check your inbox.");
     } catch (error: any) {
-      console.error("Password reset error:", error);
       toast.error(error.message || "Failed to send reset email");
       throw error;
     }

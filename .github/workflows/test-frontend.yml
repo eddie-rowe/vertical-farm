@@ -67,10 +67,10 @@ jobs:
       - name: Run quality checks (fast pre-flight)
         working-directory: ./frontend
         run: |
-          # Linting - Allow warnings, only fail on errors
+          # ESLint - Allow up to 9999 warnings, but fail on any errors
           npm run lint:ci
           
-          # TypeScript checking
+          # TypeScript - Strict type checking, fails on any type errors
           npx tsc --noEmit --strict --skipLibCheck
       
       - name: Build application

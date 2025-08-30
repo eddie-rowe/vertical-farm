@@ -21,6 +21,7 @@ export interface CostBreakdown {
 }
 
 export interface CostSuggestion {
+  id?: string;
   action: string;
   savings: number;
   urgency: "low" | "medium" | "high";
@@ -32,6 +33,7 @@ export interface Alert {
 }
 
 export interface SalesSuggestion {
+  id?: string;
   action: string;
   impact: string;
   urgency: "low" | "medium" | "high";
@@ -44,6 +46,7 @@ export interface CustomerMetrics {
 }
 
 export interface Task {
+  id?: string;
   name: string;
   hours: number;
   priority: "low" | "medium" | "high";
@@ -57,11 +60,13 @@ export interface TaskSuggestion {
 }
 
 export interface Preparation {
+  id?: string;
   task: string;
   status: "pending" | "done" | "verified";
 }
 
 export interface UpcomingEvent {
+  id?: string;
   name: string;
   laborRequired: number;
   daysAway: number;
@@ -78,6 +83,7 @@ export interface CustomerTouchpoint {
 }
 
 export interface StrategicNote {
+  id?: string;
   note: string;
   investigation: string;
   priority: "low" | "medium" | "high";
@@ -92,6 +98,7 @@ export interface RDOpportunity {
 }
 
 export interface SystemAlert {
+  id?: string;
   alert: string;
   severity: "low" | "medium" | "high";
   action: string;

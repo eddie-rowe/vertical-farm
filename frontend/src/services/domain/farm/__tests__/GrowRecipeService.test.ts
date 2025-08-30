@@ -86,10 +86,10 @@ describe('GrowRecipeService', () => {
       light_days: 27,
       total_grow_days: 30,
       top_coat: 'none',
-      pythium_risk: 'low' as PythiumRisk,
+      pythium_risk: 'Low' as PythiumRisk,
       water_intake: 2.1,
       water_frequency: 'every_4_hours',
-      lighting: { schedule: 'standard', intensity: 'medium' },
+      lighting: { intensity: { percentage: 60 } },
       fridge_storage_temp: 4,
       difficulty: 'Easy' as GrowDifficulty,
       custom_parameters: { custom_setting: 'value' },
@@ -103,6 +103,8 @@ describe('GrowRecipeService', () => {
         scientific_name: 'Lactuca sativa',
         category: 'leafy_greens',
         image: '🥬',
+        created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
       },
     },
     {
@@ -130,7 +132,7 @@ describe('GrowRecipeService', () => {
       pythium_risk: 'medium' as PythiumRisk,
       water_intake: 1.8,
       water_frequency: 'every_6_hours',
-      lighting: { schedule: 'intensive', intensity: 'high' },
+      lighting: { intensity: { percentage: 80 } },
       fridge_storage_temp: 2,
       difficulty: 'Hard' as GrowDifficulty,
       custom_parameters: { harvest_method: 'selective' },
@@ -144,6 +146,8 @@ describe('GrowRecipeService', () => {
         scientific_name: 'Ocimum basilicum',
         category: 'herbs',
         image: '🌿',
+        created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
       },
     },
     {
@@ -166,6 +170,8 @@ describe('GrowRecipeService', () => {
         scientific_name: 'Lactuca sativa',
         category: 'leafy_greens',
         image: '🥬',
+        created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
       },
     },
   ];
@@ -183,7 +189,6 @@ describe('GrowRecipeService', () => {
     target_ph_min: 5.5,
     target_ph_max: 6.5,
     difficulty: 'Medium',
-    is_active: true,
   };
 
   beforeEach(() => {
@@ -308,7 +313,7 @@ describe('GrowRecipeService', () => {
         const filters: GrowRecipeFilters = {
           species_id: 'species-1',
           difficulty: 'Easy',
-          pythium_risk: 'low',
+          pythium_risk: 'Low',
           min_grow_days: 20,
           max_grow_days: 40,
           search: 'standard',
@@ -326,7 +331,7 @@ describe('GrowRecipeService', () => {
 
         expect(mockSupabaseClient.eq).toHaveBeenCalledWith('species_id', 'species-1');
         expect(mockSupabaseClient.eq).toHaveBeenCalledWith('difficulty', 'Easy');
-        expect(mockSupabaseClient.eq).toHaveBeenCalledWith('pythium_risk', 'low');
+        expect(mockSupabaseClient.eq).toHaveBeenCalledWith('pythium_risk', 'Low');
         expect(mockSupabaseClient.gte).toHaveBeenCalledWith('total_grow_days', 20);
         expect(mockSupabaseClient.lte).toHaveBeenCalledWith('total_grow_days', 40);
         expect(mockSupabaseClient.or).toHaveBeenCalledWith('name.ilike.%standard%,recipe_source.ilike.%standard%');
@@ -366,7 +371,7 @@ describe('GrowRecipeService', () => {
   `, { count: 'exact' });
         expect(mockSupabaseClient.range).toHaveBeenCalledWith(0, 1); // page 1, limit 2
         expect(result.data).toEqual(paginatedData);
-        expect(result.pagination).toEqual({
+        expect(result.meta).toEqual({
           page: 1,
           limit: 2,
           total: 10,
@@ -393,7 +398,7 @@ describe('GrowRecipeService', () => {
 
         expect(mockSupabaseClient.eq).toHaveBeenCalledWith('difficulty', 'Easy');
         expect(mockSupabaseClient.eq).toHaveBeenCalledWith('is_active', true);
-        expect(result.pagination.total).toBe(1);
+        expect(result.meta.total).toBe(1);
       });
     });
   });
@@ -571,7 +576,7 @@ describe('GrowRecipeService', () => {
       const complexFilters: GrowRecipeFilters = {
         species_id: 'species-1',
         difficulty: 'Easy',
-        pythium_risk: 'low',
+        pythium_risk: 'Low',
         min_grow_days: 20,
         max_grow_days: 40,
         search: 'standard',
@@ -618,7 +623,7 @@ describe('GrowRecipeService', () => {
         const endTime = Date.now();
 
         expect(result.data).toHaveLength(pageSize);
-        expect(result.pagination.page).toBe(page);
+        expect(result.meta.page).toBe(page);
         expect(endTime - startTime).toBeLessThan(100); // Each page should load in under 100ms
       }
     });
@@ -670,7 +675,6 @@ describe('GrowRecipeService', () => {
         average_yield: 5.2,
         difficulty: 'Medium',
         priority: 'high',
-        is_active: true,
       };
 
       const createdRecipe = { ...recipeInput, id: 'new-recipe-id' };

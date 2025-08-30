@@ -94,7 +94,6 @@ const AIPage: React.FC = () => {
   const ActiveComponent = activeTabData?.component;
 
   const handleConnectIntegration = (integrationName: string) => {
-    console.log(`Connecting to ${integrationName}...`);
     // This would typically redirect to integration setup
     window.location.href = `/integrations/${integrationName.toLowerCase().replace(/\s+/g, "-")}`;
   };

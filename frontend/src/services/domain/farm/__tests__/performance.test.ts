@@ -7,10 +7,11 @@
  * @group load-testing
  */
 
-import { generateLargeDatasets } from '../../../__tests__/mocks/database-fixtures';
+import { generateLargeDatasets } from '../../../../__tests__/mocks/database-fixtures';
 import { GrowRecipeService } from '../GrowRecipeService';
 import { GrowService, type CreateGrowInput } from '../GrowService';
 import { SpeciesService } from '../SpeciesService';
+import type { Priority } from '@/types/common';
 
 // Performance test configuration
 const PERFORMANCE_THRESHOLDS = {
@@ -230,7 +231,7 @@ describe('Service Layer Performance Tests', () => {
         max_grow_days: 40,
         search: 'lettuce',
         is_active: true,
-        priority: 'high',
+        priority: 'high' as Priority,
       };
 
       const executionTime = await measureExecutionTime(() => 

@@ -96,7 +96,6 @@ describe('SpeciesService', () => {
     description: 'A new test species',
     scientific_name: 'Testus speciesus',
     category: 'test',
-    is_active: true,
   };
 
   beforeEach(() => {
@@ -504,7 +503,7 @@ describe('SpeciesService', () => {
   describe('Logging', () => {
     it('should log operations in development mode', async () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      jest.spyOn(process.env, 'NODE_ENV', 'get').mockReturnValue('development');
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
@@ -519,13 +518,13 @@ describe('SpeciesService', () => {
         expect.stringContaining('[SpeciesService] getAll')
       );
 
-      process.env.NODE_ENV = originalEnv;
+      jest.restoreAllMocks();
       consoleSpy.mockRestore();
     });
 
     it('should not log operations in production mode', async () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      jest.spyOn(process.env, 'NODE_ENV', 'get').mockReturnValue('production');
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
@@ -538,7 +537,7 @@ describe('SpeciesService', () => {
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
-      process.env.NODE_ENV = originalEnv;
+      jest.restoreAllMocks();
       consoleSpy.mockRestore();
     });
   });

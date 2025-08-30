@@ -47,7 +47,7 @@ export default function OnboardingWizard({
           <div className="flex gap-2 mb-4">
             {steps.map((_, i) => (
               <div
-                key={i}
+                key={`step-${i}`}
                 className={`h-2 w-8 rounded-full ${i <= step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}
               ></div>
             ))}

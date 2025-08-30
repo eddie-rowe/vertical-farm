@@ -264,7 +264,7 @@ const runners = {
     // Check if Playwright is available
     try {
       await runCommand('npx playwright --version', { verbose: false });
-    } catch (error) {
+    } catch {
       log('Playwright not found, installing...', 'warning');
       await runCommand('npx playwright install', { verbose: options.verbose });
     }

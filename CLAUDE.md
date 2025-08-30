@@ -145,11 +145,14 @@ backend/app/
 - **Service-focused**: Test business logic in services, not UI implementation
 - **Mock external dependencies**: Isolate tests from external systems
 - **Coverage goals**: 80% for critical paths, 60% overall
+- **NO INTEGRATION TESTS**: Only service unit tests + Playwright E2E tests
 
 ### Frontend Testing
-- **Unit**: Vitest for components and hooks
-- **E2E**: Playwright for critical user flows
+- **Service Unit Tests**: Jest for business logic in services (GrowService, SpeciesService, etc.)
+- **E2E Tests**: Playwright for all user interaction testing
 - **Performance**: Web Vitals monitoring
+- **FORBIDDEN**: @testing-library/user-event, complex component integration tests
+- **Component Testing**: Use fireEvent only for simple DOM events if absolutely necessary
 
 ### Backend Testing
 - **Unit**: Pytest with async support
@@ -177,6 +180,8 @@ backend/app/
 - Modify existing database migrations
 - Use synchronous operations in async contexts
 - Fetch data in Client Components without good reason
+- **Add @testing-library/user-event or create component integration tests**
+- **Create complex integration tests outside of Playwright E2E**
 
 ### ✅ ALWAYS DO THESE:
 - Use service layer for ALL data operations

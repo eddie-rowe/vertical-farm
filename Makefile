@@ -272,10 +272,13 @@ test-lint-backend:
 ## Run frontend linting (ESLint, TypeScript)
 test-lint-frontend:
 	@echo "🔍 Running frontend linting checks..."
-	@echo "  ⚠️  ESLint warnings (non-blocking):"
-	cd frontend && npm run lint || echo "  Note: ESLint warnings found but not blocking"
-	@echo "  ⚠️  TypeScript compilation (non-blocking):"
-	cd frontend && npx tsc --noEmit --skipLibCheck || echo "  Note: TypeScript errors found but not blocking"
+	# ESLint - Allow up to 9999 warnings, but fail on any errors
+	@echo "  ⚠️  ESLint warnings:"
+	cd frontend && npm run lint:ci
+	# TypeScript - Strict type checking, fails on any type errors
+	@echo "  ⚠️  TypeScript compilation:"
+	cd frontend && npx tsc --noEmit --strict --skipLibCheck
+
 	@echo "✅ Frontend linting completed"
 
 ## Run security checks (mirrors GitHub Actions security scans)

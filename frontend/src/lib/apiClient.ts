@@ -1,4 +1,5 @@
 "use client"; // Added 'use client' as it uses supabase.auth.getSession which is client-side
+
 import { supabase } from "@/lib/supabaseClient";
 
 // NEXT_PUBLIC_API_URL should point to the base of the backend, e.g., http://localhost:8000
@@ -20,10 +21,7 @@ async function request<T>(
       await supabase.auth.getSession();
 
     if (sessionError || !sessionData.session) {
-      console.error("User is not authenticated or session expired.", {
-        sessionError,
-        hasSession: !!sessionData?.session,
-      });
+      // User is not authenticated or session expired
       throw new Error("Authentication required. Please log in to continue.");
     } else {
       headers.append(
@@ -61,12 +59,6 @@ async function request<T>(
       (typeof errorJson === "string" ? errorJson : null) ||
       response.statusText ||
       `API request to ${fullPathEndpoint} failed with status ${response.status}`;
-    console.error("API Error:", {
-      status: response.status,
-      statusText: response.statusText,
-      endpoint: fullPathEndpoint,
-      errorBody: errorJson || errorBody,
-    });
     throw new Error(errorMessage);
   }
 
@@ -79,10 +71,6 @@ async function request<T>(
   } catch (e) {
     // Handle cases where response is OK but not JSON (e.g. plain text success message)
     // Or if JSON parsing fails for other reasons despite response.ok
-    console.warn(
-      `Response from ${fullPathEndpoint} was not valid JSON, despite successful status.`,
-      e,
-    );
     // Depending on expectation, you might return null, an empty object, or rethrow
     return undefined as T; // Or throw new Error('Failed to parse successful response as JSON');
   }

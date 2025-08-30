@@ -192,10 +192,10 @@ export class GrowService extends BaseCRUDService<GrowEntity> {
 
     return this.executeWithAuth(async () => {
       // Add user_id automatically
-      const user = await this.authService.requireAuth();
+      const session = await this.authService.requireAuth();
       const growData = {
         ...data,
-        user_id: user.id,
+        user_id: session.user.id,
         status: "planned" as GrowStatus,
         is_active: true,
         progress_percentage: 0,
@@ -389,11 +389,11 @@ export class GrowService extends BaseCRUDService<GrowEntity> {
     });
 
     return this.executeWithAuth(async () => {
-      const user = await this.authService.requireAuth();
+      const session = await this.authService.requireAuth();
       
       const growsData = growInputs.map((input) => ({
         ...input,
-        user_id: user.id,
+        user_id: session.user.id,
         status: "planned" as GrowStatus,
         is_active: true,
         progress_percentage: 0,
@@ -459,6 +459,7 @@ export class GrowService extends BaseCRUDService<GrowEntity> {
     planned: number;
     harvested: number;
     failed: number;
+    paused: number;
   }> {
     this.logOperation("getGrowSummary", { userId });
 
@@ -474,11 +475,11 @@ export class GrowService extends BaseCRUDService<GrowEntity> {
       const { count: total, error: totalError } = await query;
 
       if (totalError) {
-        return { data: null, error: totalError };
+        throw totalError;
       }
 
       // Get counts by status
-      const statuses = ["active", "planned", "harvested", "failed"] as GrowStatus[];
+      const statuses = ["active", "planned", "harvested", "failed", "paused"] as GrowStatus[];
       const statusCounts = await Promise.all(
         statuses.map(async (status) => {
           let statusQuery = this.getSupabaseClient()
@@ -500,7 +501,7 @@ export class GrowService extends BaseCRUDService<GrowEntity> {
           acc[status] = count;
           return acc;
         },
-        { total: total || 0, active: 0, planned: 0, harvested: 0, failed: 0 }
+        { total: total || 0, active: 0, planned: 0, harvested: 0, failed: 0, paused: 0 }
       );
 
       return { data: summary, error: null };

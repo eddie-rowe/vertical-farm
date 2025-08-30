@@ -9,6 +9,9 @@ import type {
   PythiumRisk
 } from "@/types/farm/recipes";
 
+import type { Priority } from "@/types/common";
+import type { Species } from "@/types/farm/recipes";
+
 import { BaseCRUDService, type BaseEntity } from "../../core/base/BaseCRUDService";
 
 import type { YieldEstimate, ProfitEstimate } from "./types";
@@ -41,8 +44,9 @@ interface GrowRecipeEntity extends BaseEntity {
   fridge_storage_temp?: number | null;
   difficulty?: GrowDifficulty | null;
   custom_parameters?: any | null;
-  priority?: string;
+  priority?: Priority;
   is_active?: boolean;
+  species?: Species;
 }
 
 export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
@@ -261,7 +265,7 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
       const { data, error, count } = await query;
 
       if (error) {
-        return { data: null, error };
+        throw error;
       }
 
       const total = count || 0;
@@ -269,7 +273,8 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
 
       const paginatedResponse: PaginatedGrowRecipes = {
         data: (data || []) as unknown as GrowRecipe[],
-        pagination: {
+        success: true,
+        meta: {
           page,
           limit,
           total,
@@ -345,7 +350,7 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
       // Toggle the status
       const newStatus = !current.is_active;
       
-      return this.update(id, { is_active: newStatus } as Partial<GrowRecipeEntity>);
+      return this.update(id, { is_active: newStatus } as Partial<GrowRecipeEntity>) as Promise<GrowRecipe>;
     }, "Toggle recipe active status");
   }
 
@@ -489,7 +494,7 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
     return marketPrices[category] || 4.00;
   }
 
-  private calculateFixedCosts(recipe: GrowRecipe): number {
+  private calculateFixedCosts(recipe: GrowRecipeEntity): number {
     // Simplified cost calculation based on recipe complexity
     const baseCost = 15.00; // Base cost per shelf cycle
     
@@ -504,7 +509,7 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
     return Math.round(baseCost * multiplier * timeMultiplier);
   }
 
-  private calculateVariableCosts(recipe: GrowRecipe, shelfCount: number): number {
+  private calculateVariableCosts(recipe: GrowRecipeEntity, shelfCount: number): number {
     // Variable costs that scale with shelf count
     const seedCost = 2.50; // per shelf
     const nutrientCost = 3.00; // per shelf
@@ -530,7 +535,7 @@ export class GrowRecipeService extends BaseCRUDService<GrowRecipeEntity> {
     ]);
 
     return {
-      ...recipe,
+      ...(recipe as GrowRecipe),
       yield_estimate: `${yieldEstimate.min}-${yieldEstimate.max} ${yieldEstimate.unit} per shelf`,
       profit_estimate: `$${profitEstimate.min}-$${profitEstimate.max} ${profitEstimate.timeframe}`
     };

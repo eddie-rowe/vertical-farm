@@ -153,7 +153,7 @@ export class SpeciesService extends BaseCRUDService<SpeciesEntity> {
       // Toggle the status
       const newStatus = !current.is_active;
       
-      return this.update(id, { is_active: newStatus } as Partial<SpeciesEntity>);
+      return this.update(id, { is_active: newStatus } as Partial<SpeciesEntity>) as Promise<Species>;
     }, "Toggle species active status");
   }
 }

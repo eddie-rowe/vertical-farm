@@ -55,8 +55,18 @@ jobs:
             --no-update > recent-secrets.json || true
           
           # Count found secrets
-          VERIFIED_SECRETS=$(jq 'select(.Verified == true) | length' repository-secrets.json 2>/dev/null | wc -l || echo "0")
-          TOTAL_FINDINGS=$(jq 'length' repository-secrets.json 2>/dev/null || echo "0")
+          if [ -f repository-secrets.json ]; then
+            VERIFIED_SECRETS=$(jq 'select(.Verified == true) | length' repository-secrets.json 2>/dev/null | wc -l || echo "0")
+            TOTAL_FINDINGS=$(jq 'length' repository-secrets.json 2>/dev/null || echo "0")
+            
+            echo "TruffleHog secret scan complete:"
+            echo "  Verified secrets: $VERIFIED_SECRETS"
+            echo "  Total findings: $TOTAL_FINDINGS"
+          else
+            echo "No TruffleHog results file found (repository-secrets.json missing)"
+            VERIFIED_SECRETS=0
+            TOTAL_FINDINGS=0
+          fi
           
           echo "- **Verified secrets found**: $VERIFIED_SECRETS" >> $GITHUB_STEP_SUMMARY
           echo "- **Total secret findings**: $TOTAL_FINDINGS" >> $GITHUB_STEP_SUMMARY
@@ -163,6 +173,7 @@ jobs:
           pip install semgrep
           
           # Run Semgrep with comprehensive security rulesets
+          echo "Running Semgrep security analysis..."
           semgrep \
             --config=p/security-audit \
             --config=p/secrets \
@@ -173,11 +184,19 @@ jobs:
             --output=semgrep-results.json \
             . || true
           
+          SEMGREP_EXIT_CODE=$?
+          echo "Semgrep scan completed with exit code: $SEMGREP_EXIT_CODE"
+          
           # Analyze Semgrep results
           if [ -f semgrep-results.json ]; then
             SEMGREP_CRITICAL=$(jq '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep-results.json 2>/dev/null || echo "0")
             SEMGREP_HIGH=$(jq '[.results[] | select(.extra.severity == "WARNING")] | length' semgrep-results.json 2>/dev/null || echo "0")
             SEMGREP_TOTAL=$(jq '.results | length' semgrep-results.json 2>/dev/null || echo "0")
+            
+            echo "Semgrep analysis complete:"
+            echo "  Critical: $SEMGREP_CRITICAL"
+            echo "  High: $SEMGREP_HIGH"
+            echo "  Total: $SEMGREP_TOTAL"
             
             echo "- **Semgrep Critical findings**: $SEMGREP_CRITICAL" >> $GITHUB_STEP_SUMMARY
             echo "- **Semgrep High findings**: $SEMGREP_HIGH" >> $GITHUB_STEP_SUMMARY
@@ -186,11 +205,21 @@ jobs:
             if [ "$SEMGREP_CRITICAL" -gt 0 ]; then
               echo "⚠️ Critical SAST findings detected:" >> $GITHUB_STEP_SUMMARY
               jq -r '.results[] | select(.extra.severity == "ERROR") | "- \(.path):\(.start.line): \(.extra.message)"' semgrep-results.json | head -5 >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Critical Security Issues Found:**" >> $GITHUB_STEP_SUMMARY
+              jq -r '.results[] | select(.extra.severity == "ERROR") | "File: \(.path) Line: \(.start.line)\nIssue: \(.extra.message)\nRule: \(.check_id)\n"' semgrep-results.json >> $GITHUB_STEP_SUMMARY
             fi
             
             # Store results for assessment
             echo "SEMGREP_CRITICAL=$SEMGREP_CRITICAL" >> $GITHUB_ENV
             echo "SEMGREP_HIGH=$SEMGREP_HIGH" >> $GITHUB_ENV
+          else
+            echo "No Semgrep results file found (semgrep-results.json missing)"
+            SEMGREP_CRITICAL=0
+            SEMGREP_HIGH=0
+            SEMGREP_TOTAL=0
+            echo "SEMGREP_CRITICAL=0" >> $GITHUB_ENV
+            echo "SEMGREP_HIGH=0" >> $GITHUB_ENV
           fi
       
       # =============================================================================
@@ -205,6 +234,7 @@ jobs:
           pip install checkov
           
           # Scan infrastructure files (Dockerfile, Kubernetes, etc.)
+          echo "Running Checkov Infrastructure as Code security scan..."
           checkov \
             --framework dockerfile \
             --framework kubernetes \
@@ -213,11 +243,34 @@ jobs:
             --output-file checkov-results.json \
             --directory . || true
           
+          CHECKOV_EXIT_CODE=$?
+          echo "Checkov scan completed with exit code: $CHECKOV_EXIT_CODE"
+          
+          # Debug Checkov output if it fails
+          if [ $CHECKOV_EXIT_CODE -ne 0 ] && [ $CHECKOV_EXIT_CODE -ne 1 ]; then
+            echo "Checkov encountered an error (exit code $CHECKOV_EXIT_CODE). Running with verbose output:"
+            checkov --help || echo "Checkov help command failed"
+            checkov --version || echo "Checkov version check failed"
+          fi
+          
           # Analyze Checkov results
           if [ -f checkov-results.json ]; then
             IAC_CRITICAL=$(jq '.results.failed_checks | map(select(.severity == "CRITICAL")) | length' checkov-results.json 2>/dev/null || echo "0")
             IAC_HIGH=$(jq '.results.failed_checks | map(select(.severity == "HIGH")) | length' checkov-results.json 2>/dev/null || echo "0")
             IAC_TOTAL=$(jq '.results.failed_checks | length' checkov-results.json 2>/dev/null || echo "0")
+            
+            echo "Checkov analysis complete:"
+            echo "  Critical: $IAC_CRITICAL"
+            echo "  High: $IAC_HIGH"
+            echo "  Total: $IAC_TOTAL"
+          else
+            echo "No Checkov results file found (checkov-results.json missing)"
+            IAC_CRITICAL=0
+            IAC_HIGH=0
+            IAC_TOTAL=0
+            echo "IAC_CRITICAL=0" >> $GITHUB_ENV
+            echo "IAC_HIGH=0" >> $GITHUB_ENV
+          fi
             
             echo "- **IaC Critical issues**: $IAC_CRITICAL" >> $GITHUB_STEP_SUMMARY
             echo "- **IaC High issues**: $IAC_HIGH" >> $GITHUB_STEP_SUMMARY
@@ -226,6 +279,9 @@ jobs:
             if [ "$IAC_CRITICAL" -gt 0 ]; then
               echo "⚠️ Critical Infrastructure issues found:" >> $GITHUB_STEP_SUMMARY
               jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "- \(.file_path): \(.check_name)"' checkov-results.json | head -5 >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Critical Infrastructure Issues Found:**" >> $GITHUB_STEP_SUMMARY
+              jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "File: \(.file_path)\nCheck: \(.check_name)\nDescription: \(.description)\nGuideline: \(.guideline)\n"' checkov-results.json >> $GITHUB_STEP_SUMMARY
             fi
             
             # Store results for assessment
@@ -267,11 +323,31 @@ jobs:
           TOTAL_CRITICAL=$((VERIFIED_SECRETS + SEMGREP_CRITICAL + IAC_CRITICAL))
           TOTAL_HIGH=$((TOTAL_FINDINGS + SECURITY_ISSUES + SEMGREP_HIGH + IAC_HIGH))
           
+          echo "Repository Security Assessment Summary:"
+          echo "  Total Critical Issues: $TOTAL_CRITICAL (Secrets: $VERIFIED_SECRETS + Semgrep: $SEMGREP_CRITICAL + Infrastructure: $IAC_CRITICAL)"
+          echo "  Total High Issues: $TOTAL_HIGH (Secret Findings: $TOTAL_FINDINGS + Config Issues: $SECURITY_ISSUES + Semgrep High: $SEMGREP_HIGH + Infrastructure High: $IAC_HIGH)"
+          
           if [ "$TOTAL_CRITICAL" -gt 0 ]; then
             echo "status=critical" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **REPOSITORY SECURITY: CRITICAL**" >> $GITHUB_STEP_SUMMARY
             echo "Critical security issues found ($TOTAL_CRITICAL critical). Immediate action required." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Breakdown of Critical Issues:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Verified Secrets: $VERIFIED_SECRETS" >> $GITHUB_STEP_SUMMARY
+            echo "- Semgrep Critical: $SEMGREP_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- Infrastructure Critical: $IAC_CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+            if [ "$VERIFIED_SECRETS" -gt 0 ]; then
+              echo "1. ⚠️ Remove or secure exposed secrets in repository" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "$SEMGREP_CRITICAL" -gt 0 ]; then
+              echo "2. 🛡️ Fix critical code security vulnerabilities found by Semgrep" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "$IAC_CRITICAL" -gt 0 ]; then
+              echo "3. 🏗️ Address critical infrastructure security issues found by Checkov" >> $GITHUB_STEP_SUMMARY
+            fi
             exit 1
           elif [ "$TOTAL_HIGH" -gt 15 ]; then
             echo "status=warning" >> $GITHUB_OUTPUT
