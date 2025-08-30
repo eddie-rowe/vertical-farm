@@ -69,3 +69,36 @@ export interface FarmStatistics {
   totalDevices?: number;
   lastUpdated: string;
 }
+
+export interface FarmCapacity {
+  used: number;
+  total: number;
+  percentage: number;
+}
+
+export enum FarmStatus {
+  ONLINE = "online",
+  OFFLINE = "offline", 
+  MAINTENANCE = "maintenance",
+  PARTIAL = "partial"
+}
+
+export interface FarmWithCapacity extends Farm {
+  status: FarmStatus;
+  capacity: FarmCapacity;
+  image?: string;
+}
+
+export interface YieldEstimate {
+  min: number;
+  max: number;
+  unit: string;
+  confidence: number;
+}
+
+export interface ProfitEstimate {
+  min: number;
+  max: number;
+  currency: string;
+  timeframe: string;
+}

@@ -255,7 +255,9 @@ class ErrorHandler:
         self.recovery_callbacks[service_name] = callback
         logger.info(f"Registered recovery callback for service '{service_name}'")
 
-    def add_error_callback(self, callback: Callable[[HomeAssistantError], None]) -> None:
+    def add_error_callback(
+        self, callback: Callable[[HomeAssistantError], None]
+    ) -> None:
         """Add a callback to be called when errors occur"""
         self.error_callbacks.append(callback)
 

@@ -46,9 +46,6 @@ interface GrowsOverlayProps {
 
 const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
   farmData,
-  selectedRow,
-  selectedRack,
-  selectedShelf,
 }) => {
   const [grows, setGrows] = useState<GrowTimelineItem[]>([]);
 
@@ -170,7 +167,7 @@ const GrowsOverlay: React.FC<GrowsOverlayProps> = ({
     }
   };
 
-  const getGrowForShelf = (shelfId: string | number) => {
+  const _getGrowForShelf = (shelfId: string | number) => {
     return grows.find((grow) => grow.shelfId === String(shelfId));
   };
 

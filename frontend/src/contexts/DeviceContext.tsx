@@ -110,7 +110,7 @@ function deviceLayerReducer(
       return { ...state, controlPanelOpen: action.open };
 
     case "REMOVE_DEVICE":
-      const { [action.entityId]: removed, ...remainingDevices } = state.devices;
+      const { [action.entityId]: _removed, ...remainingDevices } = state.devices;
       return { ...state, devices: remainingDevices };
 
     default:
@@ -156,12 +156,12 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
   // WebSocket connection management
   const connectWebSocket = useCallback(async () => {
     if (!user || !session?.access_token) {
-      console.warn("No user or session available for WebSocket connection");
+      // No user or session available for WebSocket connection
       return;
     }
 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      console.log("WebSocket already connected");
+      // WebSocket already connected
       return;
     }
 
@@ -173,7 +173,6 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        console.log("WebSocket connected");
         dispatch({ type: "SET_CONNECTION_STATUS", status: "connected" });
 
         // Send ping to maintain connection
@@ -191,12 +190,11 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
           const message: DeviceWebSocketMessage = JSON.parse(event.data);
           handleWebSocketMessage(message);
         } catch (error) {
-          console.error("Error parsing WebSocket message:", error);
+          // Error parsing WebSocket message
         }
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket disconnected:", event.code, event.reason);
         dispatch({ type: "SET_CONNECTION_STATUS", status: "disconnected" });
 
         // Attempt to reconnect if not intentionally closed
@@ -206,7 +204,7 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        // WebSocket error
         dispatch({ type: "SET_ERROR", error: "WebSocket connection failed" });
       };
 
@@ -241,7 +239,6 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
     reconnectTimeoutRef.current = setTimeout(() => {
       reconnectTimeoutRef.current = null;
       if (state.enabled) {
-        console.log("Attempting to reconnect WebSocket...");
         connectWebSocket();
       }
     }, 5000); // Reconnect after 5 seconds
@@ -251,7 +248,7 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
     (message: DeviceWebSocketMessage) => {
       switch (message.type) {
         case "device_state_update":
-          const { entity_id, state: deviceState, attributes } = message.data;
+          const { entity_id, state: deviceState, attributes } = message.data as any;
 
           // Update device in state
           dispatch({
@@ -260,14 +257,14 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
               ...state.devices[entity_id],
               current_state: deviceState,
               attributes,
-              last_updated: message.data.last_updated,
+              last_updated: (message.data as any).last_updated,
               is_online: deviceState !== "unavailable",
             } as DeviceData,
           });
           break;
 
         case "device_control_response":
-          const { success, error } = message.data;
+          const { success, error } = message.data as any;
           if (success) {
             toast.success("Device control successful");
           } else {
@@ -276,11 +273,11 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
           break;
 
         case "connection_status":
-          console.log("Connection status:", message.data);
+          // Connection status update
           break;
 
         default:
-          console.log("Unknown WebSocket message type:", message.type);
+          // Unknown WebSocket message type
       }
     },
     [state.devices],
@@ -313,7 +310,6 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
         });
         dispatch({ type: "UPDATE_DEVICES", devices: data.devices });
       } catch (error) {
-        console.error("Error loading location devices:", error);
         dispatch({ type: "SET_ERROR", error: "Failed to load devices" });
         toast.error("Failed to load devices");
       } finally {
@@ -362,7 +358,6 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
           });
         }
       } catch (error) {
-        console.error("Error controlling device:", error);
         toast.error(
           `Device control failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         );

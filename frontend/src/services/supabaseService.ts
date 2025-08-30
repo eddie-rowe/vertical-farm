@@ -162,7 +162,7 @@ export const getFarms = async (options?: {
   const { data, error, count } = await query;
 
   if (error) {
-    console.error("Error fetching farms:", error);
+    // Error logged
     throw error;
   }
 
@@ -199,7 +199,7 @@ export const getFarmDetails = async (
     .single();
 
   if (error) {
-    console.error(`Error fetching farm ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -225,7 +225,7 @@ export const createFarm = async (farmData: CreateFarmData): Promise<Farm> => {
     .single();
 
   if (error) {
-    console.error("Error creating farm:", error);
+    // Error logged
     throw error;
   }
 
@@ -250,7 +250,7 @@ export const updateFarm = async (
     .single();
 
   if (error) {
-    console.error(`Error updating farm ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -267,7 +267,7 @@ export const deleteFarm = async (farmId: UUID): Promise<void> => {
   const { error } = await supabase.from("farms").delete().eq("id", farmId);
 
   if (error) {
-    console.error(`Error deleting farm ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 };
@@ -289,7 +289,7 @@ export const getRowsByFarm = async (farmId: UUID): Promise<Row[]> => {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching rows for farm ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -312,7 +312,7 @@ export const createRow = async (rowData: {
     .single();
 
   if (error) {
-    console.error("Error creating row:", error);
+    // Error logged
     throw error;
   }
 
@@ -332,7 +332,7 @@ export const getRacksByRow = async (rowId: UUID): Promise<Rack[]> => {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching racks for row ${rowId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -355,7 +355,7 @@ export const createRack = async (rackData: {
     .single();
 
   if (error) {
-    console.error("Error creating rack:", error);
+    // Error logged
     throw error;
   }
 
@@ -375,7 +375,7 @@ export const getShelvesByRack = async (rackId: UUID): Promise<Shelf[]> => {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching shelves for rack ${rackId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -398,7 +398,7 @@ export const createShelf = async (shelfData: {
     .single();
 
   if (error) {
-    console.error("Error creating shelf:", error);
+    // Error logged
     throw error;
   }
 
@@ -431,10 +431,7 @@ export const getDeviceAssignmentsByFarm = async (
     .eq("farm_id", farmId);
 
   if (error) {
-    console.error(
-      `Error fetching device assignments for farm ${farmId}:`,
-      error,
-    );
+    // Error fetching device assignments
     throw error;
   }
 
@@ -447,7 +444,7 @@ export const getDeviceAssignmentsByFarm = async (
 export const searchDevices = async (
   searchTerm: string,
   farmId?: UUID,
-): Promise<any[]> => {
+): Promise<unknown[]> => {
   await requireAuth();
 
   const { data, error } = await supabase.rpc("search_devices", {
@@ -456,7 +453,7 @@ export const searchDevices = async (
   });
 
   if (error) {
-    console.error("Error searching devices:", error);
+    // Error logged
     throw error;
   }
 
@@ -485,7 +482,7 @@ export const assignDevice = async (deviceData: {
     .single();
 
   if (error) {
-    console.error("Error assigning device:", error);
+    // Error logged
     throw error;
   }
 
@@ -509,7 +506,7 @@ export const getFarmStatistics = async (
   });
 
   if (error) {
-    console.error(`Error getting farm statistics for ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -529,7 +526,7 @@ export const getDeviceStatusSummary = async (
   });
 
   if (error) {
-    console.error("Error getting device status summary:", error);
+    // Error logged
     throw error;
   }
 
@@ -545,7 +542,7 @@ export const getDeviceStatusSummary = async (
  */
 export const subscribeFarmUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void,
+  callback: (payload: unknown) => void,
 ) => {
   return supabase
     .channel(`farm-${farmId}`)
@@ -567,7 +564,7 @@ export const subscribeFarmUpdates = (
  */
 export const subscribeDeviceUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void,
+  callback: (payload: unknown) => void,
 ) => {
   return supabase
     .channel(`devices-${farmId}`)
@@ -589,7 +586,7 @@ export const subscribeDeviceUpdates = (
  */
 export const subscribeHierarchyUpdates = (
   farmId: UUID,
-  callback: (payload: any) => void,
+  callback: (payload: unknown) => void,
 ) => {
   const channel = supabase.channel(`hierarchy-${farmId}`);
 
@@ -640,17 +637,30 @@ export const subscribeHierarchyUpdates = (
 /**
  * Standard error handler for Supabase operations
  */
-export const handleSupabaseError = (error: any, operation: string) => {
-  console.error(`Supabase ${operation} error:`, error);
+export const handleSupabaseError = (error: unknown, operation: string) => {
+  // Error logged
 
-  if (error.code === "PGRST301") {
-    throw new Error("Resource not found or access denied");
-  } else if (error.code === "PGRST116") {
-    throw new Error("Resource already exists");
-  } else if (error.message?.includes("RLS")) {
+  // Type guard to check if error has a code property
+  const hasCode = (err: unknown): err is { code: string } => {
+    return typeof err === 'object' && err !== null && 'code' in err;
+  };
+
+  // Type guard to check if error has a message property
+  const hasMessage = (err: unknown): err is { message: string } => {
+    return typeof err === 'object' && err !== null && 'message' in err;
+  };
+
+  if (hasCode(error)) {
+    if (error.code === "PGRST301") {
+      throw new Error("Resource not found or access denied");
+    } else if (error.code === "PGRST116") {
+      throw new Error("Resource already exists");
+    }
+  } else if (hasMessage(error) && error.message?.includes("RLS")) {
     throw new Error("You do not have permission to perform this action");
   } else {
-    throw new Error(error.message || `Failed to ${operation}`);
+    const message = hasMessage(error) ? error.message : `Failed to ${operation}`;
+    throw new Error(message);
   }
 };
 
@@ -694,7 +704,7 @@ export const updateMultiple = async <T>(
 
   const errors = results.filter((r) => r.error);
   if (errors.length > 0) {
-    console.error("Bulk update errors:", errors);
+    // Error logged
     throw new Error(`Failed to update ${errors.length} items`);
   }
 

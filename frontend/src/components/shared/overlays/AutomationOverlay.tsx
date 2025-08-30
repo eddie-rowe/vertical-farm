@@ -75,7 +75,6 @@ const getRuleIcon = (type: string, status: string) => {
 };
 
 const AutomationRuleIndicator: React.FC<AutomationRuleIndicatorProps> = ({
-  ruleId,
   ruleName,
   ruleType,
   status,
@@ -132,7 +131,6 @@ interface ShelfAutomationOverlayProps {
 }
 
 const ShelfAutomationOverlay: React.FC<ShelfAutomationOverlayProps> = ({
-  shelf,
   automationRules = [],
 }) => {
   if (automationRules.length === 0) return null;
@@ -179,9 +177,7 @@ interface RackAutomationOverlayProps {
   rack: Rack;
 }
 
-const RackAutomationOverlay: React.FC<RackAutomationOverlayProps> = ({
-  rack,
-}) => {
+const RackAutomationOverlay: React.FC<RackAutomationOverlayProps> = () => {
   // Mock automation data - in real implementation, this would come from API
   const automationRules = [
     { id: "1", name: "Light Schedule", type: "schedule", is_active: true },
@@ -231,7 +227,7 @@ interface RowAutomationOverlayProps {
   row: Row;
 }
 
-const RowAutomationOverlay: React.FC<RowAutomationOverlayProps> = ({ row }) => {
+const RowAutomationOverlay: React.FC<RowAutomationOverlayProps> = () => {
   // Mock automation data - in real implementation, this would come from API
   const totalRules = 12; // Total automation rules for this row
   const activeRules = 8; // Active automation rules
@@ -272,9 +268,6 @@ const RowAutomationOverlay: React.FC<RowAutomationOverlayProps> = ({ row }) => {
 
 const AutomationOverlay: React.FC<AutomationOverlayProps> = ({
   farmData,
-  selectedRow,
-  selectedRack,
-  selectedShelf,
 }) => {
   if (!farmData?.farm?.rows) return null;
 

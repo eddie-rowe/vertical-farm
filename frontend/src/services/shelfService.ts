@@ -75,7 +75,7 @@ export const createShelf = async (
     .single();
 
   if (error) {
-    console.error("Error creating shelf:", error);
+    // Error logged
     throw error;
   }
 
@@ -96,7 +96,7 @@ export const getShelfById = async (shelfId: UUID): Promise<Shelf> => {
     .single();
 
   if (error) {
-    console.error(`Error fetching shelf ${shelfId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -117,7 +117,7 @@ export const getShelvesByRackId = async (rackId: UUID): Promise<Shelf[]> => {
     .order("position_in_rack", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching shelves for rack ${rackId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -142,7 +142,7 @@ export const updateShelf = async (
     .single();
 
   if (error) {
-    console.error(`Error updating shelf ${shelfId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -159,7 +159,7 @@ export const deleteShelf = async (shelfId: UUID): Promise<void> => {
   const { error } = await supabase.from("shelves").delete().eq("id", shelfId);
 
   if (error) {
-    console.error(`Error deleting shelf ${shelfId}:`, error);
+    // Error logged
     throw error;
   }
 };
@@ -190,13 +190,13 @@ export const reorderShelves = async (
     const errors = results.filter((result) => result.error);
 
     if (errors.length > 0) {
-      console.error("Error reordering shelves:", errors);
+      // Error logged
       throw new Error("Failed to reorder some shelves");
     }
 
     return results.map((result) => result.data!);
   } catch (error) {
-    console.error("Error in bulk shelf reorder:", error);
+    // Error logged
     throw error;
   }
 };
@@ -217,7 +217,7 @@ export const getShelfCount = async (rackId: UUID): Promise<number> => {
     .eq("rack_id", rackId);
 
   if (error) {
-    console.error(`Error getting shelf count for rack ${rackId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -238,10 +238,7 @@ export const getNextShelfPosition = async (rackId: UUID): Promise<number> => {
     .limit(1);
 
   if (error) {
-    console.error(
-      `Error getting next shelf position for rack ${rackId}:`,
-      error,
-    );
+    // Error getting next shelf position
     throw error;
   }
 
@@ -270,7 +267,7 @@ export const getShelvesByRowId = async (rowId: UUID): Promise<Shelf[]> => {
     .order("position_in_rack", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching shelves for row ${rowId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -298,7 +295,7 @@ export const getShelvesByFarmId = async (farmId: UUID): Promise<Shelf[]> => {
     .order("position_in_rack", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching shelves for farm ${farmId}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -336,7 +333,7 @@ export const getShelfWithHierarchy = async (shelfId: UUID) => {
     .single();
 
   if (error) {
-    console.error(`Error fetching shelf hierarchy for ${shelfId}:`, error);
+    // Error logged
     throw error;
   }
 

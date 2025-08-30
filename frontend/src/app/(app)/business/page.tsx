@@ -70,7 +70,7 @@ const mockBusinessData: BusinessData = {
 };
 
 // Placeholder components for features not yet implemented
-const SubscriptionsView = () => (
+const _SubscriptionsView = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
       <Package className="mx-auto h-12 w-12 text-control-label mb-4" />
@@ -79,7 +79,7 @@ const SubscriptionsView = () => (
   </div>
 );
 
-const InvoicesView = () => (
+const _InvoicesView = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
       <Receipt className="mx-auto h-12 w-12 text-control-label mb-4" />
@@ -97,8 +97,8 @@ const BusinessPage: React.FC = () => {
   // Use standardized hooks for business data
   const {
     data: businessData,
-    isLoading,
-    hasData,
+    isLoading: _isLoading,
+    hasData: _hasData,
   } = usePageData<BusinessData>({
     storageKey: createIntegrationStorageKey("business"),
     mockData: mockBusinessData,
@@ -123,8 +123,8 @@ const BusinessPage: React.FC = () => {
             );
           }
         }
-      } catch (error) {
-        console.error("Error loading Square configuration:", error);
+      } catch {
+        // Error loading Square configuration
         setConfigError("Failed to load Square configuration");
       } finally {
         setConfigLoading(false);

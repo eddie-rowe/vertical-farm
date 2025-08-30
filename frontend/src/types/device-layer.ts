@@ -8,9 +8,9 @@ export type DeviceState = "on" | "off" | "unavailable" | "unknown";
 
 // Device Actions
 export type DeviceAction =
-  | { type: "turn_on"; data?: Record<string, any> }
-  | { type: "turn_off"; data?: Record<string, any> }
-  | { type: "toggle"; data?: Record<string, any> }
+  | { type: "turn_on"; data?: Record<string, unknown> }
+  | { type: "turn_off"; data?: Record<string, unknown> }
+  | { type: "toggle"; data?: Record<string, unknown> }
   | { type: "set_brightness"; brightness: number }
   | { type: "set_color"; rgb_color: [number, number, number] }
   | { type: "set_speed"; speed: number };
@@ -122,7 +122,7 @@ export interface LocationDevices {
 // WebSocket Message Types
 export interface DeviceWebSocketMessage {
   type: "device_state_update" | "device_control_response" | "connection_status";
-  data: any;
+  data: unknown;
   timestamp: string;
 }
 

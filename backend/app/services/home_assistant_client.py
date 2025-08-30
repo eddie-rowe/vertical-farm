@@ -513,9 +513,7 @@ class HomeAssistantClient:
             },
         )
 
-    async def get_entity(
-        self, entity_id: str, use_cache: bool = True
-    ) -> dict | None:
+    async def get_entity(self, entity_id: str, use_cache: bool = True) -> dict | None:
         """
         Get a specific entity by ID with enhanced error handling.
 

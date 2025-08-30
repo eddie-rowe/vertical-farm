@@ -41,10 +41,9 @@ export interface IntegrationsConfig {
 export function useIntegrations(
   config: IntegrationsConfig,
 ): IntegrationWithHandler[] {
-  const { integrations, pageType, onConnect } = config;
+  const { integrations, onConnect } = config;
 
   const defaultConnectHandler = (integrationName: string) => {
-    console.log(`Connecting to ${integrationName}...`);
     // Redirect to integration setup page
     const slug = integrationName.toLowerCase().replace(/\s+/g, "-");
     window.location.href = `/integrations/${slug}`;

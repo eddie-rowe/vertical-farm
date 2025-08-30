@@ -264,10 +264,7 @@ interface ShelfMonitoringOverlayProps {
   metrics?: any[];
 }
 
-const ShelfMonitoringOverlay: React.FC<ShelfMonitoringOverlayProps> = ({
-  shelf,
-  metrics = [],
-}) => {
+const ShelfMonitoringOverlay: React.FC<ShelfMonitoringOverlayProps> = () => {
   // Mock data - in real implementation, this would come from API
   const mockMetrics = [
     {
@@ -330,9 +327,7 @@ interface RackMonitoringOverlayProps {
   rack: Rack;
 }
 
-const RackMonitoringOverlay: React.FC<RackMonitoringOverlayProps> = ({
-  rack,
-}) => {
+const RackMonitoringOverlay: React.FC<RackMonitoringOverlayProps> = () => {
   const avgHealthScore = 7.8;
   const alertCount = 2;
 
@@ -393,7 +388,7 @@ interface RowMonitoringOverlayProps {
   row: Row;
 }
 
-const RowMonitoringOverlay: React.FC<RowMonitoringOverlayProps> = ({ row }) => {
+const RowMonitoringOverlay: React.FC<RowMonitoringOverlayProps> = () => {
   const avgHealthScore = 8.1;
   const totalAlerts = 5;
   const criticalAlerts = 1;
@@ -475,9 +470,6 @@ const generateMockMonitoringData = (
 
 export function MonitoringOverlay({
   farmData,
-  selectedRow,
-  selectedRack,
-  selectedShelf,
 }: MonitoringOverlayProps) {
   const { isLayerActive } = useLayer();
   const [dashboardOpen, setDashboardOpen] = useState(false);

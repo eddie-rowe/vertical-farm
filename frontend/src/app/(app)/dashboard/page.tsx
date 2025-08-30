@@ -22,6 +22,7 @@ import {
   CircularProgress,
 } from "@/components/features/dashboard/components";
 import { useDashboard } from "@/components/features/dashboard/hooks/useDashboard";
+import type { StrategicData } from "@/components/features/dashboard/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -90,7 +91,7 @@ const DetailedView = ({
 }: {
   view: string;
   onBackToExecutive: () => void;
-  strategicData: any;
+  strategicData: StrategicData;
   currentTime: Date;
 }) => {
   const renderSectionsForView = (currentView: string) => {
@@ -113,9 +114,9 @@ const DetailedView = ({
                 />
                 <div className="space-y-2">
                   {strategicData.costs.suggestions.map(
-                    (suggestion: any, index: number) => (
+                    (suggestion, suggestionIndex) => (
                       <ActionButton
-                        key={index}
+                        key={suggestion.id || `cost-suggestion-${suggestionIndex}`}
                         action={suggestion.action}
                         impact={`Save $${suggestion.savings}`}
                         urgency={suggestion.urgency}
@@ -152,9 +153,9 @@ const DetailedView = ({
                 </div>
                 <div className="space-y-2">
                   {strategicData.sales.suggestions.map(
-                    (suggestion: any, index: number) => (
+                    (suggestion, suggestionIndex) => (
                       <ActionButton
-                        key={index}
+                        key={suggestion.id || `sales-suggestion-${suggestionIndex}`}
                         action={suggestion.action}
                         impact={suggestion.impact}
                         urgency={suggestion.urgency}
@@ -184,9 +185,9 @@ const DetailedView = ({
                 </div>
                 <div className="space-y-2">
                   {strategicData.todaysTasks.tasks.map(
-                    (task: any, index: number) => (
+                    (task, taskIndex) => (
                       <div
-                        key={index}
+                        key={task.id || `task-${taskIndex}`}
                         className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
                       >
                         <div>
@@ -220,9 +221,9 @@ const DetailedView = ({
             >
               <div className="space-y-4">
                 {strategicData.upcomingEvents.map(
-                  (event: any, index: number) => (
+                  (event, eventIndex) => (
                     <div
-                      key={index}
+                      key={event.id || `event-${eventIndex}`}
                       className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                     >
                       <div className="font-medium text-gray-900 dark:text-gray-100">
@@ -234,9 +235,9 @@ const DetailedView = ({
                       </div>
                       <div className="mt-2 space-y-1">
                         {event.preparations.map(
-                          (prep: any, prepIndex: number) => (
+                          (prep, prepIndex) => (
                             <div
-                              key={prepIndex}
+                              key={prep.id || `prep-${event.id || eventIndex}-${prepIndex}`}
                               className="flex items-center space-x-2 text-sm"
                             >
                               {prep.status === "done" ? (
@@ -268,9 +269,9 @@ const DetailedView = ({
               priority="urgent"
             >
               <div className="space-y-3">
-                {strategicData.systemAlerts.map((alert: any, index: number) => (
+                {strategicData.systemAlerts.map((alert, alertIndex) => (
                   <div
-                    key={index}
+                    key={alert.id || `alert-${alertIndex}`}
                     className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
                   >
                     <div className="flex items-start justify-between">
@@ -304,9 +305,9 @@ const DetailedView = ({
             >
               <div className="space-y-3">
                 {strategicData.strategicNotes.map(
-                  (note: any, index: number) => (
+                  (note, noteIndex) => (
                     <div
-                      key={index}
+                      key={note.id || `note-${noteIndex}`}
                       className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                     >
                       <div className="font-medium text-gray-900 dark:text-gray-100">
@@ -364,12 +365,9 @@ export default function StrategicDashboardPage() {
   const {
     currentView,
     currentTime,
-    isLoading,
     strategicData,
-    executiveSummaryData,
     handleCategoryClick,
     handleBackToExecutive,
-    refreshData,
   } = useDashboard();
 
   if (!user) {

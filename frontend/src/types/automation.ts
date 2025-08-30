@@ -37,8 +37,8 @@ export interface TaskExecutionLog {
   task_type: string;
   queue_name: string;
   status: TaskStatus;
-  payload: Record<string, any>;
-  result?: Record<string, any>;
+  payload: Record<string, unknown>;
+  result?: Record<string, unknown>;
   error_message?: string;
   schedule_id?: UUID;
   shelf_id?: UUID;
@@ -54,8 +54,8 @@ export interface AutomationTrigger {
   id: UUID;
   name: string;
   trigger_type: TriggerType;
-  conditions: Record<string, any>;
-  actions: Record<string, any>;
+  conditions: Record<string, unknown>;
+  actions: Record<string, unknown>;
   farm_id: UUID;
   is_active: boolean;
   last_triggered_at?: string;
@@ -125,7 +125,7 @@ export interface QueueTaskRequest {
   task_type: AutomationTaskType;
   schedule_id?: UUID;
   shelf_id?: UUID;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
   delay_seconds?: number;
 }
 

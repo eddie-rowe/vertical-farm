@@ -38,7 +38,7 @@ export default function DeviceControlPanel({
   const [isControlling, setIsControlling] = useState(false);
   const [brightness, setBrightness] = useState(
     device.attributes?.brightness
-      ? Math.round((device.attributes.brightness / 255) * 100)
+      ? Math.round((Number(device.attributes.brightness) / 255) * 100)
       : 100,
   );
 
@@ -198,7 +198,7 @@ export default function DeviceControlPanel({
             {/* Brightness control for lights - simplified for now */}
             {device.domain === "light" &&
               isOn &&
-              device.attributes?.brightness && (
+              device.attributes?.brightness ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Brightness</Label>
@@ -206,10 +206,10 @@ export default function DeviceControlPanel({
                   </div>
                   <div className="text-xs text-gray-500">
                     Current brightness:{" "}
-                    {Math.round((device.attributes.brightness / 255) * 100)}%
+                    {Math.round((Number(device.attributes.brightness) / 255) * 100)}%
                   </div>
                 </div>
-              )}
+              ) : null}
 
             {/* Quick Actions */}
             <div className="flex space-x-2">

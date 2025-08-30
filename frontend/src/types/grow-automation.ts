@@ -6,7 +6,7 @@ export interface GrowAutomationRule {
   grow_id: string;
   device_assignment_id: string;
   rule_type: "schedule" | "condition" | "event_trigger";
-  rule_config: Record<string, any>;
+  rule_config: Record<string, unknown>;
   is_active: boolean;
   priority: number;
   created_by?: string;
@@ -57,7 +57,7 @@ export interface GrowAutomationExecution {
   device_assignment_id: string;
   action_taken: DeviceAction;
   execution_status: "pending" | "success" | "failed" | "skipped";
-  execution_result?: Record<string, any>;
+  execution_result?: Record<string, unknown>;
   error_message?: string;
   executed_at: string;
   completed_at?: string;
@@ -69,7 +69,7 @@ export interface GrowDeviceProfile {
   crop_id?: string;
   grow_stage_id?: string;
   device_type: DeviceType;
-  profile_config: Record<string, any>;
+  profile_config: Record<string, unknown>;
   description?: string;
   is_template: boolean;
   created_by?: string;
@@ -86,7 +86,7 @@ export interface DeviceAction {
     | "set_temperature"
     | "set_speed"
     | "set_value";
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   duration_seconds?: number;
   delay_seconds?: number;
 }
@@ -137,7 +137,7 @@ export interface DeviceCapabilities {
 export interface DeviceState {
   entity_id: string;
   state: string;
-  attributes: Record<string, any>;
+  attributes: Record<string, unknown>;
   last_updated: string;
 }
 
@@ -156,7 +156,7 @@ export interface CreateAutomationRule {
   grow_id: string;
   device_assignment_id: string;
   rule_type: "schedule" | "condition" | "event_trigger";
-  rule_config: Record<string, any>;
+  rule_config: Record<string, unknown>;
   priority?: number;
   is_active?: boolean;
 }

@@ -1,483 +1,261 @@
+# Claude Code Commands for Vertical Farm
 
-<div align="right">
-  <details>
-    <summary >🌐 Language</summary>
-    <div>
-      <div align="center">
-        <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=en">English</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=zh-CN">简体中文</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=zh-TW">繁體中文</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=ja">日本語</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=ko">한국어</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=hi">हिन्दी</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=th">ไทย</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=fr">Français</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=de">Deutsch</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=es">Español</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=it">Italiano</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=ru">Русский</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=pt">Português</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=nl">Nederlands</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=pl">Polski</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=ar">العربية</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=fa">فارسی</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=tr">Türkçe</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=vi">Tiếng Việt</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=id">Bahasa Indonesia</a>
-        | <a href="https://openaitx.github.io/view.html?user=wshobson&project=commands&lang=as">অসমীয়া</
-      </div>
-    </div>
-  </details>
-</div>
+Production-ready commands and workflows specifically configured for the Vertical Farm Management Platform.
 
-# Claude Code Slash Commands
+## 📁 Directory Structure
 
-Production-ready slash commands for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that accelerate development through intelligent automation.
-
-**52 commands** organized as:
-- **🤖 Workflows**: Multi-subagent orchestration for complex tasks
-- **🔧 Tools**: Single-purpose utilities for specific operations
-
-### 🤝 Requires Claude Code Subagents
-
-These commands work with the [Claude Code Subagents](https://github.com/wshobson/agents) for orchestration capabilities.
-
-## Installation
-
-```bash
-cd ~/.claude
-git clone https://github.com/wshobson/commands.git
-git clone https://github.com/wshobson/agents.git  # Required for subagent orchestration
+```
+.claude/commands/
+├── README.md                    # This file
+├── 2025-08-report.md           # Development report
+├── tools/                      # Single-purpose utility commands
+│   ├── accessibility-audit.md
+│   ├── ai-assistant.md
+│   ├── ai-review.md
+│   ├── api-mock.md
+│   ├── api-scaffold.md
+│   ├── code-explain.md
+│   ├── code-migrate.md
+│   ├── compliance-check.md
+│   ├── config-validate.md
+│   ├── context-restore.md
+│   ├── context-save.md
+│   ├── cost-optimize.md
+│   ├── data-pipeline.md
+│   ├── data-validation.md
+│   ├── db-migrate.md
+│   ├── debug-trace.md
+│   ├── deploy-checklist.md
+│   ├── deps-audit.md
+│   ├── deps-upgrade.md
+│   ├── doc-generate.md
+│   ├── docker-optimize.md
+│   ├── error-analysis.md
+│   ├── error-trace.md
+│   ├── issue.md
+│   ├── k8s-manifest.md
+│   ├── langchain-agent.md
+│   ├── monitor-setup.md
+│   ├── multi-agent-optimize.md
+│   ├── multi-agent-review.md
+│   ├── onboard.md
+│   ├── pr-enhance.md
+│   ├── prompt-optimize.md
+│   ├── refactor-clean.md
+│   ├── security-scan.md
+│   ├── slo-implement.md
+│   ├── smart-debug.md
+│   ├── standup-notes.md
+│   ├── tech-debt.md
+│   └── test-harness.md
+└── workflows/                   # Multi-step orchestrated workflows
+    ├── 01_planning/
+    │   └── issue-analysis.md
+    ├── 02_development/
+    │   ├── feature-development.md
+    │   └── full-review.md
+    ├── 03_testing/
+    │   ├── feature-testing.md
+    │   └── feature-validation.md
+    ├── 04_documentation/
+    ├── 05_deployment/
+    │   ├── git-workflow.md
+    │   └── pipeline-debug.md
+    ├── maintenance/
+    │   ├── context-pruning.md
+    │   ├── development-reflection.md
+    │   └── improve-agent.md
+    ├── performance/
+    │   ├── multi-platform.md
+    │   └── performance-optimization.md
+    └── security/
+        ├── incident-response.md
+        └── security-hardening.md
 ```
 
-## Available Commands
+## 🚀 Workflows (Multi-Step Orchestration)
 
-- **🤖 Workflows** - Orchestrate multiple subagents for complex tasks
-- **🔧 Tools** - Single-purpose commands for specific operations
+Workflows orchestrate multiple operations across domains for complex tasks.
 
-## Usage
+### Planning & Analysis
+- **issue-analysis** - Analyze GitHub issues and create implementation plans
 
-```bash
-/api-scaffold user management with authentication
-/security-scan check for vulnerabilities
-/feature-development implement chat functionality
-```
+### Development
+- **feature-development** - Complete feature implementation with backend, frontend, testing
+- **full-review** - Comprehensive code review from multiple perspectives
 
-Claude Code automatically suggests relevant commands based on context.
+### Testing & Validation
+- **feature-testing** - Automated test suite generation and execution
+- **feature-validation** - End-to-end validation including integration tests
 
-## 🤖 Workflows
+### Deployment
+- **git-workflow** - Git branching strategies and PR management
+- **pipeline-debug** - CI/CD pipeline debugging and optimization
 
-Multi-subagent orchestration for complex tasks:
+### Maintenance
+- **context-pruning** - Clean up and optimize project context
+- **development-reflection** - Analyze development patterns and improvements
+- **improve-agent** - Enhance AI agent performance and prompt optimization
 
-### Feature Development
-- **[feature-development](workflows/feature-development.md)** - Backend, frontend, testing, and deployment subagents build complete features
-- **[full-review](workflows/full-review.md)** - Multiple review subagents provide comprehensive code analysis
-- **[smart-fix](workflows/smart-fix.md)** - Analyzes issues and delegates to appropriate specialist subagents
+### Performance
+- **multi-platform** - Cross-platform optimization strategies
+- **performance-optimization** - End-to-end performance improvements
 
-### Development Processes
-- **[git-workflow](workflows/git-workflow.md)** - Implements effective Git workflows with branching strategies and PR templates
-- **[improve-agent](workflows/improve-agent.md)** - Enhances subagent performance through prompt optimization
-- **[legacy-modernize](workflows/legacy-modernize.md)** - Modernizes legacy codebases using specialized subagents
-- **[ml-pipeline](workflows/ml-pipeline.md)** - Creates ML pipelines with data and ML engineering subagents
-- **[multi-platform](workflows/multi-platform.md)** - Builds cross-platform apps with coordinated subagents
-- **[workflow-automate](workflows/workflow-automate.md)** - Automates CI/CD, monitoring, and deployment workflows
-
-### Subagent-Orchestrated Workflows
-- **[full-stack-feature](workflows/full-stack-feature.md)** - Multi-platform features with backend, frontend, and mobile subagents
-- **[security-hardening](workflows/security-hardening.md)** - Security-first implementation with specialized subagents
-- **[data-driven-feature](workflows/data-driven-feature.md)** - ML-powered features with data science subagents
-- **[performance-optimization](workflows/performance-optimization.md)** - End-to-end optimization with performance subagents
-- **[incident-response](workflows/incident-response.md)** - Production incident resolution with ops subagents
+### Security
+- **incident-response** - Production incident investigation and resolution
+- **security-hardening** - Comprehensive security improvements
 
 ## 🔧 Tools (Single-Purpose Commands)
 
+Focused utilities for specific operations.
+
 ### AI & Machine Learning
-- **[ai-assistant](tools/ai-assistant.md)** - Build production-ready AI assistants and chatbots
-- **[ai-review](tools/ai-review.md)** - Specialized review for AI/ML codebases
-- **[langchain-agent](tools/langchain-agent.md)** - Create LangChain/LangGraph agents with modern patterns
-- **[ml-pipeline](tools/ml-pipeline.md)** - Create end-to-end ML pipelines with MLOps
-- **[prompt-optimize](tools/prompt-optimize.md)** - Optimize AI prompts for performance and quality
+- **ai-assistant** - Build AI-powered features and chatbots
+- **ai-review** - AI/ML code review and optimization
+- **langchain-agent** - Create LangChain/LangGraph agents
+- **prompt-optimize** - Optimize AI prompts for performance
 
 ### Architecture & Code Quality
-- **[code-explain](tools/code-explain.md)** - Generate detailed explanations of complex code
-- **[code-migrate](tools/code-migrate.md)** - Migrate code between languages, frameworks, or versions
-- **[refactor-clean](tools/refactor-clean.md)** - Refactor code for maintainability and performance
-- **[tech-debt](tools/tech-debt.md)** - Analyze and prioritize technical debt
+- **code-explain** - Generate detailed code explanations
+- **code-migrate** - Migrate between languages/frameworks
+- **refactor-clean** - Refactor for maintainability
+- **tech-debt** - Analyze and prioritize technical debt
 
 ### Data & Database
-- **[data-pipeline](tools/data-pipeline.md)** - Design scalable data pipeline architectures
-- **[data-validation](tools/data-validation.md)** - Implement comprehensive data validation systems
-- **[db-migrate](tools/db-migrate.md)** - Advanced database migration strategies
+- **data-pipeline** - Design scalable data architectures
+- **data-validation** - Implement validation systems
+- **db-migrate** - Database migration strategies
 
 ### DevOps & Infrastructure
-- **[deploy-checklist](tools/deploy-checklist.md)** - Generate deployment configurations and checklists
-- **[docker-optimize](tools/docker-optimize.md)** - Advanced container optimization strategies
-- **[k8s-manifest](tools/k8s-manifest.md)** - Production-grade Kubernetes deployments
-- **[monitor-setup](tools/monitor-setup.md)** - Set up comprehensive monitoring and observability
-- **[slo-implement](tools/slo-implement.md)** - Implement Service Level Objectives (SLOs)
-- **[workflow-automate](tools/workflow-automate.md)** - Automate development and operational workflows
+- **deploy-checklist** - Deployment configurations and checklists
+- **docker-optimize** - Container optimization strategies
+- **k8s-manifest** - Kubernetes deployment manifests
+- **monitor-setup** - Monitoring and observability setup
+- **slo-implement** - Service Level Objectives implementation
 
 ### Development & Testing
-- **[api-mock](tools/api-mock.md)** - Create realistic API mocks for development and testing
-- **[api-scaffold](tools/api-scaffold.md)** - Generate production-ready API endpoints with complete implementation stack
-- **[test-harness](tools/test-harness.md)** - Create comprehensive test suites with framework detection
+- **api-mock** - Create realistic API mocks
+- **api-scaffold** - Generate production-ready API endpoints
+- **test-harness** - Comprehensive test suite creation
 
 ### Security & Compliance
-- **[accessibility-audit](tools/accessibility-audit.md)** - Comprehensive accessibility testing and fixes
-- **[compliance-check](tools/compliance-check.md)** - Ensure regulatory compliance (GDPR, HIPAA, SOC2)
-- **[security-scan](tools/security-scan.md)** - Comprehensive security scanning with automated remediation
+- **accessibility-audit** - Accessibility testing and fixes
+- **compliance-check** - Regulatory compliance (GDPR, HIPAA)
+- **security-scan** - Security scanning with remediation
 
 ### Debugging & Analysis
-- **[debug-trace](tools/debug-trace.md)** - Advanced debugging and tracing strategies
-- **[error-analysis](tools/error-analysis.md)** - Deep error pattern analysis and resolution strategies
-- **[error-trace](tools/error-trace.md)** - Trace and diagnose production errors
-- **[issue](tools/issue.md)** - Create well-structured GitHub/GitLab issues
+- **debug-trace** - Advanced debugging strategies
+- **error-analysis** - Error pattern analysis
+- **error-trace** - Production error diagnosis
+- **issue** - Create well-structured GitHub issues
+- **smart-debug** - Intelligent debugging assistance
 
 ### Dependencies & Configuration
-- **[config-validate](tools/config-validate.md)** - Validate and manage application configuration
-- **[deps-audit](tools/deps-audit.md)** - Audit dependencies for security and licensing
-- **[deps-upgrade](tools/deps-upgrade.md)** - Safely upgrade project dependencies
+- **config-validate** - Configuration validation
+- **deps-audit** - Dependency security auditing
+- **deps-upgrade** - Safe dependency upgrades
 
 ### Documentation & Collaboration
-- **[doc-generate](tools/doc-generate.md)** - Generate comprehensive documentation
-- **[git-workflow](tools/git-workflow.md)** - Implement effective Git workflows
-- **[pr-enhance](tools/pr-enhance.md)** - Enhance pull requests with quality checks
+- **doc-generate** - Generate comprehensive documentation
+- **pr-enhance** - Enhance pull request quality
+- **standup-notes** - Generate standup meeting notes
 
-### Cost Optimization
-- **[cost-optimize](tools/cost-optimize.md)** - Optimize cloud and infrastructure costs
+### Cost & Resources
+- **cost-optimize** - Cloud and infrastructure cost optimization
 
-### Onboarding & Setup
-- **[onboard](tools/onboard.md)** - Set up development environments for new team members
+### Context Management
+- **context-save** - Save project context and state
+- **context-restore** - Restore saved context
 
-### Subagent Tools
-- **[multi-agent-review](tools/multi-agent-review.md)** - Multi-perspective code review with specialized subagents
-- **[smart-debug](tools/smart-debug.md)** - Deep debugging with debugger and performance subagents
-- **[multi-agent-optimize](tools/multi-agent-optimize.md)** - Full-stack optimization with multiple subagents
-- **[context-save](tools/context-save.md)** - Save project context using context-manager subagent
-- **[context-restore](tools/context-restore.md)** - Restore saved context for continuity
+### Team & Process
+- **onboard** - New developer environment setup
+- **multi-agent-optimize** - Multi-perspective optimization
+- **multi-agent-review** - Multi-perspective code review
 
-## Features
+## 📊 Command Usage Examples
 
-- Production-ready implementations
-- Framework auto-detection
-- Security best practices
-- Built-in monitoring and testing
-- Commands work together seamlessly
-
-## Command Count
-
-**Total: 52 production-ready slash commands** organized into:
-
-### 🤖 Workflows (14 commands)
-
-- Feature Development & Review (3 commands) 
-- Development Process Automation (6 commands)
-- Subagent-Orchestrated Workflows (5 commands)
-
-### 🔧 Tools (38 commands)
-
-- AI & Machine Learning (5 commands)
-- Architecture & Code Quality (4 commands)
-- Data & Database (3 commands)
-- DevOps & Infrastructure (6 commands)
-- Development & Testing (3 commands)
-- Security & Compliance (3 commands)
-- Debugging & Analysis (4 commands)
-- Dependencies & Configuration (3 commands)
-- Documentation & Collaboration (1 command)
-- Onboarding & Setup (1 command)
-- Subagent-Specific Tools (5 commands)
-
-## Usage Examples
-
-### 🤖 Workflow Examples
+### For Vertical Farm Project
 
 ```bash
-# Implement a complete feature
-/feature-development Add user authentication with OAuth2
+# Implement farm monitoring feature
+/feature-development Add real-time sensor monitoring dashboard
 
-# Comprehensive code review
-/full-review Review the authentication module
+# Security audit for farm data
+/security-scan Check RLS policies and authentication flows
 
-# Smart issue resolution
-/smart-fix Fix performance degradation in API response times
+# Optimize Home Assistant integration
+/performance-optimization Improve device polling and caching
 
-# Modernize legacy system
-/legacy-modernize Migrate monolithic Java app to microservices
+# Debug sensor data issues
+/smart-debug Investigate missing sensor readings in shelves
 
-# Build comprehensive multi-platform feature
-/full-stack-feature User authentication with social login across web and mobile
-
-# Implement security-first architecture
-/security-hardening Harden API endpoints and implement zero-trust security model
-
-# Create data-driven ML feature
-/data-driven-feature Build recommendation engine with real-time personalization
-
-# Optimize entire application stack
-/performance-optimization Improve response times and reduce infrastructure costs
-
-# Respond to production incident
-/incident-response High CPU usage causing service degradation in production
-```
-
-### 🔧 Tool Examples (Single-Purpose Commands)
-
-```bash
-# Create a user management API
-/api-scaffold user CRUD operations with JWT auth and role-based access
-
-# Review microservices architecture
-/multi-agent-review analyze our microservices for coupling and scalability issues
-
-# Optimize LLM chat application
-/prompt-optimize reduce latency for customer support chatbot while maintaining accuracy
-
-# Create fraud detection pipeline
-/data-pipeline real-time fraud detection with feature store and monitoring
-
-# Debug production issue
-/error-trace analyze high memory usage in production pods
-
-# Secure container images
-/security-scan scan and fix vulnerabilities in Docker images
+# Database migration for new features
+/db-migrate Add harvest tracking tables with RLS
 
 # Generate API documentation
-/doc-generate create OpenAPI docs with examples for REST endpoints
+/doc-generate Create OpenAPI docs for farm management endpoints
 
-# Onboard new developer
-/onboard Setup development environment for React/Node.js project
+# Review farm hierarchy implementation
+/full-review Analyze Farm → Row → Rack → Shelf relationships
 
-# Multi-perspective code review
-/multi-agent-review Review authentication module
+# Optimize Docker containers
+/docker-optimize Reduce container size for faster deployments
 
-# Deep debugging
-/smart-debug Investigate memory leak in production workers
-
-# Full-stack optimization
-/multi-agent-optimize Optimize checkout flow for better conversion
-
-# Save project context
-/context-save Save current project state and architectural decisions
-
-# Restore project context
-/context-restore Load context from last week's sprint
+# Create monitoring dashboards
+/monitor-setup Set up Grafana dashboards for farm metrics
 ```
 
-## Enhanced Commands
+## 🎯 Best Practices
 
-### Security & DevOps
+### When to Use Workflows
+- Complex features requiring multiple domains
+- End-to-end implementations
+- Multi-step processes with dependencies
+- Comprehensive analysis and fixes
 
-#### [`/security-scan`](tools/security-scan.md)
+### When to Use Tools
+- Specific, focused tasks
+- Single-domain operations
+- Quick fixes or analyses
+- Building blocks for larger features
 
-Comprehensive security scanning with automated remediation.
-
-- **Multi-Tool Scanning**: Bandit, Safety, Trivy, Semgrep, ESLint Security, Snyk
-- **Automated Fixes**: Common vulnerabilities auto-remediated
-- **CI/CD Integration**: Security gates for GitHub Actions/GitLab CI
-- **Container Scanning**: Image vulnerability analysis
-- **Secret Detection**: GitLeaks and TruffleHog integration
-
-#### [`/docker-optimize`](tools/docker-optimize.md)
-
-Advanced container optimization strategies.
-
-- **Smart Optimization**: Analyzes and suggests improvements
-- **Multi-Stage Builds**: Framework-specific optimized Dockerfiles
-- **Modern Tools**: BuildKit, Bun, UV for faster builds
-- **Security Hardening**: Distroless images, non-root users
-- **Cross-Command Integration**: Works with /api-scaffold outputs
-
-#### [`/k8s-manifest`](tools/k8s-manifest.md)
-
-Production-grade Kubernetes deployments.
-
-- **Advanced Patterns**: Pod Security Standards, Network Policies, OPA
-- **GitOps Ready**: FluxCD and ArgoCD configurations
-- **Observability**: Prometheus ServiceMonitors, OpenTelemetry
-- **Auto-Scaling**: HPA, VPA, and cluster autoscaler configs
-- **Service Mesh**: Istio/Linkerd integration
-
-### Frontend & Data
-
-#### [`/db-migrate`](tools/db-migrate.md)
-
-Advanced database migration strategies.
-
-- **Multi-Database**: PostgreSQL, MySQL, MongoDB, DynamoDB
-- **Zero-Downtime**: Blue-green deployments, rolling migrations
-- **Event Sourcing**: Kafka/Kinesis integration for CDC
-- **Cross-Platform**: Handles polyglot persistence
-- **Monitoring**: Migration health checks and rollback
-
-## Combining Workflows and Tools
-
-The real power comes from combining workflows and tools for complete development cycles:
-
-### Example: Building a New Feature
-
+### Command Chaining
 ```bash
-# 1. Use a workflow to implement the feature with multiple subagents
-/feature-development Add real-time chat feature with WebSocket support
-
-# 2. Use tools for specific enhancements
-/test-harness Add integration tests for WebSocket connections
-/security-scan Check for WebSocket vulnerabilities
-/docker-optimize Optimize container for WebSocket connections
-
-# 3. Use a workflow for comprehensive review
-/full-review Review the entire chat feature implementation
+# Example: Complete feature implementation
+/feature-development User authentication system
+/test-harness Add integration tests for auth
+/security-scan Audit authentication implementation
+/docker-optimize Optimize auth service container
+/k8s-manifest Deploy auth service to production
 ```
 
-### Example: Modernizing Legacy Code
+## 🔄 Integration with Vertical Farm
 
-```bash
-# 1. Start with the modernization workflow
-/legacy-modernize Migrate Express.js v4 app to modern architecture
+Commands are optimized for:
+- **Supabase PostgREST** operations with RLS
+- **FastAPI** integration endpoints
+- **Next.js 15** with App Router
+- **Home Assistant** device control
+- **Farm hierarchy** (Farm → Row → Rack → Shelf)
+- **Layer overlay system** for visualization
+- **Service layer architecture** enforcement
 
-# 2. Use specific tools for cleanup
-/deps-upgrade Update all dependencies to latest versions
-/refactor-clean Remove deprecated patterns and dead code
-/test-harness Ensure 100% test coverage
+## 📝 Adding Custom Commands
 
-# 3. Optimize and deploy
-/docker-optimize Create multi-stage production build
-/k8s-manifest Deploy with zero-downtime strategy
-```
+1. Create `.md` file in appropriate directory
+2. Use `$ARGUMENTS` placeholder for user input
+3. Follow naming convention: `lowercase-hyphen.md`
+4. Include clear sections and examples
 
-## Command Orchestration Patterns
+## 🐛 Troubleshooting
 
-Commands can be used individually or combined in powerful patterns:
+**Command not found**: Verify file exists in `.claude/commands/`
+**Slow execution**: Workflows coordinate multiple operations
+**Generic output**: Provide more project-specific context
+**Integration issues**: Check file paths and dependencies
 
-### Sequential Execution
-```bash
-# Build → Test → Secure → Deploy pipeline
-/api-scaffold user management API
-/test-harness comprehensive test suite for user API  
-/security-scan check user API for vulnerabilities
-/k8s-manifest deploy user API to production
-```
-
-### Parallel Analysis
-```bash
-# Multiple perspectives on the same codebase
-/multi-agent-review comprehensive architecture and code review
-/security-scan audit security posture  
-/performance-optimization identify and fix bottlenecks
-# Then consolidate findings
-```
-
-### Iterative Refinement
-```bash
-# Start broad, then narrow focus
-/feature-development implement payment processing
-/security-scan focus on payment security
-/compliance-check ensure PCI compliance
-/test-harness add payment-specific tests
-```
-
-### Cross-Domain Integration
-```bash
-# Frontend + Backend + Infrastructure
-/api-scaffold backend payment API
-/multi-agent-optimize optimize payment flow performance
-/docker-optimize containerize payment service
-/monitor-setup payment metrics and alerts
-```
-
-## When to Use Workflows vs Tools
-
-### 🔀 Workflows & Subagent Tools
-- **Problem-solving**: Analyze and fix issues adaptively
-- **Multiple perspectives**: Coordinate specialist subagents
-- **Complex tasks**: Multi-step processes across domains
-- **Unknown solutions**: Let subagents determine approach
-
-### 🛠️ Specialized Tools
-- **Infrastructure setup**: Configure environments
-- **Code generation**: Create specific implementations
-- **Analysis**: Generate reports without fixes
-- **Domain tasks**: Highly specialized operations
-
-**Examples:**
-- "Implement user authentication system" → `/feature-development`
-- "Fix performance issues across the stack" → `/smart-fix`
-- "Modernize legacy monolith" → `/legacy-modernize`
-
-### 🔧 Use Tools When:
-- **Specific expertise needed** - Clear, focused task in one domain
-- **Precise control desired** - Want to direct specific implementation details
-- **Part of manual workflow** - Integrating into existing processes
-- **Deep specialization required** - Need expert-level implementation
-- **Building on existing work** - Enhancing or refining previous outputs
-
-**Examples:**
-- "Create Kubernetes manifests" → `/k8s-manifest`
-- "Scan for security vulnerabilities" → `/security-scan`
-- "Generate API documentation" → `/doc-generate`
-
-## Command Format
-
-Slash commands are simple markdown files where:
-- The filename becomes the command name (e.g., `api-scaffold.md` → `/api-scaffold`)
-- The file content is the prompt/instructions executed when invoked
-- Use `$ARGUMENTS` placeholder for user input
-
-## Best Practices
-
-### Command Selection
-- **Let Claude Code suggest automatically** - Analyzes context and selects optimal commands
-- **Use workflows for complex tasks** - Subagents coordinate multi-domain implementations
-- **Use tools for focused tasks** - Apply specific commands for targeted improvements
-
-### Effective Usage
-- **Provide comprehensive context** - Include tech stack, constraints, and requirements
-- **Chain commands strategically** - Workflows → Tools → Refinements
-- **Build on previous outputs** - Commands are designed to work together
-
-## Contributing
-
-1. Create `.md` file in `workflows/` or `tools/`
-2. Use lowercase-hyphen-names
-3. Include `$ARGUMENTS` for user input
-
-## Troubleshooting
-
-**Command not found**: Check files are in `~/.claude/commands/`
-
-**Workflows slow**: Normal - they coordinate multiple subagents
-
-**Generic output**: Add more specific context about your tech stack
-
-**Integration issues**: Verify file paths and command sequence
-
-## Performance Tips
-
-**Command Selection:**
-- **Workflows**: Multi-subagent coordination for complex features
-- **Tools**: Single-purpose operations for specific tasks
-- **Simple edits**: Stay with main agent
-
-**Optimization:**
-- Start with tools for known problems
-- Provide detailed requirements upfront
-- Build on previous command outputs
-- Let workflows complete before modifications
-
-### Adding a New Workflow:
-- Focus on subagent orchestration and delegation logic
-- Specify which specialized subagents to use and in what order
-- Define coordination patterns between subagents
-
-### Adding a New Tool:
-- Include complete, production-ready implementations
-- Structure content with clear sections and actionable outputs
-- Include examples, best practices, and integration points
-
-## Learn More
+## 📚 Resources
 
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [Slash Commands Documentation](https://docs.anthropic.com/en/docs/claude-code/slash-commands)
-- [Subagents Documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
-- [Claude Code GitHub](https://github.com/anthropics/claude-code)
-- [Claude Code Subagents Collection](https://github.com/wshobson/agents) - Specialized subagents used by these commands
+- [Vertical Farm CLAUDE.md](../../CLAUDE.md) - Project-specific guidance
+- [Vertical Farm README](../../README.md) - Project overview

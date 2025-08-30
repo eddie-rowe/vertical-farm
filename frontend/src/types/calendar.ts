@@ -14,7 +14,7 @@ export interface CalendarEvent {
   updatedAt: Date;
   relatedEntityId?: string; // Device ID, Team Member ID, Customer ID, etc.
   relatedEntityType?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export type EventType = "operations" | "devices" | "team" | "customer";
@@ -190,7 +190,7 @@ export interface CreateEventPayload {
   priority?: EventPriority;
   farmId?: string;
   relatedEntityId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateEventPayload extends Partial<CreateEventPayload> {

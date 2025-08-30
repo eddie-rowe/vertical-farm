@@ -77,7 +77,7 @@ export function usePageData<T>(config: PageDataConfig<T>): PageDataResult<T> {
 
   useEffect(() => {
     loadData();
-  }, [storageKey]);
+  }, [storageKey, loadData]);
 
   const hasData = hasDataCheck(data);
 

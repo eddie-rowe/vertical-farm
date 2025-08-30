@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-
 import "./globals.css";
 // import Header from "../components/Header"; // Removed
 // import Sidebar from "../components/Sidebar"; // Removed

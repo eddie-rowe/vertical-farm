@@ -8,8 +8,9 @@ SET session_replication_role = 'replica';
 -- Importing production data...
 
 -- Create test user for development
+-- Note: This uses a test password hash for 'password123' - only for development/testing
 INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "confirmation_token", "recovery_token", "email_change_token_new", "email_change", "phone_change", "phone_change_token", "email_change_token_current", "reauthentication_token", "raw_app_meta_data", "raw_user_meta_data", "created_at", "updated_at", "is_sso_user") VALUES
-	('00000000-0000-0000-0000-000000000000', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', 'authenticated', 'authenticated', 'testuser123@gmail.com', '$2b$12$c/GTqmjnlqqAVYPX.OMtCeey6RFzXmNPTK0yc8hQzucSPfNm7j3ta', '2025-06-22 15:29:35.403448+00', '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{}', '2025-06-22 15:29:35.403448+00', '2025-06-22 15:29:35.403448+00', false)
+	('00000000-0000-0000-0000-000000000000', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', 'authenticated', 'authenticated', 'testuser123@gmail.com', crypt('password123', gen_salt('bf', 12)), '2025-06-22 15:29:35.403448+00', '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{}', '2025-06-22 15:29:35.403448+00', '2025-06-22 15:29:35.403448+00', false)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO "auth"."identities" ("id", "user_id", "provider_id", "provider", "identity_data", "last_sign_in_at", "created_at", "updated_at") VALUES 
@@ -1380,8 +1381,9 @@ INSERT INTO auth.identities (
 -- Run this after database reset: supabase db reset && psql "$DATABASE_URL" < test_user.sql
 
 -- Create test user in auth.users  
+-- Note: This uses a test password hash for 'password123' - only for development/testing
 INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "confirmation_token", "recovery_token", "email_change_token_new", "email_change", "phone_change", "phone_change_token", "email_change_token_current", "reauthentication_token", "raw_app_meta_data", "raw_user_meta_data", "created_at", "updated_at", "is_sso_user") VALUES
-	('00000000-0000-0000-0000-000000000000', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', 'authenticated', 'authenticated', 'testuser123@gmail.com', '$2b$12$c/GTqmjnlqqAVYPX.OMtCeey6RFzXmNPTK0yc8hQzucSPfNm7j3ta', '2025-06-22 15:29:35.403448+00', '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{}', '2025-06-22 15:29:35.403448+00', '2025-06-22 15:29:35.403448+00', false)
+	('00000000-0000-0000-0000-000000000000', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', 'authenticated', 'authenticated', 'testuser123@gmail.com', crypt('password123', gen_salt('bf', 12)), '2025-06-22 15:29:35.403448+00', '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{}', '2025-06-22 15:29:35.403448+00', '2025-06-22 15:29:35.403448+00', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create corresponding identity

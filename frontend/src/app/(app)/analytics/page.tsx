@@ -40,6 +40,7 @@ interface HistoricalGrow {
   id: string;
   shelf_name: string;
   farm_name: string;
+  farm_id: string;
   recipe_name: string;
   species_name: string;
   start_date: string;
@@ -71,22 +72,22 @@ const AnalyticsPage = () => {
   const {
     searchTerm,
     setSearchTerm,
-    clearSearch,
+    clearSearch: _clearSearch,
     filterItems: searchFilterItems,
-    hasSearch,
+    hasSearch: _hasSearch,
   } = useFarmSearch<HistoricalGrow>({
     searchFields: ["species_name", "recipe_name", "shelf_name", "farm_name"],
     caseSensitive: false,
   });
 
   const {
-    filters,
+    filters: _filters,
     setFilter,
     removeFilter,
     clearAllFilters,
     getActiveFilterChips,
     filterItems: filterFilterItems,
-    hasActiveFilters,
+    hasActiveFilters: _hasActiveFilters,
   } = useFarmFilters<HistoricalGrow>();
 
   // Use our standardized data loading hook
@@ -108,6 +109,7 @@ const AnalyticsPage = () => {
         id: "hist-1",
         shelf_name: "Shelf A1-1-1",
         farm_name: "Greenhouse A",
+        farm_id: "farm-greenhouse-a",
         recipe_name: "Quick Lettuce",
         species_name: "Lettuce",
         start_date: "2023-12-01",
@@ -122,6 +124,7 @@ const AnalyticsPage = () => {
         id: "hist-2",
         shelf_name: "Shelf A1-1-2",
         farm_name: "Greenhouse A",
+        farm_id: "farm-greenhouse-a",
         recipe_name: "Premium Basil",
         species_name: "Basil",
         start_date: "2023-11-15",
@@ -136,6 +139,7 @@ const AnalyticsPage = () => {
         id: "hist-3",
         shelf_name: "Shelf B1-1-1",
         farm_name: "Greenhouse A",
+        farm_id: "farm-greenhouse-a",
         recipe_name: "Quick Lettuce",
         species_name: "Lettuce",
         start_date: "2023-11-01",
@@ -149,6 +153,7 @@ const AnalyticsPage = () => {
         id: "hist-4",
         shelf_name: "Shelf A1-2-1",
         farm_name: "Greenhouse A",
+        farm_id: "farm-greenhouse-a",
         recipe_name: "Premium Basil",
         species_name: "Basil",
         start_date: "2023-10-15",
@@ -163,6 +168,7 @@ const AnalyticsPage = () => {
         id: "hist-5",
         shelf_name: "Shelf B1-1-2",
         farm_name: "Greenhouse A",
+        farm_id: "farm-greenhouse-a",
         recipe_name: "Quick Lettuce",
         species_name: "Lettuce",
         start_date: "2023-10-01",
@@ -292,8 +298,8 @@ const AnalyticsPage = () => {
 
   // Business calculations (enhanced with real data)
   const estimatedRevenue = totalYield * 15; // Assuming $15/kg average price
-  const totalCustomers = 573; // This would come from customer data
-  const monthlyGrowthRate = 12.5;
+  const _totalCustomers = 573; // This would come from customer data
+  const _monthlyGrowthRate = 12.5;
 
   // Mock farm data
   const farms = [
@@ -311,15 +317,16 @@ const AnalyticsPage = () => {
   ];
 
   // Handle search result selection
-  const handleSearchResult = (result: any) => {
-    console.log("Search result:", result);
-    if (result.type === "farm") {
-      setSelectedFarm(result.id);
+  const _handleSearchResult = (result: HistoricalGrow) => {
+    if (result.farm_id) {
+      setSelectedFarm(result.farm_id);
     }
   };
 
   const handleWidgetClick = (widgetId: string) => {
-    console.log(`Widget clicked: ${widgetId}`);
+    // Widget interaction logic would go here
+    // For now, just track the click
+    void widgetId;
   };
 
   // Helper function to map grow status to StatusBadge status type
@@ -335,7 +342,7 @@ const AnalyticsPage = () => {
   };
 
   // Helper function to map metric type to StatusBadge status
-  const getMetricStatus = (metricType: string) => {
+  const _getMetricStatus = (metricType: string) => {
     switch (metricType) {
       case "success-rate":
         return "success";
@@ -351,8 +358,8 @@ const AnalyticsPage = () => {
   };
 
   const exportData = () => {
-    console.log("Exporting analytics data...");
     // Add export functionality here
+    // This would typically trigger a CSV/Excel download
   };
 
   if (isLoading || analyticsDataLoading) {

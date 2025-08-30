@@ -73,7 +73,7 @@ class DeviceAssignmentService {
 
       return filteredDevices;
     } catch (error) {
-      console.error("Error fetching available devices:", error);
+      // Error fetching available devices
       throw error;
     }
   }
@@ -102,7 +102,7 @@ class DeviceAssignmentService {
           device.device_class?.toLowerCase().includes(searchLower),
       );
     } catch (error) {
-      console.error("Error searching devices:", error);
+      // Error searching devices
       throw error;
     }
   }
@@ -143,7 +143,7 @@ class DeviceAssignmentService {
 
       return data || [];
     } catch (error) {
-      console.error("Error fetching assigned devices:", error);
+      // Error fetching assigned devices
       throw error;
     }
   }
@@ -164,7 +164,7 @@ class DeviceAssignmentService {
       if (error) throw error;
       return data?.map((item) => item.entity_id) || [];
     } catch (error) {
-      console.error("Error fetching assigned device entity IDs:", error);
+      // Error fetching assigned device entity IDs
       return [];
     }
   }
@@ -189,7 +189,7 @@ class DeviceAssignmentService {
         .maybeSingle();
 
       if (integrationError) {
-        console.warn("Error fetching integration:", integrationError);
+        // Error fetching integration
       }
 
       const assignmentData: any = {
@@ -233,7 +233,7 @@ class DeviceAssignmentService {
 
       return data;
     } catch (error) {
-      console.error("Error assigning device:", error);
+      // Error assigning device
       throw error;
     }
   }
@@ -250,7 +250,7 @@ class DeviceAssignmentService {
 
       if (error) throw error;
     } catch (error) {
-      console.error("Error unassigning device:", error);
+      // Error unassigning device
       throw error;
     }
   }

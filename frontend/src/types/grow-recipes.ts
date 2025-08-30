@@ -48,7 +48,7 @@ export interface GrowRecipe {
   difficulty?: "Easy" | "Medium" | "Hard" | null;
 
   // Metadata
-  custom_parameters?: Record<string, any> | null;
+  custom_parameters?: Record<string, unknown> | null;
   created_at?: string;
   updated_at?: string;
 
@@ -109,7 +109,7 @@ export interface CreateGrowRecipeInput {
   lighting?: LightingSchedule;
   fridge_storage_temp?: number;
   difficulty?: "Easy" | "Medium" | "Hard";
-  custom_parameters?: Record<string, any>;
+  custom_parameters?: Record<string, unknown>;
 }
 
 export interface UpdateGrowRecipeInput extends Partial<CreateGrowRecipeInput> {

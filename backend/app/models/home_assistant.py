@@ -84,9 +84,7 @@ class LightControlRequest(DeviceControlRequest):
     color_temp: int | None = Field(
         None, ge=1000, le=10000, description="Color temperature in Kelvin"
     )
-    rgb_color: list[int] | None = Field(
-        None, description="RGB color values [R, G, B]"
-    )
+    rgb_color: list[int] | None = Field(None, description="RGB color values [R, G, B]")
 
     @field_validator("rgb_color")
     @classmethod
@@ -299,9 +297,7 @@ class WebSocketEventData(BaseModel):
 
     event_type: str = Field(..., description="Type of event")
     entity_id: str = Field(..., description="Entity that triggered the event")
-    old_state: dict[str, Any] | None = Field(
-        None, description="Previous entity state"
-    )
+    old_state: dict[str, Any] | None = Field(None, description="Previous entity state")
     new_state: dict[str, Any] = Field(..., description="New entity state")
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Event timestamp"

@@ -640,9 +640,7 @@ class SquareService:
         except Exception as e:
             logger.error(f"Error updating webhook event status: {e}")
 
-    async def get_webhook_config(
-        self, user_id: str, supabase
-    ) -> dict[str, Any] | None:
+    async def get_webhook_config(self, user_id: str, supabase) -> dict[str, Any] | None:
         """Get webhook configuration for a user."""
         try:
             result = (
@@ -2701,9 +2699,7 @@ async def get_square_inventory(
 
 @router.get("/status", response_model=SquareConnectionStatus)
 async def get_square_status(
-    config_id: str | None = Query(
-        None, description="Configuration ID to check status"
-    ),
+    config_id: str | None = Query(None, description="Configuration ID to check status"),
     current_user: User = Depends(get_current_user),
     db=Depends(get_async_rls_client),
 ):

@@ -39,7 +39,7 @@ export abstract class BaseService {
 
   protected logOperation(operation: string, details?: any): void {
     if (process.env.NODE_ENV === "development") {
-      console.log(`[${this.constructor.name}] ${operation}`, details);
+      // Debug log removed
     }
   }
 

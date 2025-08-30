@@ -20,10 +20,10 @@ class TestBackgroundQueueIntegration:
     def mock_queue_service(self):
         """Mock background queue service."""
         mock_service = AsyncMock()
-        
+
         # Counter for generating predictable task IDs
         task_counter = 1
-        
+
         def generate_task_result(*args, **kwargs):
             nonlocal task_counter
             task_id = f"test-task-{task_counter}"
@@ -33,7 +33,7 @@ class TestBackgroundQueueIntegration:
                 "status": "queued",
                 "created_at": datetime.utcnow().isoformat(),
             }
-        
+
         mock_service.enqueue_task.side_effect = generate_task_result
         mock_service.get_task_status.return_value = {
             "task_id": "test-task-1",
@@ -67,7 +67,7 @@ class TestBackgroundQueueIntegration:
         assert result["status"] == "queued"
         assert "created_at" in result
 
-        # Check task status  
+        # Check task status
         status = await mock_queue_service.get_task_status(result["task_id"])
         assert status["task_id"] == "test-task-1"  # Should match the predictable ID
         assert status["status"] in ["queued", "processing", "completed", "failed"]

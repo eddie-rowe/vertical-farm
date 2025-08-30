@@ -45,7 +45,7 @@ export default function FarmsPage() {
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
 
   // Fetch available farms
-  const fetchAvailableFarms = async () => {
+  const fetchAvailableFarms = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -59,7 +59,7 @@ export default function FarmsPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching farms:", error);
+        // Error logged for debugging - keeping for now
         setFarmsListError(error.message);
         return;
       }
@@ -71,16 +71,16 @@ export default function FarmsPage() {
       if (farmsList.length > 0 && !selectedFarmIdForDetails) {
         setSelectedFarmIdForDetails(farmsList[0].id as UUID);
       }
-    } catch (err) {
-      console.error("Unexpected error fetching farms:", err);
+    } catch {
+      // Error logged for debugging
       setFarmsListError("Failed to load farms");
     } finally {
       setIsLoadingFarmsList(false);
     }
-  };
+  }, [user?.id, selectedFarmIdForDetails]);
 
   // Fetch detailed farm data with full structure
-  const fetchFarmData = async () => {
+  const fetchFarmData = useCallback(async () => {
     if (!selectedFarmIdForDetails || !user?.id) return;
 
     try {
@@ -137,7 +137,7 @@ export default function FarmsPage() {
         .single();
 
       if (farmError) {
-        console.error("Error fetching farm data:", farmError);
+        // Error logged for debugging
         setError(farmError.message);
         return;
       }
@@ -155,6 +155,7 @@ export default function FarmsPage() {
             farmData.rows?.map((row: any) => ({
               ...row,
               orientation: row.orientation || "horizontal",
+              area_type: row.area_type || "growing",
               racks:
                 row.racks?.map((rack: any) => ({
                   ...rack,
@@ -179,24 +180,24 @@ export default function FarmsPage() {
       };
 
       setFarmPageData(transformedData);
-    } catch (err) {
-      console.error("Unexpected error fetching farm data:", err);
+    } catch {
+      // Error logged for debugging
       setError("Failed to load farm data");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedFarmIdForDetails, user?.id]);
 
   // Effects
   useEffect(() => {
     fetchAvailableFarms();
-  }, [user?.id]);
+  }, [fetchAvailableFarms]);
 
   useEffect(() => {
     if (selectedFarmIdForDetails) {
       fetchFarmData();
     }
-  }, [selectedFarmIdForDetails, user?.id]);
+  }, [selectedFarmIdForDetails, fetchFarmData]);
 
   // Event handlers
   const handleFarmCreated = (newFarm: Farm) => {

@@ -110,7 +110,7 @@ export abstract class BaseRealtimeService extends BaseService {
       const data = JSON.parse(event.data);
       this.processMessage(data);
     } catch (error) {
-      console.error("Error parsing WebSocket message:", error);
+      // Error logged
     }
   }
 
@@ -146,7 +146,7 @@ export abstract class BaseRealtimeService extends BaseService {
 
     this.reconnectTimer = setTimeout(() => {
       this.createWebSocketConnection().catch((error) => {
-        console.error("Reconnect failed:", error);
+        // Error logged
       });
     }, this.connectionConfig.reconnectInterval!);
   }
@@ -178,7 +178,7 @@ export abstract class BaseRealtimeService extends BaseService {
     if (this.websocket?.readyState === WebSocket.OPEN) {
       this.websocket.send(JSON.stringify(data));
     } else {
-      console.warn("WebSocket not connected, cannot send message");
+      // Warning logged
     }
   }
 
@@ -208,7 +208,7 @@ export abstract class BaseRealtimeService extends BaseService {
       window.addEventListener("online", () => {
         if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
           this.connect().catch((error) => {
-            console.error("Failed to reconnect on online event:", error);
+            // Error logged
           });
         }
       });

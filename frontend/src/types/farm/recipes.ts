@@ -30,6 +30,8 @@ export interface Species extends Omit<NamedEntity, "description"> {
   category?: string;
   /** Whether this species is currently active for growing */
   is_active?: boolean;
+  /** Optional image or emoji representation of the species */
+  image?: string;
 }
 
 /**

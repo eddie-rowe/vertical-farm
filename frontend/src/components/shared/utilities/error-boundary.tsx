@@ -51,11 +51,7 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console in development
     if (process.env.NODE_ENV === "development") {
-      console.group("🚨 Error Boundary Caught Error");
-      console.error("Error:", error);
-      console.error("Error Info:", errorInfo);
-      console.error("Component Stack:", errorInfo.componentStack);
-      console.groupEnd();
+      // Error logging for development
     }
 
     // Update state with error info
@@ -100,7 +96,7 @@ class ErrorBoundary extends Component<Props, State> {
     };
 
     // Log to service
-    console.log("Error Report:", errorReport);
+    // console.log("Error Report:", errorReport);
 
     // Example: Send to monitoring service
     // fetch('/api/errors', {
@@ -158,7 +154,7 @@ URL: ${window.location.href}
 
     navigator.clipboard.writeText(errorText).then(() => {
       // Could show a toast here
-      console.log("Error details copied to clipboard");
+      // console.log("Error details copied to clipboard");
     });
   };
 

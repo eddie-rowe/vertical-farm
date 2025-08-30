@@ -82,7 +82,7 @@ export function MonitoringOverlay({
     lastUpdated: new Date().toISOString(),
   });
 
-  const [healthScore, setHealthScore] = useState<HealthScore>({
+  const [healthScore] = useState<HealthScore>({
     overall: 87,
     environmental: 92,
     growth: 85,

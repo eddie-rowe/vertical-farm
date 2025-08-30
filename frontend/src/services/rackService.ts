@@ -76,7 +76,6 @@ export const createRack = async (rackData: CreateRackData): Promise<Rack> => {
     .single();
 
   if (error) {
-    console.error("Error creating rack:", error);
     throw error;
   }
 
@@ -97,7 +96,6 @@ export const getRackById = async (rackId: UUID): Promise<Rack> => {
     .single();
 
   if (error) {
-    console.error(`Error fetching rack ${rackId}:`, error);
     throw error;
   }
 
@@ -118,7 +116,6 @@ export const getRacksByRowId = async (rowId: UUID): Promise<Rack[]> => {
     .order("position_in_row", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching racks for row ${rowId}:`, error);
     throw error;
   }
 
@@ -143,7 +140,6 @@ export const updateRack = async (
     .single();
 
   if (error) {
-    console.error(`Error updating rack ${rackId}:`, error);
     throw error;
   }
 
@@ -160,7 +156,6 @@ export const deleteRack = async (rackId: UUID): Promise<void> => {
   const { error } = await supabase.from("racks").delete().eq("id", rackId);
 
   if (error) {
-    console.error(`Error deleting rack ${rackId}:`, error);
     throw error;
   }
 };
@@ -191,13 +186,11 @@ export const reorderRacks = async (
     const errors = results.filter((result) => result.error);
 
     if (errors.length > 0) {
-      console.error("Error reordering racks:", errors);
       throw new Error("Failed to reorder some racks");
     }
 
     return results.map((result) => result.data!);
   } catch (error) {
-    console.error("Error in bulk rack reorder:", error);
     throw error;
   }
 };
@@ -218,7 +211,6 @@ export const getRackCount = async (rowId: UUID): Promise<number> => {
     .eq("row_id", rowId);
 
   if (error) {
-    console.error(`Error getting rack count for row ${rowId}:`, error);
     throw error;
   }
 
@@ -239,7 +231,6 @@ export const getNextRackPosition = async (rowId: UUID): Promise<number> => {
     .limit(1);
 
   if (error) {
-    console.error(`Error getting next rack position for row ${rowId}:`, error);
     throw error;
   }
 
@@ -263,7 +254,6 @@ export const generateUniqueRackName = async (rowId: UUID): Promise<string> => {
     .eq("row_id", rowId);
 
   if (error) {
-    console.error(`Error getting rack names for row ${rowId}:`, error);
     throw error;
   }
 
@@ -309,7 +299,6 @@ export const getRacksByFarmId = async (farmId: UUID): Promise<Rack[]> => {
     .order("position_in_row", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching racks for farm ${farmId}:`, error);
     throw error;
   }
 

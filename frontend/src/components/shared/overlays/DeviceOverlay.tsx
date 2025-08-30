@@ -121,7 +121,7 @@ interface ShelfOverlayProps {
   devices?: any[];
 }
 
-const ShelfOverlay: React.FC<ShelfOverlayProps> = ({ shelf, devices = [] }) => {
+const ShelfOverlay: React.FC<ShelfOverlayProps> = ({ devices = [] }) => {
   if (devices.length === 0) return null;
 
   return (
@@ -244,9 +244,6 @@ const RowOverlay: React.FC<RowOverlayProps> = ({ row }) => {
 
 const DeviceOverlay: React.FC<DeviceOverlayProps> = ({
   farmData,
-  selectedRow,
-  selectedRack,
-  selectedShelf,
 }) => {
   if (!farmData?.farm?.rows) return null;
 

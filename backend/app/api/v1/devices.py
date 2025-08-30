@@ -79,9 +79,7 @@ async def websocket_endpoint(
 @router.get("/assignments", response_model=list[DeviceAssignmentResponse])
 async def get_device_assignments(
     location_id: str | None = Query(None, description="Filter by location ID"),
-    device_type: DeviceType | None = Query(
-        None, description="Filter by device type"
-    ),
+    device_type: DeviceType | None = Query(None, description="Filter by device type"),
     current_user: dict = Depends(get_current_user),
     device_service: DeviceMonitoringService = Depends(get_device_monitoring_service),
 ):

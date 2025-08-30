@@ -1,0 +1,37 @@
+# Simple Workflow Context
+# This file is automatically updated by hooks and read by workflows
+
+# Current session info
+session:
+  issue: 65
+  branch: 65-feature-replace-placeholders-in-new-grow-setup-tab-with-real-data-from-within-the-database
+  phase: null
+  started: null
+
+# What changed
+changes:
+  files_modified:
+    - .claude/commands/README.md
+    - .github/workflows/security-scan-repository.yml
+    - .github/workflows/test-frontend.yml
+    - CONTRIBUTING.md
+    - Makefile
+  files_created: []
+  decisions_made: []
+
+# Key patterns to remember
+patterns:
+  service_layer: "All data operations MUST go through services"
+  rls_required: "Every table needs Row Level Security"
+  no_direct_db: "Components cannot call Supabase directly"
+
+# Test results (if any)
+validation:
+  tests_passed: null
+  tests_failed: null
+  last_error: null
+
+# Agent recommendations
+agents:
+  last_used: []
+  recommended_next: []
