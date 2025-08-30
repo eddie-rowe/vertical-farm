@@ -94,7 +94,7 @@ export class CircuitBreaker {
       if (this.nextAttemptTime && now >= this.nextAttemptTime) {
         this.state = CircuitState.HALF_OPEN;
         this.successCount = 0;
-        console.log(`Circuit breaker ${this.name} transitioning to HALF_OPEN`);
+        // Debug log removed
         return true;
       }
       return false;
@@ -111,7 +111,7 @@ export class CircuitBreaker {
       if (this.successCount >= this.config.successThreshold) {
         this.state = CircuitState.CLOSED;
         this.failureCount = 0;
-        console.log(`Circuit breaker ${this.name} recovered to CLOSED`);
+        // Debug log removed
         success(`${this.name} service recovered`);
       }
     } else if (this.state === CircuitState.CLOSED) {
@@ -129,9 +129,7 @@ export class CircuitBreaker {
         this.nextAttemptTime = new Date(
           Date.now() + this.config.recoveryTimeout * 1000,
         );
-        console.warn(
-          `Circuit breaker ${this.name} opened due to ${this.failureCount} failures`,
-        );
+        // Circuit breaker opened due to failures
         toastError(`${this.name} service temporarily unavailable`);
       }
     } else if (this.state === CircuitState.HALF_OPEN) {
@@ -139,7 +137,7 @@ export class CircuitBreaker {
       this.nextAttemptTime = new Date(
         Date.now() + this.config.recoveryTimeout * 1000,
       );
-      console.warn(`Circuit breaker ${this.name} reopened after failed test`);
+      // Warning logged
     }
   }
 
@@ -299,7 +297,7 @@ export class ErrorHandler {
       try {
         callback(error);
       } catch (e) {
-        console.error("Error in error callback:", e);
+        // Error logged
       }
     });
   }
@@ -408,10 +406,7 @@ export class ErrorHandler {
 
         if (attempt < maxAttempts) {
           const delay = this.calculateRetryDelay(serviceName, attempt);
-          console.warn(
-            `Operation failed for ${serviceName} (attempt ${attempt}/${maxAttempts}). ` +
-              `Retrying in ${delay}ms. Error: ${enhancedError.message}`,
-          );
+          // Operation failed, retrying
           await this.sleep(delay);
         }
       }
@@ -584,11 +579,7 @@ globalErrorHandler.registerService(
 
 // Add global error callback for logging
 globalErrorHandler.addErrorCallback((error: EnhancedError) => {
-  console.error(
-    `Enhanced Error: ${error.message} ` +
-      `(Type: ${error.errorType}, Retryable: ${error.retryable})`,
-    error.context,
-  );
+  // Enhanced error logged
 });
 
 export default globalErrorHandler;

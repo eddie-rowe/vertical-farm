@@ -20,7 +20,9 @@ NEXT_SRC=frontend
 	# Security & Vulnerability Scanning
 	security-python security-node security-docker security-secrets security-snyk-python security-snyk-node \\
 	# Claude Workflows
-	pipeline plan dev test validate deploy
+	pipeline plan dev test validate deploy finalize reflect \
+	# Context Management
+	context context-show
 
 # --- Backend Workflows ---
 
@@ -414,6 +416,8 @@ plan:
 		exit 1; \
 	fi
 	@echo "📋 Analyzing issue: $(ISSUE)"
+	@echo "📝 Updating context..."
+	@.claude/hooks/simple-context-hook.sh update
 	@echo "🔍 Invoking Claude with issue analysis workflow..."
 	@echo ""
 	@echo "Claude will now:"
@@ -422,12 +426,15 @@ plan:
 	@echo "  3. Break down into actionable subtasks"
 	@echo "  4. Update the GitHub issue with implementation plan"
 	@echo ""
+	@echo "📂 Context available in: .claude/context/simple-context.yaml"
+	@echo ""
 	@echo "Opening Claude Code with issue analysis workflow..."
 	@echo "Please run this command in Claude Code:"
 	@echo ""
 	@echo "Execute the workflow in .claude/commands/workflows/01_planning/issue-analysis.md with argument: $(ISSUE)"
+	@echo "Tell Claude to check .claude/context/simple-context.yaml for context"
 	@echo ""
-	@echo "💡 After analysis, use 'make dev FEATURE=\"your feature description\"' to start implementation, then 'make test FEATURE=\"your feature description\"' to validate"
+	@echo "💡 After analysis, use 'make dev ISSUE=$(ISSUE)' to continue with context"
 
 ## Start Claude-powered feature development workflow (supports both ISSUE and FEATURE)
 dev:
@@ -436,18 +443,22 @@ dev:
 	@# Handle both ISSUE and FEATURE parameters
 	@if [ -n "$(ISSUE)" ]; then \
 		echo "📋 Developing from GitHub issue: $(ISSUE)"; \
+		.claude/hooks/simple-context-hook.sh update; \
 		echo "🤖 Claude will first analyze the issue, then start development..."; \
 		echo ""; \
 		echo "Please run this command in Claude Code:"; \
 		echo ""; \
 		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(ISSUE)"; \
+		echo "Tell Claude to check .claude/context/simple-context.yaml for previous context"; \
 	elif [ -n "$(FEATURE)" ]; then \
 		echo "🔨 Developing feature: $(FEATURE)"; \
+		.claude/hooks/simple-context-hook.sh update; \
 		echo "🤖 Invoking Claude with feature development workflow..."; \
 		echo ""; \
 		echo "Please run this command in Claude Code:"; \
 		echo ""; \
 		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(FEATURE)"; \
+		echo "Tell Claude to check .claude/context/simple-context.yaml for patterns to follow"; \
 	else \
 		echo "❌ Please provide either an issue number or feature description:"; \
 		echo "   make dev ISSUE=123"; \
@@ -508,6 +519,7 @@ validate:
 		exit 1; \
 	fi
 	@echo "📋 Validating implementation for issue: $(ISSUE)"
+	@.claude/hooks/simple-context-hook.sh update
 	@echo "🤖 Invoking Claude with feature validation workflow..."
 	@echo ""
 	@echo "Claude will:"
@@ -535,6 +547,7 @@ deploy:
 		exit 1; \
 	fi
 	@echo "📦 Deploying implementation for issue: $(ISSUE)"
+	@.claude/hooks/simple-context-hook.sh update
 	@echo "🤖 Invoking Claude with deployment workflow..."
 	@echo ""
 	@echo "Claude will orchestrate:"
@@ -551,6 +564,46 @@ deploy:
 	@echo "Execute the workflow in .claude/commands/workflows/04_deployment/issue-deployment.md with argument: $(ISSUE)"
 	@echo ""
 	@echo "💡 This workflow handles complete issue deployment lifecycle"
+
+## Finalize issue with documentation updates and closing notes
+finalize:
+	@echo "📝 Starting issue finalization workflow..."
+	@echo ""
+	@if [ -z "$(ISSUE)" ]; then \
+		echo "❌ Please provide an issue number:"; \
+		echo "   make finalize ISSUE=65"; \
+		echo "   make finalize ISSUE=123"; \
+		exit 1; \
+	fi
+	@echo "📋 Finalizing issue: $(ISSUE)"
+	@echo ""
+	@echo "🔧 Creating prompting log..."
+	@.claude/hooks/prompting-log.sh create-log "$(ISSUE)"
+	@echo ""
+	@echo "💬 Generating closing comment..."
+	@.claude/hooks/prompting-log.sh closing-comment "$(ISSUE)" > /tmp/closing-comment-$(ISSUE).md
+	@echo ""
+	@echo "🤖 Invoking Claude with finalization workflow..."
+	@echo ""
+	@echo "Claude will:"
+	@echo "  1. Update relevant documentation"
+	@echo "  2. Create comprehensive prompting log"
+	@echo "  3. Generate closing notes for GitHub issue"
+	@echo "  4. Close issue #$(ISSUE) with summary"
+	@echo "  5. Archive context for future reference"
+	@echo ""
+	@echo "📂 Prompting log saved to: .claude/logs/$(shell date +%Y-%m-%d)/issue-$(ISSUE).md"
+	@echo "💬 Closing comment saved to: /tmp/closing-comment-$(ISSUE).md"
+	@echo ""
+	@echo "Opening Claude Code with finalization workflow..."
+	@echo "Please run this command in Claude Code:"
+	@echo ""
+	@echo "Execute the workflow in .claude/commands/workflows/06_finalization/issue-finalize.md with argument: $(ISSUE)"
+	@echo ""
+	@echo "After finalization, run:"
+	@echo "  .claude/hooks/prompting-log.sh reset  # Clear context for next issue"
+	@echo ""
+	@echo "💡 This completes the full development lifecycle for issue #$(ISSUE)"
 
 ## Start Claude-powered reflection workflow for improving development processes
 reflect:
@@ -576,6 +629,19 @@ reflect:
 	echo "Execute the workflow in .claude/commands/workflows/maintenance/development-reflection.md with arguments: COMMITS=$$COMMITS_PARAM SCOPE=$$SCOPE_PARAM"; \
 	echo ""; \
 	echo "💡 Use 'make reflect COMMITS=5 SCOPE=typescript' to focus on specific areas"
+
+# --- Simple Context Management ---
+
+## Update context from current git state
+context:
+	@echo "📝 Updating context..."
+	@.claude/hooks/simple-context-hook.sh update
+	@echo "✅ Context updated in .claude/context/simple-context.yaml"
+
+## Show current context
+context-show:
+	@echo "📊 Current context:"
+	@cat .claude/context/simple-context.yaml
 
 # --- Help ---
 

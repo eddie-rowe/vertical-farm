@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // ESLint configuration - ignore during builds since we lint separately  
+  eslint: {
+    // Skip ESLint during builds - we run it separately in CI
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Only treat TypeScript errors as build failures, not warnings  
+    ignoreBuildErrors: false, // Still run TypeScript checks
+  },
+  
   // Compiler optimizations
   compiler: {
     // Remove console.log in production

@@ -212,8 +212,8 @@ export class FarmService extends BaseCRUDService<Farm> {
     const farmsWithCapacity: FarmWithCapacity[] = await Promise.all(
       farms.map(async (farm) => {
         const [capacity, status] = await Promise.all([
-          this.getFarmCapacity(farm.id),
-          this.getFarmStatus(farm.id)
+          this.getFarmCapacity(farm.id!),
+          this.getFarmStatus(farm.id!)
         ]);
 
         return {

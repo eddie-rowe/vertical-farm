@@ -13,9 +13,7 @@ def parse_cors(v: str | list[str]) -> list[str]:
         result = [i.strip() for i in v.split(",")]
         print(f"DEBUG parse_cors: Comma-separated string result: {result}")
         return result
-    elif isinstance(
-        v, list | str
-    ):  # str for case when it's already a JSON list string
+    elif isinstance(v, list | str):  # str for case when it's already a JSON list string
         # If it's a string that starts with '[', it might be a JSON list string
         if isinstance(v, str) and v.startswith("["):
             try:

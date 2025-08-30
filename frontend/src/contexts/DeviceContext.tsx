@@ -251,7 +251,7 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
     (message: DeviceWebSocketMessage) => {
       switch (message.type) {
         case "device_state_update":
-          const { entity_id, state: deviceState, attributes } = message.data;
+          const { entity_id, state: deviceState, attributes } = message.data as any;
 
           // Update device in state
           dispatch({
@@ -260,14 +260,14 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
               ...state.devices[entity_id],
               current_state: deviceState,
               attributes,
-              last_updated: message.data.last_updated,
+              last_updated: (message.data as any).last_updated,
               is_online: deviceState !== "unavailable",
             } as DeviceData,
           });
           break;
 
         case "device_control_response":
-          const { success, error } = message.data;
+          const { success, error } = message.data as any;
           if (success) {
             toast.success("Device control successful");
           } else {

@@ -105,7 +105,9 @@ class TestHomeAssistantDevices:
         app.dependency_overrides.clear()
 
     @pytest.mark.asyncio
-    async def test_discover_devices_endpoint(self, client, mock_user, mock_ha_service) -> None:
+    async def test_discover_devices_endpoint(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test device discovery endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -122,7 +124,9 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_get_all_devices_endpoint(self, client, mock_user, mock_ha_service) -> None:
+    async def test_get_all_devices_endpoint(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test get all devices endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -140,12 +144,16 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_get_devices_with_filter(self, client, mock_user, mock_ha_service) -> None:
+    async def test_get_devices_with_filter(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test get devices with domain filter."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
         try:
-            response = await client.get("/api/v1/home-assistant/devices?device_type=light")
+            response = await client.get(
+                "/api/v1/home-assistant/devices?device_type=light"
+            )
             assert response.status_code == status.HTTP_200_OK
 
             data = response.json()
@@ -180,7 +188,9 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_control_device_endpoint(self, client, mock_user, mock_ha_service) -> None:
+    async def test_control_device_endpoint(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test device control endpoint."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -201,7 +211,9 @@ class TestHomeAssistantDevices:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_control_device_failure(self, client, mock_user, mock_ha_service) -> None:
+    async def test_control_device_failure(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test device control endpoint failure handling."""
         # Mock control failure
         mock_ha_service.control_device.return_value = {
@@ -262,7 +274,7 @@ class TestHomeAssistantDevices:
             response = await client.get(f"/api/v1/home-assistant/devices/{entity_id}")
             # API returns 200 with found=false instead of 404
             assert response.status_code == status.HTTP_200_OK
-            
+
             data = response.json()
             assert data["found"] is False
             assert data["device"] is None

@@ -29,7 +29,7 @@ const eslintConfig = [
     ],
   },
   // Extend Next.js configurations for all files first
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends("next", "next/core-web-vitals", "next/typescript"),
   // Then override specific rules
   {
     plugins: {
@@ -83,6 +83,24 @@ const eslintConfig = [
       "no-var": "error",
       "no-console": "warn",
       "no-debugger": "error",
+    },
+  },
+  // Allow console statements in test and development files
+  {
+    files: [
+      "**/__tests__/**/*",
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/test-*",
+      "**/tests/**/*",
+      "**/__tests__/**/*.test.*",
+      "src/app/error.tsx", // Error boundaries need console for debugging
+      "src/components/InstallPrompt.tsx", // PWA debug logging
+      "src/components/NotificationManager.tsx", // Notification debug logging
+    ],
+    rules: {
+      "no-console": "off", // Allow console in test files
+      "@typescript-eslint/no-require-imports": "off", // Allow require in test files
     },
   },
   // Disable TypeScript rules for JavaScript files

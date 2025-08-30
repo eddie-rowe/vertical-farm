@@ -16,9 +16,7 @@ class FanBase(BaseModel):
     position_x: float | None = None
     position_y: float | None = None
     position_z: float | None = None
-    orientation: Literal["up", "down", "front", "back", "left", "right"] | None = (
-        None
-    )
+    orientation: Literal["up", "down", "front", "back", "left", "right"] | None = None
 
 
 class FanCreate(FanBase):
@@ -39,9 +37,7 @@ class FanUpdate(BaseModel):
     position_x: float | None = None
     position_y: float | None = None
     position_z: float | None = None
-    orientation: Literal["up", "down", "front", "back", "left", "right"] | None = (
-        None
-    )
+    orientation: Literal["up", "down", "front", "back", "left", "right"] | None = None
 
 
 class FanInDBBase(FanBase):

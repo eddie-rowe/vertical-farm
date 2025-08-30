@@ -204,10 +204,11 @@ jobs:
           # Install Checkov
           pip install checkov
           
-          # Scan infrastructure files (Dockerfile, docker-compose, Kubernetes, etc.)
+          # Scan infrastructure files (Dockerfile, Kubernetes, etc.)
           checkov \
             --framework dockerfile \
-            --framework docker-compose \
+            --framework kubernetes \
+            --framework yaml \
             --output json \
             --output-file checkov-results.json \
             --directory . || true

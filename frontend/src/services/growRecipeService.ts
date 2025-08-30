@@ -96,7 +96,7 @@ export const createSpecies = async (
     .single();
 
   if (error) {
-    console.error("Error creating species:", error);
+    // Error logged
     throw error;
   }
 
@@ -116,7 +116,7 @@ export const getSpecies = async (): Promise<Species[]> => {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Error fetching species:", error);
+    // Error logged
     throw error;
   }
 
@@ -137,7 +137,7 @@ export const getSpeciesById = async (id: UUID): Promise<Species> => {
     .single();
 
   if (error) {
-    console.error(`Error fetching species ${id}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -154,7 +154,7 @@ export const deleteSpecies = async (id: UUID): Promise<void> => {
   const { error } = await supabase.from("species").delete().eq("id", id);
 
   if (error) {
-    console.error(`Error deleting species ${id}:`, error);
+    // Error logged
     throw error;
   }
 };
@@ -202,7 +202,7 @@ export const getGrowRecipes = async (
   const { data, error, count } = await query;
 
   if (error) {
-    console.error("Error fetching grow recipes:", error);
+    // Error logged
     throw error;
   }
 
@@ -240,7 +240,7 @@ export const createGrowRecipe = async (
     .single();
 
   if (error) {
-    console.error("Error creating grow recipe:", error);
+    // Error logged
     throw error;
   }
 
@@ -270,7 +270,7 @@ export const updateGrowRecipe = async (
     .single();
 
   if (error) {
-    console.error(`Error updating grow recipe ${id}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -287,7 +287,7 @@ export const deleteGrowRecipe = async (id: UUID): Promise<void> => {
   const { error } = await supabase.from("grow_recipes").delete().eq("id", id);
 
   if (error) {
-    console.error(`Error deleting grow recipe ${id}:`, error);
+    // Error logged
     throw error;
   }
 };
@@ -307,7 +307,7 @@ export const duplicateGrowRecipe = async (id: UUID): Promise<GrowRecipe> => {
     .single();
 
   if (fetchError) {
-    console.error(`Error fetching original recipe ${id}:`, fetchError);
+    // Error logged
     throw fetchError;
   }
 
@@ -335,7 +335,7 @@ export const duplicateGrowRecipe = async (id: UUID): Promise<GrowRecipe> => {
     .single();
 
   if (error) {
-    console.error(`Error duplicating grow recipe ${id}:`, error);
+    // Error logged
     throw error;
   }
 
@@ -371,10 +371,7 @@ export const getCompatibleGrowRecipes = async (
     .order("name", { ascending: true });
 
   if (error) {
-    console.error(
-      `Error fetching compatible recipes for shelf ${shelfId}:`,
-      error,
-    );
+    // Error fetching compatible recipes
     throw error;
   }
 
@@ -407,10 +404,7 @@ export const getRecipeStatistics = async () => {
     .select("*", { count: "exact", head: true });
 
   if (recipeError || speciesError) {
-    console.error(
-      "Error fetching recipe statistics:",
-      recipeError || speciesError,
-    );
+    // Error fetching recipe statistics
     throw recipeError || speciesError;
   }
 

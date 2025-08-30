@@ -9,7 +9,6 @@ These endpoints provide fast access to sensor data for dashboards and analytics
 while maintaining separation between cached data and realtime alerts.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.security import get_current_active_user as get_current_user
@@ -31,9 +30,7 @@ router = APIRouter()
 @router.get("/latest", response_model=list[SensorReadingResponse])
 async def get_latest_sensor_readings(
     device_ids: str | None = Query(None, description="Comma-separated device IDs"),
-    sensor_types: str | None = Query(
-        None, description="Comma-separated sensor types"
-    ),
+    sensor_types: str | None = Query(None, description="Comma-separated sensor types"),
     current_user: User = Depends(get_current_user),
     cache_service: SensorCacheService = Depends(get_sensor_cache_service),
 ):
@@ -168,9 +165,7 @@ async def get_sensor_history(
 @router.get("/aggregates", response_model=list[SensorAggregateResponse])
 async def get_sensor_aggregates(
     device_ids: str | None = Query(None, description="Comma-separated device IDs"),
-    sensor_types: str | None = Query(
-        None, description="Comma-separated sensor types"
-    ),
+    sensor_types: str | None = Query(None, description="Comma-separated sensor types"),
     period_hours: int = Query(
         24, description="Period for aggregation in hours", ge=1, le=168
     ),
@@ -328,9 +323,7 @@ async def get_grow_recipes_data(
 
 @router.post("/cache/invalidate")
 async def invalidate_sensor_cache(
-    device_id: str | None = Query(
-        None, description="Specific device ID to invalidate"
-    ),
+    device_id: str | None = Query(None, description="Specific device ID to invalidate"),
     sensor_type: str | None = Query(
         None, description="Specific sensor type to invalidate"
     ),

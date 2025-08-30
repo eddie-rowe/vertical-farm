@@ -9,7 +9,20 @@ from app.models.enums import ParentType, SensorType
 class SensorDeviceBase(BaseModel):
     name: str | None = Field(None, min_length=2, max_length=50)
     model_number: str | None = None
-    sensor_type: Literal["temperature", "humidity", "co2", "ph", "ec", "water_level", "light_intensity", "air_flow", "soil_moisture"] | None = None
+    sensor_type: (
+        Literal[
+            "temperature",
+            "humidity",
+            "co2",
+            "ph",
+            "ec",
+            "water_level",
+            "light_intensity",
+            "air_flow",
+            "soil_moisture",
+        ]
+        | None
+    ) = None
     measurement_unit: str | None = None
     data_range_min: float | None = None
     data_range_max: float | None = None
@@ -51,7 +64,20 @@ class SensorDeviceCreate(SensorDeviceBase):
 class SensorDeviceUpdate(BaseModel):
     name: str | None = Field(None, min_length=2, max_length=50)
     model_number: str | None = None
-    sensor_type: Literal["temperature", "humidity", "co2", "ph", "ec", "water_level", "light_intensity", "air_flow", "soil_moisture"] | None = None
+    sensor_type: (
+        Literal[
+            "temperature",
+            "humidity",
+            "co2",
+            "ph",
+            "ec",
+            "water_level",
+            "light_intensity",
+            "air_flow",
+            "soil_moisture",
+        ]
+        | None
+    ) = None
     measurement_unit: str | None = None
     data_range_min: float | None = None
     data_range_max: float | None = None

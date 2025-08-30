@@ -67,7 +67,9 @@ class TestHomeAssistantHealth:
         app.dependency_overrides.clear()
 
     @pytest.mark.asyncio
-    async def test_health_check_endpoint(self, client, mock_user, mock_ha_service) -> None:
+    async def test_health_check_endpoint(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test the health check endpoint returns proper status."""
         self.setup_dependency_overrides(mock_user, mock_ha_service)
 
@@ -102,7 +104,9 @@ class TestHomeAssistantHealth:
             self.cleanup_dependency_overrides()
 
     @pytest.mark.asyncio
-    async def test_health_check_failure(self, client, mock_user, mock_ha_service) -> None:
+    async def test_health_check_failure(
+        self, client, mock_user, mock_ha_service
+    ) -> None:
         """Test health check endpoint when service is unhealthy."""
         # Mock failure response
         mock_ha_service.get_user_integration_status.return_value = {
