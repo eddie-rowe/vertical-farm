@@ -271,23 +271,22 @@ jobs:
             echo "IAC_CRITICAL=0" >> $GITHUB_ENV
             echo "IAC_HIGH=0" >> $GITHUB_ENV
           fi
-            
-            echo "- **IaC Critical issues**: $IAC_CRITICAL" >> $GITHUB_STEP_SUMMARY
-            echo "- **IaC High issues**: $IAC_HIGH" >> $GITHUB_STEP_SUMMARY
-            echo "- **IaC Total issues**: $IAC_TOTAL" >> $GITHUB_STEP_SUMMARY
-            
-            if [ "$IAC_CRITICAL" -gt 0 ]; then
-              echo "⚠️ Critical Infrastructure issues found:" >> $GITHUB_STEP_SUMMARY
-              jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "- \(.file_path): \(.check_name)"' checkov-results.json | head -5 >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "**Critical Infrastructure Issues Found:**" >> $GITHUB_STEP_SUMMARY
-              jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "File: \(.file_path)\nCheck: \(.check_name)\nDescription: \(.description)\nGuideline: \(.guideline)\n"' checkov-results.json >> $GITHUB_STEP_SUMMARY
-            fi
-            
-            # Store results for assessment
-            echo "IAC_CRITICAL=$IAC_CRITICAL" >> $GITHUB_ENV
-            echo "IAC_HIGH=$IAC_HIGH" >> $GITHUB_ENV
+          
+          echo "- **IaC Critical issues**: $IAC_CRITICAL" >> $GITHUB_STEP_SUMMARY
+          echo "- **IaC High issues**: $IAC_HIGH" >> $GITHUB_STEP_SUMMARY
+          echo "- **IaC Total issues**: $IAC_TOTAL" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$IAC_CRITICAL" -gt 0 ]; then
+            echo "⚠️ Critical Infrastructure issues found:" >> $GITHUB_STEP_SUMMARY
+            jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "- \(.file_path): \(.check_name)"' checkov-results.json | head -5 >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Critical Infrastructure Issues Found:**" >> $GITHUB_STEP_SUMMARY
+            jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "File: \(.file_path)\nCheck: \(.check_name)\nDescription: \(.description)\nGuideline: \(.guideline)\n"' checkov-results.json >> $GITHUB_STEP_SUMMARY
           fi
+          
+          # Store results for assessment
+          echo "IAC_CRITICAL=$IAC_CRITICAL" >> $GITHUB_ENV
+          echo "IAC_HIGH=$IAC_HIGH" >> $GITHUB_ENV
       
       # =============================================================================
       # REPOSITORY SECURITY ASSESSMENT & GATING
