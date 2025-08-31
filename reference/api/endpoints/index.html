@@ -3112,6 +3112,48 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#7-square-pos-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Square POS Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Square POS Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#square-data-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Square Data Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#square-sync-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Square Sync Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#square-webhook-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Square Webhook Endpoint
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3287,6 +3329,42 @@
 <li><strong>GET <code>/users/profile</code></strong>: Get user profile</li>
 <li><strong>PUT <code>/users/profile</code></strong>: Update user profile</li>
 <li><strong>POST <code>/users/permissions</code></strong>: Manage user roles</li>
+</ul>
+<h3 id="7-square-pos-integration">7. Square POS Integration</h3>
+<ul>
+<li><strong>GET <code>/api/v1/square/configs</code></strong>: List Square configurations</li>
+<li><strong>GET <code>/api/v1/square/configs/{config_id}</code></strong>: Get specific configuration</li>
+<li><strong>POST <code>/api/v1/square/configs</code></strong>: Create new Square configuration</li>
+<li><strong>PUT <code>/api/v1/square/configs/{config_id}</code></strong>: Update configuration</li>
+<li><strong>DELETE <code>/api/v1/square/configs/{config_id}</code></strong>: Delete configuration</li>
+<li><strong>PUT <code>/api/v1/square/configs/{config_id}/activate</code></strong>: Set active configuration</li>
+<li><strong>POST <code>/api/v1/square/test-connection</code></strong>: Test Square API connection</li>
+</ul>
+<h4 id="square-data-endpoints">Square Data Endpoints</h4>
+<ul>
+<li><strong>GET <code>/api/v1/square/locations</code></strong>: Get Square locations</li>
+<li><strong>GET <code>/api/v1/square/products</code></strong>: Get product catalog</li>
+<li><strong>GET <code>/api/v1/square/customers</code></strong>: Get customer list</li>
+<li><strong>GET <code>/api/v1/square/orders</code></strong>: Get order history</li>
+<li><strong>GET <code>/api/v1/square/payments</code></strong>: Get payment transactions</li>
+<li><strong>GET <code>/api/v1/square/refunds</code></strong>: Get refund transactions</li>
+<li><strong>GET <code>/api/v1/square/disputes</code></strong>: Get payment disputes</li>
+<li><strong>GET <code>/api/v1/square/payouts</code></strong>: Get bank payouts</li>
+<li><strong>GET <code>/api/v1/square/team-members</code></strong>: Get team member list</li>
+<li><strong>GET <code>/api/v1/square/inventory</code></strong>: Get inventory counts</li>
+</ul>
+<h4 id="square-sync-endpoints">Square Sync Endpoints</h4>
+<ul>
+<li><strong>POST <code>/api/v1/square/sync/all/{config_id}</code></strong>: Sync all Square data</li>
+<li><strong>POST <code>/api/v1/square/sync/customers/{config_id}</code></strong>: Sync customers</li>
+<li><strong>POST <code>/api/v1/square/sync/orders/{config_id}</code></strong>: Sync orders</li>
+<li><strong>POST <code>/api/v1/square/sync/payments/{config_id}</code></strong>: Sync payments</li>
+<li><strong>POST <code>/api/v1/square/sync/products/{config_id}</code></strong>: Sync products</li>
+<li><strong>GET <code>/api/v1/square/sync/status/{config_id}</code></strong>: Get sync status</li>
+</ul>
+<h4 id="square-webhook-endpoint">Square Webhook Endpoint</h4>
+<ul>
+<li><strong>POST <code>/api/v1/square/webhook</code></strong>: Receive Square webhook events</li>
 </ul>
 <h2 id="websocket-endpoints">WebSocket Endpoints</h2>
 <h3 id="real-time-monitoring">Real-time Monitoring</h3>
