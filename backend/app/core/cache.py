@@ -48,9 +48,7 @@ class CacheManager:
 
             return cache_entry["value"]
 
-    async def set(
-        self, key: str, value: Any, ttl_seconds: int | None = None
-    ) -> None:
+    async def set(self, key: str, value: Any, ttl_seconds: int | None = None) -> None:
         """
         Set a value in the cache.
 

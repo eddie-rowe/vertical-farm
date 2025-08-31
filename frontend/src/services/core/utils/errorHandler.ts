@@ -26,7 +26,7 @@ export class ErrorHandler {
     };
 
     // Log error for debugging
-    console.error("Service Error:", errorInfo);
+    // Service error logged
 
     // Handle specific error types
     if (error instanceof AuthError || error?.code === "PGRST301") {

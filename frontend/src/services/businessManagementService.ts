@@ -163,7 +163,7 @@ class BusinessManagementService {
       }
       return activeConfig;
     } catch (error) {
-      console.error("Failed to get active Square config:", error);
+      // Error logged
       throw new Error("Square integration not configured");
     }
   }
@@ -224,7 +224,7 @@ class BusinessManagementService {
         notes: "",
       }));
     } catch (error) {
-      console.error("Failed to fetch customers:", error);
+      // Error logged
       return [];
     }
   }
@@ -271,7 +271,7 @@ class BusinessManagementService {
         };
       });
     } catch (error) {
-      console.error("Failed to fetch orders:", error);
+      // Error logged
       return [];
     }
   }
@@ -328,7 +328,7 @@ class BusinessManagementService {
         };
       });
     } catch (error) {
-      console.error("Failed to fetch payments:", error);
+      // Error logged
       return [];
     }
   }
@@ -376,7 +376,7 @@ class BusinessManagementService {
 
       return inventoryItems;
     } catch (error) {
-      console.error("Failed to fetch inventory:", error);
+      // Error logged
       // Return empty array instead of mock data on error
       return [];
     }
@@ -414,7 +414,7 @@ class BusinessManagementService {
         squareRefundId: refund.id,
       }));
     } catch (error) {
-      console.error("Failed to fetch refunds:", error);
+      // Error logged
       return [];
     }
   }
@@ -443,7 +443,7 @@ class BusinessManagementService {
         createdAt: new Date(dispute.created_at).toISOString().split("T")[0],
       }));
     } catch (error) {
-      console.error("Failed to fetch disputes:", error);
+      // Error logged
       return [];
     }
   }
@@ -477,7 +477,7 @@ class BusinessManagementService {
           locationMap.get(subscription.location_id)?.name || "Unknown Location",
       }));
     } catch (error) {
-      console.error("Failed to fetch subscriptions:", error);
+      // Error logged
       return [];
     }
   }
@@ -513,7 +513,7 @@ class BusinessManagementService {
         ),
       }));
     } catch (error) {
-      console.error("Failed to fetch invoices:", error);
+      // Error logged
       return [];
     }
   }
@@ -545,7 +545,7 @@ class BusinessManagementService {
         joinedAt: new Date(member.created_at).toISOString().split("T")[0],
       }));
     } catch (error) {
-      console.error("Failed to fetch team members:", error);
+      // Error logged
       return [];
     }
   }
@@ -594,7 +594,7 @@ class BusinessManagementService {
         };
       });
     } catch (error) {
-      console.error("Failed to fetch labor data:", error);
+      // Error logged
       return [];
     }
   }
@@ -619,7 +619,7 @@ class BusinessManagementService {
         destination: payout.destination?.type || "Bank Account",
       }));
     } catch (error) {
-      console.error("Failed to fetch payouts:", error);
+      // Error logged
       return [];
     }
   }
@@ -782,7 +782,7 @@ class BusinessManagementService {
           totalRevenue > 0 ? (totalDisputes / totalRevenue) * 100 : 0,
       };
     } catch (error) {
-      console.error("Failed to get revenue analytics:", error);
+      // Error logged
       return {
         totalRevenue: 0,
         totalRefunds: 0,

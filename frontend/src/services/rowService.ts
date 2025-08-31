@@ -61,7 +61,6 @@ export const createRow = async (rowData: CreateRowData): Promise<Row> => {
     .single();
 
   if (error) {
-    console.error("Error creating row:", error);
     throw error;
   }
 
@@ -82,7 +81,6 @@ export const getRowById = async (rowId: UUID): Promise<Row> => {
     .single();
 
   if (error) {
-    console.error(`Error fetching row ${rowId}:`, error);
     throw error;
   }
 
@@ -103,7 +101,6 @@ export const getRowsByFarmId = async (farmId: UUID): Promise<Row[]> => {
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error(`Error fetching rows for farm ${farmId}:`, error);
     throw error;
   }
 
@@ -128,7 +125,6 @@ export const updateRow = async (
     .single();
 
   if (error) {
-    console.error(`Error updating row ${rowId}:`, error);
     throw error;
   }
 
@@ -145,7 +141,6 @@ export const deleteRow = async (rowId: UUID): Promise<void> => {
   const { error } = await supabase.from("rows").delete().eq("id", rowId);
 
   if (error) {
-    console.error(`Error deleting row ${rowId}:`, error);
     throw error;
   }
 };
@@ -169,7 +164,6 @@ export const getRowCount = async (farmId: UUID): Promise<number> => {
     .eq("farm_id", farmId);
 
   if (error) {
-    console.error(`Error getting row count for farm ${farmId}:`, error);
     throw error;
   }
 
@@ -191,7 +185,6 @@ export const generateUniqueRowName = async (farmId: UUID): Promise<string> => {
     .eq("farm_id", farmId);
 
   if (error) {
-    console.error(`Error getting row names for farm ${farmId}:`, error);
     throw error;
   }
 

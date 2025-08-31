@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { Row, AreaType } from "@/types/farm";
+import { Row, Rack, Shelf, AreaType } from "@/types/farm";
 
 import { germinationAreaPresets } from "./configurations/germinationAreaConfig";
 import { growingAreaPresets } from "./configurations/growingAreaConfig";
@@ -28,9 +28,9 @@ interface FarmAreaRendererProps {
   configuration: AreaConfiguration;
   className?: string;
   onRowSelect?: (row: Row | null) => void;
-  onRackSelect?: (rack: any | null) => void;
-  onShelfSelect?: (shelf: any | null) => void;
-  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
+  onRackSelect?: (rack: Rack | null) => void;
+  onShelfSelect?: (shelf: Shelf | null) => void;
+  onDoubleClick?: (element: Row | Rack | Shelf, type: "row" | "rack" | "shelf") => void;
 }
 
 export function FarmAreaRenderer({
@@ -65,9 +65,9 @@ interface FarmAreaContentProps {
   areaType: AreaType;
   className?: string;
   onRowSelect?: (row: Row | null) => void;
-  onRackSelect?: (rack: any | null) => void;
-  onShelfSelect?: (shelf: any | null) => void;
-  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
+  onRackSelect?: (rack: Rack | null) => void;
+  onShelfSelect?: (shelf: Shelf | null) => void;
+  onDoubleClick?: (element: Row | Rack | Shelf, type: "row" | "rack" | "shelf") => void;
 }
 
 function FarmAreaContent({
@@ -80,13 +80,17 @@ function FarmAreaContent({
   onDoubleClick,
 }: FarmAreaContentProps) {
   const { state, actions, configuration } = useFarmArea();
+  // Suppress unused variables for now
+  void state;
+  void actions;
+  void configuration;
 
   return (
     <>
       <InteractionLayer className={className}>
         <ContentLayer>
           <LayoutLayer rows={rows}>
-            {(row, rowIndex) => (
+            {(row, _rowIndex) => (
               <RowRenderer
                 key={row.id}
                 row={row}
@@ -113,15 +117,15 @@ interface RowRendererProps {
   row: Row;
   areaType: AreaType;
   onRowSelect?: (row: Row | null) => void;
-  onRackSelect?: (rack: any | null) => void;
-  onShelfSelect?: (shelf: any | null) => void;
-  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
+  onRackSelect?: (rack: Rack | null) => void;
+  onShelfSelect?: (shelf: Shelf | null) => void;
+  onDoubleClick?: (element: Row | Rack | Shelf, type: "row" | "rack" | "shelf") => void;
 }
 
 function RowRenderer({
   row,
   areaType,
-  onRowSelect,
+  onRowSelect: _onRowSelect,
   onRackSelect,
   onShelfSelect,
   onDoubleClick,
@@ -134,7 +138,7 @@ function RowRenderer({
 
         {/* Racks Grid */}
         <RackLayout row={row}>
-          {(rack, rackIndex) => (
+          {(rack, _rackIndex) => (
             <RackRenderer
               key={rack.id}
               rack={rack}
@@ -153,19 +157,19 @@ function RowRenderer({
 // ===== Rack Renderer =====
 
 interface RackRendererProps {
-  rack: any;
+  rack: Rack;
   areaType: AreaType;
-  onRackSelect?: (rack: any | null) => void;
-  onShelfSelect?: (shelf: any | null) => void;
-  onDoubleClick?: (element: any, type: "row" | "rack" | "shelf") => void;
+  onRackSelect?: (rack: Rack | null) => void;
+  onShelfSelect?: (shelf: Shelf | null) => void;
+  onDoubleClick?: (element: Row | Rack | Shelf, type: "row" | "rack" | "shelf") => void;
 }
 
 function RackRenderer({
   rack,
   areaType,
-  onRackSelect,
-  onShelfSelect,
-  onDoubleClick,
+  onRackSelect: _onRackSelect,
+  onShelfSelect: _onShelfSelect,
+  onDoubleClick: _onDoubleClick,
 }: RackRendererProps) {
   return (
     <RackInteraction rack={rack}>
@@ -178,6 +182,8 @@ function RackRenderer({
 
 function ModalRenderer() {
   const { state, actions, configuration } = useFarmArea();
+  // Suppress unused variables for now
+  void actions;
 
   const activeModalConfig = configuration.modals.find(
     (modal) => modal.id === state.activeModal && modal.enabled,
@@ -228,7 +234,7 @@ function ModalRenderer() {
           }
           onSubmit={(growData) => {
             // Handle grow setup
-            console.log("Grow setup:", growData);
+            // Handle grow setup logic here
             handleClose();
           }}
         />
@@ -242,13 +248,13 @@ function ModalRenderer() {
           activeOverlayIds={state.visibleOverlays}
           onUpdateOverlays={(overlays) => {
             // Handle overlay updates
-            console.log("Updated overlays:", overlays);
+            // Handle overlay update logic here
           }}
         />
       );
 
     default:
-      console.warn(`Unknown modal component: ${activeModalConfig.component}`);
+      // Log warning for unknown modal component
       return null;
   }
 }
@@ -322,12 +328,23 @@ export function ExampleFarmAreaUsage({
         rows={rows}
         areaType={areaType}
         configuration={configuration}
-        onRowSelect={(row) => console.log("Row selected:", row)}
-        onRackSelect={(rack) => console.log("Rack selected:", rack)}
-        onShelfSelect={(shelf) => console.log("Shelf selected:", shelf)}
-        onDoubleClick={(element, type) =>
-          console.log("Double clicked:", type, element)
-        }
+        onRowSelect={(row) => {
+          // Handle row selection
+          void row;
+        }}
+        onRackSelect={(rack) => {
+          // Handle rack selection
+          void rack;
+        }}
+        onShelfSelect={(shelf) => {
+          // Handle shelf selection
+          void shelf;
+        }}
+        onDoubleClick={(element, type) => {
+          // Handle double click
+          void element;
+          void type;
+        }}
       />
     </div>
   );

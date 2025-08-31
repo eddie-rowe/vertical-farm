@@ -4,31 +4,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a full-stack vertical farming management platform combining a Next.js 15 frontend with a Python FastAPI backend, using Supabase for database/auth and Cloudflare Workers for edge computing.
+**Vertical Farm** is a comprehensive vertical farming management platform that combines modern web technologies with IoT device control for indoor farming operations. The system handles everything from farm layout visualization to automated environmental control and real-time monitoring.
 
 **Key Stack:**
-- Frontend: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Supabase client
-- Backend: FastAPI (Python 3.13), Supabase, PostgreSQL, JWT auth
+- Frontend: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS + Custom Design Tokens, shadcn/ui
+- Backend: FastAPI (Python 3.13) for integrations only, Supabase PostgREST for most operations
+- Database: Supabase/PostgreSQL with mandatory Row Level Security (RLS)
 - Infrastructure: Docker, Cloudflare Workers, GitHub Actions
+
+**Domain-Specific Architecture:**
+- **Farm Hierarchy**: Farm → Rows → Racks → Shelves → Schedules/Devices
+- **Layer Overlay System**: Visual layers for Device, Automation, Monitoring, Analytics
+- **Home Assistant Integration**: Major IoT integration for device control
+- **Multi-Tenant**: Strict farm data isolation with RLS policies
+- **Real-Time**: Sensor monitoring and automation with Supabase subscriptions
 
 ## CRITICAL ARCHITECTURE PATTERNS
 
-### 🚨 Service Layer - MANDATORY
+### 🚨 Service Layer - MANDATORY (Most Important Rule)
 - **NEVER bypass service layer** - All data operations MUST go through services
-- **Singleton pattern REQUIRED** - Use `getInstance()` methods
+- **Singleton pattern REQUIRED** - Use `getInstance()` methods  
 - **Base class inheritance** - Extend BaseService, BaseCRUDService
 - **Error handling** - Services handle all errors, components show UI
 - **Validation** - All input validation happens in services
 
-```typescript
-// ✅ CORRECT: Always use service layer
-const farmService = FarmService.getInstance()
-const farms = await farmService.getFarmsByUser(userId)
 
-// ❌ WRONG: Never direct Supabase calls in components
-const supabase = createClient()
-const { data } = await supabase.from('farms').select('*')  // FORBIDDEN
-```
+### 🏗️ FastAPI vs PostgREST Decision Matrix
+**Use FastAPI only for:**
+- External integrations (Home Assistant, payment processors, weather APIs)
+- Complex background tasks (automation orchestration, data processing)
+- Third-party API orchestration (multiple services coordination)
+- Custom business logic beyond database constraints
+
+**Use Supabase PostgREST for:**
+- Standard CRUD operations (farms, devices, users, grows, crops)
+- Database-driven features with RLS policies
+- Real-time subscriptions via Supabase channels
+- Most core business operations (90% of features)
 
 ### 🔐 Supabase & Authentication
 - **Package**: Use `@supabase/ssr` (NOT `@supabase/auth-helpers-nextjs`)
@@ -36,16 +48,6 @@ const { data } = await supabase.from('farms').select('*')  // FORBIDDEN
 - **Context-aware clients**: Different clients for server vs browser
 - **Never expose service keys** to frontend
 
-```typescript
-// Client creation patterns
-// Browser: createClient() from '@/utils/supabase/client'
-// Server: createClient() from '@/utils/supabase/server'
-
-// RLS Policy pattern
-CREATE POLICY "Users see own farms" ON farms
-FOR SELECT TO authenticated
-USING ((SELECT auth.uid()) = user_id);
-```
 
 ### ⚛️ Next.js 15 & React 19 Patterns
 - **Server Components by default** - Add 'use client' only when needed
@@ -54,20 +56,14 @@ USING ((SELECT auth.uid()) = user_id);
 - **useOptimistic** for instant UI feedback
 - **Server Actions** for mutations
 
-```typescript
-// Server Component with caching
-export default async function FarmDashboard({ farmId }: { farmId: string }) {
-  const farms = await getCachedFarmData(farmId)  // Uses "use cache"
-  return <FarmView farms={farms} />
-}
 
-// Client Component with optimistic updates
-'use client'
-export function DeviceControl({ device }: { device: Device }) {
-  const [optimisticStatus, setOptimisticStatus] = useOptimistic(device.status)
-  // Handle user interactions
-}
-```
+### 🎨 Layer Overlay System (Unique Architecture)
+**Visual overlay architecture** - Multiple information layers (device, automation, monitoring, analytics) displayed simultaneously over farm structure. Similar to professional GIS/CAD tools with checkbox-based layer controls.
+
+### 🌱 Farm Domain Hierarchy
+**Hierarchical data model**: Farm → Rows → Racks → Shelves → Schedules/Devices. All relationships must be maintained throughout the system.
+
+**Multi-Tenant Security**: All farm data isolated by `user_id` with mandatory RLS policies. Users can only access their own farms and related data.
 
 ## Architecture & Code Patterns
 
@@ -113,84 +109,56 @@ backend/app/
 - **Co-located files** - Keep tests, styles, and types near components
 
 ### Import Organization
-```typescript
-// Required import order:
-// 1. Node built-ins
-import fs from 'fs'
+**Standard order required**: Node built-ins → React/Next.js → External packages → Services → Types → Components → Relative imports. Services imports come first in internal imports due to critical dependency.
 
-// 2. React/Next.js
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-
-// 3. External packages
-import { createClient } from '@supabase/supabase-js'
-import clsx from 'clsx'
-
-// 4. Internal - Services (most important)
-import { FarmService } from '@/services/domain/farm/FarmService'
-
-// 5. Internal - Types
-import type { Farm } from '@/types/farm'
-
-// 6. Internal - Components
-import { Button } from '@/components/ui/Button'
-
-// 7. Relative imports
-import { FarmCard } from './FarmCard'
-import styles from './Farm.module.css'
-```
+### 📱 Mobile-First Design System
+**Design tokens required** - Use CSS custom properties from `globals.css`, never hardcode colors/spacing. **Touch optimization mandatory** - 44px minimum touch targets, responsive overlays, mobile-first layouts.
 
 ### Performance Optimization
 - **"use cache" directive** for expensive server operations
-- **cacheLife configuration** for different data types
+- **cacheLife configuration** for different data types  
 - **Dynamic imports** for code splitting
 - **useOptimistic** for instant UI updates
 - **Image optimization** with Next.js Image component
 - **Bundle analysis** with webpack optimizations
+- **Performance targets**: Lighthouse >90, API <200ms, FCU <1.5s
 
 ## Key Development Rules
 
-1. **NEVER bypass service layer** - All data operations must go through services
-2. **Use modern auth patterns** - `@supabase/ssr` for frontend, JWT + RLS for backend
-3. **Follow App Router conventions** - Server Components by default, client when needed
-4. **Type everything** - TypeScript/Python type hints required
-5. **Test critical paths** - Services, authentication, data operations
-6. **Handle errors gracefully** - At service layer, display appropriately in UI
-7. **Use RLS policies** - All database access respects Row Level Security
-8. **Cache aggressively** - Use Next.js 15 caching features
-9. **Optimize imports** - Follow import order standards
-10. **Component composition** - Build complex UIs from simple, reusable pieces
+1. **NEVER bypass service layer** - All data operations must go through services (most critical)
+2. **Default to PostgREST** - Only use FastAPI for integrations/complex processing
+3. **RLS on everything** - All farm data tables require Row Level Security policies
+4. **Use design tokens** - Never hardcode colors/spacing, use CSS custom properties
+5. **Server Components first** - Add 'use client' only when interactivity needed
+6. **Layer overlay patterns** - Follow established overlay positioning and z-index rules
+7. **Farm hierarchy respect** - Maintain Farm → Row → Rack → Shelf relationships
+8. **Mobile-first responsive** - Touch targets, responsive grids, mobile overlays
+9. **Type everything** - TypeScript/Python type hints required throughout
+10. **Test critical paths** - Services, authentication, farm data operations, automation flows
+11. **Handle errors gracefully** - At service layer, display appropriately in UI
+12. **Cache aggressively** - Use Next.js 15 caching features for farm data
+13. **Follow import order** - Services first, then types, then components
+14. **Component composition** - Build complex farm UIs from simple, reusable pieces
 
 ## Testing Strategy
 - **Test Pyramid**: More unit tests, fewer integration tests, minimal E2E
 - **Service-focused**: Test business logic in services, not UI implementation
 - **Mock external dependencies**: Isolate tests from external systems
 - **Coverage goals**: 80% for critical paths, 60% overall
+- **NO INTEGRATION TESTS**: Only service unit tests + Playwright E2E tests
 
 ### Frontend Testing
-- **Unit**: Vitest for components and hooks
-- **E2E**: Playwright for critical user flows
+- **Service Unit Tests**: Jest for business logic in services (GrowService, SpeciesService, etc.)
+- **E2E Tests**: Playwright for all user interaction testing
 - **Performance**: Web Vitals monitoring
+- **FORBIDDEN**: @testing-library/user-event, complex component integration tests
+- **Component Testing**: Use fireEvent only for simple DOM events if absolutely necessary
 
 ### Backend Testing
 - **Unit**: Pytest with async support
 - **Integration**: Multi-component tests
 - **API**: Endpoint contract testing
 - **Performance**: Load tests with markers
-
-## Environment Setup
-
-### Required Environment Variables
-- `SUPABASE_URL` and `SUPABASE_ANON_KEY` (both frontend/backend)
-- `SUPABASE_SERVICE_KEY` (backend only - NEVER expose to frontend)
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (frontend)
-
-### Development Workflow
-1. **Backend changes**: Test with `./run_tests.sh` before committing
-2. **Frontend changes**: Run `npm run lint` and `npm test`
-3. **Database changes**: Create migration in `supabase/migrations/`
-4. **Full stack**: Use `make test-all` to verify everything works
-5. **Service changes**: Update both frontend and backend services simultaneously
 
 ## Important Files & Locations
 
@@ -212,6 +180,8 @@ import styles from './Farm.module.css'
 - Modify existing database migrations
 - Use synchronous operations in async contexts
 - Fetch data in Client Components without good reason
+- **Add @testing-library/user-event or create component integration tests**
+- **Create complex integration tests outside of Playwright E2E**
 
 ### ✅ ALWAYS DO THESE:
 - Use service layer for ALL data operations

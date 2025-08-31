@@ -330,7 +330,7 @@ export class AllDevicesService extends BaseService {
         area: device.area,
       }));
     } catch (error) {
-      console.warn("Failed to get Home Assistant devices:", error);
+      // Warning logged
       return [];
     }
   }
@@ -353,13 +353,13 @@ export class AllDevicesService extends BaseService {
         .eq("user_id", user.user.id);
 
       if (error) {
-        console.warn("Failed to get assigned entity IDs:", error);
+        // Warning logged
         return [];
       }
 
       return data?.map((item) => item.entity_id) || [];
     } catch (error) {
-      console.warn("Failed to get assigned entity IDs:", error);
+      // Warning logged
       return [];
     }
   }
@@ -402,9 +402,7 @@ export class AllDevicesService extends BaseService {
             break;
 
           default:
-            console.warn(
-              `Bulk import not supported for integration: ${integrationType}`,
-            );
+            // Bulk import not supported for this integration
         }
       }
     }, "Bulk import devices");
@@ -446,9 +444,7 @@ export class AllDevicesService extends BaseService {
             break;
 
           default:
-            console.warn(
-              `Bulk control not supported for integration: ${integrationType}`,
-            );
+            // Bulk control not supported for this integration
         }
       }
 

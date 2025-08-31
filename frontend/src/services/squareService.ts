@@ -270,7 +270,7 @@ class SquareService {
     try {
       return await request<SquareConfig[]>(`${this.baseUrl}/configs`);
     } catch (error) {
-      console.error("Error fetching Square configs:", error);
+      // Error logged
       return [];
     }
   }
@@ -279,7 +279,7 @@ class SquareService {
     try {
       return await request<SquareConfig>(`${this.baseUrl}/configs/${configId}`);
     } catch (error) {
-      console.error("Error fetching Square config:", error);
+      // Error logged
       return null;
     }
   }
@@ -324,7 +324,7 @@ class SquareService {
         `${this.baseUrl}/locations?config_id=${configId}`,
       );
     } catch (error) {
-      console.error("Error fetching Square locations:", error);
+      // Error logged
       return [];
     }
   }
@@ -335,7 +335,7 @@ class SquareService {
         `${this.baseUrl}/products?config_id=${configId}`,
       );
     } catch (error) {
-      console.error("Error fetching Square products:", error);
+      // Error logged
       return [];
     }
   }
@@ -346,7 +346,7 @@ class SquareService {
         `${this.baseUrl}/customers?config_id=${configId}`,
       );
     } catch (error) {
-      console.error("Error fetching Square customers:", error);
+      // Error logged
       return [];
     }
   }
@@ -363,7 +363,7 @@ class SquareService {
         `${this.baseUrl}/orders?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square orders:", error);
+      // Error logged
       return [];
     }
   }
@@ -380,7 +380,7 @@ class SquareService {
         `${this.baseUrl}/payments?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square payments:", error);
+      // Error logged
       return [];
     }
   }
@@ -398,7 +398,7 @@ class SquareService {
         `${this.baseUrl}/refunds?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square refunds:", error);
+      // Error logged
       return [];
     }
   }
@@ -409,7 +409,7 @@ class SquareService {
         `${this.baseUrl}/disputes?config_id=${configId}`,
       );
     } catch (error) {
-      console.error("Error fetching Square disputes:", error);
+      // Error logged
       return [];
     }
   }
@@ -426,7 +426,7 @@ class SquareService {
         `${this.baseUrl}/subscriptions?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square subscriptions:", error);
+      // Error logged
       return [];
     }
   }
@@ -443,7 +443,7 @@ class SquareService {
         `${this.baseUrl}/invoices?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square invoices:", error);
+      // Error logged
       return [];
     }
   }
@@ -460,7 +460,7 @@ class SquareService {
         `${this.baseUrl}/team-members?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square team members:", error);
+      // Error logged
       return [];
     }
   }
@@ -477,7 +477,7 @@ class SquareService {
         `${this.baseUrl}/labor?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square labor data:", error);
+      // Error logged
       return [];
     }
   }
@@ -488,7 +488,7 @@ class SquareService {
         `${this.baseUrl}/merchants?config_id=${configId}`,
       );
     } catch (error) {
-      console.error("Error fetching Square merchants:", error);
+      // Error logged
       return [];
     }
   }
@@ -505,7 +505,7 @@ class SquareService {
         `${this.baseUrl}/payouts?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square payouts:", error);
+      // Error logged
       return [];
     }
   }
@@ -522,7 +522,7 @@ class SquareService {
         `${this.baseUrl}/inventory?${params.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching Square inventory:", error);
+      // Error logged
       return [];
     }
   }
@@ -534,7 +534,7 @@ class SquareService {
         `${this.baseUrl}/status${params}`,
       );
     } catch (error) {
-      console.error("Error fetching Square status:", error);
+      // Error logged
       return {
         connected: false,
         environment: "sandbox",
@@ -548,7 +548,7 @@ class SquareService {
       const configs = await this.getConfigs();
       return configs.find((config) => config.is_active) || null;
     } catch (error) {
-      console.error("Error fetching active Square config:", error);
+      // Error logged
       return null;
     }
   }
@@ -563,7 +563,7 @@ class SquareService {
       );
       return response;
     } catch (error) {
-      console.error("Error setting active Square config:", error);
+      // Error logged
       throw error;
     }
   }

@@ -191,7 +191,6 @@ interface LoadingListProps {
 }
 
 export function LoadingList({
-  count = 3,
   message = "Loading data...",
   className,
 }: LoadingListProps) {

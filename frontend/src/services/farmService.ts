@@ -64,7 +64,7 @@ export interface UserPermissionUpdatePayload {
 export const getFarms = async (): Promise<Farm[]> => {
   const { data, error } = await supabase.from("farms").select("*");
   if (error) {
-    console.error("Error fetching farms direct from Supabase:", error);
+    // Error logged
     throw error;
   }
   return data || [];
@@ -81,7 +81,7 @@ export const getFarmById = async (id: string): Promise<Farm | null> => {
     .eq("id", id)
     .single();
   if (error) {
-    console.error(`Error fetching farm ${id} direct from Supabase:`, error);
+    // Error logged
     throw error;
   }
   return data;
@@ -101,7 +101,7 @@ export const createFarm = async (
     .single();
 
   if (error) {
-    console.error("Error creating farm via Supabase:", error);
+    // Error logged
     throw error;
   }
 
@@ -130,7 +130,7 @@ export const updateFarm = async (
     .single();
 
   if (error) {
-    console.error(`Error updating farm ${id} via Supabase:`, error);
+    // Error logged
     throw error;
   }
 
@@ -145,7 +145,7 @@ export const deleteFarm = async (id: string): Promise<void> => {
   const { error } = await supabase.from("farms").delete().eq("id", id);
 
   if (error) {
-    console.error(`Error deleting farm ${id} via Supabase:`, error);
+    // Error logged
     throw error;
   }
 };

@@ -223,7 +223,9 @@ export const useToastHelpers = () => {
           message: `${deviceName} has lost connection. Check network or device status.`,
           action: {
             label: "View Details",
-            onClick: () => console.log("Navigate to device details"),
+            onClick: () => {
+              // Navigate to device details
+            },
           },
         },
         battery_low: {
@@ -237,7 +239,9 @@ export const useToastHelpers = () => {
           message: `${deviceName} is reporting sensor malfunction. Maintenance required.`,
           action: {
             label: "Schedule Maintenance",
-            onClick: () => console.log("Schedule maintenance"),
+            onClick: () => {
+              // Schedule maintenance
+            },
           },
         },
       };
@@ -263,7 +267,9 @@ export const useToastHelpers = () => {
         persistent: severity === "critical",
         action: {
           label: "View Details",
-          onClick: () => console.log("Navigate to environmental monitoring"),
+          onClick: () => {
+            // Navigate to environmental monitoring
+          },
         },
       });
     },
