@@ -56,8 +56,19 @@ jobs:
           
           # Count found secrets
           if [ -f repository-secrets.json ]; then
-            VERIFIED_SECRETS=$(jq 'select(.Verified == true) | length' repository-secrets.json 2>/dev/null | wc -l || echo "0")
-            TOTAL_FINDINGS=$(jq 'length' repository-secrets.json 2>/dev/null || echo "0")
+            # Check if file has content
+            if [ -s repository-secrets.json ]; then
+              VERIFIED_SECRETS=$(jq '[.[] | select(.Verified == true)] | length' repository-secrets.json 2>/dev/null || echo "0")
+              TOTAL_FINDINGS=$(jq '. | length' repository-secrets.json 2>/dev/null || echo "0")
+            else
+              echo "TruffleHog results file exists but is empty"
+              VERIFIED_SECRETS=0
+              TOTAL_FINDINGS=0
+            fi
+            
+            # Ensure we have numeric values
+            [ -z "$VERIFIED_SECRETS" ] && VERIFIED_SECRETS=0
+            [ -z "$TOTAL_FINDINGS" ] && TOTAL_FINDINGS=0
             
             echo "TruffleHog secret scan complete:"
             echo "  Verified secrets: $VERIFIED_SECRETS"
@@ -305,6 +316,24 @@ jobs:
           SEMGREP_HIGH=${SEMGREP_HIGH:-0}
           IAC_CRITICAL=${IAC_CRITICAL:-0}
           IAC_HIGH=${IAC_HIGH:-0}
+          
+          # Handle empty/null values
+          [ -z "$VERIFIED_SECRETS" ] && VERIFIED_SECRETS=0
+          [ -z "$TOTAL_FINDINGS" ] && TOTAL_FINDINGS=0
+          [ -z "$SECURITY_ISSUES" ] && SECURITY_ISSUES=0
+          [ -z "$SEMGREP_CRITICAL" ] && SEMGREP_CRITICAL=0
+          [ -z "$SEMGREP_HIGH" ] && SEMGREP_HIGH=0
+          [ -z "$IAC_CRITICAL" ] && IAC_CRITICAL=0
+          [ -z "$IAC_HIGH" ] && IAC_HIGH=0
+          
+          echo "Environment variables loaded:"
+          echo "  VERIFIED_SECRETS: '$VERIFIED_SECRETS'"
+          echo "  TOTAL_FINDINGS: '$TOTAL_FINDINGS'"
+          echo "  SECURITY_ISSUES: '$SECURITY_ISSUES'"
+          echo "  SEMGREP_CRITICAL: '$SEMGREP_CRITICAL'"
+          echo "  SEMGREP_HIGH: '$SEMGREP_HIGH'"
+          echo "  IAC_CRITICAL: '$IAC_CRITICAL'"
+          echo "  IAC_HIGH: '$IAC_HIGH'"
           
           # Create summary table
           echo "| Security Category | Critical | High | Status |" >> $GITHUB_STEP_SUMMARY

@@ -239,6 +239,11 @@ setup:
 	$(MAKE) install-backend
 	$(MAKE) install-frontend
 
+## Install security scanning tools (TruffleHog, Semgrep, Checkov)
+setup-security:
+	@echo "🛡️  Installing security scanning tools..."
+	@./scripts/install-security-tools.sh
+
 ## Format all code (backend & frontend)
 format-all:
 	$(MAKE) lint-backend
@@ -282,7 +287,7 @@ test-lint-frontend:
 	@echo "✅ Frontend linting completed"
 
 ## Run security checks (mirrors GitHub Actions security scans)
-test-security: test-security-backend test-security-frontend test-security-secrets
+test-security: test-security-backend test-security-frontend test-security-secrets test-security-sast test-security-iac
 	@echo "✅ All security checks completed"
 
 ## Run build checks (mirrors GitHub Actions builds)
@@ -315,13 +320,91 @@ test-security-frontend:
 	cd frontend && npm audit --audit-level=moderate || echo "⚠️  Dependency vulnerabilities found"
 	@echo "✅ Frontend security checks completed"
 
-## Run secret scanning (basic local version)
+## Run secret scanning (enhanced version using TruffleHog if available)
 test-security-secrets:
-	@echo "🔍 Running basic secret detection..."
-	@if command -v grep >/dev/null 2>&1; then \
-		! grep -r -i -n -E "(password|secret|key|token).*=.*['\"][^'\"]{10,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=venv || echo "⚠️  Potential secrets found - review carefully"; \
+	@echo "🔍 Running secret detection..."
+	@if command -v trufflehog >/dev/null 2>&1; then \
+		echo "Using TruffleHog for comprehensive secret scanning..."; \
+		trufflehog git file://. --only-verified --json --no-update > .security-reports/trufflehog-local.json || true; \
+		VERIFIED_SECRETS=$$(jq '[.[] | select(.Verified == true)] | length' .security-reports/trufflehog-local.json 2>/dev/null || echo "0"); \
+		if [ "$$VERIFIED_SECRETS" -gt 0 ]; then \
+			echo "❌ $$VERIFIED_SECRETS verified secrets found!"; \
+			jq -r '.[] | select(.Verified == true) | "🚨 \(.DetectorName): \(.Raw)" | .[0:100]' .security-reports/trufflehog-local.json 2>/dev/null || echo "Error parsing results"; \
+			exit 1; \
+		else \
+			echo "✅ No verified secrets found"; \
+		fi; \
+	else \
+		echo "TruffleHog not found, using basic grep scanning..."; \
+		! grep -r -i -n -E "(password|secret|key|token).*=.*['\"][^'\"]{10,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=.security-reports || echo "⚠️  Potential secrets found - review carefully"; \
 	fi
 	@echo "✅ Secret scanning completed"
+
+## Run Static Application Security Testing (SAST) with Semgrep
+test-security-sast:
+	@echo "🛡️  Running SAST analysis with Semgrep..."
+	@mkdir -p .security-reports
+	@if command -v semgrep >/dev/null 2>&1; then \
+		echo "Running Semgrep with security rulesets..."; \
+		semgrep \
+			--config=p/security-audit \
+			--config=p/secrets \
+			--config=p/owasp-top-ten \
+			--config=p/javascript \
+			--config=p/python \
+			--json \
+			--output=.security-reports/semgrep-local.json \
+			. || true; \
+		SEMGREP_CRITICAL=$$(jq '[.results[] | select(.extra.severity == "ERROR")] | length' .security-reports/semgrep-local.json 2>/dev/null || echo "0"); \
+		SEMGREP_HIGH=$$(jq '[.results[] | select(.extra.severity == "WARNING")] | length' .security-reports/semgrep-local.json 2>/dev/null || echo "0"); \
+		echo "Critical findings: $$SEMGREP_CRITICAL, High findings: $$SEMGREP_HIGH"; \
+		if [ "$$SEMGREP_CRITICAL" -gt 0 ]; then \
+			echo "❌ Critical security issues found:"; \
+			jq -r '.results[] | select(.extra.severity == "ERROR") | "🚨 \(.path):\(.start.line): \(.extra.message)"' .security-reports/semgrep-local.json | head -5; \
+			exit 1; \
+		elif [ "$$SEMGREP_HIGH" -gt 5 ]; then \
+			echo "⚠️  High number of security warnings ($$SEMGREP_HIGH). Consider reviewing."; \
+		else \
+			echo "✅ No critical SAST issues found"; \
+		fi; \
+	else \
+		echo "⚠️  Semgrep not installed. Install with: pip install semgrep"; \
+		echo "   Skipping SAST analysis (non-blocking for local development)"; \
+	fi
+	@echo "✅ SAST analysis completed"
+
+## Run Infrastructure as Code (IaC) security scanning with Checkov
+test-security-iac:
+	@echo "🏗️  Running Infrastructure as Code security scan..."
+	@mkdir -p .security-reports
+	@if command -v checkov >/dev/null 2>&1; then \
+		echo "Running Checkov on infrastructure files..."; \
+		checkov \
+			--framework dockerfile \
+			--framework kubernetes \
+			--framework yaml \
+			--output json \
+			--output-file .security-reports/checkov-local.json \
+			--directory . || true; \
+		if [ -f .security-reports/checkov-local.json ]; then \
+			IAC_CRITICAL=$$(jq '.results.failed_checks | map(select(.severity == "CRITICAL")) | length' .security-reports/checkov-local.json 2>/dev/null || echo "0"); \
+			IAC_HIGH=$$(jq '.results.failed_checks | map(select(.severity == "HIGH")) | length' .security-reports/checkov-local.json 2>/dev/null || echo "0"); \
+			echo "Critical IaC issues: $$IAC_CRITICAL, High IaC issues: $$IAC_HIGH"; \
+			if [ "$$IAC_CRITICAL" -gt 0 ]; then \
+				echo "❌ Critical infrastructure security issues found:"; \
+				jq -r '.results.failed_checks[] | select(.severity == "CRITICAL") | "🚨 \(.file_path): \(.check_name)"' .security-reports/checkov-local.json | head -3; \
+				exit 1; \
+			else \
+				echo "✅ No critical infrastructure issues found"; \
+			fi; \
+		else \
+			echo "✅ No infrastructure files found to scan"; \
+		fi; \
+	else \
+		echo "⚠️  Checkov not installed. Install with: pip install checkov"; \
+		echo "   Skipping IaC analysis (non-blocking for local development)"; \
+	fi
+	@echo "✅ IaC security scan completed"
 
 ## Enhanced backend testing (mirrors GitHub Actions)
 test-backend-enhanced:

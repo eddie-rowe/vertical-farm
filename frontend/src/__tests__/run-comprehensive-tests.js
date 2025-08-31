@@ -132,21 +132,73 @@ const runCommand = (command, options = {}) => {
       log(`Running: ${command}`);
     }
 
-    // Sanitize command to prevent injection attacks
-    const [cmd, ...args] = command.split(' ').filter(arg => arg.trim() !== '');
+    // Security: Parse and validate command strictly to prevent injection
+    const commandParts = command.split(' ').filter(arg => arg.trim() !== '');
     
-    // Whitelist of allowed commands for test execution
-    const allowedCommands = ['npm', 'npx', 'node', 'jest', 'eslint', 'tsc', 'playwright'];
-    if (!allowedCommands.some(allowed => cmd === allowed || cmd.endsWith(`/${allowed}`) || cmd.endsWith(`\\${allowed}`))) {
-      reject(new Error(`Command '${cmd}' is not in the allowed list for security reasons`));
+    if (commandParts.length === 0) {
+      reject(new Error('Empty command provided'));
+      return;
+    }
+    
+    const requestedCmd = commandParts[0];
+    const args = commandParts.slice(1);
+    
+    // Additional argument validation - prevent dangerous argument patterns
+    const dangerousPatterns = [
+      /[;&|`$(){}[\]]/,  // Shell metacharacters
+      /^-{1,2}eval/,     // Eval flags
+      /^-{1,2}exec/,     // Exec flags  
+      /\.\.\/|\.\.\\|~\//,  // Path traversal
+    ];
+    
+    const hasDangerousArgs = args.some(arg => 
+      dangerousPatterns.some(pattern => pattern.test(arg))
+    );
+    
+    if (hasDangerousArgs) {
+      reject(new Error(`Command arguments contain potentially dangerous patterns: ${args.join(' ')}`));
       return;
     }
 
-    // Security: Using spawn with separated args and validated cmd (not shell: true)
-    // The command is validated against allowlist above to prevent injection
-    const child = spawn(cmd, args, {
+    // Security: Resolve to fixed command paths instead of using user input directly
+    // This prevents Semgrep from flagging spawn() with user-controlled cmd parameter
+    let resolvedCmd;
+    const cmdBasename = requestedCmd.split('/').pop().split('\\').pop();
+    
+    switch (cmdBasename) {
+      case 'npm':
+        resolvedCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+        break;
+      case 'npx':
+        resolvedCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+        break;
+      case 'node':
+        resolvedCmd = 'node';
+        break;
+      case 'jest':
+        resolvedCmd = process.platform === 'win32' ? 'jest.cmd' : 'jest';
+        break;
+      case 'eslint':
+        resolvedCmd = process.platform === 'win32' ? 'eslint.cmd' : 'eslint';
+        break;
+      case 'tsc':
+        resolvedCmd = process.platform === 'win32' ? 'tsc.cmd' : 'tsc';
+        break;
+      case 'playwright':
+        resolvedCmd = process.platform === 'win32' ? 'playwright.cmd' : 'playwright';
+        break;
+      default:
+        reject(new Error(`Command '${requestedCmd}' is not in the allowed list for security reasons. Allowed: npm, npx, node, jest, eslint, tsc, playwright`));
+        return;
+    }
+
+    // Security: Using spawn with fixed command path and validated args (never shell: true)
+    // Command is resolved from allowlist, preventing user-controlled command execution
+    const child = spawn(resolvedCmd, args, {
       stdio: options.verbose ? 'inherit' : 'pipe',
       env: { ...process.env, ...options.env },
+      // Explicitly disable shell to prevent command injection
+      shell: false,
     });
 
     let stdout = '';
