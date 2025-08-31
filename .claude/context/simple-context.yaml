@@ -3,19 +3,17 @@
 
 # Current session info
 session:
-  issue: 65
-  branch: 65-feature-replace-placeholders-in-new-grow-setup-tab-with-real-data-from-within-the-database
+  issue: 57
+  branch: 57-feature-complete-square-pos-integration
   phase: null
   started: null
 
 # What changed
 changes:
   files_modified:
-    - .claude/commands/README.md
-    - .github/workflows/security-scan-repository.yml
-    - .github/workflows/test-frontend.yml
-    - CONTRIBUTING.md
-    - Makefile
+    - frontend/src/app/(app)/business/page.tsx
+    - frontend/src/services/squareService.ts
+    - .claude/context/simple-context.yaml
   files_created: []
   decisions_made: []
 

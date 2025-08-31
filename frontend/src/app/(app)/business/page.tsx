@@ -33,8 +33,6 @@ import {
   PayoutsView,
 } from "@/components/features/business";
 import {
-  usePageData,
-  createIntegrationStorageKey,
   MetricsGrid,
   createMetric,
   MetricFormatters,
@@ -52,22 +50,17 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { squareService, SquareConfig } from "@/services/squareService";
+import { businessDataService, BusinessMetrics, RevenueTimeSeriesData, RecentOrder } from "@/services/businessDataService";
 
 // Business data interface
 interface BusinessData {
-  revenue: number;
-  customers: number;
-  orders: number;
+  metrics: BusinessMetrics | null;
+  revenueData: RevenueTimeSeriesData[];
+  recentOrders: RecentOrder[];
   hasData: boolean;
+  isLoading: boolean;
+  syncInProgress: boolean;
 }
-
-// Mock data for connected state
-const mockBusinessData: BusinessData = {
-  revenue: 12450,
-  customers: 89,
-  orders: 156,
-  hasData: true,
-};
 
 // Placeholder components for features not yet implemented
 const _SubscriptionsView = () => (
@@ -94,18 +87,17 @@ const BusinessPage: React.FC = () => {
   const [configLoading, setConfigLoading] = useState(true);
   const [configError, setConfigError] = useState<string | null>(null);
 
-  // Use standardized hooks for business data
-  const {
-    data: businessData,
-    isLoading: _isLoading,
-    hasData: _hasData,
-  } = usePageData<BusinessData>({
-    storageKey: createIntegrationStorageKey("business"),
-    mockData: mockBusinessData,
-    hasDataCheck: (data) => data.hasData,
+  // Business data state
+  const [businessData, setBusinessData] = useState<BusinessData>({
+    metrics: null,
+    revenueData: [],
+    recentOrders: [],
+    hasData: false,
+    isLoading: true,
+    syncInProgress: false,
   });
 
-  // Load Square configuration on mount
+  // Load Square configuration and business data
   useEffect(() => {
     const loadSquareConfig = async () => {
       try {
@@ -121,6 +113,9 @@ const BusinessPage: React.FC = () => {
             setConfigError(
               "Square integration is configured but not connected. Please check your configuration.",
             );
+          } else {
+            // Load business data if connection is good
+            await loadBusinessData();
           }
         }
       } catch {
@@ -131,41 +126,92 @@ const BusinessPage: React.FC = () => {
       }
     };
 
+    const loadBusinessData = async () => {
+      try {
+        setBusinessData(prev => ({ ...prev, isLoading: true }));
+        
+        // Check cache status first
+        const cacheStatus = await businessDataService.getCacheStatus();
+        
+        // If cache is stale or empty, trigger a sync
+        if (cacheStatus.isStale || Object.values(cacheStatus.tables).every(table => table.count === 0)) {
+          setBusinessData(prev => ({ ...prev, syncInProgress: true }));
+          try {
+            await squareService.syncAllData();
+          } catch (syncError) {
+            console.warn("Sync failed, using cached data:", syncError);
+          }
+          setBusinessData(prev => ({ ...prev, syncInProgress: false }));
+        }
+
+        // Load business data from cache
+        const [metrics, revenueData, recentOrders] = await Promise.all([
+          businessDataService.getBusinessMetrics(),
+          businessDataService.getRevenueTimeSeries(7), // Last 7 days
+          businessDataService.getRecentOrders(5),
+        ]);
+
+        setBusinessData({
+          metrics,
+          revenueData,
+          recentOrders,
+          hasData: metrics.totalRevenue > 0 || metrics.totalCustomers > 0 || metrics.totalOrders > 0,
+          isLoading: false,
+          syncInProgress: false,
+        });
+      } catch (error) {
+        console.error("Failed to load business data:", error);
+        setBusinessData(prev => ({
+          ...prev,
+          isLoading: false,
+          syncInProgress: false,
+        }));
+      }
+    };
+
     loadSquareConfig();
   }, []);
 
-  // Create metrics data
-  const metrics = [
+  // Create metrics data from real business data
+  const metrics = businessData.metrics ? [
     createMetric(
       "revenue",
       CurrencyDollarIcon,
       "Total Revenue",
-      businessData.revenue,
+      businessData.metrics.totalRevenue,
       {
         stateClass: "state-growing",
         iconColor: "text-sensor-value gradient-icon",
         valueFormatter: MetricFormatters.currency,
       },
     ),
-    createMetric("customers", UsersIcon, "Customers", businessData.customers, {
+    createMetric("customers", UsersIcon, "Customers", businessData.metrics.totalCustomers, {
       stateClass: "state-active",
       iconColor: "text-sensor-value gradient-icon",
     }),
-    createMetric("orders", ShoppingCartIcon, "Orders", businessData.orders, {
-      stateClass: "state-growing",
+    createMetric("orders", ShoppingCartIcon, "Orders", businessData.metrics.totalOrders, {
+      stateClass: "state-growing", 
       iconColor: "text-sensor-value gradient-icon",
     }),
-  ];
+  ] : [];
 
-  // Show loading state while checking configuration
-  if (configLoading) {
+  // Show loading state while checking configuration or loading data
+  if (configLoading || businessData.isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <PageHeader
           title="Business Management"
           description="Track sales, manage customers, and grow your vertical farming business."
         />
-        <LoadingCard message="Loading Square configuration..." />
+        <LoadingCard 
+          message={
+            configLoading 
+              ? "Loading Square configuration..." 
+              : businessData.syncInProgress
+                ? "Syncing Square data..."
+                : "Loading business data..."
+          } 
+        />
       </div>
     );
   }
@@ -326,49 +372,13 @@ const BusinessPage: React.FC = () => {
               <ChartBarIcon className="h-5 w-5 text-control-label gradient-icon" />
             </div>
             <DataChart
-              data={[
+              data={businessData.revenueData.length > 0 ? businessData.revenueData : [
                 {
-                  date: "2024-01-01",
-                  revenue: 18000,
-                  orders: 45,
-                  avgOrderValue: 400,
-                },
-                {
-                  date: "2024-01-02",
-                  revenue: 21750,
-                  orders: 52,
-                  avgOrderValue: 418,
-                },
-                {
-                  date: "2024-01-03",
-                  revenue: 14700,
-                  orders: 38,
-                  avgOrderValue: 387,
-                },
-                {
-                  date: "2024-01-04",
-                  revenue: 24750,
-                  orders: 61,
-                  avgOrderValue: 405,
-                },
-                {
-                  date: "2024-01-05",
-                  revenue: 19800,
-                  orders: 49,
-                  avgOrderValue: 404,
-                },
-                {
-                  date: "2024-01-06",
-                  revenue: 26700,
-                  orders: 68,
-                  avgOrderValue: 393,
-                },
-                {
-                  date: "2024-01-07",
-                  revenue: 28350,
-                  orders: 72,
-                  avgOrderValue: 394,
-                },
+                  date: new Date().toISOString().split('T')[0],
+                  revenue: 0,
+                  orders: 0,
+                  avgOrderValue: 0,
+                }
               ]}
               config={{
                 type: "line",
@@ -397,45 +407,33 @@ const BusinessPage: React.FC = () => {
               </StatusBadge>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-control-label">
-                    Mixed Greens Box - Sarah Johnson
-                  </span>
-                  <StatusBadge status="processing" size="sm">
-                    Processing
-                  </StatusBadge>
+              {businessData.recentOrders.length > 0 ? (
+                businessData.recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-control-label">
+                        {order.productName} - {order.customerName}
+                      </span>
+                      <StatusBadge 
+                        status={order.status.toLowerCase() === 'completed' ? 'success' : 'processing'} 
+                        size="sm"
+                      >
+                        {order.status}
+                      </StatusBadge>
+                    </div>
+                    <span className="text-sm font-medium text-sensor-value">
+                      ${order.amount.toFixed(2)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-control-label">No recent orders found</p>
+                  <p className="text-xs text-control-content mt-1">
+                    Orders will appear here once Square data is synced
+                  </p>
                 </div>
-                <span className="text-sm font-medium text-sensor-value">
-                  $24.99
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-control-label">
-                    Microgreens Variety Pack - Mike Chen
-                  </span>
-                  <StatusBadge status="processing" size="sm">
-                    Processing
-                  </StatusBadge>
-                </div>
-                <span className="text-sm font-medium text-sensor-value">
-                  $18.50
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-farm-muted rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-control-label">
-                    Fresh Herbs Bundle - Lisa Rodriguez
-                  </span>
-                  <StatusBadge status="processing" size="sm">
-                    Processing
-                  </StatusBadge>
-                </div>
-                <span className="text-sm font-medium text-sensor-value">
-                  $15.75
-                </span>
-              </div>
+              )}
             </div>
           </div>
         </TabsContent>

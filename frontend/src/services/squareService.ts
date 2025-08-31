@@ -567,6 +567,141 @@ class SquareService {
       throw error;
     }
   }
+
+  // =====================================================
+  // CACHE SYNC METHODS
+  // =====================================================
+
+  async syncAllData(configId?: string): Promise<void> {
+    const config = configId 
+      ? await this.getConfig(configId)
+      : await this.getActiveConfig();
+    
+    if (!config?.id) {
+      throw new Error("No active Square configuration found");
+    }
+
+    // Sync all data types in parallel for better performance
+    await Promise.all([
+      this.syncCustomers(config.id),
+      this.syncOrders(config.id),
+      this.syncPayments(config.id),
+      this.syncProducts(config.id),
+      this.syncRefunds(config.id),
+      this.syncDisputes(config.id),
+      this.syncPayouts(config.id),
+      this.syncTeamMembers(config.id),
+    ]);
+  }
+
+  async syncCustomers(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/customers/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square customers:", error);
+      throw error;
+    }
+  }
+
+  async syncOrders(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/orders/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square orders:", error);
+      throw error;
+    }
+  }
+
+  async syncPayments(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/payments/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square payments:", error);
+      throw error;
+    }
+  }
+
+  async syncProducts(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/products/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square products:", error);
+      throw error;
+    }
+  }
+
+  async syncRefunds(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/refunds/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square refunds:", error);
+      throw error;
+    }
+  }
+
+  async syncDisputes(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/disputes/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square disputes:", error);
+      throw error;
+    }
+  }
+
+  async syncPayouts(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/payouts/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square payouts:", error);
+      throw error;
+    }
+  }
+
+  async syncTeamMembers(configId: string): Promise<void> {
+    try {
+      await request(`${this.baseUrl}/sync/team-members/${configId}`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to sync Square team members:", error);
+      throw error;
+    }
+  }
+
+  async getSyncStatus(configId?: string): Promise<{
+    last_sync_at: string | null;
+    sync_status: string;
+    sync_error?: string;
+  }> {
+    const config = configId 
+      ? await this.getConfig(configId)
+      : await this.getActiveConfig();
+    
+    if (!config?.id) {
+      throw new Error("No Square configuration found");
+    }
+
+    try {
+      return await request(`${this.baseUrl}/sync/status/${config.id}`);
+    } catch (error) {
+      console.error("Failed to get sync status:", error);
+      throw error;
+    }
+  }
 }
 
 export const squareService = new SquareService();
