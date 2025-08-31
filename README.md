@@ -32,6 +32,8 @@ The end goal of this project is to have a gamified vertical farming app that inc
 
 - **Modern Frontend**: Next.js 15, TypeScript, Tailwind CSS, App Router, and Supabase integration.
 - **Backend API**: Python FastAPI with modular routers, authentication, and Supabase client.
+- **Square POS Integration**: Complete point-of-sale integration with real-time sales data, inventory, and customer management.
+- **Business Intelligence**: Comprehensive dashboard with revenue analytics, customer insights, and financial reporting.
 - **AI/Automation Agents**: Modular agents for UI/UX, security, DevOps, research, and more.
 - **Human Workflows**: Human-in-the-loop workflow definitions for collaborative operations.
 - **Project Management**: Taskmaster-driven task breakdown, complexity analysis, and reporting.

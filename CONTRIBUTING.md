@@ -283,6 +283,14 @@ Call context7 MCP server to retrieve relevant up to date dcoumentation when nece
 - **Test queries** for performance
 - **Backup data** before major changes
 
+### Service Layer Patterns (NEW)
+- **Always use service layer** for data operations (NEVER bypass)
+- **Implement singleton pattern** with `getInstance()` methods
+- **Extend base service classes** (BaseService, BaseCRUDService)
+- **Handle errors in services** not components
+- **Use cache tables** for external API data (see Square integration)
+- **Implement TTL-based cache invalidation** for performance
+
 #### Working with Supabase Locally
 ```bash
 # Create a new migration
