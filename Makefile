@@ -71,55 +71,7 @@ install-frontend:
 
 # --- DevOps / Full Stack ---
 
-## Start local development environment (with Supabase CLI)
-up:
-	@echo "🚀 Starting complete local development environment..."
-	@echo ""
-	@# Check prerequisites
-	@if ! command -v supabase &> /dev/null; then \
-		echo "❌ Supabase CLI not found!"; \
-		echo "Install it with: brew install supabase/tap/supabase"; \
-		exit 1; \
-	fi
-	@if ! docker info &> /dev/null; then \
-		echo "❌ Docker is not running! Please start Docker Desktop."; \
-		exit 1; \
-	fi
-	@# Start Supabase if not running
-	@if ! supabase status &> /dev/null; then \
-		echo "1️⃣ Starting Supabase..."; \
-		supabase start; \
-	else \
-		echo "✅ Supabase already running"; \
-	fi
-	@# Create .env.local with proper Docker networking
-	@if [ ! -f .env.local ]; then \
-		echo "2️⃣ Creating .env.local..."; \
-		./scripts/create-env-local.sh; \
-		sed -i '' 's|http://localhost:54321|http://host.docker.internal:54321|g' .env.local; \
-		echo "✅ Created .env.local with Docker-compatible URLs"; \
-	fi
-	@# Run any pending migrations and seed data
-	@echo "3️⃣ Checking database migrations and seeding data..."
-	@if [ -f supabase/migrations/00000000000000_production_baseline.sql ]; then \
-		supabase db reset || echo "⚠️  Database already up to date"; \
-	fi
-	@# Start Docker containers
-	@echo "4️⃣ Starting application containers..."
-	@docker-compose -f docker-compose.local.yml --env-file .env.local up -d
-	@echo ""
-	@echo "✅ Development environment ready!"
-	@echo ""
-	@echo "📍 Access:"
-	@echo "  Frontend:        http://localhost:3000"
-	@echo "  Backend API:     http://localhost:8000"
-	@echo "  API Docs:        http://localhost:8000/docs"
-	@echo "  Supabase Studio: http://localhost:54323"
-	@echo ""
-	@echo "📝 Next steps:"
-	@echo "  View logs:    make logs"
-	@echo "  Stop all:     make down"
-	@echo "  Reset DB:     supabase db reset"
+# NOTE: 'make up' has been migrated to Claude Code slash command: /up
 
 ## Build and start services with Docker Compose (alternative to 'make up')
 up-docker:
@@ -463,107 +415,17 @@ security: security-python security-node security-docker security-secrets securit
 	@echo "\\nAll security checks completed. Review output above."
 
 # --- Claude-Powered Development Workflows ---
+# NOTE: These commands have been migrated to Claude Code slash commands
+# Use the slash commands directly in Claude Code for better integration:
+#   /plan <issue>     - Analyze GitHub issues and create implementation plans
+#   /dev <issue>      - Develop features from issues or descriptions  
+#   /validate <issue> - Validate implementations with Playwright
+#   /pipeline <pr>    - Debug and fix CI/CD pipeline failures
+#   /reflect          - Analyze development patterns and improve workflows
+#
+# These make targets are kept for backward compatibility but may be removed in future versions.
 
-## Debug and fix GitHub Actions pipeline failures
-pipeline:
-	@echo "🔧 Starting Claude-powered pipeline debugging workflow..."
-	@echo ""
-	@if [ -z "$(PR)" ]; then \
-		echo "❌ Please provide a PR number:"; \
-		echo "   make pipeline PR=123"; \
-		echo "   make pipeline PR=456"; \
-		exit 1; \
-	fi
-	@echo "🚨 Debugging pipeline for PR: $(PR)"
-	@echo "🤖 Invoking Claude with pipeline debugging workflow..."
-	@echo ""
-	@echo "Claude will:"
-	@echo "  1. Retrieve GitHub Actions logs and errors"
-	@echo "  2. Analyze failure patterns and root causes"
-	@echo "  3. Apply domain-specific fixes using specialized agents"
-	@echo "  4. Re-trigger the workflow automatically"
-	@echo "  5. Monitor and validate the fix"
-	@echo ""
-	@echo "Opening Claude Code with pipeline debugging workflow..."
-	@echo "Please run this command in Claude Code:"
-	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/05_deployment/pipeline-debug.md with argument: $(PR)"
-	@echo ""
-	@echo "💡 This workflow uses specialized agents for backend, frontend, security, and deployment fixes"
-
-## Start Claude-powered issue analysis and planning workflow
-plan:
-	@echo "🤖 Starting Claude-powered issue analysis workflow..."
-	@echo ""
-	@if [ -z "$(ISSUE)" ]; then \
-		echo "❌ Please provide an issue number or URL:"; \
-		echo "   make plan ISSUE=123"; \
-		echo "   make plan ISSUE=https://github.com/user/repo/issues/123"; \
-		exit 1; \
-	fi
-	@echo "📋 Analyzing issue: $(ISSUE)"
-	@echo "📝 Updating context..."
-	@.claude/hooks/simple-context-hook.sh update
-	@echo "🔍 Invoking Claude with issue analysis workflow..."
-	@echo ""
-	@echo "Claude will now:"
-	@echo "  1. Retrieve issue details from GitHub"
-	@echo "  2. Analyze requirements and acceptance criteria"
-	@echo "  3. Break down into actionable subtasks"
-	@echo "  4. Update the GitHub issue with implementation plan"
-	@echo ""
-	@echo "📂 Context available in: .claude/context/simple-context.yaml"
-	@echo ""
-	@echo "Opening Claude Code with issue analysis workflow..."
-	@echo "Please run this command in Claude Code:"
-	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/01_planning/issue-analysis.md with argument: $(ISSUE)"
-	@echo "Tell Claude to check .claude/context/simple-context.yaml for context"
-	@echo ""
-	@echo "💡 After analysis, use 'make dev ISSUE=$(ISSUE)' to continue with context"
-
-## Start Claude-powered feature development workflow (supports both ISSUE and FEATURE)
-dev:
-	@echo "⚡ Starting Claude-powered feature development workflow..."
-	@echo ""
-	@# Handle both ISSUE and FEATURE parameters
-	@if [ -n "$(ISSUE)" ]; then \
-		echo "📋 Developing from GitHub issue: $(ISSUE)"; \
-		.claude/hooks/simple-context-hook.sh update; \
-		echo "🤖 Claude will first analyze the issue, then start development..."; \
-		echo ""; \
-		echo "Please run this command in Claude Code:"; \
-		echo ""; \
-		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(ISSUE)"; \
-		echo "Tell Claude to check .claude/context/simple-context.yaml for previous context"; \
-	elif [ -n "$(FEATURE)" ]; then \
-		echo "🔨 Developing feature: $(FEATURE)"; \
-		.claude/hooks/simple-context-hook.sh update; \
-		echo "🤖 Invoking Claude with feature development workflow..."; \
-		echo ""; \
-		echo "Please run this command in Claude Code:"; \
-		echo ""; \
-		echo "Execute the workflow in .claude/commands/workflows/02_development/feature-development.md with argument: $(FEATURE)"; \
-		echo "Tell Claude to check .claude/context/simple-context.yaml for patterns to follow"; \
-	else \
-		echo "❌ Please provide either an issue number or feature description:"; \
-		echo "   make dev ISSUE=123"; \
-		echo "   make dev ISSUE=https://github.com/user/repo/issues/123"; \
-		echo "   make dev FEATURE=\"Add temperature monitoring dashboard\""; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "🔄 Claude will orchestrate specialized agents for:"
-	@echo "  • Issue analysis (if GitHub issue provided)"
-	@echo "  • Backend architecture & API design"
-	@echo "  • Frontend components & service layer"
-	@echo "  • Comprehensive testing coverage"
-	@echo "  • Code review & quality assurance"
-	@echo ""
-	@echo "💡 After development: 'make test FEATURE=\"your feature\"' for validation"
-
-## Run comprehensive local testing (same as test-all, primary command)
-test: test-all
+# NOTE: 'make test' has been migrated to Claude Code slash command: /test
 
 ## Claude-powered feature testing workflow (moved from test)
 test-feature:
@@ -594,127 +456,11 @@ test-feature:
 	@echo ""
 	@echo "💡 Tip: Use 'make test' for quick local validation, 'make test-feature FEATURE=...' for comprehensive feature validation"
 
-## Start Claude-powered feature validation workflow using git diff and Playwright
-validate:
-	@echo "🔍 Starting Claude-powered feature validation workflow..."
-	@echo ""
-	@if [ -z "$(ISSUE)" ]; then \
-		echo "❌ Please provide an issue number:"; \
-		echo "   make validate ISSUE=65"; \
-		echo "   make validate ISSUE=123"; \
-		exit 1; \
-	fi
-	@echo "📋 Validating implementation for issue: $(ISSUE)"
-	@.claude/hooks/simple-context-hook.sh update
-	@echo "🤖 Invoking Claude with feature validation workflow..."
-	@echo ""
-	@echo "Claude will:"
-	@echo "  1. Analyze git diff to understand what changed"
-	@echo "  2. Use Playwright to explore and validate features"
-	@echo "  3. Test user workflows end-to-end"
-	@echo "  4. Validate responsive design and accessibility"
-	@echo "  5. Generate validation report with evidence"
-	@echo ""
-	@echo "Opening Claude Code with feature validation workflow..."
-	@echo "Please run this command in Claude Code:"
-	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/03_testing/feature-validation.md with argument: $(ISSUE)"
-	@echo ""
-	@echo "💡 This workflow analyzes actual code changes and validates implementation"
 
-## Start Claude-powered deployment workflow for completed issues
-deploy:
-	@echo "🚀 Starting Claude-powered deployment workflow..."
-	@echo ""
-	@if [ -z "$(ISSUE)" ]; then \
-		echo "❌ Please provide an issue number:"; \
-		echo "   make deploy ISSUE=65"; \
-		echo "   make deploy ISSUE=123"; \
-		exit 1; \
-	fi
-	@echo "📦 Deploying implementation for issue: $(ISSUE)"
-	@.claude/hooks/simple-context-hook.sh update
-	@echo "🤖 Invoking Claude with deployment workflow..."
-	@echo ""
-	@echo "Claude will orchestrate:"
-	@echo "  1. Code Quality Review & Final Testing"
-	@echo "  2. Git Operations (add, commit, push)"
-	@echo "  3. GitHub Issue Update (work summary)"
-	@echo "  4. Pull Request Creation & Setup"
-	@echo "  5. Deployment Preparation & Validation"
-	@echo "  6. Team Notification & Review Assignment"
-	@echo ""
-	@echo "Opening Claude Code with deployment workflow..."
-	@echo "Please run this command in Claude Code:"
-	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/04_deployment/issue-deployment.md with argument: $(ISSUE)"
-	@echo ""
-	@echo "💡 This workflow handles complete issue deployment lifecycle"
+# NOTE: 'make deploy' has been migrated to Claude Code slash command: /deploy
 
-## Finalize issue with documentation updates and closing notes
-finalize:
-	@echo "📝 Starting issue finalization workflow..."
-	@echo ""
-	@if [ -z "$(ISSUE)" ]; then \
-		echo "❌ Please provide an issue number:"; \
-		echo "   make finalize ISSUE=65"; \
-		echo "   make finalize ISSUE=123"; \
-		exit 1; \
-	fi
-	@echo "📋 Finalizing issue: $(ISSUE)"
-	@echo ""
-	@echo "🔧 Creating prompting log..."
-	@.claude/hooks/prompting-log.sh create-log "$(ISSUE)"
-	@echo ""
-	@echo "💬 Generating closing comment..."
-	@.claude/hooks/prompting-log.sh closing-comment "$(ISSUE)" > /tmp/closing-comment-$(ISSUE).md
-	@echo ""
-	@echo "🤖 Invoking Claude with finalization workflow..."
-	@echo ""
-	@echo "Claude will:"
-	@echo "  1. Update relevant documentation"
-	@echo "  2. Create comprehensive prompting log"
-	@echo "  3. Generate closing notes for GitHub issue"
-	@echo "  4. Close issue #$(ISSUE) with summary"
-	@echo "  5. Archive context for future reference"
-	@echo ""
-	@echo "📂 Prompting log saved to: .claude/logs/$(shell date +%Y-%m-%d)/issue-$(ISSUE).md"
-	@echo "💬 Closing comment saved to: /tmp/closing-comment-$(ISSUE).md"
-	@echo ""
-	@echo "Opening Claude Code with finalization workflow..."
-	@echo "Please run this command in Claude Code:"
-	@echo ""
-	@echo "Execute the workflow in .claude/commands/workflows/06_finalization/issue-finalize.md with argument: $(ISSUE)"
-	@echo ""
-	@echo "After finalization, run:"
-	@echo "  .claude/hooks/prompting-log.sh reset  # Clear context for next issue"
-	@echo ""
-	@echo "💡 This completes the full development lifecycle for issue #$(ISSUE)"
+# NOTE: 'make finalize' has been migrated to Claude Code slash command: /finalize
 
-## Start Claude-powered reflection workflow for improving development processes
-reflect:
-	@echo "🔍 Starting Claude-powered reflection workflow..."
-	@echo ""
-	@# Handle optional parameters with defaults
-	@COMMITS_PARAM=$${COMMITS:-10}; \
-	SCOPE_PARAM=$${SCOPE:-all}; \
-	echo "📊 Analyzing last $$COMMITS_PARAM commits with scope: $$SCOPE_PARAM"; \
-	echo "🤖 Invoking Claude with reflection workflow..."; \
-	echo ""; \
-	echo "Claude will:"; \
-	echo "  1. Analyze recent development patterns and challenges"; \
-	echo "  2. Review error logs and debugging sessions"; \
-	echo "  3. Update agent/workflow definitions to prevent similar issues"; \
-	echo "  4. Check style consistency across similar files"; \
-	echo "  5. Generate improvement recommendations"; \
-	echo "  6. Update .claude/ configurations automatically"; \
-	echo ""; \
-	echo "Opening Claude Code with reflection workflow..."; \
-	echo "Please run this command in Claude Code:"; \
-	echo ""; \
-	echo "Execute the workflow in .claude/commands/workflows/maintenance/development-reflection.md with arguments: COMMITS=$$COMMITS_PARAM SCOPE=$$SCOPE_PARAM"; \
-	echo ""; \
-	echo "💡 Use 'make reflect COMMITS=5 SCOPE=typescript' to focus on specific areas"
 
 # --- Simple Context Management ---
 

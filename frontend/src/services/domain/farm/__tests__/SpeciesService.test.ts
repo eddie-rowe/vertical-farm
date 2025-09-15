@@ -7,49 +7,45 @@
  * @group species
  */
 
+// Mock supabase client import
+jest.mock('@/lib/supabaseClient', () => ({
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    not: jest.fn().mockReturnThis(),
+    or: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+  },
+}));
+
+jest.mock('../../../core/auth/AuthService', () => ({
+  AuthService: {
+    getInstance: () => ({
+      requireAuth: jest.fn(),
+      getInstance: jest.fn(),
+    }),
+  },
+}));
+
+jest.mock('../../../core/utils/errorHandler', () => ({
+  ErrorHandler: {
+    withErrorHandling: jest.fn((fn) => fn()),
+  },
+}));
+
 import type { Species, CreateSpeciesInput } from '@/types/farm/recipes';
 
 import { SpeciesService } from '../SpeciesService';
 
-// Mock Supabase client
-const mockSupabaseClient = {
-  from: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-  not: jest.fn().mockReturnThis(),
-  or: jest.fn().mockReturnThis(),
-  order: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  delete: jest.fn().mockReturnThis(),
-  single: jest.fn(),
-};
-
-// Mock AuthService
-const mockAuthService = {
-  requireAuth: jest.fn(),
-  getInstance: jest.fn(),
-};
-
-// Mock ErrorHandler
-const mockErrorHandler = {
-  withErrorHandling: jest.fn((fn) => fn()),
-};
-
-// Mock supabase client import
-jest.mock('@/lib/supabaseClient', () => ({
-  supabase: mockSupabaseClient,
-}));
-
-jest.mock('../../core/auth/AuthService', () => ({
-  AuthService: {
-    getInstance: () => mockAuthService,
-  },
-}));
-
-jest.mock('../../core/utils/errorHandler', () => ({
-  ErrorHandler: mockErrorHandler,
-}));
+// Get mocked instances for testing
+const mockSupabaseClient = require('@/lib/supabaseClient').supabase;
+const mockAuthService = require('../../../core/auth/AuthService').AuthService.getInstance();
+const mockErrorHandler = require('../../../core/utils/errorHandler').ErrorHandler;
 
 describe('SpeciesService', () => {
   let speciesService: SpeciesService;

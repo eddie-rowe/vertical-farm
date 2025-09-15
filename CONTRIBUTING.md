@@ -41,39 +41,16 @@ git fetch origin
 git checkout THE-BRANCH-NAME-THAT-GETS-GENERATED
 ```
 
-1. Open up Claude Code and ask it to run each of these commands in order to develop the feature
-   1. `make up` to stand up the local development environment
-   2. `make plan ISSUE=###` then review/modify plan
-   3. `make dev ISSUE=###` then guide agents to develop the feature
-   4. `make validate ISSUE=###` and ensure everything works as expected
-   5. `make test` to run comprehensive testing (linting + security + tests)
-   6. `make deploy ISSUE=###`
-   7. `make pipeline PR=###` to troubleshoot GitHub CI/CD errors
-   8. `make reflect` intention:
-      1. reflect on errors/challenges we encountered along the way and update the agent/workflow definitions to prevent errors/challenges of their nature from being introduced into the code in the future.
-      2. check similar files to ensure the style is consistent and maintains project practices.
-   9.  `make finalize ISSUE=###` to update docs and close the GitHub issue
-       1.  Updates relevant technical documentation
-       2.  Creates a prompting log in `.claude/logs/YYYY-MM-DD/issue-###.md`:
-        ```md
-        ## Prompt
-        [Original issue description]
-
-        ## Todos that were generated
-        [List of subtasks completed]
-
-        ## Summary
-        [What was implemented, key decisions, files changed]
-
-        ## Next Steps
-        [Follow-up work or improvements]
-
-        ## Follow up prompt
-        [Suggested prompt for continuing the work]
-        ```
-       3.  Generates comprehensive closing comment for GitHub
-       4.  Archives context for future reference  
-       5.  Resets context for next issue
+1. Open up Claude Code and run these slash commands in order to develop the feature:
+   1. `/up` - Start local development environment
+   2. `/plan ISSUE` - Analyze GitHub issue and create implementation plan
+   3. `/dev ISSUE` - Develop feature from issue or description
+   4. `/test` - Run comprehensive local testing
+   5. `/validate ISSUE` - Validate implementation with Playwright
+   6. `/deploy ISSUE` - Create PR and handle deployment
+   7. `/pipeline PR` - Debug and fix CI/CD pipeline failures
+   8. `/reflect [commits] [scope]` - Analyze patterns and improve workflows
+   9. `/finalize ISSUE` - Close issue with documentation and logs
 
 ### 1. Grabbing a task
 
