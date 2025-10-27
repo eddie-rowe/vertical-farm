@@ -27,7 +27,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Full history for comprehensive secret scanning
       
@@ -161,7 +161,7 @@ jobs:
       # =============================================================================
       
       - name: Upload Repository Security Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: repository-security-reports
