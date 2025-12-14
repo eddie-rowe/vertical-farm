@@ -16,8 +16,9 @@
 # Reuse containers for faster subsequent runs
 --reuse
 
-# Bind local working directory
---bind
+# NOTE: --bind removed to avoid race conditions with parallel matrix jobs
+# Each container gets its own isolated working directory, which is slower
+# but prevents coverage database conflicts and .next directory races
 
 # Local artifact server for test results and coverage reports
 --artifact-server-path .act/artifacts

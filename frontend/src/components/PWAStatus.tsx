@@ -10,6 +10,9 @@ export default function PWAStatus() {
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
   const [isServiceWorkerActive, setIsServiceWorkerActive] = useState(false);
+  const [isVisible, setIsVisible] = useState(
+    process.env.NEXT_PUBLIC_SHOW_PWA_DEBUG === "true"
+  );
 
   useEffect(() => {
     // Only show in development
@@ -65,6 +68,15 @@ export default function PWAStatus() {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
 
+    // Keyboard toggle for PWA status (Ctrl+Shift+P)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "P") {
+        e.preventDefault();
+        setIsVisible((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
@@ -73,11 +85,12 @@ export default function PWAStatus() {
         handleBeforeInstallPrompt,
       );
       window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
-  // Don't render in production
-  if (process.env.NODE_ENV !== "development") {
+  // Don't render in production or when not visible
+  if (process.env.NODE_ENV !== "development" || !isVisible) {
     return null;
   }
 

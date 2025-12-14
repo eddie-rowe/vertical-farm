@@ -4,6 +4,7 @@ import { Bell, BellOff, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   subscribeToPushNotifications,
@@ -14,6 +15,7 @@ import {
 type NotificationPermission = "default" | "granted" | "denied";
 
 export default function NotificationManager() {
+  const { user, loading: authLoading } = useAuth();
   const [permission, setPermission] =
     useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -139,6 +141,11 @@ export default function NotificationManager() {
 
   // Don't render in production for now (can be enabled later)
   if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
+  // Don't render if user is not authenticated
+  if (!user || authLoading) {
     return null;
   }
 
