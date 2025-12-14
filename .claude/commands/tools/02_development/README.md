@@ -12,7 +12,9 @@ This directory contains the core development workflow slash commands for the Ver
 - `/dev` - Feature Development
 - `/validate` - Feature Validation
 - `/test` - Comprehensive Local Testing
-- `/deploy` - Issue Deployment
+- `/deploy` - Issue Deployment (create PR)
+- `/review` - Pull Request Review
+- `/merge` - Pull Request Merge
 - `/finalize` - Issue Finalization
 
 ### Maintenance & Debugging
@@ -26,7 +28,7 @@ This directory contains the core development workflow slash commands for the Ver
 The full workflow from environment setup to issue closure:
 
 ```
-/up → /plan 123 → /dev 123 → /test → /validate 123 → /deploy 123 → /finalize 123
+/up → /plan 123 → /dev 123 → /test → /validate 123 → /deploy 123 → /review 68 → /merge 68 → /finalize 123
 ```
 
 1. **Setup**: Start development environment
@@ -35,14 +37,16 @@ The full workflow from environment setup to issue closure:
 4. **Test**: Run comprehensive local tests
 5. **Validate**: Test the implementation with Playwright
 6. **Deploy**: Create PR and handle deployment
-7. **Finalize**: Close issue with documentation
+7. **Review**: Request and verify code reviews
+8. **Merge**: Merge approved PR to main branch
+9. **Finalize**: Close issue with documentation
 
 ### Standard Development Flow
 
 For typical feature development:
 
 ```
-/plan 123 → /dev 123 → /validate 123 → /deploy 123
+/plan 123 → /dev 123 → /validate 123 → /deploy 123 → /merge 68
 ```
 
 ### Quick Development Flow
@@ -50,7 +54,7 @@ For typical feature development:
 Skip planning when the issue is already well-defined:
 
 ```
-/dev 123 → /test → /validate 123 → /deploy 123
+/dev 123 → /test → /validate 123 → /deploy 123 → /merge 68
 ```
 
 ### Standalone Feature Development
@@ -61,12 +65,20 @@ Develop features without a GitHub issue:
 /dev "Add user preferences panel" → /test → /validate → /deploy
 ```
 
+### PR Review & Merge Flow
+
+When a PR is ready for review:
+
+```
+/deploy 123 → /review 68 → /merge 68 → /finalize 123
+```
+
 ### Pipeline Troubleshooting
 
 When CI/CD fails on a pull request:
 
 ```
-PR created � Pipeline fails � /pipeline {pr} � Automatic fix � Pipeline passes
+PR created → Pipeline fails → /pipeline {pr} → Automatic fix → Pipeline passes
 ```
 
 ### Continuous Improvement
@@ -74,7 +86,7 @@ PR created � Pipeline fails � /pipeline {pr} � Automatic fix � Pipeline 
 Periodically reflect on development patterns:
 
 ```
-Development � /reflect � Improved workflows � Better development
+Development → /reflect → Improved workflows → Better development
 ```
 
 Best used:
@@ -89,6 +101,9 @@ Each command in the workflow maintains context through `.claude/context/simple-c
 - `/plan` creates initial analysis context
 - `/dev` uses analysis to guide implementation
 - `/validate` references implementation for testing
+- `/deploy` creates PR and tracks deployment
+- `/review` monitors review status
+- `/merge` completes the PR lifecycle
 - Context is automatically managed by hooks
 
 ## Command Parameters
@@ -98,6 +113,11 @@ Each command in the workflow maintains context through `.claude/context/simple-c
 - Accept issue URLs: `https://github.com/user/repo/issues/123`
 - Accept hash format: `#123`
 
+### PR-based Commands
+- `/review <pr>` - PR number required
+- `/merge <pr>` - PR number required
+- `/merge <pr> --strategy squash|merge|rebase` - Optional merge strategy
+
 ### Feature-based Commands
 - Accept feature descriptions: `"Add temperature monitoring"`
 - Must be quoted if containing spaces
@@ -105,6 +125,7 @@ Each command in the workflow maintains context through `.claude/context/simple-c
 ### Optional Parameters
 - `/reflect [commits] [scope]` - Defaults to 10 commits, all scopes
 - `/pipeline <pr>` - Requires PR number
+- `/merge <pr> --strategy <type>` - Defaults to squash
 
 ## Hook Integration
 
@@ -116,8 +137,28 @@ All commands integrate with these hooks:
 ## Related Workflows
 
 Each command executes a corresponding workflow:
-- `/plan` � `.claude/commands/workflows/01_planning/issue-analysis.md`
-- `/dev` � `.claude/commands/workflows/02_development/feature-development.md`
-- `/validate` � `.claude/commands/workflows/03_testing/feature-validation.md`
-- `/pipeline` � `.claude/commands/workflows/05_deployment/pipeline-debug.md`
-- `/reflect` � `.claude/commands/workflows/maintenance/development-reflection.md`
+- `/plan` → `.claude/commands/workflows/01_planning/issue-analysis.md`
+- `/dev` → `.claude/commands/workflows/02_development/feature-development.md`
+- `/validate` → `.claude/commands/workflows/03_testing/feature-validation.md`
+- `/deploy` → `.claude/commands/workflows/04_deployment/issue-deployment.md`
+- `/review` → Automated code review with status checks
+- `/merge` → PR merge with validation and cleanup
+- `/pipeline` → `.claude/commands/workflows/05_deployment/pipeline-debug.md`
+- `/reflect` → `.claude/commands/workflows/maintenance/development-reflection.md`
+- `/finalize` → `.claude/commands/workflows/06_finalization/issue-finalize.md`
+
+## Command Quick Reference
+
+| Command | Purpose | Input | Output |
+|---------|---------|-------|--------|
+| `/up` | Start dev environment | None | Running services |
+| `/plan` | Analyze issue | Issue # | Implementation plan |
+| `/dev` | Develop feature | Issue # | Code changes |
+| `/test` | Run tests | None | Test results |
+| `/validate` | E2E testing | Issue # | Validation report |
+| `/deploy` | Create PR | Issue # | PR URL |
+| `/review` | Check PR status | PR # | Review status |
+| `/merge` | Merge PR | PR # | Merged PR |
+| `/finalize` | Close issue | Issue # | Documentation |
+| `/pipeline` | Debug CI | PR # | Fixed pipeline |
+| `/reflect` | Review patterns | None | Insights |
