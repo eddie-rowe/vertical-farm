@@ -157,7 +157,7 @@ jobs:
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && !env.ACT
         with:
           name: frontend-test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
           path: |
@@ -167,7 +167,7 @@ jobs:
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.node-version == '22' && matrix.test-type == 'unit'
+        if: matrix.node-version == '22' && matrix.test-type == 'unit' && !env.ACT
         uses: codecov/codecov-action@v4
         with:
           file: ./frontend/coverage/unit/lcov.info
@@ -178,7 +178,7 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.node-version == '22'
+        if: always() && matrix.node-version == '22' && !env.ACT
         with:
           files: frontend/test-results/junit.xml
           check_name: "Frontend Tests (${{ matrix.test-type }})"

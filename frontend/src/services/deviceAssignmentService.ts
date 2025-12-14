@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
-import { getCurrentUser } from "@/services/supabaseService";
+import { AuthService } from "@/services/core/auth/AuthService";
 import {
   HADevice,
   DeviceAssignment,
@@ -114,7 +114,8 @@ class DeviceAssignmentService {
     target: AssignmentTarget,
   ): Promise<DeviceAssignment[]> {
     try {
-      const user = await getCurrentUser();
+      const authService = AuthService.getInstance();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("User not authenticated");
 
       let query = supabase
@@ -153,7 +154,8 @@ class DeviceAssignmentService {
    */
   private async getAssignedDeviceEntityIds(): Promise<string[]> {
     try {
-      const user = await getCurrentUser();
+      const authService = AuthService.getInstance();
+      const user = await authService.getCurrentUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -177,7 +179,8 @@ class DeviceAssignmentService {
     target: AssignmentTarget,
   ): Promise<DeviceAssignment> {
     try {
-      const user = await getCurrentUser();
+      const authService = AuthService.getInstance();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("User not authenticated");
 
       // Get integration ID (find Home Assistant integration if exists)

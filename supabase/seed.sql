@@ -1350,6 +1350,78 @@ ON CONFLICT (user_id, name) DO NOTHING;
 --
 
 
+-- ===========================================
+-- EXPANDED SEED DATA FOR LOCAL DEVELOPMENT
+-- ===========================================
+-- Added for junior developer onboarding
+-- These inserts use ON CONFLICT to safely add data without duplicates
+
+-- Additional species for testing grow features
+INSERT INTO "public"."species" ("id", "name", "description", "created_at", "updated_at") VALUES
+	('11111111-1111-1111-1111-111111111001', 'lettuce', 'Butterhead lettuce - tender leaves with mild flavor', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111002', 'spinach', 'Baby spinach - nutrient-rich leafy green', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111003', 'arugula', 'Rocket arugula - peppery salad green', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111004', 'kale', 'Lacinato kale - hardy nutritious green', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111005', 'cilantro', 'Coriander/Cilantro - versatile herb', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111006', 'mint', 'Spearmint - refreshing herb for drinks and dishes', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111007', 'microgreen-sunflower', 'Sunflower microgreens - nutty flavor', NOW(), NOW()),
+	('11111111-1111-1111-1111-111111111008', 'microgreen-pea', 'Pea shoot microgreens - sweet and tender', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Grow recipes for testing recipe management
+INSERT INTO "public"."grow_recipes" ("id", "name", "species_id", "description", "total_duration_days", "created_at", "updated_at", "is_active", "user_id") VALUES
+	('22222222-2222-2222-2222-222222222001', 'Basil - Standard', 'bedeebed-e27c-4c89-92ff-ff9fbfc4cf6f', 'Standard basil grow cycle for consistent yields', 42, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222002', 'Lettuce - Quick Harvest', '11111111-1111-1111-1111-111111111001', 'Fast growing butterhead lettuce', 28, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222003', 'Spinach - Baby Greens', '11111111-1111-1111-1111-111111111002', 'Baby spinach harvested young for tender leaves', 25, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222004', 'Microgreens - Sunflower', '11111111-1111-1111-1111-111111111007', 'Quick 10-day sunflower microgreen cycle', 10, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222005', 'Mint - Continuous Harvest', '11111111-1111-1111-1111-111111111006', 'Mint with ongoing harvest after establishment', 60, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba')
+ON CONFLICT (id) DO NOTHING;
+
+-- Additional farm for testing multi-farm features
+INSERT INTO "public"."farms" ("id", "name", "location", "user_id", "created_at", "updated_at", "documentation_folder_path", "farm_image_url") VALUES
+	('33333333-3333-3333-3333-333333333001', 'Test Farm 2', 'Building B', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW(), NULL, NULL),
+	('33333333-3333-3333-3333-333333333002', 'Microgreens Lab', 'Research Wing', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW(), NULL, NULL)
+ON CONFLICT (name) DO NOTHING;
+
+-- Additional rows for test farms
+INSERT INTO "public"."rows" ("id", "farm_id", "name", "orientation", "created_at", "updated_at") VALUES
+	('44444444-4444-4444-4444-444444444001', '33333333-3333-3333-3333-333333333001', 'Row A', 'north-south', NOW(), NOW()),
+	('44444444-4444-4444-4444-444444444002', '33333333-3333-3333-3333-333333333001', 'Row B', 'north-south', NOW(), NOW()),
+	('44444444-4444-4444-4444-444444444003', '33333333-3333-3333-3333-333333333002', 'Micro Row 1', 'east-west', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Additional racks for test rows
+INSERT INTO "public"."racks" ("id", "row_id", "name", "created_at", "updated_at") VALUES
+	('55555555-5555-5555-5555-555555555001', '44444444-4444-4444-4444-444444444001', 'Rack A1', NOW(), NOW()),
+	('55555555-5555-5555-5555-555555555002', '44444444-4444-4444-4444-444444444001', 'Rack A2', NOW(), NOW()),
+	('55555555-5555-5555-5555-555555555003', '44444444-4444-4444-4444-444444444002', 'Rack B1', NOW(), NOW()),
+	('55555555-5555-5555-5555-555555555004', '44444444-4444-4444-4444-444444444003', 'Micro Rack 1', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Additional shelves for test racks
+INSERT INTO "public"."shelves" ("id", "rack_id", "name", "created_at", "updated_at") VALUES
+	('66666666-6666-6666-6666-666666666001', '55555555-5555-5555-5555-555555555001', 'Shelf A1-1', NOW(), NOW()),
+	('66666666-6666-6666-6666-666666666002', '55555555-5555-5555-5555-555555555001', 'Shelf A1-2', NOW(), NOW()),
+	('66666666-6666-6666-6666-666666666003', '55555555-5555-5555-5555-555555555002', 'Shelf A2-1', NOW(), NOW()),
+	('66666666-6666-6666-6666-666666666004', '55555555-5555-5555-5555-555555555003', 'Shelf B1-1', NOW(), NOW()),
+	('66666666-6666-6666-6666-666666666005', '55555555-5555-5555-5555-555555555004', 'Micro Shelf 1', NOW(), NOW()),
+	('66666666-6666-6666-6666-666666666006', '55555555-5555-5555-5555-555555555004', 'Micro Shelf 2', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Sample grows in different stages for testing grow tracking
+INSERT INTO "public"."grows" ("id", "recipe_id", "shelf_id", "name", "status", "started_at", "expected_harvest_date", "actual_harvest_date", "notes", "created_at", "updated_at", "user_id") VALUES
+	('77777777-7777-7777-7777-777777777001', '22222222-2222-2222-2222-222222222001', 'c3922ea5-a537-4821-b687-bb9906949c3b', 'Basil Batch 1', 'active', NOW() - INTERVAL '14 days', NOW() + INTERVAL '28 days', NULL, 'First basil batch - looking healthy', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('77777777-7777-7777-7777-777777777002', '22222222-2222-2222-2222-222222222002', 'edc0c39c-444f-4083-a707-8c1eb76a2d83', 'Lettuce Batch 1', 'active', NOW() - INTERVAL '7 days', NOW() + INTERVAL '21 days', NULL, 'Lettuce in vegetative stage', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('77777777-7777-7777-7777-777777777003', '22222222-2222-2222-2222-222222222004', '66666666-6666-6666-6666-666666666005', 'Sunflower Micros', 'active', NOW() - INTERVAL '5 days', NOW() + INTERVAL '5 days', NULL, 'Microgreens almost ready', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('77777777-7777-7777-7777-777777777004', '22222222-2222-2222-2222-222222222003', '66666666-6666-6666-6666-666666666001', 'Spinach Batch 1', 'germination', NOW() - INTERVAL '3 days', NOW() + INTERVAL '22 days', NULL, 'Just germinating', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('77777777-7777-7777-7777-777777777005', '22222222-2222-2222-2222-222222222002', '66666666-6666-6666-6666-666666666003', 'Lettuce Completed', 'harvested', NOW() - INTERVAL '35 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days', 'Harvested 2.5 lbs', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba')
+ON CONFLICT (id) DO NOTHING;
+
+-- ===========================================
+-- END EXPANDED SEED DATA
+-- ===========================================
+
+
 -- Re-enable triggers
 SET session_replication_role = 'origin';
 

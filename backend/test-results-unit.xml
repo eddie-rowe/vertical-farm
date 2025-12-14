@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="10" time="19.120" timestamp="2025-12-14T02:15:04.484782+00:00" hostname="docker-desktop"><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_delete_farm_success" time="0.017" /><testcase classname="app.tests.unit.test_crud_operations.TestUserCRUD" name="test_update_user_activity_status" time="0.017" /><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_get_farm_by_id" time="0.024" /><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_update_farm_success" time="0.035" /><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_get_user_farms" time="0.031" /><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_create_farm_success" time="0.027" /><testcase classname="app.tests.unit.test_crud_operations.TestFarmCRUD" name="test_get_farm_not_found" time="0.024" /><testcase classname="app.tests.unit.test_crud_operations.TestUserCRUD" name="test_get_user_by_email" time="0.020" /><testcase classname="app.tests.unit.test_crud_operations.TestUserCRUD" name="test_create_user_success" time="0.056" /><testcase classname="pytest" name="internal" time="0.000"><error message="internal error">Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 319, in _read_db
+    assert row is not None
+           ^^^^^^^^^^^^^^^
+AssertionError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/main.py", line 283, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+                         ~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/main.py", line 337, in _main
+    config.hook.pytest_runtestloop(session=session)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/logging.py", line 803, in pytest_runtestloop
+    return (yield)  # Run all the tests.
+            ^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/terminal.py", line 673, in pytest_runtestloop
+    result = yield
+             ^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 152, in _multicall
+    teardown.send(result)
+    ~~~~~~~~~~~~~^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 43, in run_old_style_hookwrapper
+    teardown.send(result)
+    ~~~~~~~~~~~~~^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/plugin.py", line 324, in pytest_runtestloop
+    self.cov_controller.finish()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/engine.py", line 57, in ensure_topdir_wrapper
+    return meth(self, *args, **kwargs)
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/engine.py", line 421, in finish
+    self.cov.combine()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/control.py", line 906, in combine
+    combine_parallel_data(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        self._data,
+        ^^^^^^^^^^^
+    ...&lt;4 lines&gt;...
+        message=self._message,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/data.py", line 185, in combine_parallel_data
+    data.update(new_data, map_path=map_path)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 727, in update
+    with self._connect() as con:
+         ~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 373, in _connect
+    self._open_db()
+    ~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 312, in _open_db
+    self._read_db()
+    ~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 324, in _read_db
+    raise DataError(
+    ...&lt;4 lines&gt;...
+    ) from exc
+coverage.exceptions.DataError: Data file '/Users/eddie.rowe/Repos/vertical-farm/backend/.coverage' doesn't seem to be a coverage data file:</error></testcase></testsuite></testsuites>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="18" time="19.406" timestamp="2025-12-14T02:15:04.914757+00:00" hostname="docker-desktop"><testcase classname="app.tests.api.test_home_assistant_health.TestHomeAssistantHealth" name="test_health_check_endpoint" time="0.034" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_get_all_devices_endpoint" time="0.026" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_invalid_device_control_request" time="0.040" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_get_devices_with_filter" time="0.042" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_get_device_details_endpoint" time="0.044" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_control_device_failure" time="0.035" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_device_not_found" time="0.033" /><testcase classname="app.tests.api.test_main_endpoints" name="test_endpoint_response_headers" time="0.077" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_control_device_endpoint" time="0.037" /><testcase classname="app.tests.api.test_home_assistant_health.TestHomeAssistantHealth" name="test_unauthorized_health_access" time="0.018" /><testcase classname="app.tests.api.test_home_assistant_devices.TestHomeAssistantDevices" name="test_discover_devices_endpoint" time="0.040" /><testcase classname="app.tests.api.test_home_assistant_health.TestHomeAssistantHealth" name="test_integration_status_endpoint" time="0.027" /><testcase classname="app.tests.api.test_main_endpoints" name="test_cors_endpoint" time="0.042" /><testcase classname="app.tests.api.test_home_assistant_health.TestHomeAssistantHealth" name="test_health_check_failure" time="0.034" /><testcase classname="app.tests.api.test_main_endpoints" name="test_health_check_endpoint" time="0.089" /><testcase classname="app.tests.api.test_main_endpoints" name="test_root_endpoint" time="0.040" /><testcase classname="app.tests.api.test_main_endpoints" name="test_api_error_handling" time="0.004" /><testcase classname="pytest" name="internal" time="0.000"><error message="internal error">Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqlitedb.py", line 122, in _execute
+    return self.con.execute(sql, parameters)  # type: ignore[arg-type]
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: other_db.file
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqlitedb.py", line 127, in _execute
+    return self.con.execute(sql, parameters)  # type: ignore[arg-type]
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: other_db.file
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/main.py", line 283, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+                         ~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/main.py", line 337, in _main
+    config.hook.pytest_runtestloop(session=session)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/logging.py", line 803, in pytest_runtestloop
+    return (yield)  # Run all the tests.
+            ^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/_pytest/terminal.py", line 673, in pytest_runtestloop
+    result = yield
+             ^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 152, in _multicall
+    teardown.send(result)
+    ~~~~~~~~~~~~~^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pluggy/_callers.py", line 43, in run_old_style_hookwrapper
+    teardown.send(result)
+    ~~~~~~~~~~~~~^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/plugin.py", line 324, in pytest_runtestloop
+    self.cov_controller.finish()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/engine.py", line 57, in ensure_topdir_wrapper
+    return meth(self, *args, **kwargs)
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/pytest_cov/engine.py", line 421, in finish
+    self.cov.combine()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/control.py", line 906, in combine
+    combine_parallel_data(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        self._data,
+        ^^^^^^^^^^^
+    ...&lt;4 lines&gt;...
+        message=self._message,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/data.py", line 185, in combine_parallel_data
+    data.update(new_data, map_path=map_path)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqldata.py", line 744, in update
+    con.execute_void("""
+    ~~~~~~~~~~~~~~~~^^^^
+        CREATE TEMP TABLE other_file_mapped AS
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...&lt;3 lines&gt;...
+        FROM other_db.file AS other_file
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """)
+    ^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqlitedb.py", line 171, in execute_void
+    self._execute(sql, parameters).close()
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.11/x64/lib/python3.13/site-packages/coverage/sqlitedb.py", line 145, in _execute
+    raise DataError(f"Couldn't use data file {self.filename!r}: {msg}") from exc
+coverage.exceptions.DataError: Couldn't use data file '/Users/eddie.rowe/Repos/vertical-farm/backend/.coverage': no such table: other_db.file</error></testcase></testsuite></testsuites>

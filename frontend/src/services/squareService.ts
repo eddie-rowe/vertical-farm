@@ -1,5 +1,13 @@
 import request from "@/lib/apiClient";
 
+// Re-export types from canonical location for consumers
+export type {
+  SquareMoney,
+  SquareProductVariation,
+  SquareOrderLineItem,
+  SquarePaymentCardDetails,
+} from "@/types/integrations/square";
+
 export interface SquareConfig {
   id?: string;
   name: string;

@@ -17,11 +17,8 @@ import {
 import { FarmSearchAndFilter } from "@/components/ui/farm-search-and-filter";
 import type { FilterDefinition } from "@/components/ui/farm-search-and-filter";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
-import {
-  getGrowRecipes,
-  getSpecies,
-  deleteGrowRecipe,
-} from "@/services/growRecipeService";
+import { GrowRecipeService } from "@/services/domain/farm/GrowRecipeService";
+import { SpeciesService } from "@/services/domain/farm/SpeciesService";
 import { GrowRecipe, Species } from "@/types/grow-recipes";
 
 import {
@@ -128,12 +125,14 @@ export default function GrowParametersView() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const recipeService = GrowRecipeService.getInstance();
+      const speciesService = SpeciesService.getInstance();
       const [recipesData, speciesData] = await Promise.all([
-        getGrowRecipes(1, 100), // Get first 100 recipes for the initial load
-        getSpecies(),
+        recipeService.getPaginatedRecipes(1, 100), // Get first 100 recipes for the initial load
+        speciesService.getAll(),
       ]);
-      setRecipes(recipesData.recipes);
-      setSpecies(speciesData);
+      setRecipes(recipesData.data || []);
+      setSpecies(speciesData as Species[]);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load grow parameters data");
@@ -145,8 +144,9 @@ export default function GrowParametersView() {
   const loadRecipes = useCallback(async () => {
     try {
       // Get first 100 recipes and apply filtering client-side for better UX
-      const recipesData = await getGrowRecipes(1, 100);
-      setRecipes(recipesData.recipes);
+      const recipeService = GrowRecipeService.getInstance();
+      const recipesData = await recipeService.getPaginatedRecipes(1, 100);
+      setRecipes(recipesData.data || []);
     } catch (error) {
       console.error("Error loading recipes:", error);
       toast.error("Failed to load recipes");
@@ -214,7 +214,8 @@ export default function GrowParametersView() {
     if (!deletingRecipe) return;
 
     try {
-      await deleteGrowRecipe(deletingRecipe.id);
+      const recipeService = GrowRecipeService.getInstance();
+      await recipeService.delete(deletingRecipe.id);
       toast.success("Recipe deleted successfully");
       setDeletingRecipe(null);
       loadRecipes();

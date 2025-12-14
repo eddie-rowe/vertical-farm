@@ -130,7 +130,7 @@ class BusinessDataService extends BaseService {
           .eq("status", "COMPLETED");
       }, "Get total revenue from payments");
 
-      const total = payments.reduce((sum: number, payment: SquarePaymentRecord) => {
+      const total = (payments || []).reduce((sum: number, payment: SquarePaymentRecord) => {
         return sum + (payment.amount || 0);
       }, 0);
 
@@ -193,7 +193,7 @@ class BusinessDataService extends BaseService {
           .eq("status", "COMPLETED");
       }, "Get total refunds");
 
-      const total = refunds.reduce((sum: number, refund: { amount: number }) => {
+      const total = (refunds || []).reduce((sum: number, refund: { amount: number }) => {
         return sum + (refund.amount || 0);
       }, 0);
 
@@ -214,7 +214,7 @@ class BusinessDataService extends BaseService {
           .select("amount");
       }, "Get total disputes");
 
-      const total = disputes.reduce((sum: number, dispute: { amount: number }) => {
+      const total = (disputes || []).reduce((sum: number, dispute: { amount: number }) => {
         return sum + (dispute.amount || 0);
       }, 0);
 
@@ -236,7 +236,7 @@ class BusinessDataService extends BaseService {
           .eq("status", "SENT");
       }, "Get total payouts");
 
-      const total = payouts.reduce((sum: number, payout: { amount: number }) => {
+      const total = (payouts || []).reduce((sum: number, payout: { amount: number }) => {
         return sum + (payout.amount || 0);
       }, 0);
 
@@ -270,7 +270,7 @@ class BusinessDataService extends BaseService {
       // Group payments by date
       const dailyData = new Map<string, { revenue: number; orders: number }>();
 
-      payments.forEach((payment: SquarePaymentRecord) => {
+      (payments || []).forEach((payment: { amount: number; created_at_square: string }) => {
         if (payment.created_at_square) {
           const date = new Date(payment.created_at_square).toISOString().split("T")[0];
           const existing = dailyData.get(date) || { revenue: 0, orders: 0 };
@@ -315,7 +315,7 @@ class BusinessDataService extends BaseService {
           .limit(limit);
       }, "Get recent orders");
 
-      return orders.map((order: SquareOrderRecord) => {
+      return (orders || []).map((order: SquareOrderRecord) => {
         // Extract product name from line items (simplified)
         const firstLineItem = Array.isArray(order.line_items) && order.line_items.length > 0
           ? order.line_items[0]
@@ -363,7 +363,7 @@ class BusinessDataService extends BaseService {
           .limit(limit);
       }, "Get customers with order data");
 
-      return customersWithStats.map((customer: any) => {
+      return (customersWithStats || []).map((customer: any) => {
         const orders = customer.orders || [];
         const totalOrders = orders.length;
         const totalSpent = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0);
