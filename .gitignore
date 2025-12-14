@@ -126,3 +126,7 @@ frontend/junit.xml
 .env.local
 .env.production
 .env.*.local
+
+# nektos/act local CI
+.act-secrets
+.act/

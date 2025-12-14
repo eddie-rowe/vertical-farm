@@ -6,6 +6,7 @@ export interface Farm extends BaseEntity {
   name: string;
   location?: string | null;
   user_id?: string | null;
+  farm_image_url?: string | null;
 }
 
 export interface Row extends BaseEntity {
@@ -60,6 +61,12 @@ export interface FarmHierarchy {
       shelves: Shelf[];
     }>;
   }>;
+}
+
+export interface CreateFarmData {
+  name: string;
+  location?: string;
+  farm_image_url?: string;
 }
 
 export interface FarmStatistics {

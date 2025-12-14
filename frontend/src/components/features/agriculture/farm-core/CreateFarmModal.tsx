@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createFarm, CreateFarmData } from "@/services/supabaseService";
+import { FarmService } from "@/services/domain/farm/FarmService";
+import { CreateFarmData } from "@/services/domain/farm/types";
 import { Farm } from "@/types/farm";
 
 interface CreateFarmModalProps {
@@ -98,7 +99,8 @@ export default function CreateFarmModal({
         cleanedData.farm_image_url = formData.farm_image_url.trim();
       }
 
-      const newFarm = await createFarm(cleanedData);
+      const farmService = FarmService.getInstance();
+      const newFarm = await farmService.create(cleanedData);
       toast.success(`Farm "${newFarm.name}" created successfully!`);
 
       // Reset form

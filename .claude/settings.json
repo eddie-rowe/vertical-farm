@@ -1,0 +1,72 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "/plan*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/on-slash-command.sh plan"
+          }
+        ]
+      },
+      {
+        "matcher": "/dev*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/on-slash-command.sh dev"
+          }
+        ]
+      },
+      {
+        "matcher": "/validate*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/on-slash-command.sh validate"
+          }
+        ]
+      },
+      {
+        "matcher": "/reflect*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/on-slash-command.sh reflect"
+          }
+        ]
+      },
+      {
+        "matcher": "/pipeline*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/on-slash-command.sh pipeline"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/after-task-complete.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/context-phase-update.sh rotate_agents"
+          }
+        ]
+      }
+    ]
+  }
+}

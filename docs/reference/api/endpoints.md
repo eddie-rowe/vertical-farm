@@ -38,6 +38,38 @@
 - **PUT `/users/profile`**: Update user profile
 - **POST `/users/permissions`**: Manage user roles
 
+### 7. Square POS Integration
+- **GET `/api/v1/square/configs`**: List Square configurations
+- **GET `/api/v1/square/configs/{config_id}`**: Get specific configuration
+- **POST `/api/v1/square/configs`**: Create new Square configuration
+- **PUT `/api/v1/square/configs/{config_id}`**: Update configuration
+- **DELETE `/api/v1/square/configs/{config_id}`**: Delete configuration
+- **PUT `/api/v1/square/configs/{config_id}/activate`**: Set active configuration
+- **POST `/api/v1/square/test-connection`**: Test Square API connection
+
+#### Square Data Endpoints
+- **GET `/api/v1/square/locations`**: Get Square locations
+- **GET `/api/v1/square/products`**: Get product catalog
+- **GET `/api/v1/square/customers`**: Get customer list
+- **GET `/api/v1/square/orders`**: Get order history
+- **GET `/api/v1/square/payments`**: Get payment transactions
+- **GET `/api/v1/square/refunds`**: Get refund transactions
+- **GET `/api/v1/square/disputes`**: Get payment disputes
+- **GET `/api/v1/square/payouts`**: Get bank payouts
+- **GET `/api/v1/square/team-members`**: Get team member list
+- **GET `/api/v1/square/inventory`**: Get inventory counts
+
+#### Square Sync Endpoints
+- **POST `/api/v1/square/sync/all/{config_id}`**: Sync all Square data
+- **POST `/api/v1/square/sync/customers/{config_id}`**: Sync customers
+- **POST `/api/v1/square/sync/orders/{config_id}`**: Sync orders
+- **POST `/api/v1/square/sync/payments/{config_id}`**: Sync payments
+- **POST `/api/v1/square/sync/products/{config_id}`**: Sync products
+- **GET `/api/v1/square/sync/status/{config_id}`**: Get sync status
+
+#### Square Webhook Endpoint
+- **POST `/api/v1/square/webhook`**: Receive Square webhook events
+
 ## WebSocket Endpoints
 
 ### Real-time Monitoring

@@ -29,21 +29,41 @@ echo ""
 echo "2️⃣ Getting Supabase credentials..."
 echo ""
 
-# Extract keys from supabase status
-ANON_KEY=$(supabase status | grep "anon key" | awk '{print $3}')
-SERVICE_KEY=$(supabase status | grep "service_role key" | awk '{print $3}')
+# Extract keys from supabase status using JSON output for reliability
+SUPABASE_STATUS=$(supabase status --output json 2>/dev/null)
+if [ -z "$SUPABASE_STATUS" ]; then
+    echo "❌ Failed to get Supabase status. Is Supabase running?"
+    exit 1
+fi
+
+# Parse JSON output with jq (reliable) or fallback to grep (legacy)
+if command -v jq &> /dev/null; then
+    ANON_KEY=$(echo "$SUPABASE_STATUS" | jq -r '.ANON_KEY // .anon_key // empty')
+    SERVICE_KEY=$(echo "$SUPABASE_STATUS" | jq -r '.SERVICE_ROLE_KEY // .service_role_key // empty')
+    API_URL=$(echo "$SUPABASE_STATUS" | jq -r '.API_URL // .api_url // "http://localhost:54321"')
+else
+    echo "⚠️  jq not found, falling back to text parsing (install jq for reliability)"
+    ANON_KEY=$(supabase status | grep -i "anon key" | awk '{print $NF}')
+    SERVICE_KEY=$(supabase status | grep -i "service_role key" | awk '{print $NF}')
+    API_URL="http://localhost:54321"
+fi
+
+# Validate extracted keys
+if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_KEY" ]; then
+    echo "❌ Failed to extract Supabase keys. Check supabase status output."
+    exit 1
+fi
 
 # Create .env.local if it doesn't exist
 if [ ! -f .env.local ]; then
     echo "3️⃣ Creating .env.local file..."
     cat > .env.local << EOF
 # Supabase Local Development Keys
-SUPABASE_URL=http://localhost:54321
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+SUPABASE_URL=$API_URL
+NEXT_PUBLIC_SUPABASE_URL=$API_URL
 SUPABASE_ANON_KEY=$ANON_KEY
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
 SUPABASE_SERVICE_KEY=$SERVICE_KEY
-SUPABASE_JWT_SECRET=your-jwt-secret-from-supabase-status
 
 # Your other environment variables
 NEXT_PUBLIC_API_URL=http://localhost:8000

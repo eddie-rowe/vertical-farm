@@ -7,6 +7,43 @@
  * @group load-testing
  */
 
+// Mock imports
+jest.mock('@/lib/supabaseClient', () => ({
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    or: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+  },
+}));
+
+jest.mock('../../../core/auth/AuthService', () => ({
+  AuthService: {
+    getInstance: () => ({
+      requireAuth: jest.fn().mockResolvedValue({
+        id: 'test-user',
+        email: 'test@example.com',
+      }),
+      getInstance: jest.fn(),
+    }),
+  },
+}));
+
+jest.mock('../../../core/utils/errorHandler', () => ({
+  ErrorHandler: {
+    withErrorHandling: jest.fn((fn) => fn()),
+  },
+}));
+
 import { generateLargeDatasets } from '../../../../__tests__/mocks/database-fixtures';
 import { GrowRecipeService } from '../GrowRecipeService';
 import { GrowService, type CreateGrowInput } from '../GrowService';
@@ -27,52 +64,6 @@ const LOAD_TEST_SIZES = {
   LARGE: 1000,
   XLARGE: 5000,
 };
-
-// Mock Supabase client with performance simulation
-const createPerformantMockClient = () => ({
-  from: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-  gte: jest.fn().mockReturnThis(),
-  lte: jest.fn().mockReturnThis(),
-  or: jest.fn().mockReturnThis(),
-  order: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  range: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  delete: jest.fn().mockReturnThis(),
-  single: jest.fn(),
-});
-
-// Mock AuthService with fast response
-const mockAuthService = {
-  requireAuth: jest.fn().mockResolvedValue({
-    id: 'test-user',
-    email: 'test@example.com',
-  }),
-  getInstance: jest.fn(),
-};
-
-// Mock ErrorHandler
-const mockErrorHandler = {
-  withErrorHandling: jest.fn((fn) => fn()),
-};
-
-// Mock imports
-jest.mock('@/lib/supabaseClient', () => ({
-  supabase: createPerformantMockClient(),
-}));
-
-jest.mock('../../core/auth/AuthService', () => ({
-  AuthService: {
-    getInstance: () => mockAuthService,
-  },
-}));
-
-jest.mock('../../core/utils/errorHandler', () => ({
-  ErrorHandler: mockErrorHandler,
-}));
 
 describe('Service Layer Performance Tests', () => {
   let mockSupabaseClient: any;

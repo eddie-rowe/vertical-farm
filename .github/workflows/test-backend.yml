@@ -198,12 +198,17 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
+          # Conditionally use parallel mode (disabled in act to avoid coverage conflicts)
+          PARALLEL_FLAG=""
+          if [ "$ACT" != "true" ]; then
+            PARALLEL_FLAG="-n auto"
+          fi
           pytest app/tests/unit/ \
             --cov=app \
             --cov-report=xml:coverage-unit.xml \
             --cov-report=html:htmlcov-unit \
             --junit-xml=test-results-unit.xml \
-            -n auto \
+            $PARALLEL_FLAG \
             --timeout=60 \
             -v
       
@@ -216,12 +221,17 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
+          # Conditionally use parallel mode (disabled in act to avoid coverage conflicts)
+          PARALLEL_FLAG=""
+          if [ "$ACT" != "true" ]; then
+            PARALLEL_FLAG="-n auto"
+          fi
           pytest app/tests/api/ \
             --cov=app \
             --cov-report=xml:coverage-api.xml \
             --cov-report=html:htmlcov-api \
             --junit-xml=test-results-api.xml \
-            -n auto \
+            $PARALLEL_FLAG \
             --timeout=60 \
             -v
       
@@ -234,12 +244,17 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
+          # Conditionally use parallel mode (disabled in act to avoid coverage conflicts)
+          PARALLEL_FLAG=""
+          if [ "$ACT" != "true" ]; then
+            PARALLEL_FLAG="-n auto"
+          fi
           pytest app/tests/integration/ \
             --cov=app \
             --cov-report=xml:coverage-integration.xml \
             --cov-report=html:htmlcov-integration \
             --junit-xml=test-results-integration.xml \
-            -n auto \
+            $PARALLEL_FLAG \
             --timeout=120 \
             -v
       
@@ -252,12 +267,17 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
+          # Conditionally use parallel mode (disabled in act to avoid coverage conflicts)
+          PARALLEL_FLAG=""
+          if [ "$ACT" != "true" ]; then
+            PARALLEL_FLAG="-n auto"
+          fi
           pytest app/tests/schemas/ \
             --cov=app \
             --cov-report=xml:coverage-schemas.xml \
             --cov-report=html:htmlcov-schemas \
             --junit-xml=test-results-schemas.xml \
-            -n auto \
+            $PARALLEL_FLAG \
             --timeout=60 \
             -v
       
@@ -275,7 +295,7 @@ jobs:
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && !env.ACT
         with:
           name: backend-test-results-${{ matrix.test-type }}
           path: |
@@ -285,7 +305,7 @@ jobs:
           retention-days: 30
       
       - name: Upload coverage to Codecov
-        if: matrix.test-type == 'unit'
+        if: matrix.test-type == 'unit' && !env.ACT
         uses: codecov/codecov-action@v4
         with:
           file: ./backend/coverage-unit.xml
@@ -296,7 +316,7 @@ jobs:
       
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: always() && !env.ACT
         with:
           files: backend/test-results-*.xml
           check_name: "Backend Tests (${{ matrix.test-type }})"

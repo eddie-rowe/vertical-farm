@@ -26,11 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  updateFarm,
-  deleteFarm,
-  CreateFarmData,
-} from "@/services/supabaseService";
+import { FarmService } from "@/services/domain/farm/FarmService";
+import { CreateFarmData } from "@/services/domain/farm/types";
 import { Farm } from "@/types/farm";
 
 interface EditFarmModalProps {
@@ -133,7 +130,8 @@ export default function EditFarmModal({
         cleanedData.farm_image_url = formData.farm_image_url.trim();
       }
 
-      const updatedFarm = await updateFarm(farm.id, cleanedData);
+      const farmService = FarmService.getInstance();
+      const updatedFarm = await farmService.update(farm.id, cleanedData);
       toast.success(`Farm "${updatedFarm.name}" updated successfully!`);
 
       setIsOpen(false);
@@ -158,7 +156,8 @@ export default function EditFarmModal({
 
     setIsDeleting(true);
     try {
-      await deleteFarm(farm.id);
+      const farmService = FarmService.getInstance();
+      await farmService.delete(farm.id);
       toast.success(`Farm "${farm.name}" deleted successfully!`);
 
       setShowDeleteDialog(false);

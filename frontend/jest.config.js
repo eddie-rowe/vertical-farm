@@ -41,11 +41,10 @@ const customJestConfig = {
     "<rootDir>/tests/playwright/",
     "<rootDir>/tests/e2e/",
   ],
-  // Next.js automatically sets transformIgnorePatterns for you.
-  // If you have specific node_modules that need transforming, you can add them like so:
-  // transformIgnorePatterns: [
-  //   '/node_modules/(?!your-module-that-needs-transforming)/',
-  // ],
+  // Transform ES modules that need to be transformed
+  transformIgnorePatterns: [
+    '/node_modules/(?!(isows|wagmi|@wagmi|viem|@viem)/)',
+  ],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

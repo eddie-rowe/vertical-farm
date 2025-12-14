@@ -41,11 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createGrowRecipe,
-  updateGrowRecipe,
-} from "@/services/growRecipeService";
-import { createSpecies } from "@/services/growRecipeService";
+import { GrowRecipeService } from "@/services/domain/farm/GrowRecipeService";
+import { SpeciesService } from "@/services/domain/farm/SpeciesService";
 import { GrowRecipe, Species } from "@/types/grow-recipes";
 
 // Form validation schema
@@ -143,14 +140,15 @@ export function GrowRecipeForm({
 
     try {
       setCreatingSpecies(true);
-      const newSpecies = await createSpecies({
+      const speciesService = SpeciesService.getInstance();
+      const newSpecies = await speciesService.create({
         name: newSpeciesName.trim(),
         description: newSpeciesDescription.trim() || undefined,
-      });
+      } as any);
 
       if (newSpecies) {
-        setLocalSpecies([...localSpecies, newSpecies]);
-        form.setValue("species_id", newSpecies.id);
+        setLocalSpecies([...localSpecies, newSpecies as Species]);
+        form.setValue("species_id", newSpecies.id ?? "");
         setShowSpeciesDialog(false);
         setNewSpeciesName("");
         setNewSpeciesDescription("");
@@ -189,11 +187,12 @@ export function GrowRecipeForm({
           data.target_ec_min === "" ? undefined : Number(data.target_ec_min),
       };
 
+      const recipeService = GrowRecipeService.getInstance();
       if (recipe) {
-        await updateGrowRecipe(recipe.id, cleanedData);
+        await recipeService.update(recipe.id, cleanedData as any);
         toast.success("Recipe updated successfully");
       } else {
-        await createGrowRecipe(cleanedData);
+        await recipeService.create(cleanedData as any);
         toast.success("Recipe created successfully");
       }
 
