@@ -2,362 +2,366 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/cleanups/CLEANUP_COMPLETE/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/cleanups/DOCUMENTATION_ANALYSIS_REPORT/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/cleanups/REORGANIZATION_COMPLETE/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/cleanups/REORGANIZATION_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/migrations/MIGRATION_FROM_OLD_STRUCTURE/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/migrations/MIGRATION_GUIDE/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/migrations/MIGRATION_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/migrations/PIPELINE_OVERVIEW/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/HERMES_SYNCHRONIZATION_REPORT/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/ORGANIZATION_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/TONIGHT_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/changes-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/dashboard/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/edge-function-consolidation-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/01-project-phases/phase-2c-completion-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/PHASE-1-COMPLETE/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/cache-vs-no-cache-analysis/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/caching-issues-analysis/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/caching-optimization-results/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/k6-database-load-test-2025-06-12/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/phase-1-caching-performance-report/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/phase-1-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/phase-2a-schema-optimization-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/02-performance/supabase-optimization-recommendations/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/2025-06-19-supabase-audit/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/edge-functions-caching-review/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/frontend-assessment-report/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/grow-parameters-code-review-2024-01-20/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/grow-parameters-testing-report-2024-01-20/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/security-report-frontend-backend-2025/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/security-vulnerability-review-2025/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/supabase-audit-completion-report/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/03-technical-reviews/supabase-review/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/SQUARE_INTEGRATION_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/cursor-workflow-research-2025-05-17/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/cursor-workflow-techniques-2025/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/inspiration-ui-ux-analysis-2025-05-18/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/ui-ux-analysis-2025-05-18/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/ui_ux_playwright_review_shadcn_recommendations/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/vertical_farm_ui_ux_review/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/04-analysis/vertigro-uiux-analysis-2025-05-17/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/05-migrations/MIGRATION_CONSOLIDATION_SUMMARY/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/05-migrations/migration-testing-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/05-migrations/phase-2b-migration-consolidation-summary/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/08-reports/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/archive/reports/08-reports/ui-ux-design-evaluation/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/SIMPLE-WORKFLOW/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/coding-standards/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/contributing/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/database-sync-guide/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/debugging/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/docker-quick-reference/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/docker-workflow/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/environment-switching/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/pull-request-guide/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/reset-to-production-schema/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/schema-management-quickstart/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/style-integration-plan/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/development/testing-guide/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/features/square-pos-integration/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/getting-started/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/getting-started/architecture-overview/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/getting-started/environment-setup/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/getting-started/quickstart/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/guides/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/guides/features/device-control/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/guides/features/farm-management/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/guides/integrations/home-assistant/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
+    </url>
+    <url>
+         <loc>https://eddie-rowe.github.io/vertical-farm/guides/onboarding/junior-developer/</loc>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/guides/troubleshooting/common-issues/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/operations/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/operations/deployment/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/operations/deployment/cloudflare/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/operations/monitoring/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/operations/security/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/api/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/api/authentication/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/api/endpoints/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/api/examples/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/api/schemas/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/backend-architecture/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/database-design/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/frontend-architecture/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/layer-overlay-system/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/service-layer/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://eddie-rowe.github.io/vertical-farm/reference/architecture/system-architecture/</loc>
-         <lastmod>2025-10-20</lastmod>
+         <lastmod>2025-12-14</lastmod>
     </url>
 </urlset>
