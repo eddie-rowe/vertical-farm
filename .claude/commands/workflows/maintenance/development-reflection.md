@@ -11,26 +11,27 @@ Delegate analysis and improvements to specialized agents based on discovered pat
 ### Phase 1: Pattern Discovery
 Use Task tool with **error-detective** agent:
 - Analyze last N commits for error patterns and debugging sessions
-- Search through logs, commit messages, and development challenges  
+- Search through logs, commit messages, and development challenges
 - Identify cascading error scenarios and repeated issues
 - Classify problems by type: TypeScript, testing, build, architecture
 
-### Phase 2: Style Consistency Analysis  
-Use Task tool with **style-consistency-checker** agent:
+### Phase 2: Code Quality & Consistency Analysis
+Use Task tool with **code-reviewer** agent:
 - Compare similar files across codebase for pattern consistency
 - Identify deviations from established project conventions
 - Check service layer, component, and type definition patterns
 - Generate standardization recommendations
+- Review for security vulnerabilities and best practices
 
-### Phase 3: Agent Enhancement
-Use Task tool with **prompt-engineer** agent:
-- Update agent definitions based on discovered error patterns
-- Add constraints to prevent identified anti-patterns
-- Enhance validation steps for common failure points
-- Improve error handling and early detection capabilities
+### Phase 3: Architecture Review
+Use Task tool with **architect-reviewer** agent:
+- Verify architectural consistency across changes
+- Check SOLID principles adherence
+- Review proper layering and maintainability
+- Identify potential technical debt
 
 ### Phase 4: Workflow Optimization
-Use Task tool with **dx-optimizer** agent:  
+Use Task tool with **dx-optimizer** agent:
 - Improve development tooling and command workflows
 - Add prevention checkpoints for common failure patterns
 - Update documentation with lessons learned
@@ -49,7 +50,7 @@ Focus on patterns specific to the platform:
 
 Each agent should contribute to preventing issues like:
 - TypeScript property errors cascading through build pipeline
-- E2E tests generating large files in local development  
+- E2E tests generating large files in local development
 - Build errors mixed with test failures causing debugging confusion
 - Inconsistent patterns across similar service/component files
 - Poor separation between local and CI testing strategies

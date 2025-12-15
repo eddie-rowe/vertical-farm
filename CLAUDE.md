@@ -1,7 +1,7 @@
-# CLAUDE.md - AI Development Quick Reference
+# CLAUDE.md
 
 ## Project Context
-**Vertical Farm**: Full-stack farm management platform with IoT integration.
+**Vertical Farm**: Full-stack vertical farm management platform: includes business-focused and IoT hardware integrations.
 
 | Layer | Technology | Notes |
 |-------|------------|-------|
@@ -9,6 +9,48 @@
 | Backend | FastAPI (Python) | Integrations only |
 | Database | Supabase/PostgreSQL | PostgREST for most ops |
 | Auth | @supabase/ssr | RLS mandatory |
+
+## Directory Structure
+
+```
+vertical-farm/
+├── frontend/src/
+│   ├── app/                  # Next.js App Router (pages & API routes)
+│   │   ├── (app)/            # Authenticated routes (dashboard, farms, devices, etc.)
+│   │   ├── (auth)/           # Auth routes (login, signup)
+│   │   └── api/              # API route handlers
+│   ├── components/
+│   │   ├── features/         # Domain components (agriculture, business, devices, monitoring)
+│   │   ├── ui/               # Shadcn/ui primitives (50+ components)
+│   │   ├── layout/           # Header, Sidebar, MobileNavigation
+│   │   └── shared/           # Reusable utilities (charts, forms, metrics)
+│   ├── services/
+│   │   ├── domain/           # Business services (farm/, devices/, business/, integrations/)
+│   │   └── core/base/        # BaseService, BaseCRUDService, BaseRealtimeService
+│   ├── types/                # TypeScript interfaces by domain
+│   │   ├── farm/layout       # Farm hierarchy types
+│   │   ├── integrations/     # Square, Home Assistant types
+│   │   ├── grow-recipes.ts   # Recipe management types
+│   │   └── common.ts         # Shared utility types
+│   ├── contexts/             # React contexts (Auth, Device, Realtime, Theme)
+│   ├── hooks/                # Custom hooks (useGrowAutomation, useRealtimeTable, etc.)
+│   └── lib/                  # Utilities, Supabase client, validation schemas
+├── backend/app/
+│   ├── api/v1/endpoints/     # FastAPI routes (home_assistant, square, farm_automation)
+│   ├── services/             # Integration services (HA client, Square, caching)
+│   ├── models/               # Pydantic models
+│   ├── schemas/              # API request/response schemas
+│   └── tests/                # Backend tests (unit/, integration/, api/)
+├── supabase/
+│   ├── migrations/           # SQL migrations (append-only, never modify existing)
+│   └── functions/            # Edge Functions (Deno)
+├── tests/                    # Root-level integration tests
+├── scripts/                  # Setup & deployment utilities
+├── docs/                     # Architecture, guides, and reference docs
+├── cloudflare/               # Workers, CDN, KV store configs
+├── .claude/                  # Claude Code agents, commands, and workflows
+└── .github/workflows/        # CI/CD pipelines
+```
 
 ## Critical Rules (Non-Negotiable)
 
@@ -39,17 +81,6 @@ const { data } = await supabase.from("farms").insert(data);
 Farm → Rows → Racks → Shelves → [Devices, Schedules, Grows]
 ```
 All relationships must be maintained. Use `farm_id` for RLS.
-
-## File Locations
-
-| Category | Path |
-|----------|------|
-| Domain services | `frontend/src/services/domain/` |
-| Base classes | `frontend/src/services/core/base/` |
-| Types | `frontend/src/types/` |
-| API routes | `frontend/src/app/api/` |
-| Feature components | `frontend/src/components/features/` |
-| Migrations | `supabase/migrations/` (never modify existing) |
 
 ## Frontend Patterns
 
@@ -107,10 +138,23 @@ make db-status      # Database & migrations status
 make logs           # View service logs
 ```
 
-**Slash Commands:**
-- `/up` - Start development environment
-- `/test` - Run tests
-- `/plan` - Create implementation plan
+**Slash Commands** (see `.claude/commands/` for details):
+
+| Command | Purpose |
+|---------|---------|
+| `/up` | Start development environment |
+| `/plan <issue #>` | Analyze issue & create implementation plan |
+| `/dev <issue #>` | Feature development with specialized agents |
+| `/test` | Run comprehensive local tests |
+| `/validate <issue #>` | E2E testing with Playwright |
+| `/deploy <issue #>` | Create PR for issue |
+| `/review <pr #>` | Check PR review status |
+| `/merge <pr #>` | Merge approved PR |
+| `/finalize <issue #>` | Finalize approved PR |
+| `/pipeline <pr>` | (Optional) Debug CI/CD failures |
+| `/reflect` | (Optional) Review development patterns |
+
+**Typical workflow:** `/plan 123` → `/dev 123` → `/test` → `/validate 123` → `/deploy 123` → `/merge 68` → `/finalize 123`
 
 ## Anti-Patterns to Avoid
 
@@ -122,15 +166,6 @@ make logs           # View service logs
 | Modify existing migrations | Create new migrations |
 | Hardcode colors/spacing | Use CSS custom properties |
 | Service keys in frontend | Use anon key only |
-
-## Type Locations
-
-| Domain | Path |
-|--------|------|
-| Farm/Layout | `@/types/farm/layout` |
-| Grow recipes | `@/types/grow-recipes` |
-| Square integration | `@/types/integrations/square` |
-| Common utilities | `@/types/common` |
 
 ## RLS Policy Pattern
 
@@ -152,6 +187,7 @@ USING (farm_id IN (
 
 ## Additional Resources
 
-- Detailed patterns: `.cursor/rules/`
+- Detailed guides: `docs/` (architecture, development, operations)
+- Workflow commands: `.claude/commands/tools/02_development/README.md`
 - API docs: `http://localhost:8000/docs` (when backend running)
 - Supabase Studio: `http://localhost:54323` (when running locally)
