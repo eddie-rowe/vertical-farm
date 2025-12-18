@@ -139,7 +139,7 @@ export interface HAContextType {
 
 // Legacy interfaces for backwards compatibility with existing device-assignment.ts
 export interface DeviceAssignment {
-  id: string;
+  id?: string; // Optional for new assignments (assigned by database)
   entity_id: string;
   friendly_name?: string;
   entity_type: string;
@@ -192,4 +192,104 @@ export interface AssignmentTarget {
   type: ElementType;
   id: string;
   name: string;
+}
+
+// =====================================================
+// SERVICE-LEVEL TYPES
+// =====================================================
+
+// Connection Status (extended from HAStatus for service use)
+export interface HAConnectionStatus {
+  connected: boolean;
+  version?: string;
+  device_count?: number;
+  last_updated?: string;
+  error?: string;
+}
+
+// Device Control Request
+export interface DeviceControlRequest {
+  entity_id: string;
+  action: "turn_on" | "turn_off" | "toggle";
+  options?: Record<string, unknown>;
+  duration?: number;
+}
+
+// Imported Device (service-level representation)
+export interface ImportedDevice {
+  id: number;
+  entity_id: string;
+  name: string;
+  device_type: string;
+  state?: string;
+  attributes: Record<string, unknown>;
+  is_assigned: boolean;
+  last_seen: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Import Devices Request/Response
+export interface ImportDevicesRequest {
+  entity_ids: string[];
+  update_existing?: boolean;
+}
+
+export interface ImportDevicesResponse {
+  success: boolean;
+  imported_count: number;
+  updated_count: number;
+  skipped_count: number;
+  errors: string[];
+  imported_devices: ImportedDevice[];
+}
+
+// Home Assistant Entity Attributes
+export interface HomeAssistantEntityAttributes {
+  friendly_name?: string;
+  device_class?: string;
+  unit_of_measurement?: string;
+  area?: string;
+  icon?: string;
+  [key: string]: unknown; // Allow additional attributes
+}
+
+// Home Assistant Entity (raw API representation)
+export interface HomeAssistantEntity {
+  entity_id: string;
+  state: string;
+  attributes: HomeAssistantEntityAttributes;
+  last_changed: string;
+  last_updated: string;
+  friendly_name?: string;
+}
+
+// WebSocket Message Types
+export interface WebSocketMessage {
+  type:
+    | "auth_required"
+    | "auth_ok"
+    | "auth_invalid"
+    | "event"
+    | "result"
+    | "error"
+    | "auth"
+    | "subscribe_events";
+  id?: number;
+  event?: {
+    event_type: "state_changed";
+    data: {
+      entity_id: string;
+      new_state: HomeAssistantEntity;
+      old_state: HomeAssistantEntity;
+    };
+  };
+  result?: unknown;
+  error?: {
+    code: string;
+    message: string;
+  };
+  success?: boolean;
+  access_token?: string;
+  event_type?: string;
 }

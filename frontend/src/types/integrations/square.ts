@@ -399,3 +399,33 @@ export interface SquareInventoryChange {
     occurred_at: string;
   };
 }
+
+// =====================================================
+// MERCHANT TYPES
+// =====================================================
+
+export interface SquareMerchant {
+  id: string;
+  business_name?: string;
+  country: string;
+  language_code?: string;
+  currency?: string;
+  status?: string;
+  main_location_id?: string;
+  created_at?: string;
+}
+
+// =====================================================
+// WEBHOOK TYPES
+// =====================================================
+
+export interface SquareWebhook {
+  id: string;
+  name: string;
+  event_types: string[];
+  notification_url: string;
+  api_version: string;
+  signature_key: string;
+  enabled: boolean;
+  created_at?: string;
+}

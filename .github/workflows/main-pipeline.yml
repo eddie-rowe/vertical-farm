@@ -134,19 +134,6 @@ jobs:
   #  with:
   #    force_deploy: ${{ inputs.force_deploy }}
   
-  # Phase 6: Edge Deployment (after Production)
-  #cloudflare-deploy:
-  #  name: Cloudflare Deploy
-  #  uses: ./.github/workflows/deploy/cloudflare-deploy.yml
-  #  needs: [production-deploy]
-  #  if: |
-  #    always() && 
-  #    github.ref == 'refs/heads/main' && 
-  #    needs.production-deploy.result == 'success'
-  #  secrets: inherit
-  #  with:
-  #    environment: ${{ inputs.deploy_environment }}
-  
   # Summary Job (includes all test results)
   pipeline-summary:
     name: Pipeline Summary
@@ -161,9 +148,6 @@ jobs:
       frontend-build,
       docs-build,
       unraid-deploy
-      #supabase-deploy,
-      #production-deploy,
-      #cloudflare-deploy
     ]
     if: always()
     
@@ -181,7 +165,6 @@ jobs:
           UNRAID_DEPLOY_RESULT: ${{ needs.unraid-deploy.result }}
           SUPABASE_DEPLOY_RESULT: ${{ needs.supabase-deploy.result }}
           PRODUCTION_DEPLOY_RESULT: ${{ needs.production-deploy.result }}
-          CLOUDFLARE_DEPLOY_RESULT: ${{ needs.cloudflare-deploy.result }}
           EVENT_NAME: ${{ github.event_name }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
@@ -220,7 +203,6 @@ jobs:
           echo "| 🚀 Deploy | Unraid | $(get_status_icon "$UNRAID_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Supabase | $(get_status_icon "$SUPABASE_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚀 Deploy | Production | $(get_status_icon "$PRODUCTION_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚀 Deploy | Cloudflare | $(get_status_icon "$CLOUDFLARE_DEPLOY_RESULT") |" >> $GITHUB_STEP_SUMMARY
           
           echo "" >> $GITHUB_STEP_SUMMARY
           
@@ -257,10 +239,8 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             if [[ "${{ needs.unraid-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="✅ Unraid deployment successful"
-            elif [[ "${{ needs.cloudflare-deploy.result }}" == "success" ]]; then
-              DEPLOY_STATUS="✅ Full deployment successful"
             elif [[ "${{ needs.production-deploy.result }}" == "success" ]]; then
-              DEPLOY_STATUS="⚠️ Partial deployment (Cloudflare failed)"
+              DEPLOY_STATUS="⚠️ Partial deployment"
             elif [[ "${{ needs.supabase-deploy.result }}" == "success" ]]; then
               DEPLOY_STATUS="⚠️ Database only (Production failed)"
             else

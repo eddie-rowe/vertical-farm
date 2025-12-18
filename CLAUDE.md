@@ -47,7 +47,6 @@ vertical-farm/
 ├── tests/                    # Root-level integration tests
 ├── scripts/                  # Setup & deployment utilities
 ├── docs/                     # Architecture, guides, and reference docs
-├── cloudflare/               # Workers, CDN, KV store configs
 ├── .claude/                  # Claude Code agents, commands, and workflows
 └── .github/workflows/        # CI/CD pipelines
 ```
@@ -140,6 +139,18 @@ make logs           # View service logs
 
 **Slash Commands** (see `.claude/commands/` for details):
 
+**PM Loop** - Project planning & issue creation:
+| Command | Purpose |
+|---------|---------|
+| `/audit` | Snapshot project state (codebase, board, metrics) |
+| `/vision` | Define/refine product goals |
+| `/research <topic>` | Research solutions for vision gaps |
+| `/roadmap` | Create/update implementation roadmap |
+| `/issues` | Generate GitHub issues from roadmap |
+| `/kanban` | Optimize project board |
+| `/pm-reflect` | Review PM effectiveness |
+
+**SDLC Loop** - Development & deployment:
 | Command | Purpose |
 |---------|---------|
 | `/up` | Start development environment |
@@ -154,7 +165,8 @@ make logs           # View service logs
 | `/pipeline <pr>` | (Optional) Debug CI/CD failures |
 | `/reflect` | (Optional) Review development patterns |
 
-**Typical workflow:** `/plan 123` → `/dev 123` → `/test` → `/validate 123` → `/deploy 123` → `/merge 68` → `/finalize 123`
+**PM workflow:** `/audit` → `/vision` → `/research` → `/roadmap` → `/issues`
+**SDLC workflow:** `/plan 123` → `/dev 123` → `/test` → `/validate 123` → `/deploy 123` → `/merge 68` → `/finalize 123`
 
 ## Anti-Patterns to Avoid
 
