@@ -64,8 +64,8 @@ Square POS data syncing and displaying with grow-to-sale tracking capability.
 
 | Feature | Evidence | Notes |
 |---------|----------|-------|
-| Farm hierarchy (Farm’Row’Rack’Shelf) | `FarmService.ts` (270 lines) | Full CRUD, capacity tracking |
-| Grow lifecycle management | `GrowService.ts` (510 lines) | Planned’Active’Harvested’Failed |
+| Farm hierarchy (Farmâ†’Rowâ†’Rackâ†’Shelf) | `FarmService.ts` (270 lines) | Full CRUD, capacity tracking |
+| Grow lifecycle management | `GrowService.ts` (510 lines) | Plannedâ†’Activeâ†’Harvestedâ†’Failed |
 | Home Assistant integration | `HomeAssistantClient` (845 lines) | WebSocket, REST, caching, error handling |
 | Square POS integration | PR #68 merged | Customers, orders, payments, refunds, disputes |
 | Service layer architecture | 5,616 lines frontend services | BaseService, BaseCRUDService, BaseRealtimeService |
@@ -187,7 +187,7 @@ gantt
 #### Success Criteria
 - Zero mock/placeholder data in core workflows
 - All sensor data from real HA devices
-- Complete grow lifecycle (seed’germination’transplant’active’harvest)
+- Complete grow lifecycle (seedâ†’germinationâ†’transplantâ†’activeâ†’harvest)
 
 ---
 
@@ -264,7 +264,6 @@ gantt
 
 | Issue | Location | Impact |
 |-------|----------|--------|
-| Deprecated Redis processor code | `backend/app/services/` | Dead code (576 lines) |
 | Legacy device layer types | `frontend/src/types/index.ts:74` | TODO marker for migration |
 
 ---
