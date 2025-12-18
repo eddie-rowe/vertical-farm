@@ -1,274 +1,54 @@
 import request from "@/lib/apiClient";
 
-// Re-export types from canonical location for consumers
+// Re-export all types from canonical location for consumers
 export type {
   SquareMoney,
+  SquareConfig,
+  SquareConfigCreate,
+  SquareConfigUpdate,
+  SquareConnectionStatus,
+  SquareLocation,
+  SquareProduct,
   SquareProductVariation,
+  SquareCustomer,
+  SquareOrder,
   SquareOrderLineItem,
+  SquarePayment,
   SquarePaymentCardDetails,
+  SquareRefund,
+  SquareDispute,
+  SquareSubscription,
+  SquareInvoice,
+  SquareTeamMember,
+  SquareLabor,
+  SquarePayout,
+  SquareInventoryCount,
+  SquareInventoryChange,
+  SquareMerchant,
+  SquareWebhook,
 } from "@/types/integrations/square";
 
-export interface SquareConfig {
-  id?: string;
-  name: string;
-  application_id: string;
-  access_token: string;
-  environment: "sandbox" | "production";
-  webhook_signature_key?: string;
-  webhook_url?: string;
-  is_active: boolean;
-  last_sync_at?: string;
-  sync_status?: "pending" | "syncing" | "success" | "error";
-  sync_error?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface SquareConfigCreate {
-  name: string;
-  application_id: string;
-  access_token: string;
-  environment: "sandbox" | "production";
-  webhook_signature_key?: string;
-  webhook_url?: string;
-}
-
-export interface SquareConfigUpdate {
-  name?: string;
-  application_id?: string;
-  access_token?: string;
-  environment?: "sandbox" | "production";
-  webhook_signature_key?: string;
-  webhook_url?: string;
-  is_active?: boolean;
-}
-
-export interface SquareConnectionStatus {
-  connected: boolean;
-  environment: string;
-  application_id?: string;
-  last_test_at?: string;
-  error_message?: string;
-}
-
-export interface SquareLocation {
-  id: string;
-  name: string;
-  address?: string;
-  phone_number?: string;
-  business_name?: string;
-  type?: string;
-  website_url?: string;
-  status: string;
-}
-
-export interface SquareProduct {
-  id: string;
-  name: string;
-  description?: string;
-  category_id?: string;
-  price_money?: {
-    amount: number;
-    currency: string;
-  };
-  variations: any[];
-  image_url?: string;
-  is_deleted: boolean;
-}
-
-export interface SquareCustomer {
-  id: string;
-  given_name?: string;
-  family_name?: string;
-  email_address?: string;
-  phone_number?: string;
-  company_name?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface SquareOrder {
-  id: string;
-  location_id: string;
-  state: string;
-  total_money?: {
-    amount: number;
-    currency: string;
-  };
-  created_at?: string;
-  updated_at?: string;
-  line_items: any[];
-}
-
-export interface SquarePayment {
-  id: string;
-  order_id?: string;
-  amount_money: {
-    amount: number;
-    currency: string;
-  };
-  status: string;
-  source_type?: string;
-  card_details?: any;
-  created_at?: string;
-}
-
-// New interfaces for additional Square endpoints
-export interface SquareRefund {
-  id: string;
-  payment_id: string;
-  order_id?: string;
-  location_id: string;
-  amount_money: {
-    amount: number;
-    currency: string;
-  };
-  status: string;
-  reason: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface SquareDispute {
-  id: string;
-  dispute_id: string;
-  amount_money: {
-    amount: number;
-    currency: string;
-  };
-  reason: string;
-  state: string;
-  due_at?: string;
-  disputed_payment_id: string;
-  evidence_ids: string[];
-  card_brand?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface SquareSubscription {
-  id: string;
-  location_id: string;
-  plan_id: string;
-  customer_id?: string;
-  start_date: string;
-  status: string;
-  source?: {
-    name: string;
-  };
-  actions?: any[];
-  created_at: string;
-}
-
-export interface SquareInvoice {
-  id: string;
-  version: number;
-  location_id: string;
-  order_id?: string;
-  primary_recipient: {
-    customer_id?: string;
-  };
-  payment_requests: any[];
-  delivery_method: string;
-  invoice_number?: string;
-  title?: string;
-  description?: string;
-  scheduled_at?: string;
-  accepted_payment_methods?: {
-    card: boolean;
-    square_gift_card: boolean;
-    bank_account: boolean;
-    buy_now_pay_later: boolean;
-  };
-  status: string;
-  timezone?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface SquareTeamMember {
-  id: string;
-  reference_id?: string;
-  is_owner: boolean;
-  status: string;
-  given_name?: string;
-  family_name?: string;
-  email_address?: string;
-  phone_number?: string;
-  created_at: string;
-  updated_at?: string;
-  assigned_locations?: {
-    assignment_type: string;
-    location_ids?: string[];
-  };
-}
-
-export interface SquareLabor {
-  id: string;
-  employee_id: string;
-  location_id: string;
-  start_at: string;
-  end_at?: string;
-  wage?: {
-    title?: string;
-    hourly_rate?: {
-      amount: number;
-      currency: string;
-    };
-  };
-  breaks?: any[];
-  status: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface SquareMerchant {
-  id: string;
-  business_name?: string;
-  country: string;
-  language_code?: string;
-  currency?: string;
-  status?: string;
-  main_location_id?: string;
-  created_at?: string;
-}
-
-export interface SquarePayout {
-  id: string;
-  status: string;
-  location_id: string;
-  created_at: string;
-  updated_at?: string;
-  amount_money?: {
-    amount: number;
-    currency: string;
-  };
-  destination?: {
-    type: string;
-    id?: string;
-  };
-  version?: number;
-}
-
-export interface SquareInventoryCount {
-  catalog_object_id: string;
-  catalog_object_type?: string;
-  state?: string;
-  location_id?: string;
-  quantity?: string;
-  calculated_at?: string;
-}
-
-export interface SquareWebhook {
-  id: string;
-  name: string;
-  event_types: string[];
-  notification_url: string;
-  api_version: string;
-  signature_key: string;
-  enabled: boolean;
-  created_at?: string;
-}
+// Import types for internal use
+import type {
+  SquareConfig,
+  SquareConfigCreate,
+  SquareConfigUpdate,
+  SquareConnectionStatus,
+  SquareLocation,
+  SquareProduct,
+  SquareCustomer,
+  SquareOrder,
+  SquarePayment,
+  SquareRefund,
+  SquareDispute,
+  SquareSubscription,
+  SquareInvoice,
+  SquareTeamMember,
+  SquareLabor,
+  SquareMerchant,
+  SquarePayout,
+  SquareInventoryCount,
+} from "@/types/integrations/square";
 
 class SquareService {
   private baseUrl = "/api/v1/square";

@@ -3,112 +3,37 @@
 import toast from "react-hot-toast";
 
 import { supabase } from "@/lib/supabaseClient";
-import { HADevice, HAConfig } from "@/types/integrations/homeassistant";
+
+// Re-export all types from canonical location for backward compatibility
+export type {
+  HADevice,
+  HAConfig,
+  HAConnectionStatus,
+  DeviceControlRequest,
+  DeviceAssignment,
+  ImportedDevice,
+  ImportDevicesRequest,
+  ImportDevicesResponse,
+  HomeAssistantEntity,
+  WebSocketMessage,
+} from "@/types/integrations/homeassistant";
+
+// Import types for internal use
+import type {
+  HADevice,
+  HAConfig,
+  HAConnectionStatus,
+  DeviceControlRequest,
+  DeviceAssignment,
+  ImportedDevice,
+  ImportDevicesRequest,
+  ImportDevicesResponse,
+  HomeAssistantEntity,
+  WebSocketMessage,
+} from "@/types/integrations/homeassistant";
 
 // Home Assistant API service for frontend
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/home-assistant`;
-
-// Re-export the consolidated types for backward compatibility
-export type { HADevice, HAConfig } from "@/types/integrations/homeassistant";
-
-export interface HAConnectionStatus {
-  connected: boolean;
-  version?: string;
-  device_count?: number;
-  last_updated?: string;
-  error?: string;
-}
-
-export interface DeviceControlRequest {
-  entity_id: string;
-  action: "turn_on" | "turn_off" | "toggle";
-  options?: Record<string, any>;
-  duration?: number;
-}
-
-export interface DeviceAssignment {
-  id?: string; // UUID from database
-  entity_id: string; // Home Assistant entity ID
-  entity_type: string; // Device type from HA (light, switch, sensor, etc.)
-  friendly_name?: string; // Human-readable name
-  shelf_id?: string; // UUID if assigned to a shelf
-  rack_id?: string; // UUID if assigned to a rack
-  row_id?: string; // UUID if assigned to a row
-  farm_id?: string; // UUID if assigned to a farm
-  assigned_by?: string; // UUID of user who assigned the device
-  created_at?: string; // ISO timestamp
-  updated_at?: string; // ISO timestamp
-  // Additional fields from joined queries
-  farm_name?: string; // Name of the farm (from JOIN)
-  row_name?: string; // Name of the row (from JOIN)
-  rack_name?: string; // Name of the rack (from JOIN)
-  shelf_name?: string; // Name of the shelf (from JOIN)
-}
-
-export interface ImportedDevice {
-  id: number; // Internal device ID
-  entity_id: string; // Home Assistant entity ID
-  name: string; // Device name
-  device_type: string; // Device type (light, switch, sensor, etc.)
-  state?: string; // Current device state
-  attributes: Record<string, any>; // Device attributes
-  is_assigned: boolean; // Whether device is assigned to a farm location
-  last_seen: string; // When device was last seen
-  created_at: string; // When device was imported
-  updated_at: string; // When device info was last updated
-}
-
-export interface ImportDevicesRequest {
-  entity_ids: string[]; // List of entity IDs to import
-  update_existing?: boolean; // Whether to update existing imported devices
-}
-
-export interface ImportDevicesResponse {
-  success: boolean; // Whether the import was successful
-  imported_count: number; // Number of devices imported
-  updated_count: number; // Number of existing devices updated
-  skipped_count: number; // Number of devices skipped
-  errors: string[]; // Any errors that occurred
-  imported_devices: ImportedDevice[]; // Details of imported devices
-}
-
-export interface HomeAssistantEntity {
-  entity_id: string;
-  state: string;
-  attributes: Record<string, any>;
-  last_changed: string;
-  last_updated: string;
-  friendly_name?: string;
-}
-
-export interface WebSocketMessage {
-  type:
-    | "auth_required"
-    | "auth_ok"
-    | "auth_invalid"
-    | "event"
-    | "result"
-    | "error"
-    | "auth"
-    | "subscribe_events";
-  id?: number;
-  event?: {
-    event_type: "state_changed";
-    data: {
-      entity_id: string;
-      new_state: HomeAssistantEntity;
-      old_state: HomeAssistantEntity;
-    };
-  };
-  result?: any;
-  error?: {
-    code: string;
-    message: string;
-  };
-  success?: boolean;
-  access_token?: string;
-  event_type?: string;
-}
 
 class HomeAssistantService {
   private baseUrl = API_BASE_URL;

@@ -509,7 +509,8 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => removeDeviceAssignment(device.id)}
+                          onClick={() => device.id && removeDeviceAssignment(device.id)}
+                          disabled={!device.id}
                         >
                           Remove
                         </Button>
@@ -644,7 +645,8 @@ const ElementDetailModal: React.FC<ElementDetailModalProps> = ({
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => removeDeviceAssignment(device.id)}
+                              onClick={() => device.id && removeDeviceAssignment(device.id)}
+                              disabled={!device.id}
                             >
                               Unassign
                             </Button>
