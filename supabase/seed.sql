@@ -1369,12 +1369,12 @@ INSERT INTO "public"."species" ("id", "name", "description", "created_at", "upda
 ON CONFLICT (id) DO NOTHING;
 
 -- Grow recipes for testing recipe management
-INSERT INTO "public"."grow_recipes" ("id", "name", "species_id", "description", "total_duration_days", "created_at", "updated_at", "is_active", "user_id") VALUES
-	('22222222-2222-2222-2222-222222222001', 'Basil - Standard', 'bedeebed-e27c-4c89-92ff-ff9fbfc4cf6f', 'Standard basil grow cycle for consistent yields', 42, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('22222222-2222-2222-2222-222222222002', 'Lettuce - Quick Harvest', '11111111-1111-1111-1111-111111111001', 'Fast growing butterhead lettuce', 28, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('22222222-2222-2222-2222-222222222003', 'Spinach - Baby Greens', '11111111-1111-1111-1111-111111111002', 'Baby spinach harvested young for tender leaves', 25, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('22222222-2222-2222-2222-222222222004', 'Microgreens - Sunflower', '11111111-1111-1111-1111-111111111007', 'Quick 10-day sunflower microgreen cycle', 10, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('22222222-2222-2222-2222-222222222005', 'Mint - Continuous Harvest', '11111111-1111-1111-1111-111111111006', 'Mint with ongoing harvest after establishment', 60, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba')
+INSERT INTO "public"."grow_recipes" ("id", "name", "species_id", "total_grow_days", "created_at", "updated_at", "is_active", "created_by") VALUES
+	('22222222-2222-2222-2222-222222222001', 'Basil - Standard', 'bedeebed-e27c-4c89-92ff-ff9fbfc4cf6f', 42, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222002', 'Lettuce - Quick Harvest', '11111111-1111-1111-1111-111111111001', 28, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222003', 'Spinach - Baby Greens', '11111111-1111-1111-1111-111111111002', 25, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222004', 'Microgreens - Sunflower', '11111111-1111-1111-1111-111111111007', 10, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
+	('22222222-2222-2222-2222-222222222005', 'Mint - Continuous Harvest', '11111111-1111-1111-1111-111111111006', 60, NOW(), NOW(), true, 'b26addbe-38fc-4e23-aad5-7ea1bd11edba')
 ON CONFLICT (id) DO NOTHING;
 
 -- Additional farm for testing multi-farm features
@@ -1408,13 +1408,22 @@ INSERT INTO "public"."shelves" ("id", "rack_id", "name", "created_at", "updated_
 	('66666666-6666-6666-6666-666666666006', '55555555-5555-5555-5555-555555555004', 'Micro Shelf 2', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
+-- Seed varieties for grows
+INSERT INTO "public"."seed_varieties" ("id", "species_id", "variety_name", "created_at", "updated_at") VALUES
+	('88888888-8888-8888-8888-888888888001', 'bedeebed-e27c-4c89-92ff-ff9fbfc4cf6f', 'Genovese Basil', NOW(), NOW()),
+	('88888888-8888-8888-8888-888888888002', '11111111-1111-1111-1111-111111111001', 'Butterhead Lettuce', NOW(), NOW()),
+	('88888888-8888-8888-8888-888888888003', '11111111-1111-1111-1111-111111111002', 'Baby Spinach', NOW(), NOW()),
+	('88888888-8888-8888-8888-888888888004', '11111111-1111-1111-1111-111111111007', 'Sunflower Microgreens', NOW(), NOW()),
+	('88888888-8888-8888-8888-888888888005', '11111111-1111-1111-1111-111111111006', 'Spearmint', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
 -- Sample grows in different stages for testing grow tracking
-INSERT INTO "public"."grows" ("id", "recipe_id", "shelf_id", "name", "status", "started_at", "expected_harvest_date", "actual_harvest_date", "notes", "created_at", "updated_at", "user_id") VALUES
-	('77777777-7777-7777-7777-777777777001', '22222222-2222-2222-2222-222222222001', 'c3922ea5-a537-4821-b687-bb9906949c3b', 'Basil Batch 1', 'active', NOW() - INTERVAL '14 days', NOW() + INTERVAL '28 days', NULL, 'First basil batch - looking healthy', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('77777777-7777-7777-7777-777777777002', '22222222-2222-2222-2222-222222222002', 'edc0c39c-444f-4083-a707-8c1eb76a2d83', 'Lettuce Batch 1', 'active', NOW() - INTERVAL '7 days', NOW() + INTERVAL '21 days', NULL, 'Lettuce in vegetative stage', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('77777777-7777-7777-7777-777777777003', '22222222-2222-2222-2222-222222222004', '66666666-6666-6666-6666-666666666005', 'Sunflower Micros', 'active', NOW() - INTERVAL '5 days', NOW() + INTERVAL '5 days', NULL, 'Microgreens almost ready', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('77777777-7777-7777-7777-777777777004', '22222222-2222-2222-2222-222222222003', '66666666-6666-6666-6666-666666666001', 'Spinach Batch 1', 'germination', NOW() - INTERVAL '3 days', NOW() + INTERVAL '22 days', NULL, 'Just germinating', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba'),
-	('77777777-7777-7777-7777-777777777005', '22222222-2222-2222-2222-222222222002', '66666666-6666-6666-6666-666666666003', 'Lettuce Completed', 'harvested', NOW() - INTERVAL '35 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days', 'Harvested 2.5 lbs', NOW(), NOW(), 'b26addbe-38fc-4e23-aad5-7ea1bd11edba')
+INSERT INTO "public"."grows" ("id", "name", "seed_variety_id", "recipe_id", "status", "planted_date", "expected_harvest_date", "actual_harvest_date", "notes", "created_by", "created_at", "updated_at") VALUES
+	('77777777-7777-7777-7777-777777777001', 'Basil Batch 1', '88888888-8888-8888-8888-888888888001', '22222222-2222-2222-2222-222222222001', 'active', (NOW() - INTERVAL '14 days')::date, (NOW() + INTERVAL '28 days')::date, NULL, 'First basil batch - looking healthy', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW()),
+	('77777777-7777-7777-7777-777777777002', 'Lettuce Batch 1', '88888888-8888-8888-8888-888888888002', '22222222-2222-2222-2222-222222222002', 'active', (NOW() - INTERVAL '7 days')::date, (NOW() + INTERVAL '21 days')::date, NULL, 'Lettuce in vegetative stage', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW()),
+	('77777777-7777-7777-7777-777777777003', 'Sunflower Micros', '88888888-8888-8888-8888-888888888004', '22222222-2222-2222-2222-222222222004', 'active', (NOW() - INTERVAL '5 days')::date, (NOW() + INTERVAL '5 days')::date, NULL, 'Microgreens almost ready', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW()),
+	('77777777-7777-7777-7777-777777777004', 'Spinach Batch 1', '88888888-8888-8888-8888-888888888003', '22222222-2222-2222-2222-222222222003', 'planned', (NOW() - INTERVAL '3 days')::date, (NOW() + INTERVAL '22 days')::date, NULL, 'Just germinating', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW()),
+	('77777777-7777-7777-7777-777777777005', 'Lettuce Completed', '88888888-8888-8888-8888-888888888002', '22222222-2222-2222-2222-222222222002', 'harvested', (NOW() - INTERVAL '35 days')::date, (NOW() - INTERVAL '7 days')::date, (NOW() - INTERVAL '7 days')::date, 'Harvested 2.5 lbs', 'b26addbe-38fc-4e23-aad5-7ea1bd11edba', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- ===========================================

@@ -6,7 +6,6 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 import InstallPrompt from "../components/InstallPrompt";
-import NotificationManager from "../components/NotificationManager";
 import PWAStatus from "../components/PWAStatus";
 import { AuthProvider } from "../contexts/AuthContext"; // Re-added for global access
 import { RealtimeProvider } from "../contexts/RealtimeContext";
@@ -240,7 +239,6 @@ export default function RootLayout({
               {children}
               <InstallPrompt />
               <PWAStatus />
-              <NotificationManager />
             </RealtimeProvider>
           </AuthProvider>
         </ThemeProvider>

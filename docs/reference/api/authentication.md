@@ -117,5 +117,5 @@ user_service.revoke_api_key(api_key_id)
 
 ## Related Documentation
 
-- [Security Model](../../security/model.md)
-- [User Permissions](../../security/permissions.md)
+- [API Endpoints](./endpoints.md)
+- [CLAUDE.md](/CLAUDE.md) - Architecture and RLS patterns
