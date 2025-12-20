@@ -96,7 +96,6 @@ const eslintConfig = [
       "**/__tests__/**/*.test.*",
       "src/app/error.tsx", // Error boundaries need console for debugging
       "src/components/InstallPrompt.tsx", // PWA debug logging
-      "src/components/NotificationManager.tsx", // Notification debug logging
     ],
     rules: {
       "no-console": "off", // Allow console in test files
