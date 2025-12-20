@@ -4,6 +4,7 @@
 
 | Guide | Purpose |
 |-------|---------|
+| [Standard Dev Flow](./standard-dev-flow.md) | Step-by-step development workflow |
 | [Contributing](./contributing.md) | How to contribute |
 | [Coding Standards](./coding-standards.md) | Style guide and patterns |
 | [Testing](./testing.md) | Test strategy |
@@ -48,4 +49,4 @@ All code must pass:
 
 - [API Reference](../reference/api/) - Endpoint docs
 - [Deployment](../operations/deployment.md) - Production guide
-- [New Developer](../onboarding/new-developer.md) - Onboarding
+- [New Developer](./new-developer.md) - Onboarding
