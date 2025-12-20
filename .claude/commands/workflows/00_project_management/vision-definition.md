@@ -20,8 +20,23 @@ Based on user input, define measurable success criteria:
 - Technical metrics (performance, coverage, reliability)
 - Business metrics if applicable (integrations, automation)
 
-**Gap Analysis**
-Compare current state (from audit) with desired state (from user input):
+**Gap Analysis with Enabler/Blocker Classification (Linear Method)**
+Compare current state (from audit) with desired state (from user input).
+
+For each gap, classify using the Linear Method framework:
+
+| Classification | Question | Priority |
+|----------------|----------|----------|
+| **BLOCKER** | Does this prevent users from adopting/using the product? | Immediate |
+| **HIGH ENABLER** | Does this significantly increase value? | This cycle |
+| **LOW ENABLER** | Nice-to-have improvement? | Parking lot |
+
+Examples:
+- "No login flow" = BLOCKER (can't use product)
+- "Real-time updates" = HIGH ENABLER (major value add)
+- "Dark mode" = LOW ENABLER (workaround exists)
+
+Gap categories to analyze:
 - What features are missing?
 - What technical improvements are needed?
 - What integrations are not yet complete?
@@ -61,15 +76,19 @@ Create or update `docs/planning/vision.md`:
 - Other: ...
 
 ## Vision Gaps
-Areas requiring attention to achieve vision:
+Areas requiring attention to achieve vision (sorted by classification):
 
 ### Gap 1: [Name]
+- **Classification:** BLOCKER | HIGH ENABLER | LOW ENABLER
 - Current State: ...
 - Desired State: ...
 - Research Needed: [yes/no]
 
 ### Gap 2: [Name]
-...
+- **Classification:** BLOCKER | HIGH ENABLER | LOW ENABLER
+- Current State: ...
+- Desired State: ...
+- Research Needed: [yes/no]
 
 ## Future Considerations
 [Items not in current scope but on the horizon]

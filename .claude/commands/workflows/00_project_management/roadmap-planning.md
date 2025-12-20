@@ -27,6 +27,22 @@ For each major goal or epic:
 - Estimate relative effort (S/M/L/XL)
 - Note dependencies on other milestones
 
+**Scoping Checklist (Linear Method)**
+Before finalizing a milestone, verify:
+
+1. Can it be completed in **1-3 weeks** with **1-3 people**?
+2. Can individual deliverables be done in **hours**, not days?
+3. If NO to either: break into sequential **stages**
+
+Example scoping:
+- TOO BIG: "Build complete IoT integration"
+- RIGHT SIZE: "Stage 1: Device discovery API" (1 week)
+  → "Stage 2: Command routing" (1 week)
+  → "Stage 3: Automation rules" (2 weeks)
+
+**Key principle:** Ship Stage 1 before finalizing Stage 2 details.
+Smaller scope forces prioritization and creates rapid feedback loops.
+
 **GitHub Milestone Sync**
 Use gh CLI to create/update milestones:
 ```bash
