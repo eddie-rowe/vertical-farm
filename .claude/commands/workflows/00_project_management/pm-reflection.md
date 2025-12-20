@@ -49,6 +49,20 @@ gh api repos/{owner}/{repo}/commits --jq '.[0:30] | .[] | {sha: .sha[0:7], date:
    - What's working well?
    - What's friction in the process?
 
+6. **Momentum Health (Linear Method)**
+   - Daily shipping frequency (commits, PRs merged)
+   - Items stuck > 3 days without progress
+   - Decision paralysis indicators
+   - Velocity trend (accelerating/decelerating/steady)
+
+**Momentum Score Calculation:**
+- **HIGH**: Daily commits, issues closed within cycle, no blockers
+- **MEDIUM**: Weekly shipping, some items slow, minor blockers
+- **LOW**: Multi-week stalls, many stuck items, major blockers
+
+Key insight from Linear: *"Startups rarely die because they made too much
+progress, but they do die when they move too slow or give up."*
+
 **Generate Insights**
 Use Task tool with subagent_type="business-analyst":
 - Prompt: "Analyze this project management data and identify:
@@ -83,6 +97,14 @@ Create `docs/planning/reflections/YYYY-MM-DD.md`:
 
 ### Throughput
 [Graph or table showing work completed over time]
+
+### Momentum Health (Linear Method)
+| Indicator | Value | Status |
+|-----------|-------|--------|
+| Daily commit rate | X/day | ✅/⚠️/🔴 |
+| Items stuck >3 days | N | ✅/⚠️/🔴 |
+| Shipping frequency | daily/weekly/monthly | ✅/⚠️/🔴 |
+| **Overall Momentum** | HIGH/MEDIUM/LOW | - |
 
 ## Roadmap vs Actual
 
