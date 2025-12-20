@@ -1,6 +1,8 @@
 # Coding Standards & Style Guide
 
-This document defines the coding standards, design system, and style guidelines for the Vertical Farm project.
+> **Critical patterns (service layer, RLS, imports) are in [CLAUDE.md](/CLAUDE.md)**
+
+This document covers design tokens, component patterns, and code style details.
 
 ## 🎨 Design System Overview
 
