@@ -56,4 +56,4 @@ nav:
     - Deployment: operations/deployment.md
 
   - Onboarding:
-    - New Developer Guide: onboarding/new-developer.md
+    - New Developer Guide: development/new-developer.md
