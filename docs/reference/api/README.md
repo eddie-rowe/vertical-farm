@@ -49,8 +49,6 @@ print(farm_details)
 
 - [Authentication Guide](./authentication.md)
 - [Endpoints Reference](./endpoints.md)
-- [Request/Response Schemas](./schemas.md)
-- [Code Examples](./examples.md)
 
 ## Support and Community
 

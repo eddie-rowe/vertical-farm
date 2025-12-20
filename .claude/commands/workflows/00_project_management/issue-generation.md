@@ -25,31 +25,27 @@ Use AskUserQuestion to confirm:
 Use gh CLI to create issues:
 
 ```bash
-# Create feature issue
+# Create feature issue (Linear Method: minimal, clear issues)
 gh issue create \
   --title "feat: [Title]" \
   --body "$(cat <<'EOF'
-## Description
-[Description]
-
-## Acceptance Criteria
-- [ ] Criteria 1
-- [ ] Criteria 2
-
-## Technical Notes
-[Any implementation guidance]
-
-## Related
-- Milestone: [name]
-- Related issues: #N
+[Context if needed - otherwise omit entirely]
 
 ---
-*Generated from roadmap by /issues command*
+*From roadmap by /issues*
 EOF
 )" \
   --label "enhancement" \
   --milestone "Milestone Name"
 ```
+
+**Linear Method: Issue Simplicity**
+- Titles should be self-explanatory ("feat: Add dark mode toggle")
+- Body is OPTIONAL - only add context that isn't obvious from the title
+- Trust the assignee to determine implementation details
+- If issue needs detailed specs, link to external doc instead
+- Avoid "As a user..." format - describe concrete tasks in plain language
+- Skip detailed acceptance criteria checklists - they slow momentum
 
 **Issue Types and Labels**
 | Type | Title Prefix | Labels |
