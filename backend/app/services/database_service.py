@@ -34,7 +34,11 @@ def _is_supabase_pooler_url(url: str) -> bool:
         return False
     try:
         parsed = urlparse(url)
-        return parsed.hostname is not None and "pooler.supabase.com" in parsed.hostname
+        # Use endswith() to ensure the hostname is exactly a Supabase pooler subdomain
+        # This prevents false positives from URLs containing the string elsewhere
+        return parsed.hostname is not None and parsed.hostname.endswith(
+            ".pooler.supabase.com"
+        )
     except Exception:
         return False
 
@@ -87,9 +91,10 @@ class DatabaseService:
                 password = parsed.password or ""
                 # Construct pooler URL (transaction mode port 6543 for caching)
                 pooler_url = f"postgresql://postgres.{project_ref}:{password}@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
-                # Log sanitized URL (no credentials)
+                # Log a safe string directly without referencing the password-containing URL
+                # This avoids CodeQL data flow tracking from password to log statement
                 logger.info(
-                    f"🚀 Using Supavisor pooler with caching: {_sanitize_database_url(pooler_url)}"
+                    f"🚀 Using Supavisor pooler with caching: postgres.{project_ref}@aws-0-us-east-1.pooler.supabase.com:6543"
                 )
                 return pooler_url
         except Exception as e:
@@ -149,9 +154,8 @@ class DatabaseService:
         except Exception as e:
             self._connection_failed = True
             logger.error(f"❌ Failed to create database connection pool: {str(e)}")
-            # Log sanitized URL without credentials
-            logger.error(f"🔧 Database URL: {_sanitize_database_url(database_url)}")
-            # Don't raise - allow graceful degradation
+            # Don't log database URL to avoid potential credential exposure
+            # CodeQL tracks data flow from password sources even through sanitization functions
             logger.warning(
                 "⚠️  Database service will be unavailable - continuing with degraded functionality"
             )
