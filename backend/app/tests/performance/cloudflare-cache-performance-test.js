@@ -10,6 +10,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import https from 'https';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -84,7 +85,7 @@ function generateTaskPayload(forceRepeat = false) {
       parameters: {
         test_mode: true,
         cache_test: true,
-        variation: Math.random().toString(36).substr(2, 5) // Add some variation
+        variation: crypto.randomBytes(4).toString('hex') // Add some variation using secure randomness
       }
     };
   }

@@ -801,7 +801,8 @@ class HomeAssistantService {
         if (message.event?.event_type === "state_changed") {
           const { entity_id, new_state } = message.event.data;
           const listener = this.eventListeners.get(entity_id);
-          if (listener) {
+          // Validate listener is a function before calling to prevent unvalidated dynamic method calls
+          if (listener && typeof listener === "function") {
             listener(new_state);
           }
         }

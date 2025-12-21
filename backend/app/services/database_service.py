@@ -1,13 +1,58 @@
 """Modern database service for connecting to PostgreSQL/Supabase with graceful degradation"""
 
 import logging
+import re
 from collections.abc import AsyncGenerator
+from urllib.parse import urlparse
 
 import asyncpg
 
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_database_url(url: str) -> str:
+    """Sanitize database URL for safe logging by removing credentials."""
+    if not url:
+        return "<not configured>"
+    try:
+        parsed = urlparse(url)
+        # Replace password with asterisks
+        if parsed.password:
+            sanitized = url.replace(f":{parsed.password}@", ":****@")
+            return sanitized
+        return url
+    except Exception:
+        # If parsing fails, use regex to mask potential passwords
+        return re.sub(r"(:)[^:@]+(@)", r"\1****\2", url)
+
+
+def _is_supabase_pooler_url(url: str) -> bool:
+    """Check if URL is a Supabase pooler URL using proper URL parsing."""
+    if not url:
+        return False
+    try:
+        parsed = urlparse(url)
+        # Use endswith() to ensure the hostname is exactly a Supabase pooler subdomain
+        # This prevents false positives from URLs containing the string elsewhere
+        return parsed.hostname is not None and parsed.hostname.endswith(
+            ".pooler.supabase.com"
+        )
+    except Exception:
+        return False
+
+
+def _is_supabase_direct_url(url: str) -> bool:
+    """Check if URL is a direct Supabase database URL using proper URL parsing."""
+    if not url:
+        return False
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname or ""
+        return hostname.startswith("db.") and hostname.endswith(".supabase.co")
+    except Exception:
+        return False
 
 
 class DatabaseService:
@@ -29,29 +74,29 @@ class DatabaseService:
             # This will cause graceful degradation
             return ""
 
-        # If already using pooler, return as-is
-        if "pooler.supabase.com" in database_url:
+        # If already using pooler, return as-is (using proper URL parsing)
+        if _is_supabase_pooler_url(database_url):
             return database_url
 
         # Convert direct connection to pooler (transaction mode for caching)
         # Example: postgresql://postgres:pass@db.xxx.supabase.co:5432/postgres
         # Becomes: postgresql://postgres.xxx:pass@aws-0-region.pooler.supabase.com:6543/postgres
         try:
-            url = database_url
-            if "db." in url and ".supabase.co" in url:
-                # Extract project reference from direct URL
-                project_ref = url.split("db.")[1].split(".supabase.co")[0]
-                # Extract password and other parts
-                parts = url.split("@")
-                if len(parts) == 2:
-                    auth_part = parts[0]  # postgresql://postgres:password
-                    password = auth_part.split(":")[-1]
-                    # Construct pooler URL (transaction mode port 6543 for caching)
-                    pooler_url = f"postgresql://postgres.{project_ref}:{password}@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
-                    logger.info(
-                        f"🚀 Using Supavisor pooler with caching: {pooler_url[:50]}..."
-                    )
-                    return pooler_url
+            # Use proper URL parsing instead of substring checks
+            if _is_supabase_direct_url(database_url):
+                parsed = urlparse(database_url)
+                hostname = parsed.hostname or ""
+                # Extract project reference from hostname (db.PROJECT_REF.supabase.co)
+                project_ref = hostname.split(".")[1]
+                password = parsed.password or ""
+                # Construct pooler URL (transaction mode port 6543 for caching)
+                pooler_url = f"postgresql://postgres.{project_ref}:{password}@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+                # Log a safe string directly without referencing the password-containing URL
+                # This avoids CodeQL data flow tracking from password to log statement
+                logger.info(
+                    f"🚀 Using Supavisor pooler with caching: postgres.{project_ref}@aws-0-us-east-1.pooler.supabase.com:6543"
+                )
+                return pooler_url
         except Exception as e:
             logger.warning(
                 f"Could not convert to pooler URL: {e}, using direct connection"
@@ -95,8 +140,8 @@ class DatabaseService:
             )
             self._connection_failed = False
 
-            # Log whether we're using caching
-            is_pooler = "pooler.supabase.com" in database_url
+            # Log whether we're using caching (using proper URL parsing)
+            is_pooler = _is_supabase_pooler_url(database_url)
             cache_status = (
                 "✅ WITH QUERY CACHING"
                 if is_pooler
@@ -109,8 +154,8 @@ class DatabaseService:
         except Exception as e:
             self._connection_failed = True
             logger.error(f"❌ Failed to create database connection pool: {str(e)}")
-            logger.error(f"🔧 Database URL: {database_url[:50]}...")
-            # Don't raise - allow graceful degradation
+            # Don't log database URL to avoid potential credential exposure
+            # CodeQL tracks data flow from password sources even through sanitization functions
             logger.warning(
                 "⚠️  Database service will be unavailable - continuing with degraded functionality"
             )
