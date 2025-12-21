@@ -135,14 +135,15 @@ When invoked with `/up`, execute these steps:
       Supabase API:    http://localhost:54321
 
    🔑 Test Credentials:
-      Email:    testuser123@gmail.com
-      Password: password123
+      Seeded User: seeded@test.dev / password123 (has sample data)
+      Blank User:  blank@test.dev / password123 (empty state)
 
-   📊 Seed Data Available:
-      • 3 farms with rows, racks, and shelves
-      • 9 plant species
-      • 5 grow recipes
-      • 5 sample grows (various stages)
+   📊 Seed Data (Seeded User):
+      • 1 farm with 2 rows, 2 racks, 4 shelves
+      • 3 plant species with seed varieties
+      • 3 grow recipes
+      • 3 grows (planned, active, harvested)
+      • 3 device assignments
 
    ⚠️ Integrations (Not Configured):
       Home Assistant and Square integrations require
