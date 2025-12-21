@@ -22,7 +22,7 @@ import {
   FaFan,
   FaThermometerHalf,
 } from "@/lib/icons";
-import deviceAssignmentService from "@/services/deviceAssignmentService";
+import deviceAssignmentService from "@/services/domain/devices/DeviceAssignmentService";
 import { HADevice, DeviceAssignment } from "@/types/device-assignment";
 
 interface DeviceAssignmentWizardProps {

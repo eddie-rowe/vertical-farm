@@ -305,7 +305,7 @@ export class AllDevicesService extends BaseService {
       const haService = await this.getHomeAssistantService();
       const haDevices = await haService.getDevices();
       const assignmentService = (
-        await import("@/services/deviceAssignmentService")
+        await import("@/services/domain/devices/DeviceAssignmentService")
       ).default;
       const assignedEntityIds = await this.getAssignedEntityIds();
 

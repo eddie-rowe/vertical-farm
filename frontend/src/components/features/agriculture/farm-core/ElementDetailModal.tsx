@@ -43,7 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFarmSearch, useFarmFilters } from "@/hooks";
-import deviceAssignmentService from "@/services/deviceAssignmentService";
+import deviceAssignmentService from "@/services/domain/devices/DeviceAssignmentService";
 import homeAssistantService from "@/services/homeAssistantService";
 import {
   HADevice,
