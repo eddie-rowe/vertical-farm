@@ -158,7 +158,33 @@ Eddie will either:
 - **Approve** the PR - proceed to Phase 4
 - **Request changes** - see below
 
-### 3.3 Address Requested Changes (If Any)
+### 3.3 Reflect on Development
+
+While waiting for review, run a reflection to analyze your work:
+
+```
+/tools:02_development:reflect
+```
+
+This command:
+- Analyzes your recent commits for patterns
+- Identifies common errors or debugging sessions
+- Reviews code quality and consistency
+- Suggests workflow improvements
+- Saves a report to `.claude/reports/reflections/`
+
+**Options:**
+```
+/tools:02_development:reflect 5              # Analyze last 5 commits
+/tools:02_development:reflect 10 typescript  # Focus on TypeScript code
+/tools:02_development:reflect 20 backend     # Deep dive on Python backend
+```
+
+**Available scopes:** `all`, `typescript`, `backend`, `testing`, `infrastructure`, `database`, `security`, `performance`
+
+**Review the reflection report** and note any action items for future work.
+
+### 3.4 Address Requested Changes (If Any)
 
 If Eddie requests changes:
 
@@ -246,6 +272,7 @@ make down
 | E2E validation | `/tools:02_development:validate 123` | Issue # |
 | Run tests | `/tools:02_development:test` | None |
 | Create PR | `/tools:02_development:deploy 123` | Issue # |
+| Reflect on work | `/tools:02_development:reflect` | Commits, Scope |
 | Check PR status | `/tools:02_development:review 68` | PR # |
 | Merge PR | `/tools:02_development:merge 68` | PR # |
 | Close issue | `/tools:02_development:finalize 123` | Issue # |
@@ -259,6 +286,7 @@ make down
 /tools:02_development:validate 123
 /tools:02_development:test
 /tools:02_development:deploy 123
+/tools:02_development:reflect
 # ... wait for Eddie's approval ...
 /tools:02_development:merge 68
 /tools:02_development:finalize 123

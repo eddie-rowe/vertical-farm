@@ -78,7 +78,14 @@ cd vertical-farm
 # Supabase Studio: http://localhost:54323
 ```
 
-**Test Login:** `testuser123@gmail.com` / `password123`
+**Test Logins:**
+
+| User | Email | Password | Purpose |
+|------|-------|----------|---------|
+| Seeded | `seeded@test.dev` | `password123` | Has sample data (farms, grows, devices) |
+| Blank | `blank@test.dev` | `password123` | Empty state (profile only) |
+
+Use different browser sessions or incognito to switch between users.
 
 ## Development Workflow
 

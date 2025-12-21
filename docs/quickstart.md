@@ -115,9 +115,14 @@ SUPABASE_SERVICE_KEY=your_service_role_key_from_status
 ### Login to application
 
 1. Visit [http://localhost:3000/login](http://localhost:3000/login)
-2. You can now log into the application using:
-  - Email: testuser123@gmail.com
-  - Password: testpassword123
+2. Two test users are available:
+
+| User | Email | Password | Purpose |
+|------|-------|----------|---------|
+| Seeded | `seeded@test.dev` | `password123` | Has sample data (farms, grows, devices) |
+| Blank | `blank@test.dev` | `password123` | Empty state (profile only) |
+
+Use different browser sessions or incognito to switch between users.
 
 ## 🚦 Next Steps
 
