@@ -275,8 +275,12 @@ async def emergency_stop(
         return result
 
     except Exception as e:
-        logger.error(f"Error during emergency stop: {e}")
-        raise HTTPException(status_code=500, detail="Emergency stop failed")
+        # Log the full error server-side for debugging, but don't expose details to client
+        logger.error(f"Error during emergency stop: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Emergency stop operation failed. Please try again or contact support.",
+        )
 
 
 @router.get("/health")

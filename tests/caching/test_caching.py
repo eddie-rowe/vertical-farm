@@ -196,19 +196,36 @@ class CacheTestSuite:
             # This would test the production URL with Cloudflare
             # For now, just check if the configuration file exists
             import os
+            from urllib.parse import urlparse
+
             config_path = "docs/deployment/cloudflare-config.txt"
-            
+            expected_domain = "vertical-farm.goodgoodgreens.org"
+
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     content = f.read()
-                    if "vertical-farm.goodgoodgreens.org" in content:
+                    # Use proper domain validation instead of substring check
+                    # Check if the expected domain appears as a complete domain reference
+                    lines = content.split('\n')
+                    domain_found = False
+                    for line in lines:
+                        # Look for domain in URL-like patterns or domain configurations
+                        if expected_domain in line:
+                            # Validate it's not a partial match (e.g., avoid matching "notvertical-farm...")
+                            # by checking word boundaries
+                            import re
+                            if re.search(rf'\b{re.escape(expected_domain)}\b', line):
+                                domain_found = True
+                                break
+
+                    if domain_found:
                         self.log_result(
                             "Cloudflare Config",
                             True,
                             "Configuration file exists and contains domain"
                         )
                         return True
-            
+
             self.log_result(
                 "Cloudflare Config",
                 False,

@@ -56,7 +56,7 @@ class Analytics {
       ...config,
     };
 
-    this.sessionId = this.generateSessionId();
+    this.sessionId = this.generateSecureSessionId();
     this.userId = config.userId;
 
     if (typeof window !== "undefined") {
@@ -66,8 +66,23 @@ class Analytics {
     }
   }
 
-  private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  private generateSecureSessionId(): string {
+    // Use crypto.randomUUID() for cryptographically secure session IDs
+    // Falls back to a secure alternative if crypto.randomUUID is unavailable
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return `session_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+    }
+    // Fallback using crypto.getRandomValues for older browsers
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const array = new Uint8Array(8);
+      crypto.getRandomValues(array);
+      const hex = Array.from(array)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      return `session_${Date.now()}_${hex}`;
+    }
+    // Last resort fallback (should rarely be needed in modern browsers)
+    return `session_${Date.now()}_${Date.now().toString(36)}`;
   }
 
   private initializePerformanceTracking() {
