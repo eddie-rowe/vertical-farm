@@ -50,7 +50,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { squareService, SquareConfig } from "@/services/squareService";
-import { businessDataService, BusinessMetrics, RevenueTimeSeriesData, RecentOrder } from "@/services/businessDataService";
+import { businessDataService, BusinessMetrics, RevenueTimeSeriesData, RecentOrder } from "@/services/domain/business/BusinessDataService";
 
 // Business data interface
 interface BusinessData {
