@@ -9,7 +9,7 @@ import { Toaster } from "react-hot-toast";
 import CreateFarmModal from "@/components/features/agriculture/farm-core/CreateFarmModal";
 import EditFarmModal from "@/components/features/agriculture/farm-core/EditFarmModal";
 import UnifiedFarmView from "@/components/features/agriculture/farm-core/UnifiedFarmView";
-import { Phase2Demo } from "@/components/shared";
+import { EmptyState, Phase2Demo } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -411,18 +411,13 @@ export default function FarmsPage() {
           {/* Main Content with Farm-Specific States */}
           {availableFarms.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center py-20">
-                <div className="max-w-md mx-auto card-shadow bg-white dark:bg-gray-800 rounded-lg p-8">
-                  <div className="p-4 rounded-full bg-gradient-to-br from-green-400 to-green-600 w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                    <Home className="h-8 w-8 text-white" />
-                  </div>
-                  <h2 className="text-farm-title mb-4">
-                    Welcome to Farm Management
-                  </h2>
-                  <p className="text-control-label mb-6">
-                    Get started by creating your first farm to begin managing
-                    your vertical farming operation.
-                  </p>
+              <div className="card-shadow bg-white dark:bg-gray-800 rounded-lg p-8">
+                <EmptyState
+                  icon={Home}
+                  title="Welcome to Farm Management"
+                  description="Get started by creating your first farm to begin managing your vertical farming operation."
+                />
+                <div className="flex justify-center mt-2">
                   <CreateFarmModal onFarmCreated={handleFarmCreated} />
                 </div>
               </div>
@@ -438,28 +433,16 @@ export default function FarmsPage() {
             </div>
           ) : error ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center py-10">
-                <div className="card-shadow bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md mx-auto">
-                  <div className="p-4 rounded-full bg-red-100 dark:bg-red-900/20 w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                    <Activity className="h-8 w-8 text-red-600 dark:text-red-400" />
-                  </div>
-                  <h3 className="text-farm-title state-offline mb-4">
-                    Connection Error
-                  </h3>
-                  <p className="text-control-label state-offline mb-2">
-                    Error loading farm data: {error}
-                  </p>
-                  <p className="text-control-label mb-6">
-                    Please ensure the backend is running and the farm ID is
-                    correct.
-                  </p>
-                  <Button
-                    variant="default"
-                    onClick={() => window.location.reload()}
-                  >
-                    Retry Connection
-                  </Button>
-                </div>
+              <div className="card-shadow bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md mx-auto">
+                <EmptyState
+                  icon={Activity}
+                  title="Connection Error"
+                  description={`Error loading farm data: ${error}. Please ensure the backend is running and the farm ID is correct.`}
+                  actionLabel="Retry Connection"
+                  onAction={() => window.location.reload()}
+                  iconBgColor="bg-red-100 dark:bg-red-900/20"
+                  iconColor="text-red-600 dark:text-red-400"
+                />
               </div>
             </div>
           ) : (
