@@ -1,0 +1,133 @@
+# Development Reflection Report
+**Date:** 2025-12-21
+**Issue:** #115 - [TECH-DEBT] Move legacy services to domain structure
+**Workflow:** `/autodev 115`
+**PR:** https://github.com/eddie-rowe/vertical-farm/pull/211
+
+## Executive Summary
+
+Successfully completed a technical debt task to reorganize legacy services into the proper domain structure. All acceptance criteria were met: services moved, imports updated, TypeScript compilation passes, and build succeeds. The autodev workflow executed all 7 phases autonomously.
+
+---
+
+## Issue Summary
+
+**Problem:** Two services existed outside the proper domain structure:
+- `frontend/src/services/businessDataService.ts`
+- `frontend/src/services/deviceAssignmentService.ts`
+
+**Solution:** Moved services to their proper domain folders with PascalCase naming:
+- `frontend/src/services/domain/business/BusinessDataService.ts`
+- `frontend/src/services/domain/devices/DeviceAssignmentService.ts`
+
+---
+
+## Files Modified
+
+| File | Action |
+|------|--------|
+| `frontend/src/services/businessDataService.ts` | Deleted (moved) |
+| `frontend/src/services/deviceAssignmentService.ts` | Deleted (moved) |
+| `frontend/src/services/domain/business/BusinessDataService.ts` | Created |
+| `frontend/src/services/domain/devices/DeviceAssignmentService.ts` | Created |
+| `frontend/src/services/domain/index.ts` | Updated exports |
+| `frontend/src/app/(app)/business/page.tsx` | Import path updated |
+| `frontend/src/components/features/agriculture/farm-core/ElementDetailModal.tsx` | Import path updated |
+| `frontend/src/components/features/automation/integrations/DeviceAssignmentWizard.tsx` | Import path updated |
+| `frontend/src/services/domain/devices/AllDevicesService.ts` | Dynamic import updated |
+
+---
+
+## Test Results
+
+| Test Type | Status | Details |
+|-----------|--------|---------|
+| TypeScript Compilation | PASS | No type errors |
+| Frontend Build | PASS | All 25 routes generated successfully |
+| E2E Validation | PASS | All pages load without JS errors |
+| Unit Tests | PARTIAL | 91 passed, 51 failed (pre-existing) |
+| Backend Tests | SKIPPED | Environment config issue (unrelated) |
+
+### Notes on Test Failures
+- All 51 unit test failures are in `performance.test.ts`
+- Root cause: Mock Supabase client missing methods (`.or()`, `.eq()`, `.range()`)
+- These are pre-existing infrastructure issues, not caused by this refactor
+
+---
+
+## Code Quality Observations
+
+### Positive Patterns
+| Service | Pattern Compliance |
+|---------|-------------------|
+| `BusinessDataService` | Extends `BaseService`, uses singleton `getInstance()` |
+| Import organization | All imports use `@/services/domain/xxx/XxxService` pattern |
+| File naming | PascalCase convention followed |
+
+### Areas for Improvement
+| Issue | Location | Severity |
+|-------|----------|----------|
+| Does not extend `BaseService` | `DeviceAssignmentService` | High |
+| Uses direct Supabase queries | `DeviceAssignmentService` lines 121-252 | High |
+| `any` type: `line_items: any[]` | `BusinessDataService` line 55 | Medium |
+| `any` type: `(customer: any)` | `BusinessDataService` line 366 | Medium |
+| `any` type: `haService: any` | `DeviceAssignmentService` line 12 | Medium |
+| `any` type: `assignmentData: any` | `DeviceAssignmentService` line 198 | Medium |
+
+### Out of Scope
+The `DeviceAssignmentService` architecture issues were intentionally not addressed in this PR to keep the scope focused on file relocation only. A separate issue should be created.
+
+---
+
+## Workflow Metrics
+
+| Metric | Value |
+|--------|-------|
+| Total Phases | 7 |
+| Phases Completed | 7 |
+| Agents Used | 5 (issue-analyzer, general-purpose, test-automator, playwright-tester, code-reviewer, deployment-engineer) |
+| Files Changed | 9 |
+| E2E Screenshots | 4 |
+| Time to PR | ~15 minutes |
+
+---
+
+## Action Items
+
+### High Priority (New Issues to Create)
+- [ ] Refactor `DeviceAssignmentService` to extend `BaseCRUDService` with proper singleton pattern
+- [ ] Replace direct `supabase.from()` calls with `executeQuery()` pattern
+
+### Medium Priority
+- [ ] Replace `any` types in `BusinessDataService` (lines 55, 366)
+- [ ] Replace `any` types in `DeviceAssignmentService` (lines 12, 198)
+- [ ] Update `MIGRATION_EXAMPLE.md` to reflect completed migration
+
+### Low Priority
+- [ ] Fix pre-existing `performance.test.ts` mock issues (51 failing tests)
+
+---
+
+## Autodev Workflow Assessment
+
+### What Worked Well
+- Parallel agent execution efficient
+- Planning phase produced accurate subtask breakdown
+- E2E validation caught no regressions
+- PR creation automated successfully
+
+### Improvement Opportunities
+- **Reflection report not generated** - This report was created manually after the fact
+- Consider adding reflection report generation as Phase 6.5 in autodev
+
+---
+
+## Next Steps
+
+1. Review and merge PR #211
+2. `/finalize 115` to close the issue
+3. Create follow-up issue for `DeviceAssignmentService` BaseService refactor
+
+---
+
+*Generated by `/autodev 115` reflection*
