@@ -1394,10 +1394,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-address-requested-changes-if-any" class="md-nav__link">
+  <a href="#33-reflect-on-development" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Address Requested Changes (If Any)
+        3.3 Reflect on Development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-address-requested-changes-if-any" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Address Requested Changes (If Any)
       
     </span>
   </a>
@@ -1703,7 +1714,24 @@ git<span class="w"> </span>checkout<span class="w"> </span><span class="m">123</
 <p>Eddie will either:
 - <strong>Approve</strong> the PR - proceed to Phase 4
 - <strong>Request changes</strong> - see below</p>
-<h3 id="33-address-requested-changes-if-any">3.3 Address Requested Changes (If Any)</h3>
+<h3 id="33-reflect-on-development">3.3 Reflect on Development</h3>
+<p>While waiting for review, run a reflection to analyze your work:</p>
+<div class="highlight"><pre><span></span><code>/tools:02_development:reflect
+</code></pre></div>
+<p>This command:
+- Analyzes your recent commits for patterns
+- Identifies common errors or debugging sessions
+- Reviews code quality and consistency
+- Suggests workflow improvements
+- Saves a report to <code>.claude/reports/reflections/</code></p>
+<p><strong>Options:</strong>
+<div class="highlight"><pre><span></span><code>/tools:02_development:reflect 5              # Analyze last 5 commits
+/tools:02_development:reflect 10 typescript  # Focus on TypeScript code
+/tools:02_development:reflect 20 backend     # Deep dive on Python backend
+</code></pre></div></p>
+<p><strong>Available scopes:</strong> <code>all</code>, <code>typescript</code>, <code>backend</code>, <code>testing</code>, <code>infrastructure</code>, <code>database</code>, <code>security</code>, <code>performance</code></p>
+<p><strong>Review the reflection report</strong> and note any action items for future work.</p>
+<h3 id="34-address-requested-changes-if-any">3.4 Address Requested Changes (If Any)</h3>
 <p>If Eddie requests changes:</p>
 <ol>
 <li>Read the review comments on GitHub</li>
@@ -1799,6 +1827,11 @@ make<span class="w"> </span>down
 <td>Issue #</td>
 </tr>
 <tr>
+<td>Reflect on work</td>
+<td><code>/tools:02_development:reflect</code></td>
+<td>Commits, Scope</td>
+</tr>
+<tr>
 <td>Check PR status</td>
 <td><code>/tools:02_development:review 68</code></td>
 <td>PR #</td>
@@ -1822,6 +1855,7 @@ make<span class="w"> </span>down
 /tools:02_development:validate 123
 /tools:02_development:test
 /tools:02_development:deploy 123
+/tools:02_development:reflect
 # ... wait for Eddie&#39;s approval ...
 /tools:02_development:merge 68
 /tools:02_development:finalize 123
