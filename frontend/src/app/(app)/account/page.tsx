@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState, useRef } from "react";
+import toast from "react-hot-toast";
 
 import { FarmCheckbox } from "@/components/ui/farm-checkbox";
 import { FarmControlButton } from "@/components/ui/farm-control-button";
@@ -19,8 +20,6 @@ export default function AccountPage() {
   );
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [updating, setUpdating] = useState(false);
@@ -38,8 +37,6 @@ export default function AccountPage() {
   // Profile update handler
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
-    setError(null);
     setUpdating(true);
     const updates: {
       data: { name: string; avatar_url?: string };
@@ -51,25 +48,29 @@ export default function AccountPage() {
       updates.data.avatar_url = URL.createObjectURL(newAvatar);
     }
     const { error } = await supabase.auth.updateUser(updates);
-    if (error) setError(error.message);
-    else setMessage("Profile updated!");
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Profile updated successfully!");
+    }
     setUpdating(false);
   };
 
   // Password change handler
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
-    setError(null);
     setUpdating(true);
     if (password.length < 12) {
-      setError("Password must be at least 12 characters.");
+      toast.error("Password must be at least 12 characters.");
       setUpdating(false);
       return;
     }
     const { error } = await supabase.auth.updateUser({ password });
-    if (error) setError(error.message);
-    else setMessage("Password updated!");
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated successfully!");
+    }
     setPassword("");
     setUpdating(false);
   };
@@ -77,12 +78,10 @@ export default function AccountPage() {
   // Account deletion handler
   const handleDeleteAccount = async () => {
     setDeleting(true);
-    setMessage(null);
-    setError(null);
     // In a real app, call a backend endpoint to delete the user
     setTimeout(() => {
       setDeleting(false);
-      setMessage("Account deletion is not implemented in this demo.");
+      toast.error("Account deletion is not implemented in this demo.");
     }, 1500);
   };
 
@@ -100,18 +99,14 @@ export default function AccountPage() {
     // In a real app, you would persist this to user preferences and update the app's theme context
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(newTheme);
-    setMessage(
-      `Theme set to ${newTheme} (UI updated, persistence not implemented).`,
-    );
+    toast.success(`Theme changed to ${newTheme}`);
   };
 
   // Placeholder for notification settings change handler
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
     // In a real app, persist this to user preferences
-    setMessage(
-      `Notifications ${enabled ? "enabled" : "disabled"} (preference not saved).`,
-    );
+    toast.success(`Notifications ${enabled ? "enabled" : "disabled"}`);
   };
 
   return (
@@ -274,23 +269,6 @@ export default function AccountPage() {
           {deleting ? "Deleting..." : "Delete Account"}
         </FarmControlButton>
       </div>
-
-      {error && (
-        <div
-          className="form-error mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
-      {message && (
-        <div
-          className="text-control-label state-growing mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20"
-          role="status"
-        >
-          {message}
-        </div>
-      )}
     </div>
   );
 }
