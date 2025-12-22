@@ -27,7 +27,7 @@ jobs:
     environment: ${{ inputs.environment || 'production' }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # ----- DEPLOY LOCALLY ON UNRAID -----
       - name: Log in to GHCR
