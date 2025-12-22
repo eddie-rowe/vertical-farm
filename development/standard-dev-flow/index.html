@@ -1629,7 +1629,7 @@
 <h3 id="11-select-an-issue-browser">1.1 Select an Issue (Browser)</h3>
 <ol>
 <li>Go to the <a href="https://github.com/eddie-rowe/vertical-farm/projects">GitHub Project Board</a></li>
-<li>Find an issue in the <strong>Ready for Dev</strong> column</li>
+<li>Find an issue in the <strong>Ready</strong> column</li>
 <li>Assign yourself to the issue</li>
 <li>Move the issue to <strong>In Progress</strong></li>
 <li>Note the issue number (e.g., <code>#123</code>)</li>
@@ -1642,12 +1642,6 @@
 <li>Click <strong>"Create branch"</strong></li>
 </ol>
 <h3 id="13-checkout-the-branch-ide-terminal">1.3 Checkout the Branch (IDE Terminal)</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Fetch the new branch from GitHub</span>
-git<span class="w"> </span>fetch<span class="w"> </span>origin
-
-<span class="c1"># Checkout the branch (use the name GitHub created)</span>
-git<span class="w"> </span>checkout<span class="w"> </span><span class="m">123</span>-issue-title-here
-</code></pre></div>
 <p><strong>Tip:</strong> GitHub shows the exact checkout command after creating the branch - just copy and paste it.</p>
 <hr />
 <h2 id="phase-2-ide-development-flow">Phase 2: IDE Development Flow</h2>
@@ -1714,6 +1708,31 @@ git<span class="w"> </span>checkout<span class="w"> </span><span class="m">123</
 <p>Eddie will either:
 - <strong>Approve</strong> the PR - proceed to Phase 4
 - <strong>Request changes</strong> - see below</p>
+<p><strong>Feel free to begin working on another branch</strong> while waiting for review. Here's how:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Switch to main and get latest changes</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main
+
+<span class="c1"># Start a new issue (repeat Phase 1 steps)</span>
+<span class="c1"># 1. Pick another issue from the Ready column</span>
+<span class="c1"># 2. Create a branch from GitHub&#39;s issue page</span>
+<span class="c1"># 3. Checkout the new branch:</span>
+git<span class="w"> </span>fetch<span class="w"> </span>origin
+git<span class="w"> </span>checkout<span class="w"> </span><span class="m">456</span>-another-issue-title
+</code></pre></div>
+<p>When Eddie responds to your original PR:
+<div class="highlight"><pre><span></span><code><span class="c1"># Stash any uncommitted work on current branch (if needed)</span>
+git<span class="w"> </span>stash
+
+<span class="c1"># Switch back to original branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span><span class="m">123</span>-issue-title-here
+
+<span class="c1"># Address feedback and push updates</span>
+<span class="c1"># Then switch back to continue other work:</span>
+git<span class="w"> </span>checkout<span class="w"> </span><span class="m">456</span>-another-issue-title
+git<span class="w"> </span>stash<span class="w"> </span>pop<span class="w">  </span><span class="c1"># Restore stashed changes (if any)</span>
+</code></pre></div></p>
+<p><strong>Tip:</strong> Keep track of which branches you're juggling. Use <code>git branch</code> to list your local branches.</p>
 <h3 id="33-reflect-on-development">3.3 Reflect on Development</h3>
 <p>While waiting for review, run a reflection to analyze your work:</p>
 <div class="highlight"><pre><span></span><code>/tools:02_development:reflect
@@ -1778,11 +1797,8 @@ git<span class="w"> </span>checkout<span class="w"> </span>main
 <span class="c1"># Pull the latest (includes your merged changes)</span>
 git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main
 
-<span class="c1"># Delete your local feature branch</span>
-git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/issue-123-brief-description
-
 <span class="c1"># Stop Docker environment (optional, saves resources)</span>
-make<span class="w"> </span>down
+make<span class="w"> </span>down<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>supabase<span class="w"> </span>stop
 </code></pre></div>
 <hr />
 <h2 id="quick-reference">Quick Reference</h2>
