@@ -38,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFarmSearch, useFarmFilters } from "@/hooks";
+import { useFarmSearch, useFarmFilters, useFarmHierarchy } from "@/hooks";
 import { DeviceAssignment } from "@/types/device-assignment";
 
 interface AssignmentTabProps {
@@ -46,37 +46,19 @@ interface AssignmentTabProps {
   onRefresh: () => void;
 }
 
-// Mock farm structure data - in real app this would come from props or API
-const mockFarms = [
-  { id: "1", name: "Main Greenhouse" },
-  { id: "2", name: "Secondary Greenhouse" },
-];
-
-const mockRows = [
-  { id: "1", name: "Row A", farm_id: "1" },
-  { id: "2", name: "Row B", farm_id: "1" },
-  { id: "3", name: "Row A", farm_id: "2" },
-];
-
-const mockRacks = [
-  { id: "1", name: "Rack 1", row_id: "1" },
-  { id: "2", name: "Rack 2", row_id: "1" },
-  { id: "3", name: "Rack 1", row_id: "2" },
-  { id: "4", name: "Rack 1", row_id: "3" },
-];
-
-const mockShelves = [
-  { id: "1", name: "Shelf A", rack_id: "1" },
-  { id: "2", name: "Shelf B", rack_id: "1" },
-  { id: "3", name: "Shelf A", rack_id: "2" },
-  { id: "4", name: "Shelf A", rack_id: "3" },
-  { id: "5", name: "Shelf A", rack_id: "4" },
-];
-
 export const AssignmentTab: React.FC<AssignmentTabProps> = ({
   assignments,
   onRefresh,
 }) => {
+  // Use real farm hierarchy data from services
+  const {
+    farms,
+    isLoading: isLoadingHierarchy,
+    getRowsByFarm,
+    getRacksByRow,
+    getShelvesByRack,
+    getLocationBreadcrumb,
+  } = useFarmHierarchy();
   // Standardized search and filter hooks
   const {
     searchTerm,
@@ -197,10 +179,12 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
         placeholder: "Filter by farm",
         options: [
           { value: "all", label: "All Farms" },
-          ...mockFarms.map((farm) => ({
-            value: farm.id,
-            label: farm.name,
-          })),
+          ...farms
+            .filter((farm) => farm.id)
+            .map((farm) => ({
+              value: farm.id!,
+              label: farm.name,
+            })),
         ],
         defaultValue: "all",
       },
@@ -218,7 +202,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
         defaultValue: "all",
       },
     ],
-    [deviceTypes],
+    [farms, deviceTypes],
   );
 
   // Handle filter changes
@@ -255,24 +239,18 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
 
   // Get filtered rows based on selected farm
   const availableRows = useMemo(() => {
-    return selectedFarm
-      ? mockRows.filter((row) => row.farm_id === selectedFarm)
-      : [];
-  }, [selectedFarm]);
+    return selectedFarm ? getRowsByFarm(selectedFarm) : [];
+  }, [selectedFarm, getRowsByFarm]);
 
   // Get filtered racks based on selected row
   const availableRacks = useMemo(() => {
-    return selectedRow
-      ? mockRacks.filter((rack) => rack.row_id === selectedRow)
-      : [];
-  }, [selectedRow]);
+    return selectedRow ? getRacksByRow(selectedRow) : [];
+  }, [selectedRow, getRacksByRow]);
 
   // Get filtered shelves based on selected rack
   const availableShelves = useMemo(() => {
-    return selectedRack
-      ? mockShelves.filter((shelf) => shelf.rack_id === selectedRack)
-      : [];
-  }, [selectedRack]);
+    return selectedRack ? getShelvesByRack(selectedRack) : [];
+  }, [selectedRack, getShelvesByRack]);
 
   const resetForm = () => {
     setSelectedDevice("");
@@ -345,25 +323,20 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
     }
   };
 
-  const getLocationBreadcrumb = (assignment: DeviceAssignment) => {
-    const parts: string[] = [];
+  // Use the hook's getLocationBreadcrumb for assignment display
+  const getAssignmentLocationBreadcrumb = useCallback(
+    (assignment: DeviceAssignment) => {
+      return getLocationBreadcrumb({
+        farmId: assignment.farm_id,
+        rowId: assignment.row_id,
+        rackId: assignment.rack_id,
+        shelfId: assignment.shelf_id,
+      });
+    },
+    [getLocationBreadcrumb]
+  );
 
-    const farm = mockFarms.find((f) => f.id === assignment.farm_id);
-    if (farm) parts.push(farm.name);
-
-    const row = mockRows.find((r) => r.id === assignment.row_id);
-    if (row) parts.push(row.name);
-
-    const rack = mockRacks.find((r) => r.id === assignment.rack_id);
-    if (rack) parts.push(rack.name);
-
-    const shelf = mockShelves.find((s) => s.id === assignment.shelf_id);
-    if (shelf) parts.push(shelf.name);
-
-    return parts.join(" > ") || "No location assigned";
-  };
-
-  const getLocationIcon = (assignment: DeviceAssignment) => {
+  const getLocationIcon = () => {
     return MapPin;
   };
 
@@ -461,18 +434,24 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                     <Select
                       value={selectedFarm}
                       onValueChange={setSelectedFarm}
+                      disabled={isLoadingHierarchy}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a farm" />
+                        <SelectValue placeholder={isLoadingHierarchy ? "Loading farms..." : farms.length === 0 ? "No farms configured" : "Select a farm"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockFarms.map((farm) => (
-                          <SelectItem key={farm.id} value={farm.id}>
+                        {farms.filter((farm) => farm.id).map((farm) => (
+                          <SelectItem key={farm.id} value={farm.id!}>
                             {farm.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {!isLoadingHierarchy && farms.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        No farms configured. Create a farm first.
+                      </p>
+                    )}
                   </div>
 
                   {/* Row Selection */}
@@ -488,8 +467,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableRows.map((row) => (
-                          <SelectItem key={row.id} value={row.id}>
+                        {availableRows.filter((row) => row.id).map((row) => (
+                          <SelectItem key={row.id} value={row.id!}>
                             {row.name}
                           </SelectItem>
                         ))}
@@ -510,8 +489,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableRacks.map((rack) => (
-                          <SelectItem key={rack.id} value={rack.id}>
+                        {availableRacks.filter((rack) => rack.id).map((rack) => (
+                          <SelectItem key={rack.id} value={rack.id!}>
                             {rack.name}
                           </SelectItem>
                         ))}
@@ -532,8 +511,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">None</SelectItem>
-                        {availableShelves.map((shelf) => (
-                          <SelectItem key={shelf.id} value={shelf.id}>
+                        {availableShelves.filter((shelf) => shelf.id).map((shelf) => (
+                          <SelectItem key={shelf.id} value={shelf.id!}>
                             {shelf.name}
                           </SelectItem>
                         ))}
@@ -605,8 +584,8 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Locations</SelectItem>
-                  {mockFarms.map((farm) => (
-                    <SelectItem key={farm.id} value={farm.id}>
+                  {farms.filter((farm) => farm.id).map((farm) => (
+                    <SelectItem key={farm.id} value={farm.id!}>
                       {farm.name}
                     </SelectItem>
                   ))}
@@ -666,7 +645,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
               </TableHeader>
               <TableBody>
                 {filteredAssignments.map((assignment) => {
-                  const LocationIcon = getLocationIcon(assignment);
+                  const LocationIcon = getLocationIcon();
 
                   return (
                     <TableRow key={assignment.entity_id}>
@@ -689,7 +668,7 @@ export const AssignmentTab: React.FC<AssignmentTabProps> = ({
                         <div className="flex items-center space-x-2">
                           <LocationIcon className="w-4 h-4 text-orange-600" />
                           <span className="text-sm">
-                            {getLocationBreadcrumb(assignment)}
+                            {getAssignmentLocationBreadcrumb(assignment)}
                           </span>
                         </div>
                       </TableCell>
