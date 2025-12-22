@@ -61,7 +61,7 @@ When invoked with `/deploy <issue>`, execute these steps:
      1. Code Quality Review & Final Testing
      2. Git Operations (add, commit, push)
      3. GitHub Issue Update (work summary)
-     4. Pull Request Creation & Setup
+     4. Pull Request Creation & Setup (with Review Guide)
      5. Deployment Preparation & Validation
      6. Team Notification & Review Assignment
    

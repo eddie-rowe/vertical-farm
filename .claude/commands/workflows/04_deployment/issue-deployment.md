@@ -63,6 +63,12 @@ This workflow orchestrates the complete deployment process for a successfully im
   - **Testing**: What testing was performed
   - **Deployment**: Any special deployment considerations
   - **Screenshots**: Visual evidence of functionality
+  - **Review & Validation Steps**: Concise guide for reviewers including:
+    - Key files/areas to focus code review on
+    - Steps to test locally (commands, URLs, credentials if needed)
+    - Feature validation checklist (what to verify works)
+    - Database/migration checks (if applicable)
+    - Edge cases or specific scenarios to test
 
 ### 5. Deployment Preparation
 - **Agent**: deployment-engineer
