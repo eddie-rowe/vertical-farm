@@ -34,7 +34,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
@@ -43,12 +43,12 @@ jobs:
       # =============================================================================
       
       - name: Set up Python for Backend Analysis
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
       - name: Cache Python dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -137,7 +137,7 @@ jobs:
       # =============================================================================
       
       - name: Upload Backend Security Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-security-reports
