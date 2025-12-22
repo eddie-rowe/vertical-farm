@@ -2,6 +2,9 @@
 export { useFarmSearch } from "./useFarmSearch";
 export { useFarmFilters } from "./useFarmFilters";
 
+// Farm Hierarchy Hook
+export { useFarmHierarchy } from "./useFarmHierarchy";
+
 export type { UseSearchOptions, UseSearchResult } from "./useFarmSearch";
 
 export type {
@@ -10,3 +13,5 @@ export type {
   FilterValue,
   FilterDefinition,
 } from "./useFarmFilters";
+
+export type { UseFarmHierarchyResult } from "./useFarmHierarchy";
