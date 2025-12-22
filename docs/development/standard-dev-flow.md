@@ -30,7 +30,7 @@ Before starting, complete the [New Developer Guide](./new-developer.md).
 ### 1.1 Select an Issue (Browser)
 
 1. Go to the [GitHub Project Board](https://github.com/eddie-rowe/vertical-farm/projects)
-2. Find an issue in the **Ready for Dev** column
+2. Find an issue in the **Ready** column
 3. Assign yourself to the issue
 4. Move the issue to **In Progress**
 5. Note the issue number (e.g., `#123`)
@@ -43,14 +43,6 @@ Before starting, complete the [New Developer Guide](./new-developer.md).
 4. Click **"Create branch"**
 
 ### 1.3 Checkout the Branch (IDE Terminal)
-
-```bash
-# Fetch the new branch from GitHub
-git fetch origin
-
-# Checkout the branch (use the name GitHub created)
-git checkout 123-issue-title-here
-```
 
 **Tip:** GitHub shows the exact checkout command after creating the branch - just copy and paste it.
 
@@ -158,6 +150,37 @@ Eddie will either:
 - **Approve** the PR - proceed to Phase 4
 - **Request changes** - see below
 
+**Feel free to begin working on another branch** while waiting for review. Here's how:
+
+```bash
+# Switch to main and get latest changes
+git checkout main
+git pull origin main
+
+# Start a new issue (repeat Phase 1 steps)
+# 1. Pick another issue from the Ready column
+# 2. Create a branch from GitHub's issue page
+# 3. Checkout the new branch:
+git fetch origin
+git checkout 456-another-issue-title
+```
+
+When Eddie responds to your original PR:
+```bash
+# Stash any uncommitted work on current branch (if needed)
+git stash
+
+# Switch back to original branch
+git checkout 123-issue-title-here
+
+# Address feedback and push updates
+# Then switch back to continue other work:
+git checkout 456-another-issue-title
+git stash pop  # Restore stashed changes (if any)
+```
+
+**Tip:** Keep track of which branches you're juggling. Use `git branch` to list your local branches.
+
 ### 3.3 Reflect on Development
 
 While waiting for review, run a reflection to analyze your work:
@@ -251,11 +274,8 @@ git checkout main
 # Pull the latest (includes your merged changes)
 git pull origin main
 
-# Delete your local feature branch
-git branch -d feature/issue-123-brief-description
-
 # Stop Docker environment (optional, saves resources)
-make down
+make down && supabase stop
 ```
 
 ---
