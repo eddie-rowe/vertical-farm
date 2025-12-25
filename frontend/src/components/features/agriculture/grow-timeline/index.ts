@@ -4,11 +4,14 @@
 // Core components
 export * from "./components";
 
-// Timeline hooks and utilities
+// Timeline hooks
 export * from "./hooks";
 
-// Mock data and generators
+// Data utilities and constants
 export * from "./data";
 
 // Type definitions
 export * from "./types";
+
+// Grow adapter utilities
+export * from "./utils/growAdapter";
