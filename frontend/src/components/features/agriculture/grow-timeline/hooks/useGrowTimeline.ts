@@ -1,7 +1,12 @@
+"use client";
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 
-import { generateMockGrows, filterGrows } from "../data";
-import { TimelineState, ViewMode, SortField, SortOrder } from "../types";
+import { GrowService } from "@/services/domain/farm/GrowService";
+
+import { filterGrows } from "../data";
+import { TimelineState, ViewMode, SortField, SortOrder, GrowTimelineItem } from "../types";
+import { adaptGrowsToTimelineItems } from "../utils/growAdapter";
 
 interface UseGrowTimelineProps {
   selectedGrowId?: string;
@@ -32,26 +37,44 @@ export const useGrowTimeline = ({
     sortBy: "startDate",
     sortOrder: "asc",
   });
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize data
-  useEffect(() => {
-    const loadData = async () => {
-      setState((prev) => ({ ...prev, isLoading: true }));
+  // Load real data from GrowService
+  const loadData = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    setError(null);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const growService = GrowService.getInstance();
+      const growsWithDetails = await growService.getFilteredGrows({
+        is_active: true,
+      });
 
-      const grows = generateMockGrows(50);
+      // Convert service data to timeline format
+      const timelineItems = adaptGrowsToTimelineItems(growsWithDetails);
+
       setState((prev) => ({
         ...prev,
-        grows,
-        filteredGrows: grows,
+        grows: timelineItems,
+        filteredGrows: timelineItems,
         isLoading: false,
       }));
-    };
-
-    loadData();
+    } catch (err) {
+      console.error("Failed to load grows:", err);
+      setError(err instanceof Error ? err.message : "Failed to load grow data");
+      setState((prev) => ({
+        ...prev,
+        grows: [],
+        filteredGrows: [],
+        isLoading: false,
+      }));
+    }
   }, []);
+
+  // Initialize data on mount
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Filter and sort grows
   const processedGrows = useMemo(() => {
@@ -63,8 +86,8 @@ export const useGrowTimeline = ({
 
     // Sort grows
     filtered.sort((a, b) => {
-      const aValue = a[state.sortBy];
-      const bValue = b[state.sortBy];
+      const aValue = a[state.sortBy as keyof GrowTimelineItem];
+      const bValue = b[state.sortBy as keyof GrowTimelineItem];
 
       let comparison = 0;
       if (typeof aValue === "string" && typeof bValue === "string") {
@@ -143,50 +166,42 @@ export const useGrowTimeline = ({
   }, []);
 
   const handleGrowAction = useCallback(
-    (growId: string, action: string) => {
+    async (growId: string, action: string) => {
       if (onGrowAction) {
         onGrowAction(growId, action);
       }
 
-      // Handle built-in actions
-      switch (action) {
-        case "abort":
-          setState((prev) => ({
-            ...prev,
-            grows: prev.grows.map((grow) =>
-              grow.id === growId
-                ? { ...grow, status: "aborted" as const }
-                : grow,
-            ),
-          }));
-          break;
-        case "complete":
-          setState((prev) => ({
-            ...prev,
-            grows: prev.grows.map((grow) =>
-              grow.id === growId
-                ? { ...grow, status: "completed" as const, progress: 100 }
-                : grow,
-            ),
-          }));
-          break;
+      // Handle built-in actions by calling the real service
+      try {
+        const growService = GrowService.getInstance();
+
+        switch (action) {
+          case "abort":
+            await growService.updateGrowStatus(growId, "failed");
+            break;
+          case "complete":
+            await growService.updateGrowStatus(growId, "harvested");
+            break;
+        }
+
+        // Refresh data after action
+        await loadData();
+      } catch (err) {
+        console.error(`Failed to ${action} grow:`, err);
+        setError(err instanceof Error ? err.message : `Failed to ${action} grow`);
       }
     },
-    [onGrowAction],
+    [onGrowAction, loadData],
   );
 
   const refreshData = useCallback(() => {
-    const grows = generateMockGrows(50);
-    setState((prev) => ({
-      ...prev,
-      grows,
-      filteredGrows: grows,
-    }));
-  }, []);
+    loadData();
+  }, [loadData]);
 
   return {
     // State
     ...state,
+    error,
     viewMode,
     timeRange,
 
