@@ -3,7 +3,21 @@
 // Farm domain
 export { FarmService } from "./farm/FarmService";
 export { RowService } from "./farm/RowService";
+export { HarvestService } from "./farm/HarvestService";
 export * from "./farm/types";
+
+// Harvest types
+export type {
+  HarvestEntity,
+  CreateHarvestInput,
+  UpdateHarvestInput,
+  HarvestWithDetails,
+  HarvestFilters,
+  HarvestAnalytics,
+  HarvestDashboardSummary,
+  GrowProgress,
+  ShelfHarvestStatus,
+} from "./farm/HarvestService";
 
 // Business domain
 export { businessDataService } from "./business/BusinessDataService";
