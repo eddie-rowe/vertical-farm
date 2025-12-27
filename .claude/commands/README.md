@@ -2,260 +2,286 @@
 
 Production-ready commands and workflows specifically configured for the Vertical Farm Management Platform.
 
+## 🔄 Workflow Overview
+
+Three interconnected loops form a continuous cycle: **Plan → Build → Observe → Plan...**
+
+### System Diagram 
+
+Shows `Input → Process → Output` for each process loop.
+
+#### 🎯 PM Loop — What to build?
+
+```mermaid
+flowchart LR
+    subgraph IN["📥 Inputs"]
+        direction TB
+        docs_in[("Previous audits<br/><i>docs/planning/</i>")]
+        insights[("Digest reports<br/><i>docs/observation/</i>")]
+    end
+
+    subgraph PM["🎯 PM Commands"]
+        direction TB
+        audit["/audit<br/><i>Snapshot state</i>"] --> vision["/vision<br/><i>Define goals</i>"]
+        vision --> research["/research<br/><i>Investigate</i>"]
+        research --> roadmap["/roadmap<br/><i>Plan milestones</i>"]
+        roadmap --> issues["/issues<br/><i>Create tasks</i>"]
+        issues -.-> kanban["/kanban<br/><i>Optimize board</i>"]
+        kanban -.-> pm_reflect["/pm-reflect<br/><i>Review process</i>"]
+    end
+
+    subgraph OUT["📤 Outputs"]
+        direction TB
+        gh_issues[("GitHub Issues<br/><i>Ready for dev</i>")]
+        gh_milestones[("Milestones<br/><i>Sprint goals</i>")]
+        reflections[("Reflections<br/><i>docs/planning/</i>")]
+    end
+
+    docs_in --> audit
+    insights --> audit
+    issues --> gh_issues
+    roadmap --> gh_milestones
+    pm_reflect --> reflections
+
+    style IN fill:#e3f2fd,stroke:#1976d2
+    style PM fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    style OUT fill:#fff3e0,stroke:#f57c00
+```
+
+More details: [PM Commands](tools/01_project_management/README.md)
+
+#### 🔧 SDLC Loop — How to build?
+
+```mermaid
+flowchart LR
+    subgraph IN["📥 Inputs"]
+        direction TB
+        gh_issue[("GitHub Issue<br/><i>Task to implement</i>")]
+    end
+
+    subgraph SDLC["🔧 SDLC Commands"]
+        direction TB
+        plan["/plan<br/><i>Analyze issue</i>"] --> up["/up<br/><i>Start env</i>"]
+        up --> dev["/dev<br/><i>Implement</i>"]
+        dev --> test["/test<br/><i>Run tests</i>"]
+        test --> validate["/validate<br/><i>E2E testing</i>"]
+        validate --> reflect["/reflect<br/><i>Review patterns</i>"]
+        reflect --> deploy["/deploy<br/><i>Create PR</i>"]
+        deploy --> review["/review<br/><i>Check status</i>"]
+        review --> merge["/merge<br/><i>Merge PR</i>"]
+        merge --> finalize["/finalize<br/><i>Close issue</i>"]
+    end
+
+    subgraph OUT["📤 Outputs"]
+        direction TB
+        gh_pr[("GitHub PR<br/><i>Code review</i>")]
+        gh_actions[("CI/CD<br/><i>Automated checks</i>")]
+        deployed[("Deployed<br/><i>Live in prod</i>")]
+    end
+
+    gh_issue --> plan
+    deploy --> gh_pr
+    merge --> gh_actions
+    finalize --> deployed
+
+    style IN fill:#e3f2fd,stroke:#1976d2
+    style SDLC fill:#e0f2f1,stroke:#00897b,stroke-width:2px
+    style OUT fill:#fff3e0,stroke:#f57c00
+```
+
+More details: [SDLC Commands](tools/02_development/README.md)
+
+#### 📊 Observation Loop — Is it working?
+
+```mermaid
+flowchart LR
+    subgraph IN["📥 Inputs"]
+        direction TB
+        dd_apm[("APM<br/><i>Performance traces</i>")]
+        dd_rum[("RUM<br/><i>User sessions</i>")]
+        dd_metrics[("Metrics<br/><i>System stats</i>")]
+        dd_logs[("Logs<br/><i>Error details</i>")]
+    end
+
+    subgraph OBS["📊 Observation Commands"]
+        direction TB
+        status["/status<br/><i>Health check</i>"] --> digest["/digest<br/><i>Weekly synthesis</i>"]
+        slo["/slo<br/><i>Error budgets</i>"] --> digest
+        metrics["/metrics<br/><i>Trend analysis</i>"] --> digest
+        ux["/ux<br/><i>User experience</i>"] --> digest
+        incident["/incident<br/><i>Response</i>"] --> postmortem["/postmortem<br/><i>Root cause</i>"]
+        postmortem --> digest
+        autoobs["/autoobs<br/><i>Auto sweep</i>"] -.-> digest
+    end
+
+    subgraph OUT["📤 Outputs"]
+        direction TB
+        docs_digest[("Weekly Digest<br/><i>docs/observation/</i>")]
+        docs_pm[("Postmortems<br/><i>docs/observation/</i>")]
+    end
+
+    dd_apm --> status
+    dd_apm --> slo
+    dd_metrics --> metrics
+    dd_rum --> ux
+    dd_logs --> incident
+    digest --> docs_digest
+    postmortem --> docs_pm
+
+    style IN fill:#e3f2fd,stroke:#1976d2
+    style OBS fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style OUT fill:#fff3e0,stroke:#f57c00
+```
+
+More details: [Observation Commands](tools/03_observation/README.md)
+
+### Artifact Flow
+
+How artifacts flow between loops and systems during a development cycle:
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant PM as 🎯 PM Loop
+    participant GH as GitHub
+    participant SDLC as 🔧 SDLC Loop
+    participant DD as Datadog
+    participant OBS as 📊 Observation
+    participant DOCS as Local Docs
+
+    %% ═══════════════════════════════════════════════════════════════
+    %% PM PHASE - Planning what to build
+    %% ═══════════════════════════════════════════════════════════════
+    rect rgb(252, 228, 236)
+        Note over PM,DOCS: PM Phase - What to build?
+        DOCS->>PM: Previous insights & audits
+        PM->>PM: /audit → /vision → /research → /roadmap
+        PM->>GH: Create issues & milestones
+        PM->>GH: /issues, /kanban
+    end
+
+    %% ═══════════════════════════════════════════════════════════════
+    %% SDLC PHASE - Building the feature
+    %% ═══════════════════════════════════════════════════════════════
+    rect rgb(227, 242, 253)
+        Note over GH,SDLC: SDLC Phase - How to build?
+        GH->>SDLC: Issue to implement
+        SDLC->>SDLC: /up → /plan → /dev → /test → /validate
+        SDLC->>GH: Create PR (/deploy)
+        GH->>GH: CI/CD runs (Actions)
+        SDLC->>GH: /review → /merge → /finalize
+        GH->>DD: Deployment triggers monitoring
+    end
+
+    %% ═══════════════════════════════════════════════════════════════
+    %% OBSERVATION PHASE - Monitoring production
+    %% ═══════════════════════════════════════════════════════════════
+    rect rgb(232, 245, 233)
+        Note over DD,DOCS: Observation Phase - Is it working?
+        DD->>OBS: Metrics, logs, RUM data
+        OBS->>OBS: /status, /slo, /metrics, /ux
+        alt Incident Occurs
+            DD->>OBS: Alert triggered
+            OBS->>OBS: /incident → /postmortem
+            OBS->>DOCS: Postmortem report
+        end
+        OBS->>DOCS: /digest - Weekly synthesis
+    end
+
+    %% ═══════════════════════════════════════════════════════════════
+    %% CYCLE COMPLETES - Feed back to PM
+    %% ═══════════════════════════════════════════════════════════════
+    Note over PM,DOCS: 🔄 Cycle repeats - insights feed next sprint
+    DOCS-->>PM: Digest informs next /audit
+```
+
+**Cycle Summary:**
+1. **PM** reads docs → plans work → creates GitHub issues
+2. **SDLC** picks up issue → develops → ships via PR/CI
+3. **Observation** monitors Datadog → writes insights to docs
+4. **Repeat**: insights inform next PM planning cycle
+
+### Command Reference
+
+Each slash command has specific inputs, processes, and outputs. These tables provide quick reference for what each command does internally.
+
+#### PM Loop Commands
+
+| Command | Purpose | Input | Process | Output |
+|---------|---------|-------|---------|--------|
+| [`/audit`](tools/01_project_management/audit.md) | Snapshot project state | None | [project-audit](workflows/00_project_management/project-audit.md), Explore agent | `docs/planning/audits/{date}.md` |
+| [`/vision`](tools/01_project_management/vision.md) | Define product goals | User prompts | [vision-definition](workflows/00_project_management/vision-definition.md) | `docs/planning/vision.md` |
+| [`/research`](tools/01_project_management/research.md) | Deep research | Topic argument | [deep-research](workflows/00_project_management/deep-research.md), search-specialist | `docs/planning/research/{date}-{topic}.md` |
+| [`/roadmap`](tools/01_project_management/roadmap.md) | Plan milestones | None | [roadmap-planning](workflows/00_project_management/roadmap-planning.md) | `docs/planning/roadmap.md`, GitHub milestones |
+| [`/issues`](tools/01_project_management/issues.md) | Generate GitHub issues | User confirmation | [issue-generation](workflows/00_project_management/issue-generation.md) | GitHub issues with labels/milestones |
+| [`/kanban`](tools/01_project_management/kanban.md) | Optimize board | User direction | [kanban-optimization](workflows/00_project_management/kanban-optimization.md) | Board updates, health report |
+| [`/pm-reflect`](tools/01_project_management/pm-reflect.md) | Review PM effectiveness | None | [pm-reflection](workflows/00_project_management/pm-reflection.md), business-analyst | `docs/planning/reflections/{date}.md` |
+
+#### SDLC Loop Commands
+
+| Command | Purpose | Input | Process | Output |
+|---------|---------|-------|---------|--------|
+| [`/up`](tools/02_development/up.md) | Start dev environment | None | Supabase, Docker, health checks | Running services, `.env.local` |
+| [`/plan`](tools/02_development/plan.md) | Analyze issue | Issue # or URL | Agent orchestration (inline) | Implementation plan, updated issue |
+| [`/dev`](tools/02_development/dev.md) | Feature development | Issue # or description | Agent orchestration (inline) | Code changes, tests |
+| [`/test`](tools/02_development/test.md) | Run local CI | `--quick`, `--security` | nektos/act (GitHub Actions locally) | Test results, artifacts |
+| [`/validate`](tools/02_development/validate.md) | E2E validation | Issue # | Agent orchestration (inline) | Validation report, screenshots |
+| [`/reflect`](tools/02_development/reflect.md) | Development reflection | Commits, scope | Agent orchestration (inline) | `.claude/reports/reflections/{date}.md` |
+| [`/deploy`](tools/02_development/deploy.md) | Create PR | Issue # | Agent orchestration (inline) | GitHub PR with review guide |
+| [`/review`](tools/02_development/review.md) | Check PR status | PR # | code-reviewer agent | Review summary, PR comments |
+| [`/merge`](tools/02_development/merge.md) | Merge PR | PR #, strategy | Pre-merge validation, `gh pr merge` | Merged PR, local sync |
+| [`/finalize`](tools/02_development/finalize.md) | Close issue | Issue # | Agent orchestration (inline) | Issue closed, prompting log |
+| [`/pipeline`](tools/02_development/pipeline.md) | Debug CI failures | PR # | Agent orchestration (inline) | Applied fixes, re-triggered workflow |
+
+#### Observation Loop Commands
+
+| Command | Purpose | Input | Process | Output |
+|---------|---------|-------|---------|--------|
+| [`/status`](tools/03_observation/status.md) | System health check | None | Health endpoints, alert queries | Service status table, trends |
+| [`/slo`](tools/03_observation/slo.md) | Error budget tracking | Service (optional) | 30-day SLO calculation, burn rate | Budget table, forecast |
+| [`/metrics`](tools/03_observation/metrics.md) | Trend analysis | Scope (optional) | 4-week baseline, anomaly (>2σ) | Metric tables, anomaly report |
+| [`/ux`](tools/03_observation/ux.md) | User experience | None | RUM data, journey completion | Session stats, UX score |
+| [`/incident`](tools/03_observation/incident.md) | Incident response | `new` or ID | Severity classification, timeline | `docs/observation/incidents/INC-{id}.md` |
+| [`/postmortem`](tools/03_observation/postmortem.md) | Incident postmortem | Incident ID | 5 Whys, impact calculation | `docs/observation/postmortems/PM-{id}.md` |
+| [`/digest`](tools/03_observation/digest.md) | Weekly synthesis | None | Aggregates metrics, UX, incidents | `docs/observation/digests/{date}.md` |
+| [`/autoobs`](tools/03_observation/autoobs.md) | Autonomous sweep | None | Runs: status→slo→metrics→ux→digest | Complete state, digest |
+
 ## 📁 Directory Structure
 
 ```
 .claude/commands/
-├── README.md                    # This file
-├── 2025-08-report.md           # Development report
-├── tools/                      # Single-purpose utility commands
-│   ├── accessibility-audit.md
-│   ├── ai-assistant.md
-│   ├── ai-review.md
-│   ├── api-mock.md
-│   ├── api-scaffold.md
-│   ├── code-explain.md
-│   ├── code-migrate.md
-│   ├── compliance-check.md
-│   ├── config-validate.md
-│   ├── context-restore.md
-│   ├── context-save.md
-│   ├── cost-optimize.md
-│   ├── data-pipeline.md
-│   ├── data-validation.md
-│   ├── db-migrate.md
-│   ├── debug-trace.md
-│   ├── deploy-checklist.md
-│   ├── deps-audit.md
-│   ├── deps-upgrade.md
-│   ├── doc-generate.md
-│   ├── docker-optimize.md
-│   ├── error-analysis.md
-│   ├── error-trace.md
-│   ├── issue.md
-│   ├── k8s-manifest.md
-│   ├── langchain-agent.md
-│   ├── monitor-setup.md
-│   ├── multi-agent-optimize.md
-│   ├── multi-agent-review.md
-│   ├── onboard.md
-│   ├── pr-enhance.md
-│   ├── prompt-optimize.md
-│   ├── refactor-clean.md
-│   ├── security-scan.md
-│   ├── slo-implement.md
-│   ├── smart-debug.md
-│   ├── standup-notes.md
-│   ├── tech-debt.md
-│   └── test-harness.md
-└── workflows/                   # Multi-step orchestrated workflows
-    ├── 01_planning/
-    │   └── issue-analysis.md
-    ├── 02_development/
-    │   ├── feature-development.md
-    │   └── full-review.md
-    ├── 03_testing/
-    │   ├── feature-testing.md
-    │   └── feature-validation.md
-    ├── 04_documentation/
-    ├── 05_deployment/
-    │   ├── git-workflow.md
-    │   └── pipeline-debug.md
-    ├── maintenance/
-    │   ├── context-pruning.md
-    │   ├── development-reflection.md
-    │   └── improve-agent.md
-    ├── performance/
-    │   ├── multi-platform.md
-    │   └── performance-optimization.md
-    └── security/
-        ├── incident-response.md
-        └── security-hardening.md
+├── README.md                       # This file
+└── tools/
+    ├── 01_project_management/      # 🎯 PM Loop
+    │   ├── audit.md
+    │   ├── vision.md
+    │   ├── research.md
+    │   ├── roadmap.md
+    │   ├── issues.md
+    │   ├── kanban.md
+    │   ├── pm-reflect.md
+    │   └── autopm.md               # Autonomous PM sweep
+    ├── 02_development/             # 🔧 SDLC Loop
+    │   ├── up.md
+    │   ├── plan.md
+    │   ├── dev.md
+    │   ├── test.md
+    │   ├── validate.md
+    │   ├── reflect.md
+    │   ├── deploy.md
+    │   ├── review.md
+    │   ├── merge.md
+    │   ├── finalize.md
+    │   ├── pipeline.md
+    │   └── autodev.md              # Autonomous dev cycle
+    └── 03_observation/             # 📊 Observation Loop
+        ├── status.md
+        ├── slo.md
+        ├── metrics.md
+        ├── ux.md
+        ├── incident.md
+        ├── postmortem.md
+        ├── digest.md
+        └── autoobs.md              # Autonomous observation sweep
 ```
-
-## 🚀 Workflows (Multi-Step Orchestration)
-
-Workflows orchestrate multiple operations across domains for complex tasks.
-
-### Planning & Analysis
-- **issue-analysis** - Analyze GitHub issues and create implementation plans
-
-### Development
-- **feature-development** - Complete feature implementation with backend, frontend, testing
-- **full-review** - Comprehensive code review from multiple perspectives
-
-### Testing & Validation
-- **feature-testing** - Automated test suite generation and execution
-- **feature-validation** - End-to-end validation including integration tests
-
-### Deployment
-- **git-workflow** - Git branching strategies and PR management
-- **pipeline-debug** - CI/CD pipeline debugging and optimization
-
-### Maintenance
-- **context-pruning** - Clean up and optimize project context
-- **development-reflection** - Analyze development patterns and improvements
-- **improve-agent** - Enhance AI agent performance and prompt optimization
-
-### Performance
-- **multi-platform** - Cross-platform optimization strategies
-- **performance-optimization** - End-to-end performance improvements
-
-### Security
-- **incident-response** - Production incident investigation and resolution
-- **security-hardening** - Comprehensive security improvements
-
-## 🔧 Tools (Single-Purpose Commands)
-
-Focused utilities for specific operations.
-
-### AI & Machine Learning
-- **ai-assistant** - Build AI-powered features and chatbots
-- **ai-review** - AI/ML code review and optimization
-- **langchain-agent** - Create LangChain/LangGraph agents
-- **prompt-optimize** - Optimize AI prompts for performance
-
-### Architecture & Code Quality
-- **code-explain** - Generate detailed code explanations
-- **code-migrate** - Migrate between languages/frameworks
-- **refactor-clean** - Refactor for maintainability
-- **tech-debt** - Analyze and prioritize technical debt
-
-### Data & Database
-- **data-pipeline** - Design scalable data architectures
-- **data-validation** - Implement validation systems
-- **db-migrate** - Database migration strategies
-
-### DevOps & Infrastructure
-- **deploy-checklist** - Deployment configurations and checklists
-- **docker-optimize** - Container optimization strategies
-- **k8s-manifest** - Kubernetes deployment manifests
-- **monitor-setup** - Monitoring and observability setup
-- **slo-implement** - Service Level Objectives implementation
-
-### Development & Testing
-- **api-mock** - Create realistic API mocks
-- **api-scaffold** - Generate production-ready API endpoints
-- **test-harness** - Comprehensive test suite creation
-
-### Security & Compliance
-- **accessibility-audit** - Accessibility testing and fixes
-- **compliance-check** - Regulatory compliance (GDPR, HIPAA)
-- **security-scan** - Security scanning with remediation
-
-### Debugging & Analysis
-- **debug-trace** - Advanced debugging strategies
-- **error-analysis** - Error pattern analysis
-- **error-trace** - Production error diagnosis
-- **issue** - Create well-structured GitHub issues
-- **smart-debug** - Intelligent debugging assistance
-
-### Dependencies & Configuration
-- **config-validate** - Configuration validation
-- **deps-audit** - Dependency security auditing
-- **deps-upgrade** - Safe dependency upgrades
-
-### Documentation & Collaboration
-- **doc-generate** - Generate comprehensive documentation
-- **pr-enhance** - Enhance pull request quality
-- **standup-notes** - Generate standup meeting notes
-
-### Cost & Resources
-- **cost-optimize** - Cloud and infrastructure cost optimization
-
-### Context Management
-- **context-save** - Save project context and state
-- **context-restore** - Restore saved context
-
-### Team & Process
-- **onboard** - New developer environment setup
-- **multi-agent-optimize** - Multi-perspective optimization
-- **multi-agent-review** - Multi-perspective code review
-
-## 📊 Command Usage Examples
-
-### For Vertical Farm Project
-
-```bash
-# Implement farm monitoring feature
-/feature-development Add real-time sensor monitoring dashboard
-
-# Security audit for farm data
-/security-scan Check RLS policies and authentication flows
-
-# Optimize Home Assistant integration
-/performance-optimization Improve device polling and caching
-
-# Debug sensor data issues
-/smart-debug Investigate missing sensor readings in shelves
-
-# Database migration for new features
-/db-migrate Add harvest tracking tables with RLS
-
-# Generate API documentation
-/doc-generate Create OpenAPI docs for farm management endpoints
-
-# Review farm hierarchy implementation
-/full-review Analyze Farm → Row → Rack → Shelf relationships
-
-# Optimize Docker containers
-/docker-optimize Reduce container size for faster deployments
-
-# Create monitoring dashboards
-/monitor-setup Set up Grafana dashboards for farm metrics
-```
-
-## 🎯 Best Practices
-
-### When to Use Workflows
-- Complex features requiring multiple domains
-- End-to-end implementations
-- Multi-step processes with dependencies
-- Comprehensive analysis and fixes
-
-### When to Use Tools
-- Specific, focused tasks
-- Single-domain operations
-- Quick fixes or analyses
-- Building blocks for larger features
-
-### Command Chaining
-```bash
-# Example: Complete feature implementation
-/feature-development User authentication system
-/test-harness Add integration tests for auth
-/security-scan Audit authentication implementation
-/docker-optimize Optimize auth service container
-/k8s-manifest Deploy auth service to production
-```
-
-## 🔄 Integration with Vertical Farm
-
-Commands are optimized for:
-- **Supabase PostgREST** operations with RLS
-- **FastAPI** integration endpoints
-- **Next.js 15** with App Router
-- **Home Assistant** device control
-- **Farm hierarchy** (Farm → Row → Rack → Shelf)
-- **Layer overlay system** for visualization
-- **Service layer architecture** enforcement
-
-## 📝 Adding Custom Commands
-
-1. Create `.md` file in appropriate directory
-2. Use `$ARGUMENTS` placeholder for user input
-3. Follow naming convention: `lowercase-hyphen.md`
-4. Include clear sections and examples
-
-## 🐛 Troubleshooting
-
-**Command not found**: Verify file exists in `.claude/commands/`
-**Slow execution**: Workflows coordinate multiple operations
-**Generic output**: Provide more project-specific context
-**Integration issues**: Check file paths and dependencies
-
-## 📚 Resources
-
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [Vertical Farm CLAUDE.md](../../CLAUDE.md) - Project-specific guidance
-- [Vertical Farm README](../../README.md) - Project overview

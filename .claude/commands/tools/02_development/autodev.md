@@ -249,9 +249,10 @@ Next steps:
 
 ## Notes
 
-- Each phase invokes the corresponding slash command via the SlashCommand tool
-- Context is shared between commands via `.claude/context/simple-context.yaml`
+- Each phase runs in the same Claude session, sharing conversation memory
+- Commands query GitHub directly for authoritative issue/PR state
+- The "Current Work" section in CLAUDE.md tracks active issue across sessions
 - Progress is visible in Claude Code as each command executes
+- If session ends mid-workflow, restart with `/autodev {issue}` - it will detect existing work
 - The PR description will include any test failures or validation issues
-- Reflection reports are saved to `.claude/reports/reflections/` for historical tracking
 - Review the PR carefully before merging

@@ -2,12 +2,9 @@
 
 Create or update the implementation roadmap with milestones, priorities, and dependencies.
 
-## Usage
-```
-/roadmap
-```
+[Extended thinking: This workflow transforms vision gaps and research findings into an actionable roadmap with milestones, priorities, and dependencies. It also creates/updates GitHub milestones to track progress.]
 
-## Examples
+## Usage
 ```
 /roadmap
 ```
@@ -19,44 +16,95 @@ When invoked with `/roadmap`, execute these steps:
 1. **Begin Roadmap Planning**
    **Output:**
    ```
-   🤖 Starting roadmap planning workflow...
-   🗺️ Building implementation roadmap
+   🗺️ Starting roadmap planning workflow...
    ```
 
-2. **Execute Roadmap Workflow**
+2. **Gather Context**
+   - Read `docs/planning/vision.md` for goals and gaps
+   - Read recent research from `docs/planning/research/`
+   - Read current roadmap if exists: `docs/planning/roadmap.md`
+   - Check current GitHub milestones: `gh api repos/{owner}/{repo}/milestones`
+
+3. **Prioritization**
+   Consider factors for ordering work:
+   | Factor | Question |
+   |--------|----------|
+   | **Dependencies** | What must be done first? |
+   | **Value** | What delivers the most impact? |
+   | **Risk** | What has the most uncertainty? |
+   | **Effort** | What can be done quickly? |
+
+   Use AskUserQuestion if prioritization is unclear.
+
+4. **Scoping Checklist (Linear Method)**
+   Before finalizing a milestone, verify:
+   - Can it be completed in **1-3 weeks** with **1-3 people**?
+   - Can individual deliverables be done in **hours**, not days?
+   - If NO: break into sequential **stages**
+
+   Example:
+   - TOO BIG: "Build complete IoT integration"
+   - RIGHT SIZE: "Stage 1: Device discovery API" (1 week)
+
+5. **Milestone Definition**
+   For each major goal:
+   - Define clear scope and boundaries
+   - List key deliverables
+   - Identify acceptance criteria
+   - Estimate relative effort (S/M/L/XL)
+   - Note dependencies on other milestones
+
+6. **GitHub Milestone Sync**
+   ```bash
+   # Create milestone
+   gh api repos/{owner}/{repo}/milestones -f title="v2.0 - Feature Name" -f description="..."
+
+   # Update existing
+   gh api repos/{owner}/{repo}/milestones/{number} -X PATCH -f title="..."
    ```
-   # Execute the workflow in: .claude/commands/workflows/00_project_management/roadmap-planning.md
+
+7. **Generate Roadmap Document**
+   Create or update `docs/planning/roadmap.md`:
+
+   ```markdown
+   # Product Roadmap
+
+   **Last Updated:** YYYY-MM-DD
+
+   ## Current Focus
+   [What we're working on now]
+
+   ## Milestones
+
+   ### Milestone 1: [Name]
+   **Status:** [Not Started / In Progress / Complete]
+   **Target:** [Date or Sprint]
+   **GitHub Milestone:** [link]
+
+   **Key Deliverables:**
+   - [ ] Deliverable 1
+
+   **Acceptance Criteria:**
+   - ...
+
+   **Dependencies:** None / [list]
+   **Effort Estimate:** [S/M/L/XL]
+
+   ## Parking Lot
+   Items considered but not currently scheduled
+
+   ## Risks & Mitigations
+   | Risk | Impact | Mitigation |
+   |------|--------|------------|
    ```
+
+8. **Complete Roadmap**
    **Output:**
    ```
-   🔍 Gathering roadmap context...
-
-   Claude will now:
-     1. Review vision and research findings
-     2. Break vision into milestones
-     3. Prioritize by dependencies and value
-     4. Define acceptance criteria
-     5. Create/update GitHub milestones
-   ```
-
-3. **Complete Roadmap**
-   **Output:**
-   ```
-   ═══════════════════════════════════════════════════════════════
    ✅ Roadmap Updated
-   ═══════════════════════════════════════════════════════════════
-
    📁 Roadmap saved: docs/planning/roadmap.md
    🏁 GitHub milestones synchronized
-
-   Milestones:
-     • Milestone 1: [Name] - [Target]
-     • Milestone 2: [Name] - [Target]
-
-   💡 Next steps:
-      • '/issues' - Generate GitHub issues from roadmap
-      • '/kanban' - Optimize project board
-   ═══════════════════════════════════════════════════════════════
+   💡 Next steps: '/issues' or '/kanban'
    ```
 
 ## Output Location

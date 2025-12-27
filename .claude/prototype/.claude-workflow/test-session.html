@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow Report: test-session</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  <style>
+    .mermaid { padding: 20px; border-radius: 8px; }
+    details summary { cursor: pointer; }
+    details summary:hover { background: rgba(0,0,0,0.05); }
+    .dark details summary:hover { background: rgba(255,255,255,0.05); }
+    .event-command { border-left: 4px solid #e91e63; }
+    .event-file_read { border-left: 4px solid #2196f3; }
+    .event-file_write { border-left: 4px solid #4caf50; }
+    .event-bash { border-left: 4px solid #ff9800; }
+    .event-system_interaction { border-left: 4px solid #9c27b0; }
+    .event-tool_call { border-left: 4px solid #607d8b; }
+    .event-message { border-left: 4px solid #00bcd4; }
+    .timeline-event.hidden { display: none; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Workflow Report</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">test-session</p>
+          <div class="flex gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <span>Start: 2025-12-22T16:30:00.000Z</span>
+            <span>End: 2025-12-22T16:30:30.000Z</span>
+            <span>Duration: 12.1s</span>
+          </div>
+        </div>
+        <div class="flex gap-2 no-print">
+          <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600" title="Toggle dark mode">
+            <span class="dark:hidden">🌙</span>
+            <span class="hidden dark:inline">☀️</span>
+          </button>
+          <button onclick="exportJSON()" class="px-3 py-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 text-sm" title="Export as JSON">
+            JSON
+          </button>
+          <button onclick="exportMarkdown()" class="px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-sm" title="Export as Markdown">
+            MD
+          </button>
+          <button onclick="window.print()" class="px-3 py-2 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm" title="Print/PDF">
+            PDF
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Overview -->
+    <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div>
+        <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">11</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Total Events</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold text-blue-600">2</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Files Read</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold text-green-600">2</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Files Written</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold text-orange-600">3</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Bash Commands</p>
+      </div>
+    </div>
+    
+    <div class="mt-4 pt-4 border-t dark:border-gray-700 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div>
+        <p class="text-2xl font-bold text-purple-600">153.1k</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Input Tokens</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-purple-600">5.1k</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Output Tokens</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-emerald-600">$0.54</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Est. Cost</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-gray-600 dark:text-gray-300">sonnet-4</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Model</p>
+      </div>
+    </div>
+    <div class="mt-4 pt-4 border-t dark:border-gray-700">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Top Tools:</p>
+      <div class="flex flex-wrap gap-2"><span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm">Bash: 3</span> <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm">Read: 2</span> <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm">Edit: 1</span> <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm">Write: 1</span> <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm">supabase:execute_sql: 1</span></div>
+    </div>
+  </section>
+
+    <!-- Workflow Diagram -->
+    <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Workflow Flow</h2>
+      <div class="mermaid overflow-x-auto bg-white dark:bg-gray-700 rounded-lg">
+flowchart TD
+    N0(["/plan"])
+    N1[("Edit: .../services/FarmService.ts")]
+    N2(["/dev"])
+    N3[("Write: .../components/NewFeature.tsx")]
+    N4[/"bash: npm test"/]
+    N5[/"bash: gh issue view 123"/]
+    N6[/"bash: gh pr create --title #quot;Fix i..."/]
+    N7(["/deploy"])
+    N8[["supabase:execute_sql"]]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N7
+    N7 --> N8
+
+    style N0 fill:#fce4ec,stroke:#e91e63
+    style N1 fill:#e8f5e9,stroke:#4caf50
+    style N2 fill:#fce4ec,stroke:#e91e63
+    style N3 fill:#e8f5e9,stroke:#4caf50
+    style N4 fill:#fff3e0,stroke:#ff9800
+    style N5 fill:#fff3e0,stroke:#ff9800
+    style N6 fill:#fff3e0,stroke:#ff9800
+    style N7 fill:#fce4ec,stroke:#e91e63
+    style N8 fill:#f3e5f5,stroke:#9c27b0
+      </div>
+    </section>
+
+    <!-- Systems -->
+    <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Systems Touched</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+      <h3 class="font-semibold text-gray-700 dark:text-gray-200">GitHub</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Viewed issue #123, Created PR</p>
+    </div>
+      <div class="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+      <h3 class="font-semibold text-purple-700 dark:text-purple-300">Supabase</h3>
+      <p class="text-sm text-purple-500 dark:text-purple-400">SQL: SELECT * FROM farms...</p>
+    </div>
+      <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+    <h3 class="font-semibold text-blue-700 dark:text-blue-300">Local Files</h3>
+    <p class="text-sm text-blue-500 dark:text-blue-400">2 reads, 2 writes</p>
+  </div>
+      <div class="bg-orange-50 dark:bg-orange-900/30 p-4 rounded-lg">
+      <h3 class="font-semibold text-orange-700 dark:text-orange-300">Bash</h3>
+      <p class="text-sm text-orange-500 dark:text-orange-400">2 git, 1 npm</p>
+    </div>
+    </div>
+  </section>
+
+    <!-- Timeline -->
+    <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Timeline</h2>
+
+    <!-- Search and Filters -->
+    <div class="mb-4 space-y-3 no-print">
+      <input
+        type="text"
+        id="timeline-search"
+        placeholder="Search events..."
+        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400"
+        oninput="filterTimeline()"
+      >
+      <div class="flex flex-wrap gap-3">
+        <label class="flex items-center gap-1 text-sm">
+      <input type="checkbox" class="type-filter" value="file_read" checked onchange="filterTimeline()">
+      <span class="text-gray-600 dark:text-gray-400">file read</span>
+    </label>
+        <label class="flex items-center gap-1 text-sm">
+      <input type="checkbox" class="type-filter" value="command" checked onchange="filterTimeline()">
+      <span class="text-gray-600 dark:text-gray-400">command</span>
+    </label>
+        <label class="flex items-center gap-1 text-sm">
+      <input type="checkbox" class="type-filter" value="file_write" checked onchange="filterTimeline()">
+      <span class="text-gray-600 dark:text-gray-400">file write</span>
+    </label>
+        <label class="flex items-center gap-1 text-sm">
+      <input type="checkbox" class="type-filter" value="bash" checked onchange="filterTimeline()">
+      <span class="text-gray-600 dark:text-gray-400">bash</span>
+    </label>
+        <label class="flex items-center gap-1 text-sm">
+      <input type="checkbox" class="type-filter" value="system_interaction" checked onchange="filterTimeline()">
+      <span class="text-gray-600 dark:text-gray-400">system interaction</span>
+    </label>
+      </div>
+    </div>
+
+    <details open>
+      <summary class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        <span id="event-count">11 of 11</span> events
+      </summary>
+      <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-96 overflow-y-auto">
+        <div class="timeline-event event-file_read pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="file_read">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">📖</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Read</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:00 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate"><span class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" onclick="navigator.clipboard.writeText('/Users/test/project/src/services/FarmService.ts'); this.classList.add('text-green-600'); setTimeout(() => this.classList.remove('text-green-600'), 1000)" title="Click to copy">/Users/test/project/src/services/FarmService.ts</span></p>
+    </div>
+<div class="timeline-event event-command pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="command">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">🚀</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">/plan</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:00 AM</span>
+      </div>
+      
+    </div>
+<div class="timeline-event event-file_read pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="file_read">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">📖</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Read</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:02 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate"><span class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" onclick="navigator.clipboard.writeText('/Users/test/project/src/components/FarmDashboard.tsx'); this.classList.add('text-green-600'); setTimeout(() => this.classList.remove('text-green-600'), 1000)" title="Click to copy">/Users/test/project/src/components/FarmDashboard.tsx</span></p>
+    </div>
+<div class="timeline-event event-file_write pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="file_write">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">✏️</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Edit</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:05 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate"><span class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" onclick="navigator.clipboard.writeText('/Users/test/project/src/services/FarmService.ts'); this.classList.add('text-green-600'); setTimeout(() => this.classList.remove('text-green-600'), 1000)" title="Click to copy">/Users/test/project/src/services/FarmService.ts</span></p>
+    </div>
+<div class="timeline-event event-command pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="command">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">🚀</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">/dev</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:05 AM</span>
+      </div>
+      
+    </div>
+<div class="timeline-event event-file_write pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="file_write">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">✏️</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Write</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:10 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate"><span class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" onclick="navigator.clipboard.writeText('/Users/test/project/src/components/NewFeature.tsx'); this.classList.add('text-green-600'); setTimeout(() => this.classList.remove('text-green-600'), 1000)" title="Click to copy">/Users/test/project/src/components/NewFeature.tsx</span></p>
+    </div>
+<div class="timeline-event event-bash pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="bash">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">💻</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Bash</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:15 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate">npm test</p>
+    </div>
+<div class="timeline-event event-bash pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="bash">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">💻</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Bash</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:20 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate">gh issue view <a href="https://github.com/issues/123" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">123</a></p>
+    </div>
+<div class="timeline-event event-bash pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="bash">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">💻</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">Bash</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:25 AM</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400 ml-7 truncate">gh pr create --title &quot;Fix issue <a href="https://github.com/issues/123" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">#123</a>&quot; --body &quot;Description&quot;</p>
+    </div>
+<div class="timeline-event event-command pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="command">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">🚀</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">/deploy</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:25 AM</span>
+      </div>
+      
+    </div>
+<div class="timeline-event event-system_interaction pl-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" data-type="system_interaction">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">🔗</span>
+        <span class="font-medium text-gray-800 dark:text-gray-200">supabase:execute_sql</span>
+        <span class="text-xs text-gray-400 ml-auto">10:30:30 AM</span>
+      </div>
+      
+    </div>
+      </div>
+    </details>
+  </section>
+  </div>
+
+  <script>
+    // Workflow data for exports
+    const workflowData = {"sessionName":"test-session","startTime":"2025-12-22T16:30:00.000Z","endTime":"2025-12-22T16:30:30.000Z","duration_ms":12100,"totalTokens":{"input_tokens":153100,"output_tokens":5140,"cache_creation_input_tokens":0,"cache_read_input_tokens":0},"costEstimate":{"input_cost_usd":0.45930000000000004,"output_cost_usd":0.07709999999999999,"total_cost_usd":0.5364},"model":"claude-sonnet-4-5-20250929","events":[{"timestamp":"2025-12-22T16:30:00.000Z","type":"file_read","name":"Read","target":"/Users/test/project/src/services/FarmService.ts","system":"local"},{"timestamp":"2025-12-22T16:30:00.000Z","type":"command","name":"/plan","details":{"fullText":"/plan 123"}},{"timestamp":"2025-12-22T16:30:02.000Z","type":"file_read","name":"Read","target":"/Users/test/project/src/components/FarmDashboard.tsx","system":"local"},{"timestamp":"2025-12-22T16:30:05.000Z","type":"file_write","name":"Edit","target":"/Users/test/project/src/services/FarmService.ts","system":"local"},{"timestamp":"2025-12-22T16:30:05.000Z","type":"command","name":"/dev","details":{"fullText":"/dev 123"}},{"timestamp":"2025-12-22T16:30:10.000Z","type":"file_write","name":"Write","target":"/Users/test/project/src/components/NewFeature.tsx","system":"local"},{"timestamp":"2025-12-22T16:30:15.000Z","type":"bash","name":"Bash","target":"npm test","system":"local","details":{"command":"npm test"}},{"timestamp":"2025-12-22T16:30:20.000Z","type":"bash","name":"Bash","target":"gh issue view 123","system":"github","details":{"command":"gh issue view 123"}},{"timestamp":"2025-12-22T16:30:25.000Z","type":"bash","name":"Bash","target":"gh pr create --title \"Fix issue #123\" --body \"Description\"","system":"github","details":{"command":"gh pr create --title \"Fix issue #123\" --body \"Description\""}},{"timestamp":"2025-12-22T16:30:25.000Z","type":"command","name":"/deploy","details":{"fullText":"/deploy 123"}},{"timestamp":"2025-12-22T16:30:30.000Z","type":"system_interaction","name":"supabase:execute_sql","system":"supabase","details":{"project_id":"abc123","query":"SELECT * FROM farms"}}],"systems":["local","github","supabase"],"filesRead":["/Users/test/project/src/services/FarmService.ts","/Users/test/project/src/components/FarmDashboard.tsx"],"filesWritten":["/Users/test/project/src/services/FarmService.ts","/Users/test/project/src/components/NewFeature.tsx"],"bashCommands":["npm test","gh issue view 123","gh pr create --title \"Fix issue #123\" --body \"Description\""],"toolCalls":{"Read":2,"Edit":1,"Write":1,"Bash":3,"supabase:execute_sql":1},"githubOps":["Viewed issue #123","Created PR"],"supabaseOps":["SQL: SELECT * FROM farms..."]};
+
+    // Store original mermaid code before it gets processed
+    const mermaidCode = document.querySelector('.mermaid')?.textContent || '';
+
+    // Dark mode
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+      // Mermaid doesn't need re-render - the container background handles dark mode
+    }
+
+    // Initialize dark mode from localStorage
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.documentElement.classList.add('dark');
+    }
+
+    // Initialize mermaid (always use default theme, container background handles dark mode)
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+    // Export functions
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(workflowData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = workflowData.sessionName + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportMarkdown() {
+      const md = generateMarkdown(workflowData);
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = workflowData.sessionName + '.md';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function generateMarkdown(data) {
+      let md = '# Workflow Report: ' + data.sessionName + '\n\n';
+      md += '**Duration:** ' + data.duration_ms + 'ms\n';
+      md += '**Model:** ' + (data.model || 'unknown') + '\n';
+      md += '**Tokens:** ' + data.totalTokens.input_tokens + ' in / ' + data.totalTokens.output_tokens + ' out\n';
+      md += '**Est. Cost:** $' + data.costEstimate.total_cost_usd.toFixed(2) + '\n\n';
+      md += '## Stats\n';
+      md += '- Events: ' + data.events.length + '\n';
+      md += '- Files Read: ' + data.filesRead.length + '\n';
+      md += '- Files Written: ' + data.filesWritten.length + '\n';
+      md += '- Bash Commands: ' + data.bashCommands.length + '\n\n';
+      md += '## Systems Touched\n';
+      data.systems.forEach(s => { md += '- ' + s + '\n'; });
+      md += '\n## Timeline\n';
+      data.events.slice(0, 20).forEach(e => {
+        md += '- **' + e.name + '**' + (e.target ? ': ' + e.target : '') + '\n';
+      });
+      return md;
+    }
+
+    // Timeline filtering
+    function filterTimeline() {
+      const search = document.getElementById('timeline-search')?.value.toLowerCase() || '';
+      const types = Array.from(document.querySelectorAll('.type-filter:checked')).map(cb => cb.value);
+
+      document.querySelectorAll('.timeline-event').forEach(el => {
+        const text = el.textContent.toLowerCase();
+        const type = el.dataset.type;
+        const matchesSearch = !search || text.includes(search);
+        const matchesType = types.length === 0 || types.includes(type);
+        el.classList.toggle('hidden', !(matchesSearch && matchesType));
+      });
+
+      // Update count
+      const visible = document.querySelectorAll('.timeline-event:not(.hidden)').length;
+      const total = document.querySelectorAll('.timeline-event').length;
+      const countEl = document.getElementById('event-count');
+      if (countEl) countEl.textContent = visible + ' of ' + total + ' events';
+    }
+  </script>
+</body>
+</html>
