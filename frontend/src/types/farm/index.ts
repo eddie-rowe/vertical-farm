@@ -11,3 +11,6 @@ export * from "./layout";
 
 // Grow recipes and species types
 export * from "./recipes";
+
+// Harvest tracking types
+export * from "./harvest";
