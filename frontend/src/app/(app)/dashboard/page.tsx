@@ -365,6 +365,7 @@ export default function StrategicDashboardPage() {
   const {
     currentView,
     currentTime,
+    isLoading,
     strategicData,
     handleCategoryClick,
     handleBackToExecutive,
@@ -385,8 +386,8 @@ export default function StrategicDashboardPage() {
 
       {currentView === "executive" ? (
         <div className="space-y-6">
-          <HeroMetrics />
-          <ExecutiveSummary onCategoryClick={handleCategoryClick} />
+          <HeroMetrics isLoading={isLoading} />
+          <ExecutiveSummary onCategoryClick={handleCategoryClick} isLoading={isLoading} />
         </div>
       ) : (
         <DetailedView

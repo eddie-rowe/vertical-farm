@@ -7,7 +7,39 @@ import {
 } from "react-icons/fa";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
+
+interface HeroMetricsProps {
+  isLoading?: boolean;
+}
+
+// Skeleton component for loading state
+export const HeroMetricsSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {[...Array(4)].map((_, index) => (
+        <Card key={index} className="p-6">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <Skeleton className="w-9 h-9 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-7 w-16" />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-14" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
 
 interface HeroMetric {
   icon: React.ComponentType<{ className?: string }>;
@@ -53,7 +85,12 @@ const heroMetrics: HeroMetric[] = [
   },
 ];
 
-export const HeroMetrics = () => {
+export const HeroMetrics = ({ isLoading = false }: HeroMetricsProps) => {
+  // Show skeleton when loading
+  if (isLoading) {
+    return <HeroMetricsSkeleton />;
+  }
+
   const getTrendColor = (trend: "up" | "down" | "stable") => {
     switch (trend) {
       case "up":

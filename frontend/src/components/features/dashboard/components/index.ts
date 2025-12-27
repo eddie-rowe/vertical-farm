@@ -14,3 +14,7 @@ export { StrategicCard } from "./StrategicCard";
 // Progress and status indicators
 export { CircularProgress } from "./CircularProgress";
 export { ProgressIndicator } from "./ProgressIndicator";
+
+// Skeleton components for loading states
+export { HeroMetricsSkeleton } from "./HeroMetrics";
+export { ExecutiveSummarySkeleton } from "./ExecutiveSummary";
