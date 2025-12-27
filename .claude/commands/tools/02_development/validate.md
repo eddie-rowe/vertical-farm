@@ -2,6 +2,8 @@
 
 Comprehensively validate feature implementation using git diff analysis and Playwright testing.
 
+[Extended thinking: Analyze git changes and use Playwright to validate feature implementation. This workflow explores the application, takes screenshots, tests user flows, and ensures the implementation matches requirements.]
+
 ## Usage
 ```
 /validate <issue_number>
@@ -11,8 +13,13 @@ Comprehensively validate feature implementation using git diff analysis and Play
 ```
 /validate 65
 /validate 123
-/validate 42
 ```
+
+## Agent Orchestration
+
+| Agent | Purpose |
+|-------|---------|
+| **playwright-tester** | UI/UX validation, screenshot evidence, user flow testing |
 
 ## Execution
 
@@ -22,57 +29,60 @@ When invoked with `/validate <issue>`, execute these steps:
    ```
    # If no argument provided, show error:
    "❌ Please provide an issue number"
-   
-   # Show usage examples:
-   "   /validate 65"
-   "   /validate 123"
-   
+
    # Parse issue number from argument
    ```
-   
+
 2. **Begin Validation**
    **Output:**
    ```
-   🔍 Starting Claude-powered feature validation workflow...
+   🔍 Starting feature validation workflow...
    📋 Validating implementation for issue: {issue}
    ```
-   
-   *Note: Context is automatically initialized by UserPromptSubmit hook*
 
-3. **Load Development Context**
-   ```
-   # Read: .claude/context/simple-context.yaml
-   # Get analysis.requirements for validation criteria
-   # Get implementation.files_modified to focus testing
-   # Check session.phase == "development" to ensure ready
-   ```
-   
-   *Note: Context hook (.claude/hooks/simple-context-hook.sh update) runs automatically*
+3. **Change Analysis**
+   - Run `git diff main...HEAD` to see all changes
+   - Analyze modified files to understand scope
+   - Identify frontend components, backend endpoints, database changes
 
-4. **Execute Feature Validation**
-   ```
-   # Execute the workflow in: .claude/commands/workflows/03_testing/feature-validation.md
-   # With argument: {issue}
-   ```
+4. **Feature Exploration with Playwright**
+   - Start development server if needed
+   - Navigate to relevant pages
+   - Interact with new/modified features
+   - Take screenshots of key functionality
+   - Validate user flows end-to-end
+
+5. **Validation Checks**
+   | Check | Description |
+   |-------|-------------|
+   | Functionality | Feature works as intended |
+   | Responsive | Works on different screen sizes |
+   | Error Handling | Edge cases handled gracefully |
+   | Accessibility | Standards met (keyboard nav, contrast, labels) |
+   | Integration | Works with existing features |
+
+6. **Test Execution**
+   - Run existing automated tests
+   - Validate API endpoints with sample data
+   - Check database constraints and RLS policies
+
+7. **Generate Report**
+   **Outputs:**
+   - Git diff summary
+   - Screenshot evidence of functionality
+   - Validation checklist results
+   - Recommendations for improvements
+
+   **Success Criteria:**
+   - All modified features accessible and functional
+   - User workflows complete successfully
+   - No critical accessibility or usability issues
+   - Existing functionality unaffected
+   - Code changes align with issue requirements
+
+8. **Complete Validation**
    **Output:**
    ```
-   🤖 Invoking Claude with feature validation workflow...
-   
-   Claude will:
-     1. Analyze git diff to understand what changed
-     2. Use Playwright to explore and validate features
-     3. Test user workflows end-to-end
-     4. Validate responsive design and accessibility
-     5. Generate validation report with evidence
-   
-   💡 This workflow analyzes actual code changes and validates implementation
+   ✅ Validation complete
+   💡 Next step: '/deploy {issue}' to create PR
    ```
-
-5. **Complete Validation**
-   **Output:**
-   ```
-   📂 Context saved and available for next steps
-   💡 After validation: '/deploy {issue}' to create PR and deploy
-   ```
-   
-   *Note: Context is automatically saved by PostToolUse hook after validation completes*

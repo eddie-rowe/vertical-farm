@@ -2,6 +2,8 @@
 
 Automatically debug and fix GitHub Actions pipeline failures for pull requests.
 
+[Extended thinking: Analyze GitHub Actions pipeline failures, identify root causes using error patterns, apply domain-specific fixes with specialized agents (python-pro, javascript-pro, security-auditor, deployment-engineer), and re-trigger the workflow.]
+
 ## Usage
 ```
 /pipeline <pr_number>
@@ -11,8 +13,18 @@ Automatically debug and fix GitHub Actions pipeline failures for pull requests.
 ```
 /pipeline 123
 /pipeline 456
-/pipeline 789
 ```
+
+## Agent Orchestration
+
+| Domain | Agent | Handles |
+|--------|-------|---------|
+| Backend | **python-pro** | Python/FastAPI issues, test failures |
+| Backend | **database-optimizer** | Database-related problems |
+| Frontend | **javascript-pro** | Node.js/React issues, type errors |
+| Frontend | **frontend-developer** | UI/component problems |
+| Security | **security-auditor** | Vulnerabilities, compliance |
+| Infrastructure | **deployment-engineer** | Docker/CI problems |
 
 ## Execution
 
@@ -22,56 +34,66 @@ When invoked with `/pipeline <pr>`, execute these steps:
    ```
    # If no argument provided, show error:
    "❌ Please provide a PR number"
-   
-   # Show usage examples:
-   "   /pipeline 123"
-   "   /pipeline 456"
-   
+
    # Parse PR number from argument
    ```
-   
+
 2. **Begin Pipeline Debugging**
    **Output:**
    ```
-   🔧 Starting Claude-powered pipeline debugging workflow...
+   🔧 Starting pipeline debugging workflow...
    🚨 Debugging pipeline for PR: {pr}
    ```
-   
-   *Note: Context is automatically initialized by UserPromptSubmit hook*
 
 3. **Retrieve Pipeline Status**
-   ```
-   # Get failed workflow runs for the PR
+   ```bash
    gh run list --limit 1 --branch {pr_branch}
    gh run view {run_id} --log-failed
    ```
-   
-   *Note: Context is automatically captured for pipeline workflow*
+   - Get PR details and associated workflow runs
+   - Identify failed jobs and their error logs
+   - Categorize failures by domain
 
-4. **Execute Pipeline Debug Workflow**
-   ```
-   # Execute the workflow in: .claude/commands/workflows/05_deployment/pipeline-debug.md
-   # With argument: {pr}
-   ```
+4. **Error Pattern Analysis**
+   - Analyze error messages and stack traces
+   - Identify common failure patterns
+   - Determine severity and impact
+
+5. **Domain-Specific Diagnosis & Fixes**
+
+   **Backend Issues:**
+   - `python-pro`: Python/FastAPI issues, dependency conflicts, test failures
+   - `database-optimizer`: Database-related problems
+
+   **Frontend Issues:**
+   - `javascript-pro`: Node.js/React issues, type errors
+   - `frontend-developer`: UI/component problems, build timeouts
+
+   **Security Issues:**
+   - `security-auditor`: Vulnerabilities, dependency updates, compliance
+
+   **Infrastructure Issues:**
+   - `deployment-engineer`: Docker/CI problems, resource allocation, permissions
+
+6. **Apply Changes**
+   - Commit all fixes with descriptive messages
+   - Push changes to trigger new pipeline run
+
+7. **Complete Pipeline Fix**
    **Output:**
    ```
-   🤖 Invoking Claude with pipeline debugging workflow...
-   
-   Claude will:
-     1. Retrieve GitHub Actions logs and errors
-     2. Analyze failure patterns and root causes
-     3. Apply domain-specific fixes using specialized agents
-     4. Re-trigger the workflow automatically
-     5. Monitor and validate the fix
-   
-   💡 This workflow uses specialized agents for backend, frontend, security, and deployment fixes
+   ✅ Pipeline fixes applied and pushed
+   🔄 New workflow run triggered
+   💡 Monitor the re-triggered workflow for success
    ```
 
-5. **Complete Pipeline Fix**
-   **Output:**
-   ```
-   📂 Context saved and available for next steps
-   💡 Pipeline fixes applied and pushed. Monitor the re-triggered workflow for success
-   ```
-   
-   *Note: Context is automatically saved by PostToolUse hook after fixes complete*
+## Failure Categories
+
+| Category | Symptoms | Agent |
+|----------|----------|-------|
+| Test Failures | pytest/jest failures | python-pro, javascript-pro |
+| Build Errors | Compilation/bundling fails | frontend-developer, deployment-engineer |
+| Type Errors | TypeScript/mypy errors | typescript-pro, python-pro |
+| Security Scan | Vulnerability alerts | security-auditor |
+| Docker Issues | Container build fails | deployment-engineer |
+| Dependency | Package conflicts | python-pro, javascript-pro |

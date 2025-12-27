@@ -1,136 +1,80 @@
 # Project Management Workflow Commands
 
-This directory contains the project management workflow slash commands for the Vertical Farm project. These commands form a continuous planning loop that feeds into the SDLC development loop.
+Plan what to build. These commands form a continuous planning loop that feeds GitHub issues into the SDLC development loop.
 
-## PM ↔ SDLC Relationship
+## PM Loop — What to build?
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PM INFINITY LOOP                              │
-│  /audit → /vision → /research → /roadmap → /issues → /kanban    │
-│     ↑                                                    │       │
-│     └──────────────────── /pm-reflect ───────────────────┘       │
-│                              │                                   │
-│                              ▼ (creates issues)                  │
-├─────────────────────────────────────────────────────────────────┤
-│                    SDLC INFINITY LOOP                            │
-│  /plan → /dev → /test → /validate → /deploy → /merge → /finalize│
-│     ↑                                                     │      │
-│     └─────────────────────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-```
+```mermaid
+flowchart LR
+    subgraph IN["📥 Inputs"]
+        direction TB
+        docs_in[("Previous audits<br/><i>docs/planning/</i>")]
+        insights[("Digest reports<br/><i>docs/observation/</i>")]
+    end
 
-## Available Commands
+    subgraph PM["🎯 PM Commands"]
+        direction TB
+        audit["/audit<br/><i>Snapshot state</i>"] --> vision["/vision<br/><i>Define goals</i>"]
+        vision --> research["/research<br/><i>Investigate</i>"]
+        research --> roadmap["/roadmap<br/><i>Plan milestones</i>"]
+        roadmap --> issues["/issues<br/><i>Create tasks</i>"]
+        issues -.-> kanban["/kanban<br/><i>Optimize board</i>"]
+        kanban -.-> pm_reflect["/pm-reflect<br/><i>Review process</i>"]
+    end
 
-| Command | Purpose | Output |
-|---------|---------|--------|
-| `/audit` | Snapshot project state | `docs/planning/audits/YYYY-MM-DD.md` |
-| `/vision` | Define/refine product goals | `docs/planning/vision.md` |
-| `/research <topic>` | Research solutions | `docs/planning/research/YYYY-MM-DD-{topic}.md` |
-| `/roadmap` | Create/update roadmap | `docs/planning/roadmap.md` + GitHub milestones |
-| `/issues` | Generate GitHub issues | GitHub issues (handoff to SDLC) |
-| `/kanban` | Optimize project board | Board reorganization |
-| `/pm-reflect` | Review PM effectiveness | `docs/planning/reflections/YYYY-MM-DD.md` |
+    subgraph OUT["📤 Outputs"]
+        direction TB
+        gh_issues[("GitHub Issues<br/><i>Ready for dev</i>")]
+        gh_milestones[("Milestones<br/><i>Sprint goals</i>")]
+        reflections[("Reflections<br/><i>docs/planning/</i>")]
+    end
 
-## Workflow Integration
+    docs_in --> audit
+    insights --> audit
+    issues --> gh_issues
+    roadmap --> gh_milestones
+    pm_reflect --> reflections
 
-### Full Planning Cycle (Quarterly)
-
-Complete cycle from assessment to issue creation:
-
-```
-/audit → /vision → /research → /roadmap → /issues
+    style IN fill:#e3f2fd,stroke:#1976d2
+    style PM fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    style OUT fill:#fff3e0,stroke:#f57c00
 ```
 
-1. **Audit**: Assess current project state
-2. **Vision**: Define or refine goals based on audit
-3. **Research**: Investigate solutions for vision gaps
-4. **Roadmap**: Plan implementation milestones
-5. **Issues**: Create GitHub issues for development
+## Commands
 
-### Sprint Planning (Weekly)
+| Command | Purpose | Input | Process | Output |
+|---------|---------|-------|---------|--------|
+| [`/audit`](audit.md) | Snapshot project state | None | Agent orchestration (inline) | `docs/planning/audits/{date}.md` |
+| [`/vision`](vision.md) | Define product goals | User prompts | Agent orchestration (inline) | `docs/planning/vision.md` |
+| [`/research`](research.md) | Deep research | Topic argument | Agent orchestration (inline) | `docs/planning/research/{date}-{topic}.md` |
+| [`/roadmap`](roadmap.md) | Plan milestones | None | Agent orchestration (inline) | `docs/planning/roadmap.md`, GitHub milestones |
+| [`/issues`](issues.md) | Generate GitHub issues | User confirmation | Agent orchestration (inline) | GitHub issues with labels/milestones |
+| [`/kanban`](kanban.md) | Optimize board | User direction | Agent orchestration (inline) | Board updates, health report |
+| [`/pm-reflect`](pm-reflect.md) | Review PM effectiveness | None | Agent orchestration (inline) | `docs/planning/reflections/{date}.md` |
+| [`/changelog`](changelog.md) | Generate weekly changelog | None | Agent orchestration (inline) | `docs/changelogs/{date}.md` |
 
-Quick cycle for ongoing work management:
+## Command Parameters
 
-```
-/audit → /kanban
-```
+| Command | Accepts | Examples |
+|---------|---------|----------|
+| `/audit` | No arguments | `/audit` |
+| `/vision` | Interactive prompts | `/vision` |
+| `/research` | Topic string (required) | `/research "auth patterns"`, `/research IoT` |
+| `/roadmap` | No arguments | `/roadmap` |
+| `/issues` | Optional milestone filter | `/issues`, `/issues v2.0` |
+| `/kanban` | Optional action | `/kanban`, `/kanban stale`, `/kanban priorities` |
+| `/pm-reflect` | No arguments | `/pm-reflect` |
 
-1. **Audit**: Quick status check
-2. **Kanban**: Optimize board, reprioritize work
+## Workflow Patterns
 
-### Ad-hoc Research
-
-When exploring a specific topic:
-
-```
-/research {topic} → /issues
-```
-
-### Retrospective
-
-Periodic process improvement:
-
-```
-/pm-reflect → /audit
-```
-
-## Command Details
-
-### `/audit`
-Captures a comprehensive snapshot of the project:
-- Codebase structure and tech debt analysis
-- GitHub project board state via `gh`
-- Open issues, PRs, recent activity summary
-- Metrics (test coverage, build status)
-- Comparison with previous audit
-
-### `/vision`
-Manages the product vision document:
-- Reviews existing vision if present
-- Gathers user input on goals, priorities, constraints
-- Defines success metrics
-- Identifies gaps between current state and vision
-
-### `/research <topic>`
-Deep research on specific topics:
-- Web search for best practices
-- Analysis of similar implementations
-- Technology option evaluation
-- Trade-off documentation and recommendations
-
-### `/roadmap`
-Creates and maintains the implementation roadmap:
-- Breaks vision into epics/milestones
-- Prioritizes by dependencies and value
-- Defines acceptance criteria
-- Creates/updates GitHub milestones via `gh`
-
-### `/issues`
-Generates GitHub issues from the roadmap:
-- Converts roadmap items to issue specifications
-- Applies issue templates (bug, feature, enhancement)
-- Sets labels and milestones
-- Creates sub-issues for complex items
-- **Handoff point to SDLC loop** - user runs `/plan` when ready
-
-### `/kanban`
-Optimizes the GitHub project board:
-- Identifies stale issues
-- Suggests priority reordering
-- Flags blocked items
-- Archives completed work
-
-### `/pm-reflect`
-Reviews PM process effectiveness:
-- Analyzes cycle time and throughput
-- Reviews roadmap accuracy
-- Identifies process bottlenecks
-- Suggests workflow improvements
+| Pattern | When to Use | Commands |
+|---------|-------------|----------|
+| **Full Cycle** | Quarterly planning | `/audit` → `/vision` → `/research` → `/roadmap` → `/issues` |
+| **Sprint** | Weekly planning | `/audit` → `/kanban` |
+| **Ad-hoc Research** | Exploring a topic | `/research {topic}` → `/issues` |
+| **Retrospective** | Process improvement | `/pm-reflect` → `/audit` |
 
 ## Output Locations
-
-All PM artifacts are stored in `docs/planning/`:
 
 ```
 docs/planning/
@@ -144,50 +88,14 @@ docs/planning/
     └── YYYY-MM-DD.md      # PM retrospectives
 ```
 
-## Context Flow
+## Handoff to SDLC Loop
 
-Each command maintains context through `.claude/context/simple-context.yaml`:
-
-```yaml
-pm_phase: audit | vision | research | roadmap | issues | kanban | reflect
-pm_context:
-  last_audit: "2025-12-17"
-  vision_gaps: ["feature-a", "feature-b"]
-  roadmap_milestones: ["v2.0", "v2.1"]
-  pending_issues: 12
-  board_health: "good"
-```
-
-- `/audit` → captures current state, identifies gaps
-- `/vision` → defines goals, stores vision gaps
-- `/research` → stores findings, recommendations
-- `/roadmap` → creates milestones, tracks priorities
-- `/issues` → creates GitHub issues, tracks counts
-- `/kanban` → updates board health status
-- `/pm-reflect` → analyzes patterns, suggests improvements
-
-## Related Workflows
-
-Each command executes a corresponding workflow:
-
-| Command | Workflow |
-|---------|----------|
-| `/audit` | `workflows/00_project_management/project-audit.md` |
-| `/vision` | `workflows/00_project_management/vision-definition.md` |
-| `/research` | `workflows/00_project_management/deep-research.md` |
-| `/roadmap` | `workflows/00_project_management/roadmap-planning.md` |
-| `/issues` | `workflows/00_project_management/issue-generation.md` |
-| `/kanban` | `workflows/00_project_management/kanban-optimization.md` |
-| `/pm-reflect` | `workflows/00_project_management/pm-reflection.md` |
-
-## Transitioning to SDLC Loop
-
-After `/issues` creates GitHub issues, transition to the development loop:
+After `/issues` creates GitHub issues, transition to development:
 
 ```
 PM Loop: /issues creates #123
     ↓
-SDLC Loop: /plan 123 → /dev 123 → /test → /validate 123 → /deploy 123 → /merge 68 → /finalize 123
+SDLC Loop: /plan 123 → /dev 123 → /test → /validate 123 → /deploy 123
 ```
 
-The PM loop is responsible for **what** to build. The SDLC loop handles **how** to build it.
+The PM loop defines **what** to build. The SDLC loop handles **how** to build it.

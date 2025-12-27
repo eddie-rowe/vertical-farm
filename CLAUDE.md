@@ -165,8 +165,26 @@ make logs           # View service logs
 | `/pipeline <pr>` | (Optional) Debug CI/CD failures |
 | `/reflect` | (Optional) Review development patterns |
 
+**Observation Loop** - Production monitoring & feedback:
+| Command | Purpose |
+|---------|---------|
+| `/status` | Real-time system health check |
+| `/slo [service]` | SLO compliance & error budgets |
+| `/metrics [scope]` | Trend analysis & anomaly detection |
+| `/ux` | User experience patterns (RUM) |
+| `/incident <id>` | Incident response workflow |
+| `/postmortem <id>` | Generate incident postmortem |
+| `/digest` | Weekly synthesis → PM loop input |
+| `/autoobs` | Full autonomous observation sweep |
+
 **PM workflow:** `/audit` → `/vision` → `/research` → `/roadmap` → `/issues`
 **SDLC workflow:** `/plan 123` → `/dev 123` → `/test` → `/validate 123` → `/deploy 123` → `/merge 68` → `/finalize 123`
+**Observation workflow:** `/status` → `/slo` → `/metrics` → `/ux` → `/digest` (or `/autoobs`)
+
+**Three-Loop System:**
+```
+PM (What to build) → SDLC (How to build) → Observation (Is it working?) → PM
+```
 
 ## Anti-Patterns to Avoid
 
@@ -203,3 +221,14 @@ USING (farm_id IN (
 - Workflow commands: `.claude/commands/tools/02_development/README.md`
 - API docs: `http://localhost:8000/docs` (when backend running)
 - Supabase Studio: `http://localhost:54323` (when running locally)
+
+## Current Work
+
+<!-- Updated by slash commands. Query GitHub for authoritative state. -->
+
+| Key | Value |
+|-----|-------|
+| Issue | - |
+| Phase | - |
+| PR | - |
+| Last Digest | - |

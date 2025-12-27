@@ -91,7 +91,7 @@ Replace `123` with your issue number. This command:
 
 **Stay engaged during development.** Claude will ask clarifying questions - answer them to guide the implementation.
 
-### 2.4 Validate with E2E Tests
+### 2.4 Validate the implementation meets acceptance criteria
 
 ```
 /tools:02_development:validate 123
@@ -103,19 +103,22 @@ Replace `123` with your issue number. This command:
 - Takes screenshots for verification
 - Validates acceptance criteria
 
-### 2.5 Run Local Tests
+### 2.5 Reflect on this development cycle
+
+While waiting for review, run a reflection to analyze your work:
 
 ```
-/tools:02_development:test
+/tools:02_development:reflect
 ```
 
-This runs the full test suite:
-- Frontend unit tests (Jest)
-- Backend unit tests (pytest)
-- Type checking (TypeScript, mypy)
-- Linting (ESLint, Black)
+This command:
+- Analyzes your recent commits for patterns
+- Identifies common errors or debugging sessions
+- Reviews code quality and consistency
+- Suggests workflow improvements
+- Saves a report to `.claude/reports/reflections/`
 
-**All tests must pass before proceeding.** Fix any failures before moving on.
+**This makes our processes better** - the reports will be used to improve our development cycle's workflow quality over time.
 
 ### 2.6 Create Pull Request
 
@@ -181,33 +184,7 @@ git stash pop  # Restore stashed changes (if any)
 
 **Tip:** Keep track of which branches you're juggling. Use `git branch` to list your local branches.
 
-### 3.3 Reflect on Development
-
-While waiting for review, run a reflection to analyze your work:
-
-```
-/tools:02_development:reflect
-```
-
-This command:
-- Analyzes your recent commits for patterns
-- Identifies common errors or debugging sessions
-- Reviews code quality and consistency
-- Suggests workflow improvements
-- Saves a report to `.claude/reports/reflections/`
-
-**Options:**
-```
-/tools:02_development:reflect 5              # Analyze last 5 commits
-/tools:02_development:reflect 10 typescript  # Focus on TypeScript code
-/tools:02_development:reflect 20 backend     # Deep dive on Python backend
-```
-
-**Available scopes:** `all`, `typescript`, `backend`, `testing`, `infrastructure`, `database`, `security`, `performance`
-
-**Review the reflection report** and note any action items for future work.
-
-### 3.4 Address Requested Changes (If Any)
+### 3.3 Address Requested Changes (If Any)
 
 If Eddie requests changes:
 
@@ -230,18 +207,7 @@ If Eddie requests changes:
 
 ## Phase 4: Merge and Finalization
 
-### 4.1 Check PR Status (Optional)
-
-```
-/tools:02_development:review 68
-```
-
-Replace `68` with your PR number. Verifies:
-- CI/CD pipeline status
-- Review approval status
-- Merge readiness
-
-### 4.2 Merge the PR
+### 4.1 Merge the PR
 
 **Only after Eddie approves:**
 
@@ -254,7 +220,7 @@ Replace `68` with your PR number. This command:
 - Squash merges to main
 - Deletes the feature branch on remote
 
-### 4.3 Finalize the Issue
+### 4.2 Finalize the Issue
 
 ```
 /tools:02_development:finalize 123
@@ -265,7 +231,7 @@ Replace `123` with your issue number. This command:
 - Updates documentation if needed
 - Links the merged PR
 
-### 4.4 Cleanup
+### 4.3 Cleanup
 
 ```bash
 # Switch back to main
@@ -282,21 +248,6 @@ make down && supabase stop
 
 ## Quick Reference
 
-### Full Command List
-
-| Step | Command | Input |
-|------|---------|-------|
-| Start environment | `/tools:02_development:up` | None |
-| Plan implementation | `/tools:02_development:plan 123` | Issue # |
-| Develop feature | `/tools:02_development:dev 123` | Issue # |
-| E2E validation | `/tools:02_development:validate 123` | Issue # |
-| Run tests | `/tools:02_development:test` | None |
-| Create PR | `/tools:02_development:deploy 123` | Issue # |
-| Reflect on work | `/tools:02_development:reflect` | Commits, Scope |
-| Check PR status | `/tools:02_development:review 68` | PR # |
-| Merge PR | `/tools:02_development:merge 68` | PR # |
-| Close issue | `/tools:02_development:finalize 123` | Issue # |
-
 ### Typical Flow
 
 ```
@@ -304,7 +255,6 @@ make down && supabase stop
 /tools:02_development:plan 123
 /tools:02_development:dev 123
 /tools:02_development:validate 123
-/tools:02_development:test
 /tools:02_development:deploy 123
 /tools:02_development:reflect
 # ... wait for Eddie's approval ...
@@ -326,10 +276,7 @@ make down && supabase stop
 
 1. **Read the issue thoroughly** before starting
 2. **Ask questions early** - don't guess at requirements
-3. **Commit often** - small, logical commits
-4. **Test locally first** - don't rely only on CI
-5. **Keep PRs focused** - one issue per PR
-6. **Respond to reviews quickly** - keeps momentum
+3. **Keep PRs focused** - one issue per PR
 
 ## Getting Help
 
@@ -339,5 +286,4 @@ make down && supabase stop
 ## Related Documentation
 
 - [Coding Standards](./coding-standards.md)
-- [Testing Guide](./testing.md)
 - [CLAUDE.md](/CLAUDE.md) - Project rules and patterns

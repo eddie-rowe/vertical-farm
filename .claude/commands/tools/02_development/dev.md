@@ -2,6 +2,8 @@
 
 Orchestrate comprehensive feature development from GitHub issue or feature description.
 
+[Extended thinking: Analyze the input and intelligently orchestrate the most appropriate specialized agents. Ensure proper service layer architecture, RLS compliance, and modern React/Next.js patterns while adapting to the specific development context.]
+
 ## Usage
 ```
 /dev <issue_number_or_url>
@@ -15,6 +17,41 @@ Orchestrate comprehensive feature development from GitHub issue or feature descr
 /dev "Add temperature monitoring dashboard"
 ```
 
+## Agent Orchestration
+
+### Analysis & Requirements (invoke first)
+| Agent | When to Use |
+|-------|-------------|
+| **backend-architect** | Always - Determine FastAPI vs PostgREST approach |
+| **sql-pro** | If database schema changes or RLS policies needed |
+
+### Implementation (based on analysis)
+| Agent | When to Use |
+|-------|-------------|
+| **typescript-pro** | Always - Frontend service layer (mandatory singleton pattern) |
+| **frontend-developer** | If UI components needed - Next.js Server/Client patterns |
+| **python-pro** | Only if FastAPI backend required |
+
+### Quality Assurance (after implementation)
+| Agent | When to Use |
+|-------|-------------|
+| **test-automator** | Always - Comprehensive test coverage |
+| **code-reviewer** | Always - Architecture compliance review |
+
+## Architecture Decision Framework
+
+**Use FastAPI when:**
+- External integrations (Home Assistant, payment processing)
+- Complex background tasks and automation
+- Real-time processing requiring custom logic
+- Third-party API orchestration
+
+**Use PostgREST/Supabase when:**
+- Standard CRUD operations (farms, devices, users, grows)
+- Database-driven features with RLS
+- Real-time subscriptions via Supabase
+- Most core business operations (90% of features)
+
 ## Execution
 
 When invoked with `/dev <argument>`, execute these steps:
@@ -23,87 +60,54 @@ When invoked with `/dev <argument>`, execute these steps:
    ```
    # If no argument provided, show error:
    "❌ Please provide either an issue number or feature description"
-   
-   # Show usage examples:
-   "   /dev 123"
-   "   /dev https://github.com/user/repo/issues/123"
-   "   /dev \"Add temperature monitoring dashboard\""
-   
+
    # Parse argument to determine if GitHub issue (number/URL) or feature description
    ```
-   
+
 2. **Begin Development**
    **Output:**
    ```
-   ⚡ Starting Claude-powered feature development workflow...
+   ⚡ Starting feature development workflow...
    ```
-   
-   *Note: Context is automatically initialized by UserPromptSubmit hook*
 
-3. **Check Existing Context**
-   ```
-   # Read: .claude/context/simple-context.yaml
-   # Check for analysis.requirements and analysis.subtasks from /plan
-   # If session.phase == "planning", we have context to continue
-   ```
-   
-   *Note: Context hook (.claude/hooks/simple-context-hook.sh update) runs automatically*
+3. **Handle Input Type**
 
-4. **Handle Input Type**
-   
    **If GitHub Issue:**
-   ```
-   # Parse issue number from various formats (123, #123, URL)
-   ```
-   **Output:**
-   ```
-   📋 Developing from GitHub issue: {issue}
-   🤖 Claude will first analyze the issue, then start development...
-   ```
-   
-   **Check for Prior Analysis:**
-   - If analysis exists in context: Skip re-analysis, proceed to implementation
-   - If no prior analysis: Run /plan workflow first, then continue
-   
-   **If Feature Description:**
-   ```
-   # Handle as feature string
-   ```
-   **Output:**
-   ```
-   🔨 Developing feature: {feature}
-   🤖 Invoking Claude with feature development workflow...
-   ```
-   
-   - No prior analysis needed, start fresh
-   - Use patterns from context for consistency
+   - Parse issue number from various formats (123, #123, URL)
+   - Check for prior analysis from `/plan` - skip re-analysis if exists
+   - Fetch issue details and requirements
 
-5. **Execute Feature Development**
-   ```
-   # Execute the workflow in: .claude/commands/workflows/02_development/feature-development.md
-   # With argument: {issue} or {feature}
-   ```
-   **Output:**
-   ```
-   🔄 Claude will orchestrate specialized agents for:
-     • Issue analysis (if GitHub issue provided)
-     • Backend architecture & API design
-     • Frontend components & service layer
-     • Comprehensive testing coverage
-     • Code review & quality assurance
-   ```
-   
+   **If Feature Description:**
+   - Start fresh with the provided description
+   - Use patterns from CLAUDE.md for consistency
+
+4. **Execute Development with Agent Orchestration**
+
    **Development Process:**
+   1. Use `backend-architect` to determine architecture approach
+   2. Use `sql-pro` if database changes needed
+   3. Use `typescript-pro` for service layer implementation
+   4. Use `frontend-developer` or `python-pro` based on requirements
+   5. Use `test-automator` for test coverage
+   6. Use `code-reviewer` for final review
+
+   **Adaptive Decision Making:**
    - Use agents.recommended_next if available from /plan
-   - Implement based on analysis.subtasks
-   - Track implementation details for context
-   - Apply appropriate agent selection logic
+   - Run independent agents in parallel when possible
+   - Iterate on feedback before proceeding
+
+5. **Architecture Requirements**
+
+   All implementations must ensure:
+   - **Service Layer**: Mandatory for all data operations
+   - **RLS Policies**: Multi-tenant farm data protection
+   - **No Direct DB Calls**: Components must use services only
+   - **Type Safety**: Full TypeScript and Python typing
+   - **CLAUDE.md Compliance**: Follow all project patterns
 
 6. **Complete Development**
    **Output:**
    ```
-   📂 Context saved and available for next steps
-   💡 After development: '/validate {issue}' for validation
+   ✅ Development complete
+   💡 Next step: '/validate {issue}' to test the implementation
    ```
-   
-   *Note: Context is automatically saved by PostToolUse hook after agents complete*

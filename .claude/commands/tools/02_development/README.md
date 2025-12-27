@@ -1,110 +1,71 @@
 # Development Workflow Commands
 
-This directory contains the core development workflow slash commands for the Vertical Farm project.
+Build features from GitHub issues. These commands form the development lifecycle from planning through deployment.
 
-## Available Commands
+## SDLC Loop — How to build?
 
-### Environment & Setup
-- `/up` - Start Development Environment
+```mermaid
+flowchart LR
+    subgraph IN["📥 Inputs"]
+        direction TB
+        gh_issue[("GitHub Issue<br/><i>Task to implement</i>")]
+    end
 
-### Development Workflow
-- `/plan` - Issue Analysis & Planning
-- `/dev` - Feature Development
-- `/validate` - Feature Validation
-- `/test` - Comprehensive Local Testing
-- `/deploy` - Issue Deployment (create PR)
-- `/review` - Pull Request Review
-- `/merge` - Pull Request Merge
-- `/finalize` - Issue Finalization
+    subgraph SDLC["🔧 SDLC Commands"]
+        direction TB
+        plan["/plan<br/><i>Analyze issue</i>"] --> up["/up<br/><i>Start env</i>"]
+        up --> dev["/dev<br/><i>Implement</i>"]
+        dev --> test["/test<br/><i>Run tests</i>"]
+        test --> validate["/validate<br/><i>E2E testing</i>"]
+        validate --> reflect["/reflect<br/><i>Review patterns</i>"]
+        reflect --> deploy["/deploy<br/><i>Create PR</i>"]
+        deploy --> review["/review<br/><i>Check status</i>"]
+        review --> merge["/merge<br/><i>Merge PR</i>"]
+        merge --> finalize["/finalize<br/><i>Close issue</i>"]
+    end
 
-### Maintenance & Debugging
-- `/pipeline` - Pipeline Debugging
-- `/reflect` - Development Reflection
+    subgraph OUT["📤 Outputs"]
+        direction TB
+        gh_pr[("GitHub PR<br/><i>Code review</i>")]
+        gh_actions[("CI/CD<br/><i>Automated checks</i>")]
+        deployed[("Deployed<br/><i>Live in prod</i>")]
+    end
 
-## Workflow Integration
+    gh_issue --> plan
+    deploy --> gh_pr
+    merge --> gh_actions
+    finalize --> deployed
 
-### Complete Development Lifecycle
-
-The full workflow from environment setup to issue closure:
-
-```
-/up → /plan 123 → /dev 123 → /test → /validate 123 → /deploy 123 → /review 68 → /merge 68 → /finalize 123
-```
-
-1. **Setup**: Start development environment
-2. **Plan**: Analyze the issue and create subtasks
-3. **Develop**: Implement the feature using specialized agents
-4. **Test**: Run comprehensive local tests
-5. **Validate**: Test the implementation with Playwright
-6. **Deploy**: Create PR and handle deployment
-7. **Review**: Request and verify code reviews
-8. **Merge**: Merge approved PR to main branch
-9. **Finalize**: Close issue with documentation
-
-### Standard Development Flow
-
-For typical feature development:
-
-```
-/plan 123 → /dev 123 → /validate 123 → /deploy 123 → /merge 68
+    style IN fill:#e3f2fd,stroke:#1976d2
+    style SDLC fill:#e0f2f1,stroke:#00897b,stroke-width:2px
+    style OUT fill:#fff3e0,stroke:#f57c00
 ```
 
-### Quick Development Flow
+## Commands
 
-Skip planning when the issue is already well-defined:
+| Command | Purpose | Input | Process | Output |
+|---------|---------|-------|---------|--------|
+| [`/up`](up.md) | Start dev environment | None | Supabase, Docker, health checks | Running services, `.env.local` |
+| [`/plan`](plan.md) | Analyze issue | Issue # or URL | Agent orchestration (inline) | Implementation plan, updated issue |
+| [`/dev`](dev.md) | Feature development | Issue # or description | Agent orchestration (inline) | Code changes, tests |
+| [`/test`](test.md) | Run local CI | `--quick`, `--security` | nektos/act (GitHub Actions locally) | Test results, artifacts |
+| [`/validate`](validate.md) | E2E validation | Issue # | Agent orchestration (inline) | Validation report, screenshots |
+| [`/reflect`](reflect.md) | Development reflection | Commits, scope | [development-reflection](../workflows/maintenance/development-reflection.md) | `.claude/reports/reflections/{date}.md` |
+| [`/deploy`](deploy.md) | Create PR | Issue # | Agent orchestration (inline) | GitHub PR with review guide |
+| [`/review`](review.md) | Check PR status | PR # | code-reviewer agent | Review summary, PR comments |
+| [`/merge`](merge.md) | Merge PR | PR #, strategy | Pre-merge validation, `gh pr merge` | Merged PR, local sync |
+| [`/finalize`](finalize.md) | Close issue | Issue # | Agent orchestration (inline) | Issue closed, prompting log |
+| [`/pipeline`](pipeline.md) | Debug CI failures | PR # | Agent orchestration (inline) | Applied fixes, re-triggered workflow |
 
-```
-/dev 123 → /test → /validate 123 → /deploy 123 → /merge 68
-```
+## Workflow Patterns
 
-### Standalone Feature Development
-
-Develop features without a GitHub issue:
-
-```
-/dev "Add user preferences panel" → /test → /validate → /deploy
-```
-
-### PR Review & Merge Flow
-
-When a PR is ready for review:
-
-```
-/deploy 123 → /review 68 → /merge 68 → /finalize 123
-```
-
-### Pipeline Troubleshooting
-
-When CI/CD fails on a pull request:
-
-```
-PR created → Pipeline fails → /pipeline {pr} → Automatic fix → Pipeline passes
-```
-
-### Continuous Improvement
-
-Periodically reflect on development patterns:
-
-```
-Development → /reflect → Improved workflows → Better development
-```
-
-Best used:
-- After completing major features
-- When encountering repeated issues
-- During sprint retrospectives
-
-## Context Flow
-
-Each command in the workflow maintains context through `.claude/context/simple-context.yaml`:
-
-- `/plan` creates initial analysis context
-- `/dev` uses analysis to guide implementation
-- `/validate` references implementation for testing
-- `/deploy` creates PR and tracks deployment
-- `/review` monitors review status
-- `/merge` completes the PR lifecycle
-- Context is automatically managed by hooks
+| Pattern | When to Use | Commands |
+|---------|-------------|----------|
+| **Complete** | Full lifecycle | `/up` → `/plan` → `/dev` → `/test` → `/validate` → `/deploy` → `/review` → `/merge` → `/finalize` |
+| **Standard** | Typical development | `/plan` → `/dev` → `/validate` → `/deploy` → `/merge` |
+| **Quick** | Well-defined issues | `/dev` → `/test` → `/validate` → `/deploy` → `/merge` |
+| **Standalone** | No GitHub issue | `/dev "feature"` → `/test` → `/validate` → `/deploy` |
+| **PR Only** | PR ready for review | `/deploy` → `/review` → `/merge` → `/finalize` |
 
 ## Command Parameters
 
@@ -116,49 +77,61 @@ Each command in the workflow maintains context through `.claude/context/simple-c
 ### PR-based Commands
 - `/review <pr>` - PR number required
 - `/merge <pr>` - PR number required
-- `/merge <pr> --strategy squash|merge|rebase` - Optional merge strategy
+- `/merge <pr> --strategy squash|merge|rebase` - Optional merge strategy (default: squash)
 
 ### Feature-based Commands
-- Accept feature descriptions: `"Add temperature monitoring"`
-- Must be quoted if containing spaces
+- `/dev "Add temperature monitoring"` - Quote descriptions with spaces
+- `/dev 123` - Or use issue number
 
-### Optional Parameters
-- `/reflect [commits] [scope]` - Defaults to 10 commits, all scopes
-- `/pipeline <pr>` - Requires PR number
-- `/merge <pr> --strategy <type>` - Defaults to squash
+### Test Flags
+- `/test` - Full test suite
+- `/test --quick` - Fast subset
+- `/test --security` - Security-focused tests
 
-## Hook Integration
+## Output Locations
 
-All commands integrate with these hooks:
-- **UserPromptSubmit**: Initializes context at command start
-- **PostToolUse**: Saves context after agents complete
-- **Simple Context Hook**: Updates `.claude/context/simple-context.yaml`
+```
+.claude/reports/
+├── reflections/
+│   └── YYYY-MM-DD.md      # Development retrospectives
+└── validations/
+    └── {issue}-{date}.md  # E2E validation reports
 
-## Related Workflows
+docs/planning/
+└── audits/                # Referenced by /plan for context
+```
 
-Each command executes a corresponding workflow:
-- `/plan` → `.claude/commands/workflows/01_planning/issue-analysis.md`
-- `/dev` → `.claude/commands/workflows/02_development/feature-development.md`
-- `/validate` → `.claude/commands/workflows/03_testing/feature-validation.md`
-- `/deploy` → `.claude/commands/workflows/04_deployment/issue-deployment.md`
-- `/review` → Automated code review with status checks
-- `/merge` → PR merge with validation and cleanup
-- `/pipeline` → `.claude/commands/workflows/05_deployment/pipeline-debug.md`
-- `/reflect` → `.claude/commands/workflows/maintenance/development-reflection.md`
-- `/finalize` → `.claude/commands/workflows/06_finalization/issue-finalize.md`
+## Handoff to Observation Loop
 
-## Command Quick Reference
+After `/finalize` merges and closes the issue, production monitoring begins:
 
-| Command | Purpose | Input | Output |
-|---------|---------|-------|--------|
-| `/up` | Start dev environment | None | Running services |
-| `/plan` | Analyze issue | Issue # | Implementation plan |
-| `/dev` | Develop feature | Issue # | Code changes |
-| `/test` | Run tests | None | Test results |
-| `/validate` | E2E testing | Issue # | Validation report |
-| `/deploy` | Create PR | Issue # | PR URL |
-| `/review` | Check PR status | PR # | Review status |
-| `/merge` | Merge PR | PR # | Merged PR |
-| `/finalize` | Close issue | Issue # | Documentation |
-| `/pipeline` | Debug CI | PR # | Fixed pipeline |
-| `/reflect` | Review patterns | None | Insights |
+```
+SDLC Loop: /finalize closes #123
+    ↓
+Observation Loop: /status → /slo → /metrics → /ux → /digest
+```
+
+The SDLC loop handles **how** to build. The Observation loop monitors **is it working**.
+
+## Context Efficiency Guidelines
+
+> **Context Rule**: Inline agent selection in command files. Only create separate workflow files when 3+ commands share identical orchestration logic.
+
+### When to Inline vs Separate
+
+| Scenario | Approach |
+|----------|----------|
+| Command-specific logic | **Inline** in command file |
+| Shared by 3+ commands | **Separate** workflow file |
+| Complex multi-agent orchestration (single command) | **Inline** with tables |
+| Reusable decision frameworks | **Separate** workflow file |
+
+### Why This Matters
+
+Each workflow file reference costs:
+- Additional file read operation
+- Token overhead for parsing references
+- Potential for context fragmentation
+- Increased chance of LLM losing track of instructions
+
+The `/dev` command demonstrates the inline pattern: agent selection logic is embedded directly in `dev.md` rather than referencing an external workflow file.

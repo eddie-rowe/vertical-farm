@@ -2,6 +2,8 @@
 
 Finalize completed issues with documentation updates, prompting logs, and closing notes.
 
+[Extended thinking: Complete the development lifecycle by updating documentation, creating prompting logs for future reference, generating comprehensive closing notes, and closing the GitHub issue. Archive context for audit trail.]
+
 ## Usage
 ```
 /finalize <issue_number>
@@ -11,8 +13,17 @@ Finalize completed issues with documentation updates, prompting logs, and closin
 ```
 /finalize 65
 /finalize 123
-/finalize 42
 ```
+
+## Agent Orchestration
+
+| Step | Agent | Purpose |
+|------|-------|---------|
+| Documentation | **docs-architect** | Update README, API docs, architecture diagrams |
+| Prompting Log | **general-purpose** | Create development journey log |
+| Issue Summary | **general-purpose** | Generate closing comment |
+| Close Issue | **general-purpose** | Close with labels, link PRs |
+| Archive | **general-purpose** | Archive context for reference |
 
 ## Execution
 
@@ -22,91 +33,86 @@ When invoked with `/finalize <issue>`, execute these steps:
    ```
    # If no argument provided, show error:
    "❌ Please provide an issue number"
-   
-   # Show usage examples:
-   "   /finalize 65"
-   "   /finalize 123"
-   
+
    # Parse issue number from argument
    ```
-   
+
 2. **Begin Finalization**
    **Output:**
    ```
    📝 Starting issue finalization workflow...
    📋 Finalizing issue: {issue}
    ```
-   
-   *Note: Context is automatically initialized by UserPromptSubmit hook*
 
-3. **Create Prompting Log**
-   ```
-   # Generate prompting log
-   .claude/hooks/prompting-log.sh create-log "{issue}"
-   
-   # Save to: .claude/logs/{date}/issue-{issue}.md
-   ```
-   **Output:**
-   ```
-   🔧 Creating prompting log...
-   📂 Prompting log saved to: .claude/logs/{date}/issue-{issue}.md
-   ```
+3. **Documentation Update** (docs-architect)
+   Review all changes and update:
+   - README.md if new features were added
+   - CONTRIBUTING.md if new patterns were established
+   - API documentation if endpoints changed
+   - Architecture diagrams if structure changed
 
-4. **Generate Closing Comment**
-   ```
-   # Generate comprehensive closing comment
-   .claude/hooks/prompting-log.sh closing-comment "{issue}"
-   
-   # Save to temporary file
-   > /tmp/closing-comment-{issue}.md
-   ```
-   **Output:**
-   ```
-   💬 Generating closing comment...
-   📝 Closing comment saved to: /tmp/closing-comment-{issue}.md
-   ```
+4. **Generate Prompting Log** (general-purpose)
+   Create log file at `.claude/logs/{date}/issue-{issue}.md`:
 
-5. **Execute Finalization Workflow**
-   ```
-   # Execute the workflow in: .claude/commands/workflows/06_finalization/issue-finalize.md
-   # With argument: {issue}
-   ```
-   **Output:**
-   ```
-   🤖 Invoking Claude with finalization workflow...
-   
-   Claude will:
-     1. Update relevant documentation
-     2. Create comprehensive prompting log
-     3. Generate closing notes for GitHub issue
-     4. Close issue #{issue} with summary
-     5. Archive context for future reference
+   ```markdown
+   # Issue {issue} - Prompting Log
+   Date: {date}
+   Branch: {branch name}
+
+   ## Prompt
+   [Original issue description and requirements]
+
+   ## Todos Generated
+   [List of subtasks created during development]
+
+   ## Summary
+   [What was implemented, key decisions, challenges overcome]
+
+   ## Next Steps
+   [Follow-up work, improvements, related issues]
+
+   ## Follow-up Prompt
+   [Suggested prompt for continuing or enhancing this work]
    ```
 
-6. **Reset Context**
-   ```
-   # Clear context for next issue
-   .claude/hooks/prompting-log.sh reset
-   ```
-   **Output:**
-   ```
-   🔄 Resetting context for next issue...
-   ```
+5. **Create Issue Summary** (general-purpose)
+   Generate comprehensive closing comment including:
+   - Summary of what was implemented
+   - List of files changed (from git diff)
+   - Key architectural decisions made
+   - Test results and validation status
+   - Documentation updates made
+   - Link to prompting log
+   - Any known limitations or future improvements
 
-7. **Complete Finalization**
+6. **Close GitHub Issue** (general-purpose)
+   - Add the closing comment to issue
+   - Close with appropriate labels (completed, documented)
+   - Link any related PRs or follow-up issues
+
+7. **Archive Context** (general-purpose)
+   - Archive context for future reference
+   - Clear current context for next issue
+
+8. **Complete Finalization**
    **Output:**
    ```
    ✅ Issue #{issue} finalized successfully!
-   
+
    📊 Summary:
      - Documentation updated
      - Prompting log created
      - GitHub issue closed with summary
      - Context archived and reset
-   
+
    💡 This completes the full development lifecycle for issue #{issue}
-   
    🎯 Ready for next issue!
    ```
-   
-   *Note: Finalization status is automatically saved for audit trail*
+
+## Success Criteria
+
+- Documentation reflects all changes
+- Prompting log captures development journey
+- GitHub issue has comprehensive closing notes
+- Context is archived for future reference
+- Team can understand what was done and why
